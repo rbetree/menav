@@ -3,11 +3,12 @@ site:
   title: coolzr
   description: nav
   author: coolzr
+  favicon: favicon.ico  # 网站图标,支持ico、png等格式
 
 # 个人信息
 profile:
   title: Hello,
-  subtitle: Welcome to My Navigation
+  subtitle: coolzr here
   description: hahaha
 
 # 导航菜单
@@ -35,7 +36,7 @@ social:
     url: 'tencent: //message/?uin=2646651542&Site=&Menu=yes'
     icon: fas fa-users
   - name: Steam
-    url: https://steam.com
+    url: https://steamcommunity.com/id/coolzr/
     icon: fab fa-steam
 
 # 首页分类
@@ -71,7 +72,7 @@ categories:
 # 项目页面
 projects:
   title: 我的项目
-  subtitle: 这里展示了我的一些个人项目和开源贡献
+  subtitle: 一些个人项目
   categories:
     - name: 个人项目
       icon: fas fa-code
@@ -89,7 +90,7 @@ projects:
       sites:
         - name: menav
           icon: fab fa-github
-          description: 一个简洁美观的个人导航页面
+          description: 一个个人导航页面
           url: "https://github.com/RZLNB/menav"
 
 
