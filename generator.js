@@ -4,13 +4,51 @@ const path = require('path');
 
 // 读取配置文件
 function loadConfig() {
+    let config = {};
+    
+    // 读取默认配置
     try {
-        const configFile = fs.readFileSync('config.yml', 'utf8');
-        return yaml.load(configFile);
+        const defaultConfigFile = fs.readFileSync('config.yml', 'utf8');
+        config = yaml.load(defaultConfigFile);
     } catch (e) {
-        console.error('Error loading config file:', e);
+        console.error('Error loading default config file:', e);
         process.exit(1);
     }
+    
+    // 尝试读取用户配置并合并
+    try {
+        if (fs.existsSync('config.user.yml')) {
+            const userConfigFile = fs.readFileSync('config.user.yml', 'utf8');
+            const userConfig = yaml.load(userConfigFile);
+            // 深度合并配置,用户配置优先
+            config = mergeConfigs(config, userConfig);
+            console.log('Using user configuration from config.user.yml');
+        } else {
+            console.log('No user configuration found, using default config.yml');
+        }
+    } catch (e) {
+        console.error('Error loading user config file:', e);
+        console.log('Falling back to default configuration');
+    }
+    
+    return config;
+}
+
+// 深度合并配置对象
+function mergeConfigs(defaultConfig, userConfig) {
+    if (!userConfig) return defaultConfig;
+    
+    const merged = { ...defaultConfig };
+    
+    for (const key in userConfig) {
+        if (typeof userConfig[key] === 'object' && !Array.isArray(userConfig[key])) {
+            merged[key] = mergeConfigs(defaultConfig[key] || {}, userConfig[key]);
+        } else {
+            merged[key] = userConfig[key];
+        }
+    }
+    
+    return merged;
 }
 
 // 生成导航菜单
@@ -102,6 +140,8 @@ function generateHTML(config) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${config.site.title}</title>
+    ${config.site.favicon ? `<link rel="icon" href="${config.site.favicon}" type="image/x-icon">
+    <link rel="shortcut icon" href="${config.site.favicon}" type="image/x-icon">` : ''}
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>

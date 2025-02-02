@@ -66,27 +66,16 @@ npm run dev
    - 进入仓库的 Settings -> General
    - 找到 Features 部分
    - 勾选 "Issues"
-   - 点击页面底部的 Save 按钮
 
-3. 配置Actions:
-   a. 启用Actions:
+3. 启用Actions:
       - 进入fork后的仓库
       - 点击顶部的 "Actions" 标签页
       - 点击绿色按钮 "I understand my workflows, go ahead and enable them"
-   
-   b. 设置权限:
-      - 进入仓库的 Settings -> Actions -> General
-      - 在 "Actions permissions" 部分选择 "Allow all actions and reusable workflows"
-      - 在 "Workflow permissions" 部分:
-        * 选择 "Read and write permissions"
-        * 勾选 "Allow GitHub Actions to create and approve pull requests"
-      - 点击页面底部的 Save 按钮
 
 4. 配置Pages:
    - 进入仓库的 Settings -> Pages
    - 在 "Build and deployment" 部分
    - Source: 选择 "GitHub Actions"
-   - 点击 Save
 
 #### 第二步：自定义配置
 
