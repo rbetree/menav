@@ -202,16 +202,37 @@ ${generateSearchResultsPage()}
 </html>`;
 }
 
+// 复制静态文件
+function copyStaticFiles(config) {
+    // 如果配置了favicon，确保文件存在并复制
+    if (config.site.favicon) {
+        try {
+            if (fs.existsSync(config.site.favicon)) {
+                fs.copyFileSync(config.site.favicon, path.basename(config.site.favicon));
+                console.log(`Copied favicon: ${config.site.favicon}`);
+            } else {
+                console.warn(`Warning: Favicon file not found: ${config.site.favicon}`);
+            }
+        } catch (e) {
+            console.error('Error copying favicon:', e);
+        }
+    }
+}
+
 // 主函数
 function main() {
     const config = loadConfig();
     const html = generateHTML(config);
     
     try {
+        // 生成HTML
         fs.writeFileSync('index.html', html);
         console.log('Successfully generated index.html');
+        
+        // 复制静态文件
+        copyStaticFiles(config);
     } catch (e) {
-        console.error('Error writing index.html:', e);
+        console.error('Error in main function:', e);
         process.exit(1);
     }
 }
