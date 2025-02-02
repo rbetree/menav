@@ -1,0 +1,207 @@
+# 网站基本信息
+site:
+  title: coolzr
+  description: nav
+  author: coolzr
+
+# 个人信息
+profile:
+  title: Hello,
+  subtitle: Welcome to My Navigation
+  description: haha
+
+# 导航菜单
+navigation:
+  - name: 首页
+    icon: fas fa-home
+    id: home
+    active: true
+  - name: 项目
+    icon: fas fa-project-diagram
+    id: projects
+  - name: 文章
+    icon: fas fa-book
+    id: articles
+  - name: 朋友
+    icon: fas fa-users
+    id: friends
+
+# 社交账号
+social:
+  - name: GitHub
+    url: https://github.com/rbetree
+    icon: fab fa-github
+  - name: QQ
+    url: 'tencent: //message/?uin=2646651542&Site=&Menu=yes'
+    icon: fas fa-users
+  - name: Steam
+    url: https://steam.com
+    icon: fab fa-steam
+
+# 首页分类
+categories:
+  - name: 常用网站
+    icon: fas fa-star
+    sites:
+      - name: Google
+        url: https://www.google.com
+        icon: fab fa-google
+        description: 全球最大的搜索引擎
+      - name: Linuxdo
+        url: https://linux.do/
+        icon: fab fa-linux
+        description: 新的理想型社区
+      - name: GitHub
+        url: https://www.github.com
+        icon: fab fa-github
+        description: 代码托管平台
+
+  - name: 学习资源
+    icon: fas fa-graduation-cap
+    sites:
+      - name: 哔哩哔哩
+        url: https://www.bilibili.com
+        icon: fas fa-play-circle
+        description: 视频学习平台
+      - name: 知乎
+        url: https://www.zhihu.com
+        icon: fas fa-question-circle
+        description: 问答社区
+
+# 项目页面
+projects:
+  title: 我的项目
+  subtitle: 这里展示了我的一些个人项目和开源贡献
+  categories:
+    - name: 个人项目
+      icon: fas fa-code
+      sites:
+        - name: menav
+          icon: fas fa-compass
+          description: 个人导航页面
+          url: "https://rbetree.github.io/menav"
+        - name: coolzr blog
+          icon: fas fa-blog
+          description: 使用Hugo搭建的博客
+          url: "https://blog.rzlnb.top/"
+    - name: 开源贡献
+      icon: fas fa-code-branch
+      sites:
+        - name: menav
+          icon: fab fa-github
+          description: 一个简洁美观的个人导航页面
+          url: "https://github.com/RZLNB/menav"
+
+
+# 文章页面
+articles:
+  title: 技术文章
+  subtitle: 分享我的技术文章和学习笔记
+  categories:
+    - name: 最新文章
+      icon: fas fa-pen
+      sites:
+        - name: Vue3最佳实践
+          icon: fab fa-vuejs
+          description: Vue3组合式API的使用技巧
+          url: "#"
+        - name: JavaScript进阶
+          icon: fab fa-js
+          description: JavaScript高级特性解析
+          url: "#"
+        - name: Git使用技巧
+          icon: fab fa-git-alt
+          description: Git常用命令和工作流
+          url: "#"
+        - name: Docker入门
+          icon: fab fa-docker
+          description: Docker基础知识和实践
+          url: "#"
+    - name: 学习笔记
+      icon: fas fa-book
+      sites:
+        - name: React Hooks
+          icon: fab fa-react
+          description: React Hooks最佳实践
+          url: "#"
+        - name: Node.js实战
+          icon: fab fa-node-js
+          description: Node.js服务端开发笔记
+          url: "#"
+        - name: CSS技巧
+          icon: fab fa-css3
+          description: CSS常用技巧总结
+          url: "#"
+        - name: 数据库设计
+          icon: fas fa-database
+          description: 数据库架构和优化笔记
+          url: "#"
+    - name: 源码解析
+      icon: fas fa-code
+      sites:
+        - name: Vue源码解析
+          icon: fab fa-vuejs
+          description: Vue.js核心原理解析
+          url: "#"
+        - name: React原理
+          icon: fab fa-react
+          description: React核心机制解析
+          url: "#"
+
+# 朋友页面
+friends:
+  title: 友情链接
+  subtitle: 优秀的博主和朋友们
+  categories:
+    - name: 技术博主
+      icon: fas fa-user-friends
+      sites:
+        - name: 小明的博客
+          icon: fas fa-code
+          description: 全栈开发工程师，分享技术心得
+          url: "#"
+
+    
+    - name: 技术社区
+      icon: fas fa-laptop-code
+      sites:
+        - name: GitHub
+          icon: fab fa-github
+          description: 开源代码托管平台
+          url: https://github.com
+        - name: Stack Overflow
+          icon: fab fa-stack-overflow
+          description: 程序员问答社区
+          url: https://stackoverflow.com
+        - name: 掘金
+          icon: fas fa-book
+          description: 高质量技术社区
+          url: https://juejin.cn
+        - name: V2EX
+          icon: fas fa-comments
+          description: 创意工作者社区
+          url: https://v2ex.com
+        - name: Linuxdo
+          icon: fas fa-comments
+          description: 创意工作者社区
+          url: https://linux.do
+    
+    - name: 休闲娱乐
+      icon: fas fa-coffee
+      sites:
+        - name: 哔哩哔哩
+          icon: fas fa-play-circle
+          description: 视频弹幕网站
+          url: https://www.bilibili.com
+        - name: 知乎
+          icon: fas fa-question-circle
+          description: 问答社区
+          url: https://www.zhihu.com
+        - name: 豆瓣
+          icon: fas fa-film
+          description: 文艺生活社区
+          url: https://www.douban.com
+        - name: 网易云音乐
+          icon: fas fa-music
+          description: 音乐平台
+          url: https://music.163.com 
