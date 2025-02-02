@@ -140,8 +140,8 @@ function generateHTML(config) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${config.site.title}</title>
-    ${config.site.favicon ? `<link rel="icon" href="${config.site.favicon}" type="image/x-icon">
-    <link rel="shortcut icon" href="${config.site.favicon}" type="image/x-icon">` : ''}
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
