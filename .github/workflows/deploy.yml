@@ -38,6 +38,15 @@ jobs:
       - name: Generate site
         run: npm run generate
         
+      - name: Copy favicon
+        run: |
+          if [ -f favicon.ico ]; then
+            cp favicon.ico ./favicon.ico
+            echo "Favicon copied successfully"
+          else
+            echo "Warning: favicon.ico not found"
+          fi
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
