@@ -223,6 +223,11 @@ ${generateNavigation(config.navigation)}
                 </div>
 ${generateSocialLinks(config.social)}
             </div>
+
+            <div class="copyright">
+                <p>© 2025 <a href="https://github.com/RZLNB/menav" target="_blank">MeNav</a></p>
+                <p>by <a href="https://github.com/RZLNB" target="_blank">RZLNB</a></p>
+            </div>
         </nav>
 
         <!-- 右侧内容区 -->

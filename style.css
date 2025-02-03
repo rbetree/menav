@@ -924,3 +924,24 @@ body {
         transform: scale(1);
     }
 }
+
+/* 版权声明 */
+.copyright {
+    margin-top: auto;
+    padding-top: 1rem;
+    text-align: center;
+    color: #8b8c8f;
+    font-size: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.copyright a {
+    color: #4a9eff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.copyright a:hover {
+    color: #3a8eef;
+    text-decoration: underline;
+}

@@ -144,6 +144,21 @@ site:
   author: 作者名
   favicon: favicon.ico  # 网站图标,支持ico、png等格式
 
+# 字体设置
+fonts:
+  title:  # 标题字体
+    family: 字体名称  # 可以是Web安全字体或Google Fonts
+    weight: 字重值  # 如400、500、600等
+    source: 字体来源  # "google"或"system"
+  subtitle:  # 副标题字体
+    family: 字体名称
+    weight: 字重值
+    source: 字体来源
+  body:  # 正文字体
+    family: 字体名称
+    weight: 字重值
+    source: 字体来源
+
 # 个人信息
 profile:
   title: 欢迎语
@@ -158,6 +173,36 @@ navigation:
     active: 是否激活
 
 # 更多配置...
+```
+
+### 设置网站字体
+
+1. 字体配置选项:
+   - `family`: 字体名称，支持Web安全字体或Google Fonts
+   - `weight`: 字体粗细，常用值如400(常规)、500(中等)、600(粗体)等
+   - `source`: 字体来源，可选"google"或"system"
+   
+2. 字体分类:
+   - `title`: 标题字体，用于大标题
+   - `subtitle`: 副标题字体，用于副标题
+   - `body`: 正文字体，用于普通文本
+
+3. 使用Google字体示例:
+```yaml
+fonts:
+  body:
+    family: "Noto Sans SC"  # Google提供的中文字体
+    weight: 400
+    source: "google"
+```
+
+4. 使用系统字体示例:
+```yaml
+fonts:
+  body:
+    family: "Segoe UI, system-ui, -apple-system, sans-serif"
+    weight: 400
+    source: "system"
 ```
 
 ### 设置网站图标
