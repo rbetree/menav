@@ -6,7 +6,8 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-body);
+    font-weight: var(--font-weight-body);
     line-height: 1.6;
     background-color: #1a1b1e;
     color: #e4e6eb;
@@ -23,6 +24,69 @@ body {
     position: relative;
     z-index: 1;
     overflow: hidden; /* 防止layout滚动 */
+}
+
+/* 移动端基础样式 */
+.mobile-buttons {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 0 1rem;
+    justify-content: space-between;
+    z-index: 1000; /* 确保在最上层 */
+    pointer-events: none; /* 防止按钮区域阻挡其他内容 */
+}
+
+.menu-toggle,
+.search-toggle {
+    background: #2d2e32;
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: auto; /* 恢复按钮的点击事件 */
+}
+
+.menu-toggle:hover,
+.search-toggle:hover {
+    background: #3a3b3f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.menu-toggle:active,
+.search-toggle:active {
+    transform: translateY(0);
+}
+
+/* 遮罩层 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 90;
+    backdrop-filter: blur(4px);
+}
+
+.overlay.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* 侧边栏样式 */
@@ -168,9 +232,6 @@ body {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: #1a1b1e;
-    padding-top: 2rem;
-    padding-bottom: 1rem;
 }
 
 /* 搜索框 */
@@ -178,6 +239,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 600px;
+    background-color: #2d2e32;
+    border-radius: 12px;
 }
 
 .search-box::after {
@@ -208,7 +271,7 @@ body {
     padding: 1rem 4rem 1rem 1.5rem;
     border: none;
     border-radius: 12px;
-    background-color: #2d2e32;
+    background-color: transparent;
     color: #fff;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -269,6 +332,8 @@ body {
 }
 
 .welcome-section h2 {
+    font-family: var(--font-title);
+    font-weight: var(--font-weight-title);
     font-size: 2.4rem;
     color: #fff;
     margin-bottom: 0.5rem;
@@ -276,16 +341,49 @@ body {
 }
 
 .welcome-section h3 {
+    font-family: var(--font-subtitle);
+    font-weight: var(--font-weight-subtitle);
     font-size: 2rem;
-    color: #4a9eff;
     margin-bottom: 1rem;
     letter-spacing: 0.3px;
+    background: linear-gradient(135deg, #4a9eff 0%, #a855f7 50%, #ff6b6b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    display: inline-block;
+    text-shadow: 0 0 20px rgba(74, 158, 255, 0.1);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.welcome-section h3::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    filter: blur(20px);
+    opacity: 0.3;
+    z-index: -1;
 }
 
 .welcome-section .subtitle {
     color: #8b8c8f;
     font-size: 1.1rem;
     line-height: 1.5;
+}
+
+@keyframes glow {
+    from {
+        filter: drop-shadow(0 0 2px rgba(74, 158, 255, 0.2))
+               drop-shadow(0 0 4px rgba(168, 85, 247, 0.2));
+    }
+    to {
+        filter: drop-shadow(0 0 4px rgba(74, 158, 255, 0.4))
+               drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+    }
 }
 
 /* 分类样式 */
@@ -610,126 +708,126 @@ body {
 }
 
 @media (max-width: 768px) {
-    .menu-toggle {
-        display: block;
+    /* 显示移动端按钮 */
+    .mobile-buttons {
+        display: flex;
     }
 
+    /* 内容区域样式 */
     .content {
         margin-left: 0;
         max-width: 100vw;
-        padding-top: 4rem;
+        padding: 4.5rem 1rem 2rem;
     }
 
+    /* 侧边栏样式 */
     .sidebar {
-        width: 240px;
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 240px;
+        z-index: 150;
+        padding-top: calc(2rem + 60px); /* 增加顶部padding，为按钮留出空间 */
     }
 
     .sidebar.active {
         transform: translateX(0);
     }
 
+    /* 搜索框容器样式 */
+    .search-container {
+        position: fixed;
+        top: calc(1rem + 50px); /* 将搜索框下移，避开按钮 */
+        right: 1rem;
+        width: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        background: transparent;
+        z-index: 150;
+    }
+
+    .search-container.active {
+        width: calc(100% - 2rem); /* 调整宽度计算 */
+        right: 1rem; /* 统一右侧间距 */
+    }
+
+    .search-box {
+        width: 100%;
+        opacity: 0;
+        transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-container.active .search-box {
+        opacity: 1;
+    }
+
+    /* 搜索框样式优化 */
+    .search-box input {
+        padding: 0.8rem 3rem 0.8rem 1.2rem;
+        font-size: 0.95rem;
+        background-color: #2d2e32;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-box i {
+        right: 1.2rem;
+    }
+
+    /* 导航文字显示 */
     .sidebar .logo h1,
     .sidebar .section-title,
     .sidebar .nav-item span {
+        opacity: 1;
         display: block;
     }
 
-    .nav-item .nav-text,
-    .nav-item .external-icon {
-        display: inline;
-    }
-
-    .nav-item {
-        padding: 0.8rem;
-        justify-content: flex-start;
-    }
-
-    .nav-item .icon-container {
-        margin-right: 1rem;
-    }
-
-    .search-container {
-        padding: 0 1rem;
-        margin-bottom: 1rem;
-    }
-
+    /* 欢迎区域样式 */
     .welcome-section {
-        padding: 0 1.5rem;
-        margin-bottom: 2rem;
+        padding: 0 1rem;
+        margin-top: 1rem; /* 增加顶部间距 */
     }
 
     .welcome-section h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
 
     .welcome-section h3 {
         font-size: 1.6rem;
+        background: linear-gradient(135deg, #4a9eff 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: glow 3s ease-in-out infinite alternate;
     }
 
-    .welcome-section .subtitle {
-        font-size: 1rem;
-    }
-
+    /* 分类样式优化 */
     .category {
-        margin: 0 1rem 1.5rem 1rem;
+        margin: 0 1rem 1.5rem;
         padding: 1.5rem;
     }
 
     .sites-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 1rem;
-    }
-
-    .site-card {
-        padding: 1rem;
-    }
-
-    .site-card .site-icon {
-        font-size: 1.8rem;
-    }
-
-    .site-card .site-name {
-        font-size: 0.9rem;
-    }
-
-    .site-card .site-desc {
-        font-size: 0.8rem;
     }
 }
 
 @media (max-width: 480px) {
     .welcome-section {
-        padding: 0 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .welcome-section h2 {
-        font-size: 1.6rem;
-    }
-
-    .welcome-section h3 {
-        font-size: 1.4rem;
+        padding: 0 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .category {
-        margin: 0 0.8rem 1rem 0.8rem;
-        padding: 1rem;
+        margin: 0 1rem 1.2rem 1rem;
+        padding: 1.2rem;
     }
 
-    .sites-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 0.8rem;
+    .search-container {
+        padding: 0 1rem;
     }
 
-    .site-card {
-        padding: 0.8rem;
-    }
-
-    .site-card .site-icon {
-        font-size: 1.6rem;
-        margin-bottom: 0.5rem;
+    .page {
+        padding-top: 1rem;
     }
 }
 
@@ -825,45 +923,4 @@ body {
         opacity: 1;
         transform: scale(1);
     }
-}
-
-/* 移动端菜单按钮 */
-.menu-toggle {
-    display: none;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 200;
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background-color: #2d2e32;
-    transition: all 0.3s ease;
-}
-
-.menu-toggle:hover {
-    background-color: #3a3b3f;
-}
-
-/* 遮罩层 */
-.overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 99;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.overlay.active {
-    display: block;
-    opacity: 1;
 }

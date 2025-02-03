@@ -6,11 +6,35 @@
     <title>我的导航</title>
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Quicksand:wght@500&family=Noto Sans SC:wght@400&display=swap" rel="stylesheet">
+    <style>
+    :root {
+    --font-title: Poppins;
+    --font-weight-title: 600;
+    --font-subtitle: Quicksand;
+    --font-weight-subtitle: 500;
+    --font-body: Noto Sans SC;
+    --font-weight-body: 400;
+}
+    </style>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="loading">
     <div class="layout">
+        <!-- 移动端按钮 -->
+        <div class="mobile-buttons">
+            <button class="menu-toggle" aria-label="切换菜单">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button class="search-toggle" aria-label="切换搜索">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- 遮罩层 -->
+        <div class="overlay"></div>
+
         <!-- 左侧导航 -->
         <nav class="sidebar">
             <div class="logo">
@@ -89,9 +113,12 @@
 
         <!-- 右侧内容区 -->
         <main class="content">
-            <div class="search-box">
-                <input type="text" id="search" placeholder="搜索...">
-                <i class="fas fa-search"></i>
+            <!-- 搜索框容器 -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="搜索...">
+                    <i class="fas fa-search"></i>
+                </div>
             </div>
 
             <!-- 首页 -->

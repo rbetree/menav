@@ -137,8 +137,46 @@ function generateSearchResultsPage() {
             </div>`;
 }
 
+// 生成Google Fonts链接
+function generateGoogleFontsLink(config) {
+    const fonts = config.fonts;
+    const googleFonts = [];
+    
+    // 收集需要加载的Google字体
+    Object.values(fonts).forEach(font => {
+        if (font.source === 'google') {
+            const fontName = font.family.replace(/["']/g, '');
+            const fontWeight = font.weight || 400;
+            googleFonts.push(`family=${fontName}:wght@${fontWeight}`);
+        }
+    });
+    
+    return googleFonts.length > 0 
+        ? `<link href="https://fonts.googleapis.com/css2?${googleFonts.join('&')}&display=swap" rel="stylesheet">`
+        : '';
+}
+
+// 生成字体CSS变量
+function generateFontVariables(config) {
+    const fonts = config.fonts;
+    let css = ':root {\n';
+    
+    Object.entries(fonts).forEach(([key, font]) => {
+        css += `    --font-${key}: ${font.family};\n`;
+        if (font.weight) {
+            css += `    --font-weight-${key}: ${font.weight};\n`;
+        }
+    });
+    
+    css += '}';
+    return css;
+}
+
 // 生成完整的HTML
 function generateHTML(config) {
+    const googleFontsLink = generateGoogleFontsLink(config);
+    const fontVariables = generateFontVariables(config);
+    
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -147,11 +185,28 @@ function generateHTML(config) {
     <title>${config.site.title}</title>
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    ${googleFontsLink}
+    <style>
+    ${fontVariables}
+    </style>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="loading">
     <div class="layout">
+        <!-- 移动端按钮 -->
+        <div class="mobile-buttons">
+            <button class="menu-toggle" aria-label="切换菜单">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button class="search-toggle" aria-label="切换搜索">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- 遮罩层 -->
+        <div class="overlay"></div>
+
         <!-- 左侧导航 -->
         <nav class="sidebar">
             <div class="logo">
@@ -172,9 +227,12 @@ ${generateSocialLinks(config.social)}
 
         <!-- 右侧内容区 -->
         <main class="content">
-            <div class="search-box">
-                <input type="text" id="search" placeholder="搜索...">
-                <i class="fas fa-search"></i>
+            <!-- 搜索框容器 -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="搜索...">
+                    <i class="fas fa-search"></i>
+                </div>
             </div>
 
             <!-- 首页 -->

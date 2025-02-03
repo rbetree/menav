@@ -5,6 +5,21 @@ site:
   author: Your Name
   favicon: favicon.ico  # 网站图标,支持ico、png等格式
 
+# 字体设置
+fonts:
+  title:  # 标题字体
+    family: "Poppins"  # 可以是Web安全字体或Google Fonts
+    weight: 600  # 字重
+    source: "google"  # google 或 system
+  subtitle:  # 副标题字体（Welcome to My Navigation）
+    family: "Quicksand"
+    weight: 500
+    source: "google"
+  body:  # 正文字体
+    family: "Noto Sans SC"
+    weight: 400
+    source: "google"
+
 # 个人信息
 profile:
   title: Hello,

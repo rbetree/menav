@@ -7,9 +7,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBox = document.querySelector('.search-box');
     const searchResultsPage = document.getElementById('search-results');
     const searchSections = searchResultsPage.querySelectorAll('.search-section');
+    
+    // 移动端元素
+    const menuToggle = document.querySelector('.menu-toggle');
+    const searchToggle = document.querySelector('.search-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const searchContainer = document.querySelector('.search-container');
+    const overlay = document.querySelector('.overlay');
+    
     let isSearchActive = false;
     let currentPageId = 'home';
     let isInitialLoad = true;
+    let isSidebarOpen = false;
+    let isSearchOpen = false;
+
+    // 移动端菜单切换
+    function toggleSidebar() {
+        isSidebarOpen = !isSidebarOpen;
+        sidebar.classList.toggle('active', isSidebarOpen);
+        overlay.classList.toggle('active', isSidebarOpen);
+        if (isSearchOpen) {
+            toggleSearch();
+        }
+    }
+
+    // 移动端搜索切换
+    function toggleSearch() {
+        isSearchOpen = !isSearchOpen;
+        searchContainer.classList.toggle('active', isSearchOpen);
+        overlay.classList.toggle('active', isSearchOpen);
+        if (isSearchOpen) {
+            searchInput.focus();
+            if (isSidebarOpen) {
+                toggleSidebar();
+            }
+        }
+    }
+
+    // 关闭所有移动端面板
+    function closeAllPanels() {
+        if (isSidebarOpen) {
+            toggleSidebar();
+        }
+        if (isSearchOpen) {
+            toggleSearch();
+        }
+    }
+
+    // 移动端事件监听
+    menuToggle.addEventListener('click', toggleSidebar);
+    searchToggle.addEventListener('click', toggleSearch);
+    overlay.addEventListener('click', closeAllPanels);
+
+    // 检查是否是移动设备
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
+    // 窗口大小改变时处理
+    window.addEventListener('resize', () => {
+        if (!isMobile()) {
+            sidebar.classList.remove('active');
+            searchContainer.classList.remove('active');
+            overlay.classList.remove('active');
+            isSidebarOpen = false;
+            isSearchOpen = false;
+        }
+    });
 
     // 页面切换功能
     function showPage(pageId, skipSearchReset = false) {
@@ -215,41 +279,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, index * 100);
             });
         });
-    });
-
-    // 移动端菜单交互
-    const menuToggle = document.querySelector('.menu-toggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.overlay');
-
-    function toggleMenu() {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-    }
-
-    function closeMenu() {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    menuToggle.addEventListener('click', toggleMenu);
-    overlay.addEventListener('click', closeMenu);
-
-    // 点击链接后自动关闭菜单
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                closeMenu();
-            }
-        });
-    });
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-            closeMenu();
-        }
     });
 }); 
