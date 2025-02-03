@@ -55,8 +55,10 @@ function mergeConfigs(defaultConfig, userConfig) {
 function generateNavigation(navigation) {
     return navigation.map(nav => `
                 <a href="#" class="nav-item${nav.active ? ' active' : ''}" data-page="${nav.id}">
-                    <i class="${nav.icon}"></i>
-                    <span>${nav.name}</span>
+                    <div class="icon-container">
+                        <i class="${nav.icon}"></i>
+                    </div>
+                    <span class="nav-text">${nav.name}</span>
                 </a>`).join('\n');
 }
 
@@ -85,8 +87,11 @@ function generateCategories(categories) {
 function generateSocialLinks(social) {
     return social.map(link => `
                 <a href="${link.url}" class="nav-item" target="_blank">
-                    <i class="${link.icon}"></i>
-                    <span>${link.name}</span>
+                    <div class="icon-container">
+                        <i class="${link.icon}"></i>
+                    </div>
+                    <span class="nav-text">${link.name}</span>
+                    <i class="fas fa-external-link-alt external-icon"></i>
                 </a>`).join('\n');
 }
 
@@ -158,7 +163,9 @@ ${generateNavigation(config.navigation)}
             </div>
 
             <div class="nav-section">
-                <div class="section-title">在线账号</div>
+                <div class="section-title">
+                    <i class="fas fa-link"></i>
+                </div>
 ${generateSocialLinks(config.social)}
             </div>
         </nav>

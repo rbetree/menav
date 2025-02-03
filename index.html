@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的导航</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -20,47 +20,69 @@
             <div class="nav-section">
 
                 <a href="#" class="nav-item active" data-page="home">
-                    <i class="fas fa-home"></i>
-                    <span>首页</span>
+                    <div class="icon-container">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span class="nav-text">首页</span>
                 </a>
 
                 <a href="#" class="nav-item" data-page="projects">
-                    <i class="fas fa-project-diagram"></i>
-                    <span>项目</span>
+                    <div class="icon-container">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <span class="nav-text">项目</span>
                 </a>
 
                 <a href="#" class="nav-item" data-page="articles">
-                    <i class="fas fa-book"></i>
-                    <span>文章</span>
+                    <div class="icon-container">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <span class="nav-text">文章</span>
                 </a>
 
                 <a href="#" class="nav-item" data-page="friends">
-                    <i class="fas fa-users"></i>
-                    <span>朋友</span>
+                    <div class="icon-container">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="nav-text">朋友</span>
                 </a>
             </div>
 
             <div class="nav-section">
-                <div class="section-title">在线账号</div>
+                <div class="section-title">
+                    <i class="fas fa-link"></i>
+                </div>
 
                 <a href="https://github.com" class="nav-item" target="_blank">
-                    <i class="fab fa-github"></i>
-                    <span>GitHub</span>
+                    <div class="icon-container">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <span class="nav-text">GitHub</span>
+                    <i class="fas fa-external-link-alt external-icon"></i>
                 </a>
 
                 <a href="https://t.me" class="nav-item" target="_blank">
-                    <i class="fab fa-telegram"></i>
-                    <span>Telegram</span>
+                    <div class="icon-container">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <span class="nav-text">Telegram</span>
+                    <i class="fas fa-external-link-alt external-icon"></i>
                 </a>
 
                 <a href="https://twitter.com" class="nav-item" target="_blank">
-                    <i class="fab fa-twitter"></i>
-                    <span>Twitter</span>
+                    <div class="icon-container">
+                        <i class="fab fa-twitter"></i>
+                    </div>
+                    <span class="nav-text">Twitter</span>
+                    <i class="fas fa-external-link-alt external-icon"></i>
                 </a>
 
                 <a href="https://steam.com" class="nav-item" target="_blank">
-                    <i class="fab fa-steam"></i>
-                    <span>Steam</span>
+                    <div class="icon-container">
+                        <i class="fab fa-steam"></i>
+                    </div>
+                    <span class="nav-text">Steam</span>
+                    <i class="fas fa-external-link-alt external-icon"></i>
                 </a>
             </div>
         </nav>
@@ -95,6 +117,18 @@
                             <h3>GitHub</h3>
                             <p>代码托管平台</p>
                         </a>
+
+                        <a href="https://stackoverflow.com" class="site-card">
+                            <i class="fab fa-stack-overflow"></i>
+                            <h3>Stack Overflow</h3>
+                            <p>程序员问答社区</p>
+                        </a>
+
+                        <a href="https://chat.openai.com" class="site-card">
+                            <i class="fas fa-robot"></i>
+                            <h3>ChatGPT</h3>
+                            <p>AI智能助手</p>
+                        </a>
                     </div>
                 </section>
 
@@ -112,6 +146,108 @@
                             <i class="fas fa-question-circle"></i>
                             <h3>知乎</h3>
                             <p>问答社区</p>
+                        </a>
+
+                        <a href="https://juejin.cn" class="site-card">
+                            <i class="fas fa-book"></i>
+                            <h3>掘金</h3>
+                            <p>高质量技术社区</p>
+                        </a>
+
+                        <a href="https://leetcode.cn" class="site-card">
+                            <i class="fas fa-code"></i>
+                            <h3>LeetCode</h3>
+                            <p>算法刷题平台</p>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="category">
+                    <h2><i class="fas fa-tools"></i> 开发工具</h2>
+                    <div class="sites-grid">
+                        
+                        <a href="https://code.visualstudio.com" class="site-card">
+                            <i class="fas fa-code"></i>
+                            <h3>VS Code</h3>
+                            <p>强大的代码编辑器</p>
+                        </a>
+
+                        <a href="https://www.postman.com" class="site-card">
+                            <i class="fas fa-paper-plane"></i>
+                            <h3>Postman</h3>
+                            <p>API调试工具</p>
+                        </a>
+
+                        <a href="https://git-scm.com" class="site-card">
+                            <i class="fab fa-git-alt"></i>
+                            <h3>Git</h3>
+                            <p>版本控制工具</p>
+                        </a>
+
+                        <a href="https://www.docker.com" class="site-card">
+                            <i class="fab fa-docker"></i>
+                            <h3>Docker</h3>
+                            <p>容器化平台</p>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="category">
+                    <h2><i class="fas fa-palette"></i> 设计资源</h2>
+                    <div class="sites-grid">
+                        
+                        <a href="https://www.figma.com" class="site-card">
+                            <i class="fab fa-figma"></i>
+                            <h3>Figma</h3>
+                            <p>在线设计工具</p>
+                        </a>
+
+                        <a href="https://dribbble.com" class="site-card">
+                            <i class="fab fa-dribbble"></i>
+                            <h3>Dribbble</h3>
+                            <p>设计师社区</p>
+                        </a>
+
+                        <a href="https://www.behance.net" class="site-card">
+                            <i class="fab fa-behance"></i>
+                            <h3>Behance</h3>
+                            <p>创意设计平台</p>
+                        </a>
+
+                        <a href="https://www.iconfont.cn" class="site-card">
+                            <i class="fas fa-icons"></i>
+                            <h3>IconFont</h3>
+                            <p>图标资源库</p>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="category">
+                    <h2><i class="fas fa-wrench"></i> 在线工具</h2>
+                    <div class="sites-grid">
+                        
+                        <a href="https://jsoneditoronline.org" class="site-card">
+                            <i class="fas fa-code-branch"></i>
+                            <h3>JSON Editor</h3>
+                            <p>JSON在线编辑器</p>
+                        </a>
+
+                        <a href="https://caniuse.com" class="site-card">
+                            <i class="fas fa-browser"></i>
+                            <h3>Can I Use</h3>
+                            <p>浏览器兼容性查询</p>
+                        </a>
+
+                        <a href="https://tinypng.com" class="site-card">
+                            <i class="fas fa-compress"></i>
+                            <h3>TinyPNG</h3>
+                            <p>图片压缩工具</p>
+                        </a>
+
+                        <a href="https://carbon.now.sh" class="site-card">
+                            <i class="fas fa-code"></i>
+                            <h3>Carbon</h3>
+                            <p>代码图片生成器</p>
                         </a>
                     </div>
                 </section>
