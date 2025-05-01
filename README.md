@@ -54,7 +54,7 @@
 
 **3. 移动端显示增强**
 - ✅ 优化了移动端卡片尺寸，一屏可显示更多网址
-- ✅ 图标大小自适应，在小屏幕上更加紧凑（从1.8rem减小到1.2-1.5rem）
+- ✅ 图标大小自适应，在小屏幕上更加紧凑
 - ✅ 为不同尺寸移动设备（768px、480px、400px）提供递进式UI优化
 - ✅ 减小卡片内边距和元素间距，增加屏幕利用率
 
@@ -391,10 +391,10 @@ categories:
         description: 网站描述
 ```
 
-## 贡献
-
-欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
-
 ## 许可证
 
-MIT License 
+AGPL-3.0 License
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program requires that modified versions must also be made available under the same license when used over a network. 
