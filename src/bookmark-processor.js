@@ -157,7 +157,7 @@ function parseBookmarks(htmlContent) {
         name: name,
         url: url,
         icon: icon,
-        description: `从书签导入: ${name}`
+        description: name
       });
     }
     
