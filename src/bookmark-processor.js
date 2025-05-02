@@ -6,8 +6,12 @@ const yaml = require('js-yaml');
 const BOOKMARKS_DIR = 'bookmarks';
 // 输出配置文件路径 - 使用相对路径
 const OUTPUT_FILE = 'bookmarks.user.yml';
+// 模块化输出配置文件路径
+const MODULAR_OUTPUT_FILE = 'config/user/pages/bookmarks.yml';
 // 默认书签配置文件路径 - 使用相对路径
 const DEFAULT_BOOKMARKS_FILE = 'bookmarks.yml';
+// 模块化默认书签配置文件路径
+const MODULAR_DEFAULT_BOOKMARKS_FILE = 'config/_default/pages/bookmarks.yml';
 
 // 图标映射，根据URL关键字匹配合适的图标
 const ICON_MAPPING = {
@@ -209,20 +213,114 @@ ${yamlString}`;
 
 // 更新现有config.yml中的导航，添加书签页面
 function updateConfigWithBookmarks() {
+  // 传统配置文件
   const configFile = 'config.yml';
   const userConfigFile = 'config.user.yml';
   
-  // 优先使用用户配置文件，如果存在
-  const targetConfigFile = fs.existsSync(userConfigFile) ? userConfigFile : configFile;
+  // 模块化配置文件
+  const modularNavFile = 'config/_default/navigation.yml';
+  const modularUserNavFile = 'config/user/navigation.yml';
   
+  let navigationUpdated = false;
+  
+  // 按优先级顺序尝试更新导航配置
+  
+  // 1. 最高优先级: 模块化用户导航配置
+  if (fs.existsSync(modularUserNavFile)) {
+    navigationUpdated = updateNavigationFile(modularUserNavFile);
+    if (navigationUpdated) {
+      console.log(`Updated modular user navigation file: ${modularUserNavFile} (highest priority)`);
+    }
+  }
+  
+  // 2. 次高优先级: 传统用户配置
+  if (!navigationUpdated && fs.existsSync(userConfigFile)) {
+    navigationUpdated = updateTraditionalConfig(userConfigFile);
+    if (navigationUpdated) {
+      console.log(`Updated legacy user config file: ${userConfigFile}`);
+    }
+  }
+  
+  // 3. 次低优先级: 模块化默认导航
+  if (!navigationUpdated && fs.existsSync(modularNavFile)) {
+    navigationUpdated = updateNavigationFile(modularNavFile);
+    if (navigationUpdated) {
+      console.log(`Updated modular default navigation file: ${modularNavFile}`);
+    }
+  }
+  
+  // 4. 最低优先级: 传统默认配置
+  if (!navigationUpdated && fs.existsSync(configFile)) {
+    navigationUpdated = updateTraditionalConfig(configFile);
+    if (navigationUpdated) {
+      console.log(`Updated legacy default config file: ${configFile} (lowest priority)`);
+    }
+  }
+  
+  if (!navigationUpdated) {
+    console.log('Did not find any configuration file to update with bookmarks navigation');
+  }
+}
+
+// 更新单个导航配置文件（模块化版本）
+function updateNavigationFile(filePath) {
   try {
-    const configContent = fs.readFileSync(targetConfigFile, 'utf8');
+    const content = fs.readFileSync(filePath, 'utf8');
+    const navConfig = yaml.load(content);
+    
+    // 检查是否已有书签页面
+    const hasBookmarksNav = Array.isArray(navConfig) && 
+      navConfig.some(nav => nav.id === 'bookmarks');
+    
+    if (!hasBookmarksNav) {
+      // 添加书签导航项
+      if (!Array.isArray(navConfig)) {
+        console.log(`Warning: Navigation config in ${filePath} is not an array, cannot update`);
+        return false;
+      }
+      
+      navConfig.push({
+        name: '书签',
+        icon: 'fas fa-bookmark',
+        id: 'bookmarks',
+        active: false
+      });
+      
+      // 更新文件
+      const updatedYaml = yaml.dump(navConfig, {
+        indent: 2,
+        lineWidth: -1,
+        quotingType: '"'
+      });
+      
+      fs.writeFileSync(filePath, updatedYaml, 'utf8');
+      return true;
+    }
+    
+    return false; // 无需更新
+  } catch (error) {
+    console.error(`Error updating navigation file ${filePath}:`, error);
+    return false;
+  }
+}
+
+// 更新传统配置文件（整体配置）
+function updateTraditionalConfig(filePath) {
+  try {
+    const configContent = fs.readFileSync(filePath, 'utf8');
     const config = yaml.load(configContent);
     
     // 检查导航中是否已有书签页面
-    const hasBookmarksNav = config.navigation.some(nav => nav.id === 'bookmarks');
+    const hasBookmarksNav = config.navigation && 
+      Array.isArray(config.navigation) && 
+      config.navigation.some(nav => nav.id === 'bookmarks');
     
     if (!hasBookmarksNav) {
+      // 确保navigation数组存在
+      if (!config.navigation) {
+        config.navigation = [];
+      }
+      
       // 添加书签页面到导航
       config.navigation.push({
         name: '书签',
@@ -238,11 +336,14 @@ function updateConfigWithBookmarks() {
         quotingType: '"'
       });
       
-      fs.writeFileSync(targetConfigFile, updatedYaml, 'utf8');
-      console.log(`Updated ${targetConfigFile} with bookmarks navigation`);
+      fs.writeFileSync(filePath, updatedYaml, 'utf8');
+      return true;
     }
+    
+    return false; // 无需更新
   } catch (error) {
-    console.error('Error updating config with bookmarks navigation:', error);
+    console.error(`Error updating config file ${filePath}:`, error);
+    return false;
   }
 }
 
@@ -250,7 +351,8 @@ function updateConfigWithBookmarks() {
 async function main() {
   console.log('Starting bookmark processing...');
   console.log(`Current working directory: ${process.cwd()}`);
-  console.log(`Output file will be: ${OUTPUT_FILE} (absolute: ${path.resolve(OUTPUT_FILE)})`);
+  console.log(`Legacy output file will be: ${OUTPUT_FILE} (absolute: ${path.resolve(OUTPUT_FILE)})`);
+  console.log(`Modular output file will be: ${MODULAR_OUTPUT_FILE} (absolute: ${path.resolve(MODULAR_OUTPUT_FILE)})`);
   
   // 获取最新的书签文件
   const bookmarkFile = getLatestBookmarkFile();
@@ -288,39 +390,58 @@ async function main() {
     console.log(yaml.split('\n').slice(0, 5).join('\n') + '\n...');
     
     try {
-      // 确保目标目录存在
+      // 确保传统目标目录存在
       const outputDir = path.dirname(OUTPUT_FILE);
       if (!fs.existsSync(outputDir) && outputDir !== '.') {
         console.log(`Creating output directory: ${outputDir}`);
         fs.mkdirSync(outputDir, { recursive: true });
       }
       
-      // 保存YAML文件
-      console.log(`Writing to: ${OUTPUT_FILE}`);
+      // 确保模块化目标目录存在
+      const modularOutputDir = path.dirname(MODULAR_OUTPUT_FILE);
+      if (!fs.existsSync(modularOutputDir)) {
+        console.log(`Creating modular output directory structure: ${modularOutputDir}`);
+        fs.mkdirSync(modularOutputDir, { recursive: true });
+      }
+      
+      // 保存YAML到传统位置
+      console.log(`Writing to legacy location: ${OUTPUT_FILE}`);
       fs.writeFileSync(OUTPUT_FILE, yaml, 'utf8');
       
+      // 保存YAML到模块化位置
+      console.log(`Writing to modular location: ${MODULAR_OUTPUT_FILE}`);
+      fs.writeFileSync(MODULAR_OUTPUT_FILE, yaml, 'utf8');
+      
       // 验证文件是否确实被创建
+      let success = false;
+      
       if (fs.existsSync(OUTPUT_FILE)) {
         const stats = fs.statSync(OUTPUT_FILE);
         console.log(`Successfully saved bookmarks configuration to ${OUTPUT_FILE}`);
-        console.log(`Verified file exists: ${OUTPUT_FILE}`);
         console.log(`File size: ${stats.size} bytes`);
-        console.log(`File permissions: ${stats.mode.toString(8)}`);
-        
-        // 列出当前目录内容以确认
-        console.log('Current directory contains:');
-        fs.readdirSync('.').forEach(file => {
-          console.log(`- ${file}`);
-        });
+        success = true;
       } else {
-        console.error(`ERROR: File was not created: ${OUTPUT_FILE}`);
+        console.error(`ERROR: Legacy file was not created: ${OUTPUT_FILE}`);
+      }
+      
+      if (fs.existsSync(MODULAR_OUTPUT_FILE)) {
+        const stats = fs.statSync(MODULAR_OUTPUT_FILE);
+        console.log(`Successfully saved bookmarks configuration to ${MODULAR_OUTPUT_FILE}`);
+        console.log(`File size: ${stats.size} bytes`);
+        success = true;
+      } else {
+        console.error(`ERROR: Modular file was not created: ${MODULAR_OUTPUT_FILE}`);
+      }
+      
+      if (!success) {
+        console.error('ERROR: No output files were created successfully');
         process.exit(1);
       }
       
       // 更新导航
       updateConfigWithBookmarks();
     } catch (writeError) {
-      console.error(`ERROR writing file ${OUTPUT_FILE}:`, writeError);
+      console.error(`ERROR writing files:`, writeError);
       process.exit(1);
     }
   } catch (error) {

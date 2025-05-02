@@ -1,0 +1,43 @@
+categories:
+  - name: 常用网站
+    icon: fas fa-star
+    sites:
+      - name: Linux.do
+        url: https://linux.do/
+        icon: fab fa-linux
+        description: 新的理想型社区
+      - name: Google
+        url: https://www.google.com
+        icon: fab fa-google
+        description: 全球最大的搜索引擎
+      - name: GitHub
+        url: https://www.github.com
+        icon: fab fa-github
+        description: 代码托管平台
+      - name: Stack Overflow
+        url: https://stackoverflow.com
+        icon: fab fa-stack-overflow
+        description: 程序员问答社区
+      - name: ChatGPT
+        url: https://chat.openai.com
+        icon: fas fa-robot
+        description: AI智能助手
+  - name: 学习资源
+    icon: fas fa-graduation-cap
+    sites:
+      - name: 哔哩哔哩
+        url: https://www.bilibili.com
+        icon: fas fa-play-circle
+        description: 视频学习平台
+      - name: 知乎
+        url: https://www.zhihu.com
+        icon: fas fa-question-circle
+        description: 问答社区
+      - name: 掘金
+        url: https://juejin.cn
+        icon: fas fa-book
+        description: 高质量技术社区
+      - name: LeetCode
+        url: https://leetcode.cn
+        icon: fas fa-code
+        description: 算法刷题平台 

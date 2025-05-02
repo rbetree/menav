@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchContainer = document.querySelector('.search-container');
     const overlay = document.querySelector('.overlay');
     
+    // 侧边栏折叠功能
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    const content = document.querySelector('.content');
+    
     // 主题切换元素
     const themeToggle = document.querySelector('.theme-toggle');
     const themeIcon = themeToggle.querySelector('i');
@@ -29,12 +33,49 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSidebarOpen = false;
     let isSearchOpen = false;
     let isLightTheme = false; // 主题状态
+    let isSidebarCollapsed = false; // 侧边栏折叠状态
     
     // 搜索索引，用于提高搜索效率
     let searchIndex = {
         initialized: false,
         items: []
     };
+    
+    // 侧边栏折叠功能
+    function toggleSidebarCollapse() {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        
+        // 使用 requestAnimationFrame 确保平滑过渡
+        requestAnimationFrame(() => {
+            sidebar.classList.toggle('collapsed', isSidebarCollapsed);
+            content.classList.toggle('expanded', isSidebarCollapsed);
+            
+            // 保存折叠状态到localStorage
+            localStorage.setItem('sidebarCollapsed', isSidebarCollapsed ? 'true' : 'false');
+        });
+    }
+    
+    // 初始化侧边栏折叠状态
+    function initSidebarState() {
+        // 从localStorage获取侧边栏状态
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        
+        // 如果有保存状态且不是移动设备，则应用该状态
+        if (savedState === 'true' && !isMobile()) {
+            isSidebarCollapsed = true;
+            sidebar.classList.add('collapsed');
+            content.classList.add('expanded');
+        } else {
+            isSidebarCollapsed = false;
+            sidebar.classList.remove('collapsed');
+            content.classList.remove('expanded');
+        }
+    }
+    
+    // 侧边栏折叠按钮点击事件
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebarCollapse);
+    }
     
     // 主题切换功能
     function toggleTheme() {
@@ -171,6 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay.classList.remove('active');
             isSidebarOpen = false;
             isSearchOpen = false;
+        } else {
+            // 在移动设备下，重置侧边栏折叠状态
+            sidebar.classList.remove('collapsed');
+            content.classList.remove('expanded');
         }
     });
 
@@ -525,6 +570,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const pageId = item.getAttribute('data-page');
             if (pageId) {
                 showPage(pageId);
+                
+                // 在移动端视图下点击导航项后自动收起侧边栏
+                if (isMobile() && isSidebarOpen) {
+                    closeAllPanels();
+                }
             }
         });
     });
@@ -533,6 +583,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('load', () => {
         // 初始化主题
         initTheme();
+        
+        // 初始化侧边栏状态
+        initSidebarState();
         
         // 延迟一帧执行初始化，确保样式已经应用
         requestAnimationFrame(() => {

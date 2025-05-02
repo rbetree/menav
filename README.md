@@ -1,6 +1,8 @@
 # <img src="assets/favicon.ico" width="48" style="vertical-align: middle;"> MeNav - 个人导航站
 
-一个个人主页/导航静态网站，自动化构建和部署，帮助你整理和展示你的网络收藏/项目
+一键部署的静态个人导航站 | 自动化构建 | 支持书签导入
+
+如果觉得项目有用，欢迎⭐Star/Fork支持，谢谢！
 
 ## 目录
 
@@ -12,21 +14,17 @@
 - [快速开始](#快速开始)
 - [部署方式](#部署方式)
   - [快速部署到GitHub Pages](#快速部署到github-pages)
+  - [部署到服务器](#部署到服务器)
+- [设置配置文件](#设置配置文件)
+  - [使用单文件配置](#使用单文件配置)
+  - [使用模块化配置](#使用模块化配置)
 - [书签导入功能](#书签导入功能)
-  - [使用方法](#使用方法)
-  - [自动化工作流程详解](#自动化工作流程详解)
-  - [书签配置自定义](#书签配置自定义)
-- [模板说明](#模板说明)
-- [配置文件结构](#配置文件结构)
-- [设置网站字体](#设置网站字体)
-- [设置网站图标](#设置网站图标)
-- [添加新的网站链接](#添加新的网站链接)
 - [贡献](#贡献)
 - [许可证](#许可证)
 
 ## 在线预览
 
-访问：[https://rbetree.github.io/menav/](https://rbetree.github.io/menav/)
+访问：[在线DEMO](https://rbetree.github.io/menav/)
 
 ## 功能特点
 
@@ -37,10 +35,33 @@
 - 👥 支持展示社交媒体链接
 - 📝 支持多个内容页面（首页、项目、文章、友链）
 - 📌 支持从浏览器导入书签
+- 🧩 模块化配置/单文件配置
+- 🔄 可部署到GitHub Pages或任何服务器
 
 ## 近期更新
 
+<details>
+<summary>点击查看/隐藏更新日志</summary>
+
+### 2025/05/03
+
+**1. 侧边栏收回功能**
+- ✅ 添加侧边栏折叠/展开按钮，位于Logo文本右侧
+- ✅ 侧边栏平滑折叠/展开过渡
+
+**2. 移动端UI优化**
+- ✅ 修复搜索按钮和侧边栏按钮遮挡问题
+- ✅ 点击侧边栏导航项后自动收起侧边栏
+
+
 ### 2025/05/02
+
+**1. 模块化配置**
+- ✅ 支持将配置拆分为多个文件，便于管理和维护
+- ✅ 引入配置目录结构，分离页面配置
+- ✅ 保持向后兼容性，同时支持传统配置文件
+
+### 2025/05/01
 
 **1. 页面布局优化**
 - ✅ 优化了内容区域和侧边栏的间距，确保各种分辨率下内容不会贴近边缘
@@ -65,6 +86,8 @@
 - ✅ 生成配置文件，无需手动录入即可批量导入网站链接
 - ✅ 与GitHub Actions集成，全自动化的导入和部署流程
 
+</details>
+
 ## 技术栈
 
 - HTML5 + CSS3
@@ -86,8 +109,22 @@ menav/
 │   └── index.html    # HTML骨架模板文件
 ├── dist/             # 生成的静态网站（由generator.js生成）
 ├── bookmarks/        # 书签导入目录
-├── config.yml        # 默认配置文件
-└── config.user.yml   # 用户自定义配置文件
+├── config/           # 模块化配置目录
+│   ├── _default/     # 默认配置
+│   │   ├── site.yml  # 网站基本配置
+│   │   ├── navigation.yml # 导航配置
+│   │   └── pages/    # 页面配置
+│   │       ├── home.yml
+│   │       ├── projects.yml
+│   │       ├── articles.yml
+│   │       ├── friends.yml
+│   │       └── bookmarks.yml
+│   └── user/         # 用户自定义配置
+│       ├── site.yml  # 用户网站配置
+│       ├── navigation.yml # 用户导航配置 
+│       └── pages/    # 用户页面配置
+├── config.yml        # 默认配置文件（传统格式）
+└── config.user.yml   # 用户自定义配置文件（传统格式）
 ```
 
 ## 快速开始
@@ -109,14 +146,8 @@ npm install
 ```
 
 3. 修改配置
-- 复制 `config.yml` 为 `config.user.yml`
-- 在 `config.user.yml` 中根据你的需求修改网站内容：
-   - 修改网站基本信息
-   - 添加/修改导航链接
-   - 自定义社交媒体链接
-   - 更新个人项目展示
-   - 添加友情链接等
-
+   - 可以选择使用单文件配置或模块化配置（见[设置配置文件](#设置配置文件)）
+   - 自定义网站内容、导航链接、社交媒体链接等
 
 4. 本地预览
 ```bash
@@ -138,9 +169,9 @@ npm run dev
    - 勾选 "Issues"
 
 3. 启用Actions:
-      - 进入fork后的仓库
-      - 点击顶部的 "Actions" 标签页
-      - 点击绿色按钮 "I understand my workflows, go ahead and enable them"
+   - 进入fork后的仓库
+   - 点击顶部的 "Actions" 标签页
+   - 点击绿色按钮 "I understand my workflows, go ahead and enable them"
 
 4. 配置Pages:
    - 进入仓库的 Settings -> Pages
@@ -150,20 +181,16 @@ npm run dev
 #### 第二步：自定义配置
 
 1. 创建个人配置文件:
-   - 复制 `config.yml` 为 `config.user.yml`
-   - 在 `config.user.yml` 中修改配置
-   - 提交 `config.user.yml` 到您的仓库，这样GitHub Actions才能使用您的自定义配置进行构建
+   - 可以使用单文件配置或模块化配置
+   - 推荐使用模块化配置（见[使用模块化配置](#使用模块化配置)）
+   - 提交您的配置文件到仓库
 
-2. 修改配置信息:
-   - 修改网站基本信息
-   - 添加/修改导航链接
-   - 自定义社交媒体链接
-   - 更新个人项目展示
-   - 添加友情链接等
+2. 等待自动部署:
+   - GitHub Actions会自动检测您的更改
+   - 构建并部署您的网站
+   - 部署完成后，您可以在 Settings -> Pages 中找到您的网站地址
 
-完成以上步骤后,系统会自动部署您的网站。部署完成后,您可以在 Settings -> Pages 中找到您的网站地址。
-
-> 重要提示: 请务必使用 `config.user.yml` 进行配置,这样在同步上游更新时不会丢失您的个人设置。同时注意不要在配置文件中包含敏感信息，因为它将被提交到公开仓库。
+> 重要提示: 请注意不要在配置文件中包含敏感信息，因为它将被提交到公开仓库。
 
 #### 故障排除
 
@@ -175,114 +202,61 @@ npm run dev
    - 找到失败的工作流
    - 点击 "Re-run all jobs" 重新运行
 
+### 部署到服务器
 
-## 书签导入功能
+如果您想部署到自己的Web服务器，只需要以下几个步骤：
 
-### 使用方法
-
-1. **从浏览器导出书签**
-   - 在Chrome中: 打开书签管理器 -> 点击"更多"(三个点) -> 导出书签
-   - 在Firefox中: 打开书签库 -> 显示所有书签 -> 导入和备份 -> 导出书签为HTML
-   - 在Edge中: 设置 -> 收藏夹 -> 管理收藏夹 -> 导出为HTML文件
-
-2. **导入书签到MeNav**
-   - 在项目根目录下创建 `bookmarks` 文件夹(如果不存在)
-   - 将导出的HTML书签文件放入 `bookmarks` 文件夹
-   - 提交并推送变更到仓库
-   - GitHub Actions将自动处理书签文件并生成书签配置
-
-3. **书签处理流程**
-   - 系统会扫描 `bookmarks` 目录，查找最新的HTML书签文件
-   - 解析书签文件中的链接和文件夹结构
-   - 自动为书签分配适当的图标
-   - 生成 `bookmarks.user.yml` 配置文件（而不是直接修改 `bookmarks.yml`）
-   - 处理完成后会自动清空 `bookmarks` 目录(防止重复处理)
-   - 重新构建并部署网站
-
-4. **注意事项**
-   - 每次只处理一个书签文件，如有多个文件，系统会选择最新的那个
-   - 书签导入是构建时的一次性操作，不会在浏览器中保存或同步您的书签
-   - 如果想要更新书签，可以直接编辑 `bookmarks.user.yml`，或重新导出书签文件并重新导入
-   - 系统会优先使用 `bookmarks.user.yml`，如果同时存在 `bookmarks.yml`，它们的内容会被合并（用户配置优先）
-
-### 自动化工作流程详解
-
-MeNav使用单一的GitHub Actions工作流处理书签导入与网站部署，实现了无缝集成：
-
-1. **触发条件**:
-   - 当您推送任何更改到主分支（特别是向 `bookmarks` 目录添加HTML文件）时
-   - 手动触发工作流时
-
-2. **书签处理步骤**:
-   - 自动检测 `bookmarks` 目录中的HTML文件
-   - 使用 `bookmark-processor.js` 脚本处理书签文件
-   - 生成/更新 `bookmarks.user.yml` 配置文件
-   - 提交更改（如有）并保存至仓库
-   - 自动清理已处理的HTML书签文件
-
-3. **网站构建与部署**:
-   - 基于最新的配置（包括新生成的书签配置）构建网站
-   - 自动将构建结果部署到GitHub Pages
-
-4. **故障排除**:
-   - 如果书签未正确显示，请检查导出的HTML文件格式是否标准
-   - 可以通过GitHub Actions日志查看处理过程中的详细信息
-   - 确保书签文件是有效的HTML格式，且包含正确的书签数据结构
-
-### 书签配置自定义
-
-处理后生成的 `bookmarks.user.yml` 文件可以手动编辑以进一步自定义:
-
-```yaml
-# 自动生成的书签配置示例（用户自定义版本）
-title: 我的书签
-subtitle: 从浏览器导入的书签收藏
-categories:
-  - name: 开发工具
-    icon: fas fa-folder
-    sites:
-      - name: GitHub
-        url: https://github.com
-        icon: fab fa-github
-        description: "从书签导入: GitHub"
-      # 更多网站...
-  # 更多分类...
+1. 构建静态网站:
+```bash
+npm run build
 ```
 
-您可以：
-- 修改分类和网站的名称和描述
-- 调整图标（使用Font Awesome图标类）
-- 重新组织书签分类结构
-- 添加或删除特定书签
+2. 复制构建结果:
+   - 所有生成的静态文件都位于 `dist` 目录中
+   - 将 `dist` 目录中的所有文件复制到您的Web服务器根目录
 
-**提示**: 
-- 尽管自动处理会清理原始HTML文件，但修改后的 `bookmarks.user.yml` 会被保留，您可以随时手动编辑它来更新书签内容
-- 如果项目中同时存在 `bookmarks.yml` 和 `bookmarks.user.yml`，系统会合并两者的内容，以 `bookmarks.user.yml` 中的配置为优先
-- 这种设计允许您在更新源仓库时保留自己的书签配置
+3. 配置Web服务器:
+   - 确保服务器配置为提供静态文件
+   - 对于Apache: 在网站根目录中已有正确的 .htaccess 文件
+   - 对于Nginx: 添加以下配置到您的server块:
 
-### 模板说明
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/dist;
+    index index.html;
 
-本项目使用模板与配置文件分离的方式生成网站:
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
 
-1. `templates/index.html` 是不包含具体内容的HTML骨架模板:
-   - 使用占位符 (如 `{{SITE_TITLE}}`, `{{NAVIGATION}}`, `{{HOME_CONTENT}}`) 标记动态内容的位置
-   - 只包含页面结构、CSS引用和基本Javascript引用
+4. 更新配置:
+   - 如果您想在服务器上更新网站，只需重复上述步骤1-2
+   - 或者设置自动部署流程，例如使用GitLab CI/CD或Jenkins
 
-2. 工作原理:
-   - `generator.js` 读取配置文件 (优先使用 `config.user.yml`)
-   - 将配置内容注入到模板中的占位符位置
-   - 生成最终的静态HTML网站
+## 设置配置文件
 
-3. 优点:
-   - 清晰分离结构与内容
-   - 用户只需修改配置文件,不需要编辑HTML
-   - 便于更新与维护
+MeNav支持两种配置方式：单文件配置和模块化配置（推荐）。
 
+在加载配置时遵循以下优先级顺序：
 
-### 配置文件结构
+1. `config/user/` （模块化用户配置）
+2. `config.user.yml`（单文件用户配置）
+3. `config/_default/` （模块化默认配置）
+4. `config.yml`（单文件默认配置）
 
-`config.user.yml` 应包含以下主要部分：
+### 使用单文件配置
 
+单文件配置是最简单的配置方式，适合小型网站和快速开始。
+
+1. **创建配置文件**:
+   - 复制 `config.yml` 为 `config.user.yml`
+   - 编辑 `config.user.yml` 文件
+
+2. **配置文件结构**:
 ```yaml
 # 网站基本信息
 site:
@@ -294,9 +268,9 @@ site:
 # 字体设置
 fonts:
   title:  # 标题字体
-    family: 字体名称  # 可以是Web安全字体或Google Fonts
-    weight: 字重值  # 如400、500、600等
-    source: 字体来源  # "google"或"system"
+    family: 字体名称
+    weight: 字重值
+    source: 字体来源
   subtitle:  # 副标题字体
     family: 字体名称
     weight: 字重值
@@ -319,67 +293,21 @@ navigation:
     id: 页面ID
     active: 是否激活
 
+# 类别
+categories:
+  - name: 分类名称
+    icon: 分类图标
+    sites:
+      - name: 网站名称
+        url: 网站地址
+        icon: 网站图标
+        description: 网站描述
+
 # 更多配置...
 ```
 
-### 设置网站字体
-
-1. 字体配置选项:
-   - `family`: 字体名称，支持Web安全字体或Google Fonts
-   - `weight`: 字体粗细，常用值如400(常规)、500(中等)、600(粗体)等
-   - `source`: 字体来源，可选"google"或"system"
-   
-2. 字体分类:
-   - `title`: 标题字体，用于大标题
-   - `subtitle`: 副标题字体，用于副标题
-   - `body`: 正文字体，用于普通文本
-
-3. 使用Google字体示例:
-```yaml
-fonts:
-  body:
-    family: "Noto Sans SC"  # Google提供的中文字体
-    weight: 400
-    source: "google"
-```
-
-4. 使用系统字体示例:
-```yaml
-fonts:
-  body:
-    family: "Segoe UI, system-ui, -apple-system, sans-serif"
-    weight: 400
-    source: "system"
-```
-
-### 设置网站图标
-
-1. 准备图标文件:
-   - 支持.ico、.png等格式
-   - 建议尺寸为32x32或16x16像素
-   - 将图标文件放在assets目录下
-   - 例如: `assets/favicon.ico` 或 `assets/favicon.png`
-
-2. 配置图标:
-   - 在`config.yml`或`config.user.yml`的site部分设置favicon
-   - 使用相对于仓库根目录的路径
-   - 例如: `favicon: favicon.ico`（generator会自动从assets目录查找）
-   - 也可以使用在线图标URL
-
-3. 生成和部署:
-   - 运行 `npm run generate` 时会自动复制图标文件到dist目录
-   - 确保图标文件存在于assets目录中
-   - 部署后图标会自动显示在浏览器标签页
-
-> 提示: 如果图标没有显示,请检查:
-> 1. 图标文件是否存在于assets目录
-> 2. 配置文件中的路径是否正确
-> 3. 是否重新运行了生成命令
-
-### 添加新的网站链接
-
-在 `config.user.yml` 中相应的分类下添加新站点：
-
+3. **添加网站链接**:
+   在 `config.user.yml` 中的 categories 部分添加新站点：
 ```yaml
 categories:
   - name: 分类名称
@@ -390,6 +318,87 @@ categories:
         icon: 网站图标
         description: 网站描述
 ```
+
+4. **设置网站字体**:
+   - `family`: 字体名称，支持Web安全字体或Google Fonts
+   - `weight`: 字体粗细，常用值如400(常规)、500(中等)、600(粗体)等
+   - `source`: 字体来源，可选"google"或"system"
+
+   例如使用Google字体:
+```yaml
+fonts:
+  body:
+    family: "Noto Sans SC"  # Google提供的中文字体
+    weight: 400
+    source: "google"
+```
+
+5. **设置网站图标**:
+   - 支持.ico、.png等格式
+   - 建议尺寸为32x32或16x16像素
+   - 将图标文件放在assets目录下
+   - 在配置文件中设置：`favicon: favicon.ico`
+
+### 使用模块化配置
+
+模块化配置将配置分散到多个文件中，更易于管理和维护，推荐用于复杂网站。
+
+#### 模块化配置目录结构
+
+```
+config/
+├── _default/           # 默认配置
+│   ├── site.yml        # 网站基本信息、字体等
+│   ├── navigation.yml  # 导航菜单配置
+│   └── pages/          # 页面配置
+│       ├── home.yml    # 首页配置
+│       ├── projects.yml # 项目页配置
+│       ├── articles.yml # 文章页配置
+│       ├── friends.yml  # 朋友页配置
+│       └── bookmarks.yml # 书签页配置
+└── user/               # 用户自定义配置（可选覆盖）
+    ├── site.yml        # 用户网站配置
+    ├── navigation.yml  # 用户导航配置
+    └── pages/          # 用户页面配置
+        ├── home.yml    # 用户首页配置
+        # 其他用户自定义页面...
+```
+
+#### 使用模块化配置的优势
+
+1. **分离关注点**：每个页面和功能区域有专属配置文件
+2. **简化编辑**：修改特定页面时只需编辑对应文件
+3. **更好的版本控制**：减少合并冲突
+4. **向后兼容**：仍然支持传统的 `config.yml` 和 `config.user.yml`
+
+
+## 书签导入功能
+
+MeNav支持从浏览器导入书签，快速批量添加网站链接。
+
+### 导入步骤
+
+1. **从浏览器导出书签**
+   - 在Chrome中: 打开书签管理器 -> 点击"更多"(三个点) -> 导出书签
+   - 在Firefox中: 打开书签库 -> 显示所有书签 -> 导入和备份 -> 导出书签为HTML
+   - 在Edge中: 设置 -> 收藏夹 -> 管理收藏夹 -> 导出为HTML文件
+
+2. **导入书签到MeNav**
+   - 在项目根目录下创建 `bookmarks` 文件夹(如果不存在)
+   - 将导出的HTML书签文件放入 `bookmarks` 文件夹
+   - 提交并推送变更到仓库
+   - 系统会自动处理书签文件并生成配置文件
+
+3. **书签处理结果**
+   - 生成的书签配置会保存到 `bookmarks.user.yml`
+   - 如果使用模块化配置，也会同时保存到 `config/user/pages/bookmarks.yml`
+   - 书签会自动添加到导航菜单中
+
+> 有关书签导入功能的更多信息，请参阅源代码中的相关注释。
+
+## 贡献
+
+欢迎通过 Issues 或 Pull Requests 的形式做出贡献。如果您有好的想法或发现了问题，请随时提出。
 
 ## 许可证
 

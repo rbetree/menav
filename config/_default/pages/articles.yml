@@ -1,0 +1,33 @@
+title: 技术文章
+subtitle: 分享我的技术文章和学习笔记
+categories:
+  - name: 最新文章
+    icon: fas fa-pen
+    sites:
+      - name: Vue3最佳实践
+        icon: fab fa-vuejs
+        description: Vue3组合式API的使用技巧
+        url: "#"
+      - name: JavaScript进阶
+        icon: fab fa-js
+        description: JavaScript高级特性解析
+        url: "#"
+      - name: Git使用技巧
+        icon: fab fa-git-alt
+        description: Git常用命令和工作流
+        url: "#"
+      - name: Docker入门
+        icon: fab fa-docker
+        description: Docker基础知识和实践
+        url: "#"
+  - name: 学习笔记
+    icon: fas fa-book
+    sites:
+      - name: React Hooks
+        icon: fab fa-react
+        description: React Hooks最佳实践
+        url: "#"
+      - name: Node.js实战
+        icon: fab fa-node-js
+        description: Node.js服务端开发笔记
+        url: "#" 
