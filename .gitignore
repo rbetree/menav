@@ -23,3 +23,6 @@ bookmarks/*
 !bookmarks/.gitkeep
 test-bookmarks.ps1
 test-bookmarks.sh
+
+# 个人笔记
+note.md
