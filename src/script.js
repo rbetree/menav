@@ -613,7 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeNavItem) {
             const activeWrapper = activeNavItem.closest('.nav-item-wrapper');
             if (activeWrapper) {
-                activeWrapper.classList.add('expanded');
             }
         }
         
