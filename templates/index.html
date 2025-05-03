@@ -10,10 +10,30 @@
     <style>
 {{{FONT_VARIABLES}}}
     </style>
+    <!-- 预设主题和侧边栏状态，避免闪烁 -->
+    <script>
+        (function() {
+            // 读取并应用主题设置
+            var savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('theme-preload');
+            }
+            
+            // 读取并应用侧边栏状态
+            var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            var isMobile = window.innerWidth <= 768;
+            if (sidebarCollapsed && !isMobile) {
+                document.documentElement.classList.add('sidebar-collapsed-preload');
+            }
+            
+            // 添加这个类用于控制初始渲染
+            document.documentElement.classList.add('preload');
+        })();
+    </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="loaded">
+<body class="loading">
     <div class="layout">
         <!-- 移动端按钮 -->
         <div class="mobile-buttons">

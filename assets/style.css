@@ -55,6 +55,30 @@ body.light-theme {
     --gradient-color-simple: linear-gradient(135deg, #4a9eff 0%, #a855f7 100%);
 }
 
+/* 预加载主题 - 在JS完全加载前显示正确的主题 */
+html.theme-preload body {
+    background-color: #e0e0d8; /* 明亮主题背景色 */
+    color: #333333; /* 明亮主题文本色 */
+}
+
+/* 预加载侧边栏状态 - 在JS完全加载前显示正确的侧边栏宽度 */
+html.sidebar-collapsed-preload .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+html.sidebar-collapsed-preload .content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* 控制页面预加载状态 */
+html.preload .layout {
+    opacity: 0;
+}
+
+html.preload * {
+    transition: none !important;
+}
+
 /* 主题切换按钮 */
 .theme-toggle {
     position: fixed;
@@ -213,7 +237,6 @@ body.loaded .layout {
     visibility: hidden;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 950; /* 调整遮罩层z-index，处于按钮与弹出面板之间 */
-    backdrop-filter: blur(4px);
 }
 
 .overlay.active {
@@ -942,7 +965,6 @@ body .content.expanded {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(4px);
 }
 
 .modal.active {
@@ -1159,7 +1181,6 @@ body .content.expanded {
         left: 0;
         width: 100%;
         padding: 1rem;
-        background-color: var(--bg-color);
         transform: translateY(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 95;
