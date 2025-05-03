@@ -1476,3 +1476,114 @@ body .content.expanded {
     color: var(--accent-hover);
     text-decoration: underline;
 }
+
+/* 导航项包装器 - 包含导航项和子菜单 */
+.nav-item-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* 子菜单切换图标 */
+.submenu-toggle {
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+/* 子菜单展开状态图标旋转 */
+.nav-item-wrapper.expanded .submenu-toggle {
+    transform: rotate(180deg);
+}
+
+/* 子菜单容器 */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    margin-left: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 子菜单展开状态 */
+.nav-item-wrapper.expanded .submenu {
+    max-height: 500px; /* 设置足够大的值以容纳所有可能的子菜单项 */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 子菜单项样式 */
+.submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.8rem;
+    color: var(--nav-item-color);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    margin: 0.1rem 0;
+}
+
+.submenu-item i {
+    margin-right: 0.8rem;
+    font-size: 0.85rem;
+    width: 16px;
+    text-align: center;
+}
+
+.submenu-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.submenu-item:hover {
+    background-color: var(--secondary-bg);
+    color: var(--text-bright);
+}
+
+.submenu-item.active {
+    background-color: var(--secondary-bg);
+    color: var(--text-bright);
+}
+
+/* 侧边栏折叠状态下子菜单样式 */
+.sidebar.collapsed .submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: var(--sidebar-bg);
+    border-radius: 0 8px 8px 0;
+    box-shadow: 4px 0 10px var(--shadow-color);
+    margin-left: 0;
+    width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden;
+    z-index: 200;
+}
+
+.sidebar.collapsed .nav-item-wrapper:hover .submenu {
+    max-height: 500px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar.collapsed .submenu-toggle {
+    display: none;
+}
+
+/* 移动端样式调整 */
+@media (max-width: 768px) {
+    .sidebar .submenu {
+        margin-left: 1rem;
+    }
+    
+    .sidebar.active .submenu-item {
+        padding: 0.5rem 0.6rem;
+    }
+}

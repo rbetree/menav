@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSearchOpen = false;
     let isLightTheme = false; // 主题状态
     let isSidebarCollapsed = false; // 侧边栏折叠状态
+    let pages; // 页面元素的全局引用
     
     // 搜索索引，用于提高搜索效率
     let searchIndex = {
@@ -14,12 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
         items: []
     };
     
-    // 获取DOM元素
+    // 获取DOM元素 - 基本元素
     const searchInput = document.getElementById('search');
-    const siteCards = document.querySelectorAll('.site-card');
-    const categories = document.querySelectorAll('.category');
-    const navItems = document.querySelectorAll('.nav-item');
-    const pages = document.querySelectorAll('.page');
     const searchBox = document.querySelector('.search-box');
     const searchResultsPage = document.getElementById('search-results');
     const searchSections = searchResultsPage.querySelectorAll('.search-section');
@@ -139,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // 为每个页面创建索引
+            if (!pages) {
+                pages = document.querySelectorAll('.page');
+            }
+            
             pages.forEach(page => {
                 if (page.id === 'search-results') return;
                 
@@ -242,6 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 使用 RAF 确保动画流畅
         requestAnimationFrame(() => {
+            if (!pages) {
+                pages = document.querySelectorAll('.page');
+            }
+            
             pages.forEach(page => {
                 const shouldBeActive = page.id === pageId;
                 if (shouldBeActive !== page.classList.contains('active')) {
@@ -576,30 +581,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 导航项点击效果
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (item.getAttribute('target') === '_blank') return;
-            
-            e.preventDefault();
-            navItems.forEach(nav => {
-                nav.classList.toggle('active', nav === item);
-            });
-
-            const pageId = item.getAttribute('data-page');
-            if (pageId) {
-                showPage(pageId);
-                
-                // 在移动端视图下点击导航项后自动收起侧边栏
-                if (isMobile() && isSidebarOpen) {
-                    closeAllPanels();
-                }
-            }
-        });
-    });
-
     // 初始化
     window.addEventListener('load', () => {
+        // 获取可能在HTML生成后才存在的DOM元素
+        const siteCards = document.querySelectorAll('.site-card');
+        const categories = document.querySelectorAll('.category');
+        const navItems = document.querySelectorAll('.nav-item');
+        const navItemWrappers = document.querySelectorAll('.nav-item-wrapper');
+        const submenuItems = document.querySelectorAll('.submenu-item');
+        pages = document.querySelectorAll('.page');
+        
         // 初始化主题
         initTheme();
         
@@ -615,6 +606,139 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 category.style.opacity = '1';
             }, index * 100);
+        });
+        
+        // 初始展开当前页面的子菜单
+        const activeNavItem = document.querySelector('.nav-item.active');
+        if (activeNavItem) {
+            const activeWrapper = activeNavItem.closest('.nav-item-wrapper');
+            if (activeWrapper) {
+                activeWrapper.classList.add('expanded');
+            }
+        }
+        
+        // 导航项点击效果
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (item.getAttribute('target') === '_blank') return;
+                
+                e.preventDefault();
+                
+                // 获取当前项的父级wrapper
+                const wrapper = item.closest('.nav-item-wrapper');
+                const hasSubmenu = wrapper && wrapper.querySelector('.submenu');
+                
+                // 处理子菜单展开/折叠
+                if (hasSubmenu) {
+                    // 如果点击的导航项已经激活且有子菜单，则切换子菜单展开状态
+                    if (item.classList.contains('active')) {
+                        wrapper.classList.toggle('expanded');
+                    } else {
+                        // 关闭所有已展开的子菜单
+                        navItemWrappers.forEach(navWrapper => {
+                            if (navWrapper !== wrapper) {
+                                navWrapper.classList.remove('expanded');
+                            }
+                        });
+                        
+                        // 展开当前子菜单
+                        wrapper.classList.add('expanded');
+                    }
+                }
+                
+                // 激活导航项
+                navItems.forEach(nav => {
+                    nav.classList.toggle('active', nav === item);
+                });
+
+                const pageId = item.getAttribute('data-page');
+                if (pageId) {
+                    showPage(pageId);
+                    
+                    // 在移动端视图下点击导航项后自动收起侧边栏
+                    if (isMobile() && isSidebarOpen && !hasSubmenu) {
+                        closeAllPanels();
+                    }
+                }
+            });
+        });
+
+        // 子菜单项点击效果
+        submenuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // 获取页面ID和分类名称
+                const pageId = item.getAttribute('data-page');
+                const categoryName = item.getAttribute('data-category');
+                
+                if (pageId) {
+                    // 清除所有子菜单项的激活状态
+                    submenuItems.forEach(subItem => {
+                        subItem.classList.remove('active');
+                    });
+                    
+                    // 激活当前子菜单项
+                    item.classList.add('active');
+                    
+                    // 激活相应的导航项
+                    navItems.forEach(nav => {
+                        nav.classList.toggle('active', nav.getAttribute('data-page') === pageId);
+                    });
+                    
+                    // 显示对应页面
+                    showPage(pageId);
+                    
+                    // 等待页面切换完成后滚动到对应分类
+                    setTimeout(() => {
+                        // 查找目标分类元素
+                        const targetPage = document.getElementById(pageId);
+                        if (targetPage) {
+                            const targetCategory = Array.from(targetPage.querySelectorAll('.category h2')).find(
+                                heading => heading.textContent.trim().includes(categoryName)
+                            );
+                            
+                            if (targetCategory) {
+                                // 优化的滚动实现：滚动到使目标分类位于视口1/4处（更靠近顶部位置）
+                                try {
+                                    // 直接获取所需元素和属性，减少重复查询
+                                    const contentElement = document.querySelector('.content');
+                                    
+                                    if (contentElement && contentElement.scrollHeight > contentElement.clientHeight) {
+                                        // 获取目标元素相对于内容区域的位置
+                                        const rect = targetCategory.getBoundingClientRect();
+                                        const containerRect = contentElement.getBoundingClientRect();
+                                        
+                                        // 计算目标应该在视口中的位置（视口高度的1/4处）
+                                        const desiredPosition = containerRect.height / 4;
+                                        
+                                        // 计算需要滚动的位置
+                                        const scrollPosition = contentElement.scrollTop + rect.top - containerRect.top - desiredPosition;
+                                        
+                                        // 执行滚动
+                                        contentElement.scrollTo({
+                                            top: scrollPosition,
+                                            behavior: 'smooth'
+                                        });
+                                    } else {
+                                        // 回退到基本滚动方式
+                                        targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                } catch (error) {
+                                    console.error('Error during scroll:', error);
+                                    // 回退到基本滚动方式
+                                    targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        }
+                    }, 25); // 延迟时间
+                    
+                    // 在移动端视图下点击子菜单项后自动收起侧边栏
+                    if (isMobile() && isSidebarOpen) {
+                        closeAllPanels();
+                    }
+                }
+            });
         });
         
         // 初始化搜索索引（使用requestIdleCallback或setTimeout延迟初始化，避免影响页面加载）
