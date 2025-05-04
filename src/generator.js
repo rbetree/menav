@@ -227,16 +227,7 @@ function loadConfig() {
             config.bookmarks = bookmarksConfig;
             console.log(`Using bookmarks configuration from ${bookmarksSource}`);
             
-            // 确保导航中有书签页面
-            const hasBookmarksNav = config.navigation.some(nav => nav.id === 'bookmarks');
-            if (!hasBookmarksNav) {
-                config.navigation.push({
-                    name: '书签',
-                    icon: 'fas fa-bookmark',
-                    id: 'bookmarks',
-                    active: false
-                });
-            }
+            // 移除自动添加书签页面到导航的逻辑
         }
     } catch (e) {
         console.error('Error loading bookmarks configuration:', e);
@@ -304,6 +295,18 @@ function generateNavigation(navigation, config) {
             submenuItems = `
                 <div class="submenu">
                     ${config.friends.categories.map(category => `
+                        <a href="#${category.name}" class="submenu-item" data-page="${nav.id}" data-category="${category.name}">
+                            <i class="${escapeHtml(category.icon)}"></i>
+                            <span>${escapeHtml(category.name)}</span>
+                        </a>
+                    `).join('')}
+                </div>`;
+        }
+        // 通用处理：任意自定义页面的子菜单生成
+        else if (config[nav.id] && config[nav.id].categories && Array.isArray(config[nav.id].categories)) {
+            submenuItems = `
+                <div class="submenu">
+                    ${config[nav.id].categories.map(category => `
                         <a href="#${category.name}" class="submenu-item" data-page="${nav.id}" data-category="${category.name}">
                             <i class="${escapeHtml(category.icon)}"></i>
                             <span>${escapeHtml(category.name)}</span>
@@ -500,32 +503,38 @@ function generateHTML(config) {
     // 首页内容
     pageContents.home = generateHomeContent(config);
     
-    // 如果配置了项目页面
-    if (config.projects) {
-        pageContents.projects = generatePageContent('projects', config.projects);
+    // 动态生成所有其他页面的内容
+    if (config.navigation && Array.isArray(config.navigation)) {
+        config.navigation.forEach(navItem => {
+            const pageId = navItem.id;
+            // 跳过已处理的首页和搜索结果页
+            if (pageId === 'home' || pageId === 'search-results') {
+                return;
+            }
+            
+            // 如果配置中存在该页面的配置，则生成页面内容
+            if (config[pageId]) {
+                pageContents[pageId] = generatePageContent(pageId, config[pageId]);
+            }
+        });
     }
     
-    // 如果配置了文章页面
-    if (config.articles) {
-        pageContents.articles = generatePageContent('articles', config.articles);
-    }
+    // 生成首页HTML
+    const homeHTML = `
+            <!-- home页 -->
+            <div class="page active" id="home">
+${pageContents.home}
+            </div>`;
     
-    // 如果配置了友链页面
-    if (config.friends) {
-        pageContents.friends = generatePageContent('friends', config.friends);
-    }
-    
-    // 如果配置了书签页面
-    if (config.bookmarks) {
-        pageContents.bookmarks = generatePageContent('bookmarks', config.bookmarks);
-    }
-    
-    // 生成所有页面的HTML
-    const pagesHTML = Object.entries(pageContents).map(([id, content]) => `
+    // 生成其他页面的HTML
+    const dynamicPagesHTML = Object.entries(pageContents)
+        .filter(([id]) => id !== 'home') // 排除首页
+        .map(([id, content]) => `
             <!-- ${id}页 -->
-            <div class="page${id === 'home' ? ' active' : ''}" id="${id}">
+            <div class="page" id="${id}">
 ${content}
-            </div>`).join('\n');
+            </div>`)
+        .join('\n');
     
     // 生成搜索结果页面
     const searchResultsHTML = generateSearchResultsPage(config);
@@ -595,7 +604,8 @@ ${generateSocialLinks(config.social)}
                 </div>
             </div>
 
-${pagesHTML}
+${homeHTML}
+${dynamicPagesHTML}
             
             <!-- 搜索结果页 -->
             <div class="page" id="search-results">
@@ -660,21 +670,55 @@ function processTemplate(template, config) {
     const googleFontsLink = generateGoogleFontsLink(config);
     const fontVariables = generateFontVariables(config);
     
+    // 生成所有页面的HTML
+    let allPagesHTML = '';
+    
+    // 确保按照导航顺序生成页面
+    if (config.navigation && Array.isArray(config.navigation)) {
+        // 按照导航中的顺序生成页面
+        config.navigation.forEach(navItem => {
+            const pageId = navItem.id;
+            
+            // 跳过搜索结果页
+            if (pageId === 'search-results') {
+                return;
+            }
+            
+            let pageContent = '';
+            let isActive = pageId === 'home' ? ' active' : '';
+            
+            // 根据页面ID生成对应内容
+            if (pageId === 'home') {
+                pageContent = generateHomeContent(config);
+            } else if (config[pageId]) {
+                pageContent = generatePageContent(pageId, config[pageId]);
+            } else {
+                pageContent = `<div class="welcome-section">
+                    <h2>页面未配置</h2>
+                    <p class="subtitle">请配置 ${pageId} 页面</p>
+                </div>`;
+            }
+            
+            // 添加页面HTML
+            allPagesHTML += `
+            <!-- ${pageId}页 -->
+            <div class="page${isActive}" id="${pageId}">
+${pageContent}
+            </div>`;
+        });
+    }
+    
     // 创建替换映射
     const replacements = {
         '{{SITE_TITLE}}': escapeHtml(config.site.title),
-        '{{SITE_LOGO_TEXT}}': escapeHtml(config.site.logo_text || '导航站'), // 从配置中获取，如果不存在则使用默认值
+        '{{SITE_LOGO_TEXT}}': escapeHtml(config.site.logo_text || '导航站'),
         '{{GOOGLE_FONTS}}': googleFontsLink,
         '{{{FONT_VARIABLES}}}': fontVariables,
         '{{NAVIGATION}}': generateNavigation(config.navigation, config),
         '{{SOCIAL_LINKS}}': generateSocialLinks(config.social),
         '{{CURRENT_YEAR}}': currentYear,
-        '{{HOME_CONTENT}}': generateHomeContent(config),
-        '{{PROJECTS_CONTENT}}': generatePageContent('projects', config.projects),
-        '{{ARTICLES_CONTENT}}': generatePageContent('articles', config.articles),
-        '{{FRIENDS_CONTENT}}': generatePageContent('friends', config.friends),
-        '{{BOOKMARKS_CONTENT}}': generatePageContent('bookmarks', config.bookmarks),
-        '{{SEARCH_RESULTS}}': generateSearchResultsPage(config)
+        '{{SEARCH_RESULTS}}': generateSearchResultsPage(config),
+        '{{ALL_PAGES}}': allPagesHTML
     };
     
     // 执行替换
@@ -741,3 +785,12 @@ function main() {
 }
 
 main(); 
+
+// 导出供测试使用的函数
+module.exports = {
+  loadConfig,
+  generateHTML,
+  copyStaticFiles,
+  generateNavigation,
+  generateCategories
+};

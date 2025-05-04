@@ -393,131 +393,229 @@ MeNav支持两种配置方式：双文件配置和模块化配置（推荐）。
 <details>
 <summary>点击展开</summary>
 
-以下是配置文件各部分的详细说明，适用于双文件配置和模块化配置两种方式。
+以下是配置文件的详细说明，帮助您全面了解和定制您的个人导航站。本指南适用于双文件配置和模块化配置两种方式。
 
-#### 配置文件结构
+#### 1. 基础网站配置 (site)
 
-配置文件使用YAML格式，包含多个关键部分：
+网站的基本信息配置，这些设置会影响整个网站的呈现：
 
 ```yaml
-# 网站基本信息
 site:
-  title: 网站标题
-  description: 网站描述
-  author: 作者名
-  favicon: favicon.ico  # 网站图标,支持ico、png等格式
+  title: "我的导航站"         # 网站标题，显示在浏览器标签和页面顶部
+  description: "个人网址导航"  # 网站描述，用于SEO和分享卡片
+  author: "张三"             # 作者姓名
+  favicon: "favicon.ico"     # 网站图标，支持ico、png等格式
+```
 
-# 字体设置
+#### 2. 字体设置 (fonts)
+
+MeNav支持自定义字体，您可以分别为标题、副标题和正文设置不同的字体：
+
+```yaml
 fonts:
-  title:  # 标题字体
-    family: 字体名称
-    weight: 字重值
-    source: 字体来源
+  title:  # 标题字体设置
+    family: "Roboto"  # 字体名称
+    weight: 700       # 字重值：400常规、500中等、700粗体
+    source: "google"  # 字体来源：google或system
   subtitle:  # 副标题字体
-    family: 字体名称
-    weight: 字重值
-    source: 字体来源
+    family: "Noto Sans SC"
+    weight: 500
+    source: "google"
   body:  # 正文字体
-    family: 字体名称
-    weight: 字重值
-    source: 字体来源
-
-# 个人信息
-profile:
-  title: 欢迎语
-  subtitle: 副标题
-  description: 描述
-
-# 导航菜单
-navigation:
-  - name: 菜单名称
-    icon: 图标类名
-    id: 页面ID
-    active: 是否激活
-
-# 类别
-categories:
-  - name: 分类名称
-    icon: 分类图标
-    sites:
-      - name: 网站名称
-        url: 网站地址
-        icon: 网站图标
-        description: 网站描述
-
-# 更多配置...
-```
-
-#### 添加网站链接
-
-在配置文件中的 categories 部分添加新站点：
-
-```yaml
-categories:
-  - name: 分类名称
-    icon: 分类图标
-    sites:
-      - name: 网站名称
-        url: 网站地址
-        icon: 网站图标
-        description: 网站描述
-```
-
-#### 设置网站字体
-
-字体配置有三个关键属性：
-
-- `family`: 字体名称，支持Web安全字体或Google Fonts
-- `weight`: 字体粗细，常用值如400(常规)、500(中等)、600(粗体)等
-- `source`: 字体来源，可选"google"或"system"
-
-例如使用Google字体:
-```yaml
-fonts:
-  body:
-    family: "Noto Sans SC"  # Google提供的中文字体
+    family: "Noto Sans SC"
     weight: 400
     source: "google"
 ```
 
-#### 设置网站图标
+> **📝 温馨提示**：
+> - **system**表示使用系统自带字体，无需额外加载，页面加载速度更快
+> - **google**表示从Google Fonts加载字体，选择更丰富，但可能影响加载速度
+> - 中文网站推荐使用"Noto Sans SC"、"Source Han Sans CN"等支持中文的字体
+> - 设置字重时请确保所选字体支持该字重值，否则可能无法正确显示
 
-网站图标设置提示：
+#### 3. 个人资料配置 (profile)
 
-- 支持.ico、.png等格式
-- 建议尺寸为32x32或16x16像素
-- 将图标文件放在assets目录下
-- 在配置文件中设置：`favicon: favicon.ico`
+设置首页顶部的个人欢迎区域：
 
-#### 使用Font Awesome图标
-
-MeNav使用Font Awesome图标库为网站分类和链接提供图标：
-
-- **图标类名**：使用Font Awesome 5的图标类名，例如`fas fa-home`、`fab fa-github`等
-- **查找图标**：可在[Font Awesome官网](https://fontawesome.com/icons)浏览和搜索图标
-- **常用图标前缀**：
-  - `fas`：实心风格图标 (Font Awesome Solid)
-  - `far`：线框风格图标 (Font Awesome Regular)
-  - `fab`：品牌图标 (Font Awesome Brands)
-
-示例：
 ```yaml
-# 分类图标
+profile:
+  title: "欢迎来到我的导航站"       # 主标题/欢迎语
+  subtitle: "收集实用网站和工具"    # 副标题
+  description: "这里整理了我日常使用的网站和工具，方便快速访问。" # 详细描述
+```
+
+> **📝 温馨提示**：description支持较长文本，可以添加一些个性化的介绍或使用说明，让您的导航站更具特色。
+
+#### 4. 导航菜单配置 (navigation)
+
+设置网站左侧的导航菜单，支持多个自定义页面：
+
+```yaml
+navigation:
+  - name: "首页"               # 菜单项名称
+    icon: "fas fa-home"        # 菜单项图标
+    id: "home"                 # 页面标识符（必须唯一）
+    active: true               # 是否默认激活（只能有一个为true）
+  - name: "项目"
+    icon: "fas fa-project-diagram"
+    id: "projects"
+    active: false
+  # 更多导航项...
+```
+
+> **📝 温馨提示**：
+> - 每个导航项的`id`必须唯一，并且有对应的页面配置（使用模块化配置时，每个导航项的`id`必须与`pages/`文件夹中的页面配置文件名一致）
+> - 只能设置一个导航项的`active`为`true`，作为默认显示页面
+> - 图标使用Font Awesome 5图标库，格式为`前缀 fa-图标名`
+
+#### 5. 分类和网站配置 (categories)
+
+这是MeNav的核心配置，用于定义网站分类和链接：
+
+```yaml
 categories:
-  - name: "常用工具"
-    icon: "fas fa-tools"
-    sites:
-      - name: "GitHub"
-        url: "https://github.com"
-        icon: "fab fa-github"
-        description: "全球最大的代码托管平台"
-      - name: "谷歌搜索"
+  - name: "常用工具"          # 分类名称
+    icon: "fas fa-tools"      # 分类图标
+    sites:                    # 该分类下的网站列表
+      - name: "GitHub"        # 网站名称
+        url: "https://github.com"  # 网站链接
+        icon: "fab fa-github"      # 网站图标
+        description: "全球最大的代码托管平台"  # 网站描述
+      - name: "Google"
         url: "https://google.com"
         icon: "fab fa-google"
         description: "全球最大的搜索引擎"
+      # 更多网站...
+  # 更多分类...
 ```
 
-**提示**：书签导入功能会根据网站URL自动匹配适合的Font Awesome图标。如需自定义，可在导入后编辑配置文件修改图标类名。
+> **📝 温馨提示**：
+> - 每个页面可以拥有不同的分类和网站
+> - 网站描述建议简洁明了，不超过30个字符，以确保显示美观
+> - 合理组织分类和网站顺序，将常用网站放在前面，提升使用体验
+
+#### 6. Font Awesome图标指南
+
+MeNav使用Font Awesome 5图标库，提供了丰富的图标选择：
+
+**常用图标前缀**：
+- `fas` - Font Awesome Solid (实心风格，最常用)
+- `far` - Font Awesome Regular (线框风格)
+- `fab` - Font Awesome Brands (品牌图标，用于各类网站品牌)
+
+**如何选择合适的图标**：
+1. 访问[Font Awesome官网](https://fontawesome.com/icons)搜索图标
+2. 复制图标名称，加上前缀使用
+3. 例如：`fas fa-book`、`fab fa-youtube`等
+
+**网站图标匹配建议**：
+- 对于知名网站和平台，优先使用`fab`前缀的品牌图标
+- 对于通用功能网站，选择能代表其功能的图标，如词典类用`fas fa-book`
+- 对于工具类网站，可使用`fas fa-tools`或更具体的工具图标
+
+
+#### 7. 自定义页面配置
+
+MeNav支持创建任意数量的自定义页面，每个页面可以有不同内容：
+
+**第一步：在导航配置中添加页面入口**
+
+```yaml
+# 在navigation.yml或config.user.yml的navigation部分添加
+- name: "笔记"
+  icon: "fas fa-sticky-note"
+  id: "notes"
+  active: false
+```
+
+**第二步：创建页面内容配置**
+
+模块化配置方式（在`config/user/pages/notes.yml`）：
+```yaml
+title: "我的笔记收藏"          # 页面标题
+subtitle: "学习和工作笔记资源"  # 页面副标题
+categories:                   # 该页面的分类和网站
+  - name: "编程笔记"
+    icon: "fas fa-code"
+    sites:
+      - name: "Python学习笔记"
+        url: "https://example.com/python-notes"
+        icon: "fab fa-python"
+        description: "Python编程技巧和案例"
+      # 更多网站...
+```
+
+双文件配置方式（在`config.user.yml`中）：
+```yaml
+notes:  # 与navigation中的id保持一致
+  title: "我的笔记收藏"
+  subtitle: "学习和工作笔记资源"
+  categories:
+    # 与上面模块化配置内容相同
+```
+
+> **📝 温馨提示**：
+> - 页面标识符（`id`）在导航和页面配置中必须保持一致
+> - 每个页面支持独立的标题、副标题和分类设置
+> - 不同页面可以特化用于不同用途，如"工作"、"学习"、"娱乐"等
+> - 页面数量不限，但建议控制在合理范围内，避免导航过长
+
+#### 8. 配置文件结构示例
+
+**模块化配置示例**（推荐）：
+
+```
+config/user/
+├── site.yml         # 包含site、fonts、profile配置
+├── navigation.yml   # 导航菜单配置
+└── pages/
+    ├── home.yml     # 首页配置
+    ├── projects.yml # 项目页配置
+    └── notes.yml    # 自定义笔记页配置
+```
+
+**双文件配置示例**：
+
+```yaml
+# config.user.yml
+site:
+  # 网站基本信息...
+fonts:
+  # 字体设置...
+profile:
+  # 个人信息...
+navigation:
+  # 导航菜单...
+home:
+  # 首页设置...
+projects:
+  # 项目页设置...
+notes:
+  # 自定义笔记页设置...
+```
+
+#### 9. 常见配置问题解决
+
+1. **配置后不生效**
+   - 检查YAML格式是否正确，缩进是否一致
+   - 确认修改的是用户配置文件（`config.user.yml`或`config/user/`目录），而非默认配置文件
+   - 运行`npm run dev`重新构建网站并查看
+
+2. **图标不显示**
+   - 确认图标名称和前缀是否正确（如`fas fa-home`）
+   - 检查Font Awesome是否支持该图标（在官网搜索确认）
+   - 注意图标名称中的连字符，如`fa-user-circle`而非`fa-usercircle`
+
+3. **字体加载问题**
+   - 确认Google字体名称拼写正确
+   - 使用system来源时，确保使用的是通用系统字体
+   - 中文字体推荐使用Noto Sans SC、Source Han Sans等支持中文的Google字体
+
+4. **配置文件优先级问题**
+   - 记住系统只会使用最高优先级的配置，不会合并不同配置
+   - 检查您是否在多个地方定义了相同的配置，造成覆盖
+
+> - 首次设置时，建议先复制一份完整默认配置，然后逐步修改
 
 </details>
 

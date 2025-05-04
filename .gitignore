@@ -25,4 +25,22 @@ test-bookmarks.ps1
 test-bookmarks.sh
 
 # 个人笔记
-note.md
+docs/*
+
+# 自定义配置文件
+config/user/*
+config.user.yml
+bookmarks.user.yml
+
+# 测试相关文件
+jest.config.js
+tests/
+coverage/
+.nyc_output/
+jest-*.json
+jest.results.json
+.eslintcache
+tests/screenshots/
+tests/fixtures/
+*.test.js
+*.spec.js
