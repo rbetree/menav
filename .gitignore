@@ -16,13 +16,6 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Bookmark import files
-bookmarks/*
-!bookmarks/bookmarks_sample.html
-!bookmarks/README.md
-!bookmarks/.gitkeep
-test-bookmarks.ps1
-test-bookmarks.sh
 
 # 个人笔记
 docs/*
