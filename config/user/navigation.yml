@@ -1,0 +1,10 @@
+- name: 首页
+  icon: fas fa-home
+  id: home
+  active: true
+- name: 项目
+  icon: fas fa-project-diagram
+  id: projects
+- name: 书签
+  icon: fas fa-bookmark
+  id: bookmarks 

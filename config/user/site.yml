@@ -1,0 +1,38 @@
+title: yoomob-nav
+description: 个人网络导航站
+author: yoomob
+favicon: favicon.ico
+logo_text: yoomob-nav
+
+fonts:
+  title:
+    family: Poppins
+    weight: 600
+    source: google
+  subtitle:
+    family: Quicksand
+    weight: 500
+    source: google
+  body:
+    family: Noto Sans SC
+    weight: 400
+    source: google
+    
+profile:
+  title: Hello,
+  subtitle: Welcome to yoomob-nav
+  description: yoooooo
+
+social:
+  - name: GitHub
+    url: https://github.com
+    icon: fab fa-github
+  - name: Telegram
+    url: https://t.me
+    icon: fab fa-telegram
+  - name: Twitter
+    url: https://twitter.com
+    icon: fab fa-twitter
+  - name: Steam
+    url: https://steam.com
+    icon: fab fa-steam 
