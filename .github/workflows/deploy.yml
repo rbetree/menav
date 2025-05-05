@@ -115,19 +115,33 @@ jobs:
       - name: Clean up processed bookmark files
         if: steps.check_bookmark_files.outputs.found == 'true'
         run: |
-          # 检查是否有html文件需要清理
-          if [ "$(find bookmarks -type f -name "*.html" 2>/dev/null)" ]; then 
+          # 先记录当前HTML文件列表
+          HTML_FILES=$(find bookmarks -type f -name "*.html" 2>/dev/null)
+          if [ -n "$HTML_FILES" ]; then 
              git config --local user.email "action@github.com"
              git config --local user.name "GitHub Action (Cleanup)"
+             echo "HTML files before cleanup:"
+             echo "$HTML_FILES" | tee html_files_before.txt
+             
+             # 计算文件数量
+             FILE_COUNT=$(echo "$HTML_FILES" | wc -l)
+             echo "Found $FILE_COUNT HTML files to clean up."
+             
+             # 执行删除操作
              echo "Cleaning up HTML files..."
              find bookmarks -type f -name "*.html" -delete
-             # 检查清理后是否有更改（比如删除了文件）
-             if ! git diff --quiet bookmarks/; then
+             
+             # 验证文件已被删除
+             REMAINING=$(find bookmarks -type f -name "*.html" 2>/dev/null)
+             if [ -z "$REMAINING" ]; then
+               echo "All HTML files successfully deleted."
+               # 不管git diff结果如何，只要有文件被删除就提交
                git add bookmarks/
-               git commit -m "Clean up processed bookmark files"
-               # 不需要push
+               git commit -m "Clean up processed bookmark files ($FILE_COUNT files removed)"
+               echo "Changes committed."
              else
-               echo "No HTML files needed cleanup commit."
+               echo "WARNING: Some HTML files could not be deleted:"
+               echo "$REMAINING"
              fi
           else
              echo "No HTML files found to clean up."
