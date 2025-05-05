@@ -213,17 +213,12 @@ npm run build
 1. Fork仓库:
    - 点击右上角的 Fork 按钮复制此仓库到您的账号
 
-2. 启用必要功能:
-   - 进入仓库的 Settings -> General
-   - 找到 Features 部分
-   - 勾选 "Issues"
-
-3. 启用Actions:
+2. 启用Actions:
    - 进入fork后的仓库
    - 点击顶部的 "Actions" 标签页
    - 点击绿色按钮 "I understand my workflows, go ahead and enable them"
 
-4. 配置Pages:
+3. 配置Pages:
    - 进入仓库的 Settings -> Pages
    - 在 "Build and deployment" 部分
    - Source: 选择 "GitHub Actions"
@@ -242,15 +237,14 @@ npm run build
 
 > 重要提示: 请注意不要在配置文件中包含敏感信息，因为它将被提交到公开仓库。
 
-#### 故障排除
 
-如果遇到部署问题:
-1. 请确保完成了所有前置设置步骤
-2. 检查每个设置页面是否都点击了 Save 按钮
-3. 如果修改设置后部署仍然失败:
-   - 进入 Actions 标签页
-   - 找到失败的工作流
-   - 点击 "Re-run all jobs" 重新运行
+**重要: Sync fork后需要手动触发工作流**:
+- 当您使用GitHub界面上的"Sync fork"按钮同步本仓库的更新后
+- GitHub Actions工作流不会自动运行
+- 您需要手动触发构建流程:
+  - 进入 Actions 标签页
+  - 选择左侧的 "Build and Deploy" 工作流
+  - 点击 "Run workflow" 按钮
 
 </details>
 
