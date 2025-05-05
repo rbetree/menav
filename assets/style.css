@@ -402,9 +402,12 @@ body.loaded .layout {
     display: flex;
     flex-direction: column;
     gap: 0.6rem; /* 从1rem减小到0.6rem */
-    /* 自定义滚动条样式 */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--scrollbar-color) transparent; /* Firefox */
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+}
+
+.sidebar-content::-webkit-scrollbar {
+    display: none; /* Webkit browsers */
 }
 
 /* 折叠状态下的内容区域调整 */
@@ -577,33 +580,19 @@ body.loaded .layout {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* 应用自定义滚动条样式 */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--scrollbar-color) transparent; /* Firefox */
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
     transition: background-color 0.3s ease, margin-left 0.3s ease, max-width 0.3s ease;
+}
+
+.content::-webkit-scrollbar {
+    display: none; /* Webkit browsers */
 }
 
 /* 优化内容区域在侧边栏折叠状态下的边距 */
 body .content.expanded {
     margin-left: var(--sidebar-collapsed-width);
     max-width: calc(100vw - var(--sidebar-collapsed-width));
-}
-
-.content::-webkit-scrollbar {
-    width: 7px; /* 统一滚动条宽度 */
-}
-
-.content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.content::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-color);
-    border-radius: 4px;
-}
-
-.content::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-hover-color);
 }
 
 /* 搜索框容器 - 固定在顶部 */
@@ -1274,6 +1263,11 @@ body .content.expanded {
         bottom: 1rem;
         right: 1rem;
     }
+
+    /* 移动端滚动进度条调整 */
+    .scroll-progress {
+        height: 4px; /* 移动端略粗一些 */
+    }
 }
 
 @media (max-width: 480px) {
@@ -1586,4 +1580,16 @@ body .content.expanded {
     .sidebar.active .submenu-item {
         padding: 0.5rem 0.6rem;
     }
+}
+
+/* 滚动进度指示条 */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background-color: var(--accent-color);
+    z-index: 1000;
+    transition: width 0.1s ease-out;
 }
