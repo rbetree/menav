@@ -1,0 +1,40 @@
+# 网站基本信息
+title: "白羽的导航站"         # 网站标题，显示在浏览器标签和页面顶部
+description: "个人网址导航"  # 网站描述，用于SEO和分享卡片
+author: "皓"             # 作者姓名
+favicon: "favicon.ico"     # 网站图标，支持ico、png等格式
+logo_text: "导航站"         # 左上角显示的Logo文本
+
+# 字体设置
+fonts:
+  title:  # 标题字体设置
+    family: "Roboto"  # 字体名称
+    weight: 700       # 字重值：400常规、500中等、700粗体
+    source: "google"  # 字体来源：google或system
+  subtitle:  # 副标题字体
+    family: "Noto Sans SC"
+    weight: 500
+    source: "google"
+  body:  # 正文字体
+    family: "Noto Sans SC"
+    weight: 400
+    source: "google"
+    
+# 个人资料配置
+profile:
+  title: "欢迎来到我的导航站"       # 主标题/欢迎语
+  subtitle: "收集实用网站和工具"    # 副标题
+  description: "这里整理了我日常使用的网站和工具，方便快速访问。" # 详细描述
+
+# 社交媒体链接
+social:
+  - name: "GitHub"
+    url: "https://github.com/your-username"
+    icon: "fab fa-github"
+  - name: Telegram
+    url: https://t.me
+    icon: fab fa-telegram
+  - name: Steam
+    url: https://steam.com
+    icon: fab fa-steam 
+  # 更多社交媒体...

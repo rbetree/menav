@@ -1,0 +1,18 @@
+title: 我的工具
+subtitle: 实用工具
+categories:
+  - name: 办公工具
+    icon: fas fa-code
+    sites:
+      - name: 个人导航站
+        icon: fas fa-print
+        description: 一个简洁美观的个人导航页面
+        url: "#"
+      
+  - name: 爬虫工具
+    icon: fas fa-spider
+    sites:
+      - name: Project A
+        icon: fab fa-github
+        description: 开源项目贡献
+        url: "#"

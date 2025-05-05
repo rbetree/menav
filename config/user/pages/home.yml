@@ -1,0 +1,100 @@
+categories:
+  - name: 常用网站
+    icon: fas fa-star
+    sites:
+      - name: Linux.do
+        url: https://linux.do/
+        icon: fab fa-linux
+        description: 新的理想型社区
+      - name: Google
+        url: https://www.google.com
+        icon: fab fa-google
+        description: 全球最大的搜索引擎
+      - name: GitHub
+        url: https://www.github.com
+        icon: fab fa-github
+        description: 代码托管平台
+      - name: Stack Overflow
+        url: https://stackoverflow.com
+        icon: fab fa-stack-overflow
+        description: 程序员问答社区
+      - name: ChatGPT
+        url: https://chat.openai.com
+        icon: fas fa-robot
+        description: AI智能助手
+  - name: 学习资源
+    icon: fas fa-graduation-cap
+    sites:
+      - name: 哔哩哔哩
+        url: https://www.bilibili.com
+        icon: fas fa-play-circle
+        description: 视频学习平台
+      - name: 知乎
+        url: https://www.zhihu.com
+        icon: fas fa-question-circle
+        description: 问答社区
+      - name: 掘金
+        url: https://juejin.cn
+        icon: fas fa-book
+        description: 高质量技术社区
+      - name: LeetCode
+        url: https://leetcode.cn
+        icon: fas fa-code
+        description: 算法刷题平台
+  - name: 开发工具
+    icon: fas fa-tools
+    sites:
+      - name: VS Code
+        url: https://code.visualstudio.com
+        icon: fas fa-code
+        description: 强大的代码编辑器
+      - name: Postman
+        url: https://www.postman.com
+        icon: fas fa-paper-plane
+        description: API调试工具
+      - name: Git
+        url: https://git-scm.com
+        icon: fab fa-git-alt
+        description: 版本控制工具
+      - name: Docker
+        url: https://www.docker.com
+        icon: fab fa-docker
+        description: 容器化平台
+  - name: 设计资源
+    icon: fas fa-palette
+    sites:
+      - name: Figma
+        url: https://www.figma.com
+        icon: fab fa-figma
+        description: 在线设计工具
+      - name: Dribbble
+        url: https://dribbble.com
+        icon: fab fa-dribbble
+        description: 设计师社区
+      - name: Behance
+        url: https://www.behance.net
+        icon: fab fa-behance
+        description: 创意设计平台
+      - name: IconFont
+        url: https://www.iconfont.cn
+        icon: fas fa-icons
+        description: 图标资源库
+  - name: 在线工具
+    icon: fas fa-wrench
+    sites:
+      - name: JSON Editor
+        url: https://jsoneditoronline.org
+        icon: fas fa-code-branch
+        description: JSON在线编辑器
+      - name: Can I Use
+        url: https://caniuse.com
+        icon: fas fa-browser
+        description: 浏览器兼容性查询
+      - name: TinyPNG
+        url: https://tinypng.com
+        icon: fas fa-compress
+        description: 图片压缩工具
+      - name: Carbon
+        url: https://carbon.now.sh
+        icon: fas fa-code
+        description: 代码图片生成器
