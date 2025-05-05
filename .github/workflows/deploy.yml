@@ -36,22 +36,19 @@ jobs:
       - name: Install dependencies
         run: npm install
         
-      # --- 书签处理步骤开始 ---
-      - name: Create bookmarks directory if not exists
-        run: mkdir -p bookmarks
-        
-      - name: Check for bookmark files
+      # --- 书签处理步骤 --- 
+      - name: Check for bookmark HTML files
         id: check_bookmark_files
         run: |
-          if [ "$(find bookmarks -type f -name "*.html" 2>/dev/null)" ]; then
+          if [ -d bookmarks ] && [ "$(find bookmarks -type f -name "*.html" 2>/dev/null)" ]; then
             echo "found=true" >> $GITHUB_OUTPUT
-            echo "Found bookmark files to process"
+            echo "Bookmark HTML files found, will process them."
           else
             echo "found=false" >> $GITHUB_OUTPUT
-            echo "No bookmark files found"
+            echo "No bookmark HTML files found, skipping bookmark processing."
           fi
-          
-      - name: Process bookmark file
+        
+      - name: Process bookmark files
         if: steps.check_bookmark_files.outputs.found == 'true'
         run: |
           echo "Processing bookmark files..."
@@ -62,42 +59,57 @@ jobs:
         run: |
           echo "Current directory contents:"
           ls -la
-          echo "Does bookmarks.user.yml exist?"
-          if [ -f bookmarks.user.yml ]; then 
-            echo "YES - bookmarks.user.yml exists"
-            cat bookmarks.user.yml | head -n 10
+          echo "Checking config/user/pages directory:"
+          if [ -d config/user/pages ]; then 
+            echo "Directory exists, listing contents:"
+            ls -la config/user/pages/
+            if [ -f config/user/pages/bookmarks.yml ]; then 
+              echo "✓ bookmarks.yml exists in config/user/pages/"
+              cat config/user/pages/bookmarks.yml | head -n 10
+            else 
+              echo "✗ bookmarks.yml does not exist in config/user/pages/"
+            fi
           else 
-            echo "NO - bookmarks.user.yml does not exist"
+            echo "✗ config/user/pages directory does not exist"
           fi
         
-      - name: Commit bookmarks.user.yml changes
+      - name: Commit bookmark configuration changes
         if: steps.check_bookmark_files.outputs.found == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action (Bookmarks)"
           
-          # Check if the file exists
-          if [ -f bookmarks.user.yml ]; then
-            # Check if file is already tracked by git
-            if git ls-files --error-unmatch bookmarks.user.yml 2>/dev/null; then
-              echo "bookmarks.user.yml exists and is tracked by git"
+          # Check if config/user/pages/bookmarks.yml exists
+          if [ -f config/user/pages/bookmarks.yml ]; then
+            # Check if this is a new file or it has changes
+            if git ls-files --error-unmatch config/user/pages/bookmarks.yml 2>/dev/null; then
+              echo "config/user/pages/bookmarks.yml exists and is tracked by git"
               # Check if it has changes
-              if ! git diff --quiet bookmarks.user.yml; then
-                echo "bookmarks.user.yml has changes, committing..."
-                git add bookmarks.user.yml
-                git commit -m "Update bookmarks.user.yml from imported bookmarks"
+              if ! git diff --quiet config/user/pages/bookmarks.yml; then
+                echo "config/user/pages/bookmarks.yml has changes, committing..."
+                git add config/user/pages/bookmarks.yml
+                git commit -m "Update bookmarks configuration from imported bookmarks"
               else
-                echo "No changes to bookmarks.user.yml"
+                echo "No changes to bookmarks configuration"
               fi
             else
-              echo "bookmarks.user.yml exists but is not tracked by git (new file)"
-              git add bookmarks.user.yml
-              git commit -m "Add bookmarks.user.yml from imported bookmarks"
+              echo "config/user/pages/bookmarks.yml exists but is not tracked by git (new file)"
+              git add config/user/pages/bookmarks.yml
+              git commit -m "Add bookmarks configuration from imported bookmarks"
+            fi
+            
+            # Also check for navigation file changes
+            if [ -f config/user/navigation.yml ]; then
+              if ! git diff --quiet config/user/navigation.yml; then
+                echo "config/user/navigation.yml has changes, committing..."
+                git add config/user/navigation.yml
+                git commit -m "Update navigation to include bookmarks page"
+              fi
             fi
           else
-            echo "ERROR: bookmarks.user.yml does not exist! Bookmark processing may have failed."
+            echo "ERROR: config/user/pages/bookmarks.yml does not exist! Bookmark processing may have failed."
             echo "Current directory contents:"
-            ls -la
+            ls -la config/user/pages/ || echo "Directory does not exist"
           fi
           
       - name: Clean up processed bookmark files
@@ -130,14 +142,12 @@ jobs:
           echo "Checking git status before pushing..."
           git status
           
-          echo "Checking bookmarks.user.yml existence before pushing..."
-          if [ -f bookmarks.user.yml ]; then 
-            echo "bookmarks.user.yml exists with content:"
-            ls -la bookmarks.user.yml
-            echo "First 5 lines:"
-            head -n 5 bookmarks.user.yml
+          echo "Checking config/user/pages directory before pushing..."
+          if [ -d config/user/pages ]; then 
+            echo "✓ config/user/pages directory exists"
+            ls -la config/user/pages/
           else 
-            echo "WARNING: bookmarks.user.yml does not exist before pushing!"
+            echo "✗ WARNING: config/user/pages directory does not exist before pushing!"
           fi
           
           echo "Pushing changes to repository..."

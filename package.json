@@ -9,7 +9,9 @@
     "dev": "node src/generator.js && serve dist",
     "clean": "rm -rf dist",
     "build": "npm run clean && npm run generate",
-    "restructure": "node restructure.js"
+    "restructure": "node restructure.js",
+    "migrate-config": "node src/migrate-config.js",
+    "import-bookmarks": "node src/bookmark-processor.js"
   },
   "keywords": [
     "navigation",

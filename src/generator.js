@@ -131,24 +131,17 @@ function loadConfig() {
         categories: []
     };
     
-    // 检查所有可能的配置来源是否存在
+    // 检查模块化配置来源是否存在
     const hasUserModularConfig = fs.existsSync('config/user');
-    const hasUserLegacyConfig = fs.existsSync('config.user.yml');
     const hasDefaultModularConfig = fs.existsSync('config/_default');
-    const hasDefaultLegacyConfig = fs.existsSync('config.yml');
     
     // 根据优先级顺序选择最高优先级的配置
     if (hasUserModularConfig) {
         // 1. 最高优先级: config/user/ 目录
         console.log('Using modular user configuration from config/user/ (highest priority)');
         config = loadModularConfig('config/user');
-    } else if (hasUserLegacyConfig) {
-        // 2. 次高优先级: config.user.yml (传统用户配置)
-        console.log('Using legacy user configuration from config.user.yml');
-        const userConfigFile = fs.readFileSync('config.user.yml', 'utf8');
-        config = yaml.load(userConfigFile);
     } else if (hasDefaultModularConfig) {
-        // 3. 其次优先级: config/_default/ 目录
+        // 2. 其次优先级: config/_default/ 目录
         console.log('Using modular default configuration from config/_default/');
         
         // 从模块化默认配置加载
@@ -174,11 +167,6 @@ function loadConfig() {
                 console.error(`Error loading home.yml: ${e.message}`);
             }
         }
-    } else if (hasDefaultLegacyConfig) {
-        // 4. 最低优先级: config.yml (传统默认配置)
-        console.log('Using legacy default config.yml');
-        const defaultConfigFile = fs.readFileSync('config.yml', 'utf8');
-        config = yaml.load(defaultConfigFile);
     } else {
         console.log('No configuration found, using default empty config');
     }
@@ -191,43 +179,29 @@ function loadConfig() {
     config.social = config.social || [];
     config.categories = config.categories || [];
     
-    // 处理书签文件（保持现有功能，但使用新逻辑）
+    // 处理书签文件
     try {
         let bookmarksConfig = null;
         let bookmarksSource = null;
         
-        // 按照相同的优先级顺序处理书签配置
+        // 按照优先级顺序处理书签配置
         // 1. 模块化用户书签配置 (最高优先级)
         if (fs.existsSync('config/user/pages/bookmarks.yml')) {
             const userBookmarksFile = fs.readFileSync('config/user/pages/bookmarks.yml', 'utf8');
             bookmarksConfig = yaml.load(userBookmarksFile);
             bookmarksSource = 'config/user/pages/bookmarks.yml';
         }
-        // 2. 传统用户书签配置
-        else if (fs.existsSync('bookmarks.user.yml')) {
-            const userBookmarksFile = fs.readFileSync('bookmarks.user.yml', 'utf8');
-            bookmarksConfig = yaml.load(userBookmarksFile);
-            bookmarksSource = 'bookmarks.user.yml';
-        }
-        // 3. 模块化默认书签配置
+        // 2. 模块化默认书签配置
         else if (fs.existsSync('config/_default/pages/bookmarks.yml')) {
             const defaultBookmarksFile = fs.readFileSync('config/_default/pages/bookmarks.yml', 'utf8');
             bookmarksConfig = yaml.load(defaultBookmarksFile);
             bookmarksSource = 'config/_default/pages/bookmarks.yml';
-        }
-        // 4. 传统默认书签配置 (最低优先级)
-        else if (fs.existsSync('bookmarks.yml')) {
-            const bookmarksFile = fs.readFileSync('bookmarks.yml', 'utf8');
-            bookmarksConfig = yaml.load(bookmarksFile);
-            bookmarksSource = 'bookmarks.yml';
         }
         
         // 添加书签页面配置
         if (bookmarksConfig) {
             config.bookmarks = bookmarksConfig;
             console.log(`Using bookmarks configuration from ${bookmarksSource}`);
-            
-            // 移除自动添加书签页面到导航的逻辑
         }
     } catch (e) {
         console.error('Error loading bookmarks configuration:', e);
