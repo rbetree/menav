@@ -404,13 +404,8 @@ async function main() {
       // 更新导航
       updateNavigationWithBookmarks();
       
-      // 处理完成后，删除原始HTML文件以防止重复处理
-      try {
-        fs.unlinkSync(bookmarkFile);
-        console.log(`Deleted processed HTML file: ${bookmarkFile}`);
-      } catch (deleteError) {
-        console.warn(`Warning: Could not delete processed HTML file: ${deleteError.message}`);
-      }
+      // 不再删除原始HTML文件，留给GitHub Actions处理
+      console.log(`Processing complete. HTML files will be cleaned up by GitHub Actions workflow.`);
     } catch (writeError) {
       console.error(`ERROR writing file:`, writeError);
       process.exit(1);
