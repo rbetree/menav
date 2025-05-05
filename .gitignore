@@ -27,11 +27,6 @@ test-bookmarks.sh
 # 个人笔记
 docs/*
 
-# 自定义配置文件
-config/user/*
-config.user.yml
-bookmarks.user.yml
-
 # 测试相关文件
 jest.config.js
 tests/
