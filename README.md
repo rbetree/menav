@@ -65,6 +65,14 @@
 <details>
 <summary>点击查看/隐藏更新日志</summary>
 
+### 2025/05/08
+
+**1. Handlebars模板系统重构**
+- ✅ 使用Handlebars模板引擎重构整个前端生成系统
+- ✅ 实现模块化、组件化的模板结构，包含layouts、pages和components
+- ✅ 改进代码复用，提高可维护性和扩展性
+- ✅ 优化HTML生成逻辑，提升性能和代码质量
+
 ### 2025/05/04
 
 **1. 移除双文件配置支持**
@@ -125,6 +133,7 @@
 
 - HTML5 + CSS3
 - JavaScript (原生)
+- Handlebars 模板引擎
 - Font Awesome 图标
 - GitHub Pages托管/其他各种CI/CD服务托管
 
@@ -140,8 +149,18 @@ menav/
 │   ├── bookmark-processor.js # 书签导入处理器
 │   ├── migrate-config.js # 配置迁移工具
 │   └── script.js     # 前端JavaScript脚本
-├── templates/        # HTML模板
-│   └── index.html    # HTML骨架模板文件
+├── templates/        # Handlebars模板目录
+│   ├── layouts/      # 布局模板
+│   │   └── default.hbs  # 默认布局模板
+│   ├── pages/        # 页面模板
+│   │   ├── home.hbs     # 首页模板
+│   │   ├── projects.hbs # 项目页模板
+│   │   └── ...          # 其他页面模板
+│   └── components/   # 可复用组件模板
+│       ├── navigation.hbs  # 导航组件
+│       ├── category.hbs    # 分类组件
+│       ├── site-card.hbs   # 站点卡片组件
+│       └── ...             # 其他组件
 ├── dist/             # 生成的静态网站（由generator.js生成）
 ├── bookmarks/        # 书签导入目录
 ├── config/           # 模块化配置目录
@@ -634,6 +653,21 @@ MeNav支持从浏览器导入书签，快速批量添加网站链接，无需手
 <details>
 <summary>模块化配置的优势是什么？</summary>
 模块化配置将不同功能的配置分散到多个文件中，便于管理和维护。当网站内容较多时，分散的配置文件让您可以只关注需要修改的特定部分，避免配置文件变得臃肿难以编辑。
+</details>
+
+<details>
+<summary>如何自定义Handlebars模板？</summary>
+MeNav现在使用Handlebars模板系统，您可以通过以下步骤自定义模板：
+
+1. **基本修改**：Fork项目后，您可以编辑`templates`目录下的模板文件
+2. **结构说明**：
+   - `layouts`：包含整体页面布局模板
+   - `pages`：包含各页面的主要内容模板
+   - `components`：包含可复用的组件模板
+3. **组件扩展**：创建新的组件模板时，需要在generator.js中注册，才能通过`{{> component-name}}`语法使用
+4. **自定义页面**：新增页面需要在`templates/pages`添加模板，并确保有对应的配置文件
+
+修改模板后，需要重新构建项目以应用更改。
 </details>
 
 <details>
