@@ -22,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "js-yaml": "^4.1.0",
+    "handlebars": "^4.7.8",
     "ansi-regex": "^6.0.1",
     "ansi-styles": "^6.2.1",
     "supports-color": "^9.4.0",

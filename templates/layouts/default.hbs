@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{SITE_TITLE}}</title>
+    <title>{{site.title}}</title>
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
-    {{GOOGLE_FONTS}}
+    {{{googleFontsLink}}}
     <style>
-{{{FONT_VARIABLES}}}
+{{{fontVariables}}}
     </style>
     <!-- 预设主题和侧边栏状态，避免闪烁 -->
     <script>
@@ -53,7 +53,7 @@
         <!-- 左侧导航 -->
         <nav class="sidebar">
             <div class="logo">
-                <h1>{{SITE_LOGO_TEXT}}</h1>
+                <h1>{{site.logo_text}}</h1>
                 <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
                     <i class="fas fa-chevron-left toggle-icon"></i>
                 </button>
@@ -61,19 +61,27 @@
             
             <div class="sidebar-content">
                 <div class="nav-section">
-                    {{NAVIGATION}}
+                    {{#if navigationData}}
+                    {{> navigation navigationData}}
+                    {{else}}
+                    {{{navigation}}}
+                    {{/if}}
                 </div>
 
                 <div class="nav-section">
                     <div class="section-title">
                         <i class="fas fa-link"></i>
                     </div>
-                    {{SOCIAL_LINKS}}
+                    {{#if social}}
+                    {{> social-links social}}
+                    {{else}}
+                    {{{socialLinks}}}
+                    {{/if}}
                 </div>
             </div>
 
             <div class="copyright">
-                <p>© {{CURRENT_YEAR}} <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a></p>
+                <p>© {{currentYear}} <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a></p>
                 <p>by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a></p>
             </div>
         </nav>
@@ -88,9 +96,12 @@
                 </div>
             </div>
 
-            {{ALL_PAGES}}
-            
-            {{SEARCH_RESULTS}}
+            <!-- 页面容器 -->
+            {{#each pages}}
+            <div class="page {{@key}}{{#if @first}} active{{/if}}" id="{{@key}}">
+                {{{this}}}
+            </div>
+            {{/each}}
         </main>
         
         <!-- 主题切换按钮 -->
@@ -100,4 +111,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-</html>
+</html> 

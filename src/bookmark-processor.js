@@ -74,7 +74,6 @@ function getLatestBookmarkFile() {
   try {
     // 确保书签目录存在
     if (!fs.existsSync(BOOKMARKS_DIR)) {
-      console.log('Creating bookmarks directory');
       fs.mkdirSync(BOOKMARKS_DIR, { recursive: true });
       return null;
     }
@@ -84,7 +83,6 @@ function getLatestBookmarkFile() {
       .filter(file => file.toLowerCase().endsWith('.html'));
 
     if (files.length === 0) {
-      console.log('No bookmark HTML files found');
       return null;
     }
 
@@ -97,7 +95,6 @@ function getLatestBookmarkFile() {
     // 找出最新的文件
     fileStats.sort((a, b) => b.mtime - a.mtime);
     const latestFile = fileStats[0].file;
-    console.log(`Found latest bookmark file: ${latestFile}`);
     
     return path.join(BOOKMARKS_DIR, latestFile);
   } catch (error) {
@@ -213,8 +210,6 @@ ${yamlString}`;
 
 // 更新导航以包含书签页面
 function updateNavigationWithBookmarks() {
-  console.log('Checking navigation configuration for bookmarks page...');
-  
   // 模块化配置文件
   const modularUserNavFile = path.join(CONFIG_USER_DIR, 'navigation.yml');
   const modularDefaultNavFile = 'config/_default/navigation.yml';
@@ -226,9 +221,6 @@ function updateNavigationWithBookmarks() {
   // 1. 首选: 模块化用户导航配置
   if (fs.existsSync(modularUserNavFile)) {
     navigationUpdated = updateNavigationFile(modularUserNavFile);
-    if (navigationUpdated) {
-      console.log(`Updated modular user navigation file: ${modularUserNavFile}`);
-    }
   }
   // 2. 其次: 模块化默认导航配置
   else if (fs.existsSync(modularDefaultNavFile)) {
@@ -245,59 +237,13 @@ function updateNavigationWithBookmarks() {
       
       // 写入用户导航文件
       fs.writeFileSync(modularUserNavFile, defaultNavContent, 'utf8');
-      console.log(`Created user navigation file based on default: ${modularUserNavFile}`);
       
       // 更新新创建的文件
       navigationUpdated = updateNavigationFile(modularUserNavFile);
-      if (navigationUpdated) {
-        console.log(`Updated newly created navigation file: ${modularUserNavFile}`);
-      }
     } catch (error) {
       console.error(`Error creating user navigation file:`, error);
     }
   }
-  // 3. 如果都不存在，创建一个基本的导航文件
-  else {
-    try {
-      // 确保目录存在
-      if (!fs.existsSync(CONFIG_USER_DIR)) {
-        fs.mkdirSync(CONFIG_USER_DIR, { recursive: true });
-      }
-      
-      // 创建基本导航配置
-      const basicNav = [
-        {
-          name: "首页",
-          icon: "fas fa-home",
-          id: "home",
-          active: true
-        },
-        {
-          name: "书签",
-          icon: "fas fa-bookmark",
-          id: "bookmarks",
-          active: false
-        }
-      ];
-      
-      // 写入用户导航文件
-      fs.writeFileSync(
-        modularUserNavFile, 
-        yaml.dump(basicNav, { indent: 2, lineWidth: -1, quotingType: '"' }),
-        'utf8'
-      );
-      console.log(`Created basic navigation file: ${modularUserNavFile}`);
-      navigationUpdated = true;
-    } catch (error) {
-      console.error(`Error creating basic navigation file:`, error);
-    }
-  }
-  
-  if (!navigationUpdated) {
-    console.log('Did not update any navigation configuration with bookmarks page');
-  }
-  
-  return navigationUpdated;
 }
 
 // 更新单个导航配置文件
@@ -344,31 +290,22 @@ function updateNavigationFile(filePath) {
 
 // 主函数
 async function main() {
-  console.log('Starting bookmark processing...');
-  
   // 获取最新的书签文件
   const bookmarkFile = getLatestBookmarkFile();
   if (!bookmarkFile) {
-    console.log('No bookmark file to process.');
     return;
   }
   
   try {
     // 读取文件内容
-    console.log(`Reading bookmark file: ${bookmarkFile}`);
     const htmlContent = fs.readFileSync(bookmarkFile, 'utf8');
     
     // 解析书签
     const bookmarks = parseBookmarks(htmlContent);
-    console.log(`Found ${bookmarks.categories.length} categories with bookmarks`);
     if (bookmarks.categories.length === 0) {
       console.error('ERROR: No bookmark categories found in the HTML file. Processing aborted.');
       return;
     }
-    console.log('Categories found:');
-    bookmarks.categories.forEach(cat => {
-      console.log(`- ${cat.name}: ${cat.sites.length} sites`);
-    });
     
     // 生成YAML
     const yaml = generateBookmarksYaml(bookmarks);
@@ -377,35 +314,23 @@ async function main() {
       return;
     }
     
-    // 显示将要写入的YAML前几行
-    console.log('Generated YAML preview (first 5 lines):');
-    console.log(yaml.split('\n').slice(0, 5).join('\n') + '\n...');
-    
     try {
       // 确保目标目录存在
       if (!fs.existsSync(CONFIG_USER_PAGES_DIR)) {
-        console.log(`Creating output directory structure: ${CONFIG_USER_PAGES_DIR}`);
         fs.mkdirSync(CONFIG_USER_PAGES_DIR, { recursive: true });
       }
       
       // 保存YAML到模块化位置
-      console.log(`Writing bookmarks configuration to: ${MODULAR_OUTPUT_FILE}`);
       fs.writeFileSync(MODULAR_OUTPUT_FILE, yaml, 'utf8');
       
       // 验证文件是否确实被创建
-      if (fs.existsSync(MODULAR_OUTPUT_FILE)) {
-        const stats = fs.statSync(MODULAR_OUTPUT_FILE);
-        console.log(`Successfully saved bookmarks configuration (${stats.size} bytes)`);
-      } else {
+      if (!fs.existsSync(MODULAR_OUTPUT_FILE)) {
         console.error(`ERROR: File was not created: ${MODULAR_OUTPUT_FILE}`);
         process.exit(1);
       }
       
       // 更新导航
       updateNavigationWithBookmarks();
-      
-      // 不再删除原始HTML文件，留给GitHub Actions处理
-      console.log(`Processing complete. HTML files will be cleaned up by GitHub Actions workflow.`);
     } catch (writeError) {
       console.error(`ERROR writing file:`, writeError);
       process.exit(1);

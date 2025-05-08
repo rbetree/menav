@@ -173,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             searchIndex.initialized = true;
-            console.log('Search index initialized with', searchIndex.items.length, 'items');
         } catch (error) {
             console.error('Error initializing search index:', error);
             searchIndex.initialized = true; // 防止反复尝试初始化
@@ -343,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             section.style.display = 'none';
                         } catch (sectionError) {
-                            console.error('Error clearing search section:', sectionError);
+                            console.error('Error clearing search section');
                         }
                     });
 
@@ -366,10 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     section.style.display = 'block';
                                 }
                             } catch (gridError) {
-                                console.error(`Error updating search results for ${pageId}:`, gridError);
+                                console.error('Error updating search results grid');
                             }
-                        } else {
-                            console.warn(`Search section for page "${pageId}" not found`);
                         }
                     });
 
@@ -393,11 +390,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     searchBox.classList.toggle('has-results', hasResults);
                     searchBox.classList.toggle('no-results', !hasResults);
                 } catch (uiError) {
-                    console.error('Error updating search UI:', uiError);
+                    console.error('Error updating search UI');
                 }
             });
         } catch (searchError) {
-            console.error('Error performing search:', searchError);
+            console.error('Error performing search');
         }
     }
     
@@ -503,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 description.appendChild(descFragment);
             }
         } catch (error) {
-            console.error('Error highlighting search term:', error);
+            console.error('Error highlighting search term');
         }
     }
     
@@ -532,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             section.style.display = 'none';
                         } catch (sectionError) {
-                            console.error('Error clearing search section:', sectionError);
+                            console.error('Error clearing search section');
                         }
                     });
 
@@ -557,12 +554,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             page.classList.toggle('active', page.id === 'home');
                         });
                     }
-                } catch (uiError) {
-                    console.error('Error resetting search UI:', uiError);
+                } catch (resetError) {
+                    console.error('Error resetting search UI');
                 }
             });
         } catch (error) {
-            console.error('Error in resetSearch:', error);
+            console.error('Error in resetSearch');
         }
     }
 

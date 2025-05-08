@@ -21,8 +21,7 @@ const CONFIG_USER_PAGES_DIR = path.join(CONFIG_USER_DIR, 'pages');
  * 迁移旧式配置文件到模块化格式
  */
 function migrateConfiguration() {
-  console.log('\n======== MeNav 配置迁移工具 ========');
-  console.log('将旧式双文件配置转换为模块化配置\n');
+  console.log('MeNav 配置迁移工具');
   
   // 检查是否存在旧式配置文件
   const hasUserConfig = fs.existsSync(LEGACY_USER_CONFIG_FILE);
@@ -50,7 +49,6 @@ function migrateConfiguration() {
   // 迁移主配置文件
   if (configFile) {
     try {
-      console.log(`迁移配置文件: ${configFile}`);
       const configContent = fs.readFileSync(configFile, 'utf8');
       const config = yaml.load(configContent);
       
@@ -85,7 +83,6 @@ function migrateConfiguration() {
           `# 由migrate-config.js从${configFile}迁移\n# 生成于 ${new Date().toISOString()}\n\n${siteYaml}`,
           'utf8'
         );
-        console.log('✓ 已创建站点配置文件: site.yml');
       }
       
       // 提取导航配置
@@ -96,7 +93,6 @@ function migrateConfiguration() {
           `# 由migrate-config.js从${configFile}迁移\n# 生成于 ${new Date().toISOString()}\n\n${navigationYaml}`,
           'utf8'
         );
-        console.log('✓ 已创建导航配置文件: navigation.yml');
       }
       
       // 提取所有页面配置
@@ -116,7 +112,6 @@ function migrateConfiguration() {
             `# 由migrate-config.js从${configFile}迁移\n# 生成于 ${new Date().toISOString()}\n\n${pageYaml}`,
             'utf8'
           );
-          console.log(`✓ 已创建页面配置文件: ${pageId}.yml`);
         }
       });
       
@@ -134,7 +129,6 @@ function migrateConfiguration() {
           `# 由migrate-config.js从${configFile}迁移\n# 生成于 ${new Date().toISOString()}\n\n${homeYaml}`,
           'utf8'
         );
-        console.log('✓ 已创建首页配置文件: home.yml');
       }
     } catch (error) {
       console.error(`迁移配置文件${configFile}时出错:`, error);
@@ -146,28 +140,17 @@ function migrateConfiguration() {
   
   if (bookmarksFile) {
     try {
-      console.log(`\n迁移书签配置文件: ${bookmarksFile}`);
-      
       // 直接复制书签配置文件
       fs.copyFileSync(
         bookmarksFile,
         path.join(CONFIG_USER_PAGES_DIR, 'bookmarks.yml')
       );
-      console.log('✓ 已创建书签配置文件: bookmarks.yml');
     } catch (error) {
       console.error(`迁移书签配置文件${bookmarksFile}时出错:`, error);
     }
   }
   
-  console.log('\n迁移完成！');
-  console.log('您现在可以删除旧的配置文件：');
-  if (hasUserConfig) console.log(`- ${LEGACY_USER_CONFIG_FILE}`);
-  if (hasDefaultConfig) console.log(`- ${LEGACY_CONFIG_FILE}`);
-  if (hasUserBookmarks) console.log(`- ${LEGACY_USER_BOOKMARKS_FILE}`);
-  if (hasDefaultBookmarks) console.log(`- ${LEGACY_BOOKMARKS_FILE}`);
-  console.log('\n新的模块化配置文件位于：');
-  console.log(`- ${CONFIG_USER_DIR}/`);
-  console.log(`- ${CONFIG_USER_PAGES_DIR}/`);
+  console.log('迁移完成！');
 }
 
 // 如果直接运行该脚本，则执行迁移

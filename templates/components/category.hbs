@@ -1,0 +1,12 @@
+<section class="category" id="{{name}}">
+    <h2><i class="{{icon}}"></i> {{name}}</h2>
+    <div class="sites-grid">
+        {{#if sites.length}}
+            {{#each sites}}
+                {{> site-card}}
+            {{/each}}
+        {{else}}
+            <p class="empty-sites">暂无网站</p>
+        {{/if}}
+    </div>
+</section> 

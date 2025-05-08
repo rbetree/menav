@@ -1,0 +1,11 @@
+<!-- 搜索结果页 -->
+<div class="welcome-section">
+    <h2>搜索结果</h2>
+    <p class="subtitle">在所有页面中找到的匹配项</p>
+</div>
+{{#each navigation}}
+<section class="category search-section" data-section="{{id}}" style="display: none;">
+    <h2><i class="{{icon}}"></i> {{name}}匹配项</h2>
+    <div class="sites-grid"></div>
+</section>
+{{/each}} 
