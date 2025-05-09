@@ -91,8 +91,22 @@
             <!-- 搜索框容器 -->
             <div class="search-container">
                 <div class="search-box">
-                    <input type="text" id="search" placeholder="搜索...">
-                    <i class="fas fa-search"></i>
+                    <input type="text" id="search" placeholder="搜索... (点击右侧图标切换搜索引擎)">
+                    <i class="fas fa-search search-icon" title="本地搜索"></i>
+                    <div class="search-engine-dropdown">
+                        <div class="search-engine-option" data-engine="local" title="本地搜索">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="google" title="Google搜索">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="bing" title="Bing搜索">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="baidu" title="百度搜索">
+                            <i class="fas fa-paw"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 

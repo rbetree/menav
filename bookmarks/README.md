@@ -42,6 +42,8 @@
    npm run build
    ```
 
+> **重要说明**：在本地开发中，`npm run dev` 命令**不会**自动处理书签文件。您必须先手动运行 `npm run import-bookmarks` 命令处理书签，然后再运行 `npm run dev` 查看效果。这与 GitHub Actions 中的自动处理流程不同，请务必注意。
+
 ## 支持的浏览器
 
 MeNav 书签导入功能支持从以下浏览器导出的书签文件：

@@ -158,7 +158,7 @@ function parseBookmarks(htmlContent) {
         name: name,
         url: url,
         icon: icon,
-        description: name
+        description: ''
       });
     }
     

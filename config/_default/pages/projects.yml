@@ -1,5 +1,9 @@
 title: 我的项目
 subtitle: 这里展示了我的一些个人项目和开源贡献
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: projects
+
 categories:
   - name: 个人项目
     icon: fas fa-code

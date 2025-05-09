@@ -88,7 +88,46 @@ function renderTemplate(templateName, data, useLayout = true) {
     
     // 检查模板是否存在
     if (!fs.existsSync(templatePath)) {
-        throw new Error(`Template ${templateName}.hbs not found. Cannot proceed without template.`);
+        // 尝试使用通用模板 page.hbs
+        const genericTemplatePath = path.join(process.cwd(), 'templates', 'pages', 'page.hbs');
+        
+        if (fs.existsSync(genericTemplatePath)) {
+            console.log(`模板 ${templateName}.hbs 不存在，使用通用模板 page.hbs 代替`);
+            const genericTemplateContent = fs.readFileSync(genericTemplatePath, 'utf8');
+            const genericTemplate = handlebars.compile(genericTemplateContent);
+            
+            // 添加 pageId 到数据中，以便通用模板使用
+            const enhancedData = {
+                ...data,
+                pageId: templateName // 确保pageId在模板中可用
+            };
+            
+            // 渲染页面内容
+            const pageContent = genericTemplate(enhancedData);
+            
+            // 如果不使用布局，直接返回页面内容
+            if (!useLayout) {
+                return pageContent;
+            }
+            
+            try {
+                // 使用辅助函数获取默认布局模板
+                const { template: layoutTemplate } = getDefaultLayoutTemplate();
+                
+                // 准备布局数据，包含页面内容
+                const layoutData = {
+                    ...enhancedData,
+                    body: pageContent
+                };
+                
+                // 渲染完整页面
+                return layoutTemplate(layoutData);
+            } catch (layoutError) {
+                throw new Error(`Error rendering layout for ${templateName}: ${layoutError.message}`);
+            }
+        } else {
+            throw new Error(`Template ${templateName}.hbs not found and generic template page.hbs not found. Cannot proceed without template.`);
+        }
     }
     
     try {
@@ -660,7 +699,8 @@ function renderPage(pageId, config) {
   // 准备页面数据
   const data = {
     ...config,
-    currentPage: pageId
+    currentPage: pageId,
+    pageId // 同时保留pageId字段，用于通用模板
   };
   
   // 确保navigation是数组
@@ -697,8 +737,15 @@ function renderPage(pageId, config) {
     Object.assign(data, config[pageId]);
   }
   
+  // 检查页面配置中是否指定了模板
+  let templateName = pageId;
+  if (config[pageId] && config[pageId].template) {
+    templateName = config[pageId].template;
+    console.log(`页面 ${pageId} 使用指定模板: ${templateName}`);
+  }
+  
   // 直接渲染页面内容，不使用layout布局（因为layout会在generateHTML中统一应用）
-  return renderTemplate(pageId, data, false);
+  return renderTemplate(templateName, data, false);
 }
 
 /**

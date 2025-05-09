@@ -1,5 +1,9 @@
 title: 友情链接
 subtitle: 优秀的博主和朋友们
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: friends
+
 categories:
   - name: 技术博主
     icon: fas fa-user-friends

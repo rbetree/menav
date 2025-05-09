@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLightTheme = false; // 主题状态
     let isSidebarCollapsed = false; // 侧边栏折叠状态
     let pages; // 页面元素的全局引用
+    let currentSearchEngine = 'local'; // 当前选择的搜索引擎
     
     // 搜索索引，用于提高搜索效率
     let searchIndex = {
@@ -15,11 +16,40 @@ document.addEventListener('DOMContentLoaded', () => {
         items: []
     };
     
+    // 搜索引擎配置
+    const searchEngines = {
+        local: {
+            name: '本地搜索',
+            icon: 'fas fa-search',
+            url: null // 本地搜索不需要URL
+        },
+        google: {
+            name: 'Google搜索',
+            icon: 'fab fa-google',
+            url: 'https://www.google.com/search?q='
+        },
+        bing: {
+            name: 'Bing搜索',
+            icon: 'fab fa-microsoft',
+            url: 'https://www.bing.com/search?q='
+        },
+        baidu: {
+            name: '百度搜索',
+            icon: 'fas fa-paw',
+            url: 'https://www.baidu.com/s?wd='
+        }
+    };
+    
     // 获取DOM元素 - 基本元素
     const searchInput = document.getElementById('search');
     const searchBox = document.querySelector('.search-box');
     const searchResultsPage = document.getElementById('search-results');
     const searchSections = searchResultsPage.querySelectorAll('.search-section');
+    
+    // 搜索引擎相关元素
+    const searchIcon = document.querySelector('.search-icon');
+    const searchEngineDropdown = document.querySelector('.search-engine-dropdown');
+    const searchEngineOptions = document.querySelectorAll('.search-engine-option');
     
     // 移动端元素
     const menuToggle = document.querySelector('.menu-toggle');
@@ -578,8 +608,121 @@ document.addEventListener('DOMContentLoaded', () => {
     const debouncedSearch = debounce(performSearch, 300);
 
     searchInput.addEventListener('input', (e) => {
-        debouncedSearch(e.target.value);
+        // 只有在选择了本地搜索时，才在输入时实时显示本地搜索结果
+        if (currentSearchEngine === 'local') {
+            debouncedSearch(e.target.value);
+        } else {
+            // 对于非本地搜索，重置之前的本地搜索结果（如果有）
+            if (isSearchActive) {
+                resetSearch();
+            }
+        }
     });
+
+    // 初始化搜索引擎设置
+    function initSearchEngine() {
+        // 从本地存储获取上次选择的搜索引擎
+        const savedEngine = localStorage.getItem('searchEngine');
+        if (savedEngine && searchEngines[savedEngine]) {
+            currentSearchEngine = savedEngine;
+        }
+        
+        // 设置当前搜索引擎的激活状态及图标
+        updateSearchEngineUI();
+        
+        // 初始化搜索引擎下拉菜单事件
+        searchIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchEngineDropdown.classList.toggle('active');
+        });
+        
+        // 点击搜索引擎选项
+        searchEngineOptions.forEach(option => {
+            // 初始化激活状态
+            if (option.getAttribute('data-engine') === currentSearchEngine) {
+                option.classList.add('active');
+            }
+            
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // 获取选中的搜索引擎
+                const engine = option.getAttribute('data-engine');
+                
+                // 更新当前搜索引擎
+                if (engine && searchEngines[engine]) {
+                    // 如果搜索引擎变更，且之前有活跃的本地搜索结果，重置搜索状态
+                    if (currentSearchEngine !== engine && isSearchActive) {
+                        resetSearch();
+                    }
+                    
+                    currentSearchEngine = engine;
+                    localStorage.setItem('searchEngine', engine);
+                    
+                    // 更新UI显示
+                    updateSearchEngineUI();
+                    
+                    // 关闭下拉菜单
+                    searchEngineDropdown.classList.remove('active');
+                }
+            });
+        });
+        
+        // 点击页面其他位置关闭下拉菜单
+        document.addEventListener('click', () => {
+            searchEngineDropdown.classList.remove('active');
+        });
+    }
+    
+    // 更新搜索引擎UI显示
+    function updateSearchEngineUI() {
+        // 移除所有选项的激活状态
+        searchEngineOptions.forEach(option => {
+            option.classList.remove('active');
+            
+            // 如果是当前选中的搜索引擎，添加激活状态
+            if (option.getAttribute('data-engine') === currentSearchEngine) {
+                option.classList.add('active');
+            }
+        });
+
+        // 更新搜索图标以反映当前搜索引擎
+        if (searchIcon) {
+            // 清除所有类，保留基本的search-icon类
+            const classList = searchIcon.className.split(' ').filter(cls => cls === 'search-icon');
+            searchIcon.className = classList.join(' ');
+            
+            // 添加当前搜索引擎的图标类
+            const engine = searchEngines[currentSearchEngine];
+            if (engine) {
+                const iconClasses = engine.icon.split(' ');
+                iconClasses.forEach(cls => {
+                    searchIcon.classList.add(cls);
+                });
+                
+                // 更新标题提示
+                searchIcon.setAttribute('title', engine.name);
+            }
+        }
+    }
+    
+    // 执行搜索（根据选择的搜索引擎）
+    function executeSearch(searchTerm) {
+        if (!searchTerm.trim()) return;
+        
+        // 根据当前搜索引擎执行搜索
+        if (currentSearchEngine === 'local') {
+            // 执行本地搜索
+            performSearch(searchTerm);
+        } else {
+            // 使用外部搜索引擎
+            const engine = searchEngines[currentSearchEngine];
+            if (engine && engine.url) {
+                // 打开新窗口进行搜索
+                window.open(engine.url + encodeURIComponent(searchTerm), '_blank');
+            }
+        }
+    }
 
     // 搜索框事件处理
     searchInput.addEventListener('keyup', (e) => {
@@ -587,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.value = '';
             resetSearch();
         } else if (e.key === 'Enter') {
-            performSearch(searchInput.value);
+            executeSearch(searchInput.value);
             // 在移动设备上，执行搜索后自动关闭搜索面板
             if (isMobile() && isSearchOpen) {
                 closeAllPanels();
@@ -617,6 +760,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 初始化侧边栏状态
         initSidebarState();
+        
+        // 初始化搜索引擎选择
+        initSearchEngine();
         
         // 立即执行初始化，不再使用requestAnimationFrame延迟
         // 显示首页

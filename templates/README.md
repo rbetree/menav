@@ -147,6 +147,32 @@ MeNav 模板系统的数据流如下：
 
 ## 模板使用示例
 
+### 布局模板使用
+布局模板通常只有一个 `default.hbs`，会自动被系统使用。
+
+### 页面模板使用
+页面模板对应导航中的各个页面，有两种使用方式：
+
+1. **自动匹配**：系统会尝试使用与页面ID同名的模板（例如：页面ID为 `projects` 时会使用 `projects.hbs`）
+2. **显式指定**：在页面配置中使用 `template` 字段指定要使用的模板
+
+#### 模板指定示例
+在 `config/user/pages/项目.yml` 中：
+
+```yaml
+title: "我的项目"
+subtitle: "这里展示我的所有项目"
+template: "projects" # 使用 projects.hbs 模板而不是使用页面ID命名的模板
+categories:
+  - name: "网站项目"
+    icon: "fas fa-globe"
+    sites:
+      - name: "个人博客"
+        # ... 其他字段
+```
+
+**注意**：当系统找不到指定的模板或与页面ID匹配的模板时，会自动使用通用模板 `page.hbs`。
+
 ### 引用组件
 
 在页面或其他组件中引用组件：

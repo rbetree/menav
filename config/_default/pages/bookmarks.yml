@@ -1,5 +1,9 @@
 title: 我的书签
 subtitle: 从浏览器导入的书签收藏
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: bookmarks
+
 categories:
   - name: 技术资源
     icon: fas fa-folder

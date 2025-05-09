@@ -1,5 +1,9 @@
 title: 技术文章
 subtitle: 分享我的技术文章和学习笔记
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: articles
+
 categories:
   - name: 最新文章
     icon: fas fa-pen
