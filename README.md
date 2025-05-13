@@ -4,6 +4,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/rbetree/menav)](https://github.com/rbetree/menav/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/rbetree/menav)](https://github.com/rbetree/menav/network/members)
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rbetree/menav)
+
 📋 一键部署的静态个人导航站 | ⚡ 自动化构建 | 🔖 支持书签导入
 
 > MeNav是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。无需数据库和后端服务，完全静态部署，支持一键Fork部署到GitHub Pages，还可以从浏览器书签一键导入网站。MeNav is a lightweight, highly customizable personal navigation website generator. One-click deployment to GitHub Pages, automated build, bookmark import support, and more.
@@ -32,7 +34,8 @@
 - [技术栈](#技术栈)
 - [项目结构](#项目结构)
 - [快速开始](#快速开始)
-- [部署方式](#部署方式)
+- [部署方式](#部署方式)  
+  - [部署到Cloudflare Pages](#部署到cloudflare-pages)
   - [部署到GitHub Pages](#快速部署到github-pages)
   - [部署到自己的服务器](#部署到服务器)
   - [其他CI/CD服务部署](#其他cicd托管选项)
@@ -234,7 +237,63 @@ npm run build
 
 ## 部署方式
 
-### 快速部署到GitHub Pages
+### 部署到Cloudflare Pages
+
+<details>
+<summary>点击展开</summary>
+
+Cloudflare Pages提供快速、安全的静态网站托管，支持全球CDN分发和持续集成。
+
+#### 方法一：使用一键部署按钮（推荐）
+
+点击下面按钮可以一键部署
+
+ [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rbetree/menav) 
+ 
+ > **💡 说明**：使用一键部署按钮时，您无需先Fork仓库。Cloudflare会自动将原始仓库（rbetree/menav）克隆到您的GitHub/GitLab账户中，然后在您的Cloudflare账户中部署应用。URL中使用原始仓库地址是正确的做法，这种设计可以让用户便捷地获取最新的项目代码并部署到自己的账户中。
+ 
+ 步骤如下：
+
+1. 点击按钮后，Cloudflare会将原始仓库克隆到您的GitHub账户中（创建一个新的仓库副本）
+2. 授权Cloudflare访问您的GitHub账户
+3. 自定义项目名称、资源设置和其他部署参数
+4. 等待自动部署完成
+5. 访问您的Cloudflare Pages站点
+6. 后续您可以直接在GitHub上修改您的仓库副本，这些修改将通过Cloudflare的自动构建流程部署到您的站点
+
+#### 方法二：手动配置
+
+1. 登录Cloudflare控制台，进入Pages部分
+2. 点击"创建应用程序"
+3. 选择"连接到Git"选项并授权您的Git提供商
+4. 选择您的MeNav仓库
+5. 配置构建设置：
+   - 构建命令：`npm run build`
+   - 构建输出目录：`dist`
+6. 点击"保存并部署"
+
+#### 部署完成后
+
+您可以在Cloudflare Dashboard中：
+- 设置自定义域名
+- 查看分析数据
+- 管理环境变量
+- 配置访问控制
+
+#### 自定义配置
+
+1. 创建个人配置文件:
+   - **重要:** 始终创建自己的用户配置文件，不要直接修改默认配置文件
+   - 使用模块化配置（见[使用模块化配置](#使用模块化配置)）
+   - 提交您的配置文件到仓库
+
+2. 等待自动部署
+
+Cloudflare Pages提供自动HTTPS、全球CDN和持续部署，非常适合托管静态网站。
+
+</details>
+
+### 部署到GitHub Pages
 
 <details>
 <summary>点击展开</summary>
@@ -336,17 +395,12 @@ server {
    - 设置构建命令为`npm run build`
    - 发布目录设置为`dist`
 
-3. **Cloudflare Pages**:
-   - 连接您的Git提供商
-   - 设置构建命令为`npm run build`
-   - 构建输出目录设置为`dist`
-
-4. **GitLab Pages**:
+3. **GitLab Pages**:
    - 创建`.gitlab-ci.yml`文件
    - 配置Pages部署流程
    - 指定构建输出目录
 
-5. **Azure Static Web Apps**:
+4. **Azure Static Web Apps**:
    - 在Azure门户中创建新的静态Web应用
    - 关联您的代码库
    - 配置构建信息
