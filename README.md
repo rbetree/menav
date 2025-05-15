@@ -1,4 +1,13 @@
-# <img src="assets/favicon.ico" width="48" style="vertical-align: middle;"> MeNav - 个人导航站
+<div align="center">
+  <img src="assets/favicon.ico" alt="MarksVault" width="120">
+  <h1>MeNav - 个人导航站</h1>
+  <p>
+    一个轻量级、高度可定制的个人导航网站生成器
+    <br />
+    <i>⚡ 一键部署 自动化构建 轻松创建属于自己的导航主页</i>
+  </p>
+</div>
+
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
 [![GitHub stars](https://img.shields.io/github/stars/rbetree/menav)](https://github.com/rbetree/menav/stargazers)
