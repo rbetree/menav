@@ -13,5 +13,10 @@ categories:
         description: "全球最大的代码托管平台"  # 网站描述
       - name: "perplexity"
         url: "https://www.perplexity.ai"
+        icon: "fab fa-airbnb"
+        description: "per" 
       - name: "infiniCloud"
         url: "https://infini-cloud.net"
+        icon: "fab fa-cloud"
+        description: "infiniCloud" 
+        
