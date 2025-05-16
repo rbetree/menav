@@ -171,6 +171,10 @@ categories:
         url: https://jetbrains-plum.vercel.app/
         icon: fas fa-link
         description: "JetBrains 系列全家桶激活服务器"
+      - name: JetBrains 系列全家桶激活服务器
+        url: https://jbls.ide-soft.com
+        icon: fas fa-link
+        description: "JetBrains 系列全家桶激活服务器"
   - name: esim
     icon: fas fa-mobile-screen-button
     sites:
