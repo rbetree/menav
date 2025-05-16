@@ -19,6 +19,10 @@ categories:
         url: "https://infini-cloud.net"
         icon: "fab fa-cloud"
         description: "infiniCloud" 
+      - name: "cloudfare"
+        url: "https://dash.cloudflare.com“
+        icon: "fab fa-link"
+        description: "cloudfare" 
   - name: "在线网站"          # 分类名称
     icon: "fas fa-wrench"      # 分类图标
     sites:                    # 该分类下的网站列表
