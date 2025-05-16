@@ -172,12 +172,12 @@ categories:
         icon: fas fa-link
         description: "JetBrains 系列全家桶激活服务器"
   - name: esim
-    icon: fas fa-esim
+    icon: fas fa-mobile-screen-button
     sites:
       - name: eSIM 转 SIM 实体卡 | 回声
         url: https://iecho.cc/2023/10/20/Convert-eSIM-to-physical-SIM/#Windows%E3%80%81macOS-%E5%92%8C-Linux-%E5%B9%B3%E5%8F%B0
         icon: fas fa-link
-        description: ""
+        description: "esim转换"
   - name: 接码
     icon: fas fa-folder
     sites:
