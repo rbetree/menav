@@ -19,4 +19,10 @@ categories:
         url: "https://infini-cloud.net"
         icon: "fab fa-cloud"
         description: "infiniCloud" 
-        
+  - name: "在线网站"          # 分类名称
+    icon: "fas fa-wrench"      # 分类图标
+    sites:                    # 该分类下的网站列表
+      - name: "ip查询工具"        # 网站名称
+        url: "https://ip.tsy.ink"  # 网站链接
+        icon: "fab fa-tablet-screen-button"      # 网站图标
+        description: "ip纯净度"  # 网站描述
