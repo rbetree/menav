@@ -12,7 +12,7 @@ categories:                   # 该页面的分类和网站
         url: "https://cdhost.vercel.app"
         icon: "fab fa-v"
         description: "Cdhost"
-    - name: "SubStore"
+      - name: "SubStore"
         url: "https://dyeixmidoovq.us-east-1.clawcloudrun.com/subs"
         icon: "fab fa-link"
         description: "SubStore"
