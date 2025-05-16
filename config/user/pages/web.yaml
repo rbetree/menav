@@ -1,0 +1,15 @@
+title: "我的小网站"          # 页面标题
+subtitle: "搭建"  # 页面副标题
+categories:                   # 该页面的分类和网站
+  - name: "web"
+    icon: "fas fa-code"
+    sites:
+      - name: "deeplx"
+        url: "https://deeplx-wine.vercel.app"
+        icon: "fab fa-v"
+        description: "deeplx"
+      - name: "cdhost"
+        url: "https://cdhost.vercel.app"
+        icon: "fab fa-v"
+        description: "Cdhost"
+      # 更多网站...
