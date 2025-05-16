@@ -6,5 +6,5 @@
   icon: fas fa-bookmark
   id: bookmarks 
 - name: 小网站
-  icon: fas fa-webflow
+  icon: fas fa-bookmark
   id: web
