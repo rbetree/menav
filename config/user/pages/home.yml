@@ -1,0 +1,17 @@
+# pages/home.yml示例
+title: "我的主页"          # 页面标题
+subtitle: "常用网站导航"   # 页面副标题
+
+# 分类和网站配置
+categories:
+  - name: "常用工具"          # 分类名称
+    icon: "fas fa-tools"      # 分类图标
+    sites:                    # 该分类下的网站列表
+      - name: "GitHub"        # 网站名称
+        url: "https://github.com"  # 网站链接
+        icon: "fab fa-github"      # 网站图标
+        description: "全球最大的代码托管平台"  # 网站描述
+      - name: "perplexity"
+        url: "https://www.perplexity.ai"
+      - name: "infiniCloud"
+        url: "https://infini-cloud.net"
