@@ -1,0 +1,228 @@
+# 自动生成的书签配置文件
+# 由bookmark-processor.js生成于 2025-05-16T12:36:38.816Z
+# 若要更新，请将新的书签HTML文件放入bookmarks/目录
+# 此文件使用模块化配置格式，位于config/user/pages/目录下
+
+title: 我的书签
+subtitle: 从浏览器导入的书签收藏
+categories:
+  - name: 书签栏
+    icon: fas fa-folder
+    sites:
+      - name: 云端硬盘
+        url: https://drive.google.com/drive/my-drive
+        icon: fab fa-google
+        description: ""
+      - name: GitHub
+        url: https://github.com/
+        icon: fab fa-github
+        description: ""
+      - name: YouTube
+        url: https://www.youtube.com/
+        icon: fab fa-youtube
+        description: ""
+      - name: 聚合图床
+        url: https://www.superbed.cn/
+        icon: fas fa-link
+        description: ""
+      - name: blogger
+        url: https://www.blogger.com/blog/posts/4976026358475435033?bpli=1&pli=1
+        icon: fas fa-link
+        description: ""
+  - name: 学校
+    icon: fas fa-folder
+    sites:
+      - name: 常工电
+        url: http://192.168.251.50/ISIMS/login.aspx
+        icon: fas fa-link
+        description: ""
+      - name: 学习通
+        url: http://i.chaoxing.com/base?t=1694946806495
+        icon: fas fa-link
+        description: ""
+      - name: 职教云
+        url: https://zjy2.icve.com.cn/portal/login.html
+        icon: fas fa-link
+        description: ""
+      - name: 校网
+        url: http://172.16.10.38/
+        icon: fas fa-link
+        description: ""
+      - name: 南通科技职业学院
+        url: https://www.ntst.edu.cn/
+        icon: fas fa-link
+        description: ""
+  - name: 学习
+    icon: fas fa-folder
+    sites:
+      - name: 备赛蓝桥杯
+        url: https://www.lanqiao.cn/cup/select-subject/
+        icon: fas fa-link
+        description: ""
+      - name: Roadmap
+        url: https://neetcode.io/roadmap
+        icon: fas fa-link
+        description: ""
+      - name: PTA
+        url: https://pintia.cn/problem-sets/dashboard
+        icon: fas fa-link
+        description: ""
+      - name: 题库
+        url: https://acmore.cc/
+        icon: fas fa-link
+        description: ""
+      - name: 资源统计
+        url: http://sdtsg.umajor.net/resources_statistics.html
+        icon: fas fa-link
+        description: ""
+      - name: "MIT18.01/18.02: Calculus - CS自学指南"
+        url: https://csdiy.wiki/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/MITmaths/
+        icon: fas fa-link
+        description: ""
+      - name: 全国计算机技术与软件专业技术资格（水平）考试
+        url: https://bm.ruankao.org.cn/sign/up
+        icon: fas fa-link
+        description: ""
+      - name: C语言学习 | Home
+        url: http://oj.lgwenda.com/
+        icon: fas fa-link
+        description: ""
+  - name: 论坛
+    icon: fas fa-folder
+    sites:
+      - name: V2EX
+        url: https://www.v2ex.com/
+        icon: fas fa-link
+        description: ""
+      - name: 全球主机
+        url: https://hostloc.com/
+        icon: fas fa-link
+        description: ""
+      - name: NodeSeek
+        url: https://www.nodeseek.com/
+        icon: fas fa-link
+        description: ""
+      - name: LINUX DO - 新的理想型社区
+        url: https://linux.do/
+        icon: fas fa-link
+        description: ""
+      - name: 数字居民论坛
+        url: https://shuzijumin.com/
+        icon: fas fa-link
+        description: ""
+      - name: 软考资料分享
+        url: https://docs.qq.com/sheet/DY2xrbXVYb0xBc1N4?tab=BB08J2
+        icon: fas fa-link
+        description: ""
+  - name: 影视
+    icon: fas fa-folder
+    sites:
+      - name: 主页 | 视频站
+        url: https://alist.221041.xyz:5243/
+        icon: fas fa-link
+        description: ""
+      - name: 不太灵影视_4k高清电影下载_蓝光迅雷电影下载_最新电视剧下载
+        url: https://www.2bt0.com/
+        icon: fas fa-link
+        description: ""
+      - name: WarHut影视
+        url: https://v.warhut.cn/
+        icon: fas fa-link
+        description: ""
+      - name: 青年影视
+        url: https://tv.52qn.top/
+        icon: fas fa-link
+        description: ""
+      - name: 灰太狼影视 - 影视大全在线追剧
+        url: https://www.minjiancai.com/?btwaf=78325134
+        icon: fas fa-link
+        description: ""
+      - name: 观影 GYING
+        url: https://www.gyg.la/
+        icon: fas fa-link
+        description: ""
+      - name: 链接地址洗白白
+        url: javascript:(function()%7Bconsole.info('Version:%200.1.12');const%20rules=%7B'www.bilibili.com':%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/www%5C.bilibili%5C.com%5C/video%5C/(av%5Cd+).*$/i,replace:%27https://www.bilibili.com/$1%27,query:%5B%27p%27%5D,hash:!0%7D,%27itunes.apple.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/itunes%5C.apple%5C.com%5C/(?:%5Cw%7B2%7D%5C/)?(%5B%5E%5C/%5D+)%5C/(?:%5B%5E%5C/%5D+%5C/)?((?:id)%5Cd+).*$/i,replace:%27https://itunes.apple.com/cn/$1/$2%27%7D,%27apps.apple.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/apps%5C.apple%5C.com%5C/(?:%5Cw%7B2%7D%5C/)?(%5B%5E%5C/%5D+)%5C/(?:%5B%5E%5C/%5D+%5C/)?((?:id)%5Cd+).*$/i,replace:%27https://apps.apple.com/cn/$1/$2%27%7D,%27microsoft.com/win10-store%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/www%5C.microsoft%5C.com%5C/%5Ba-zA-Z-%5D%7B2,5%7D%5C/p%5C/%5B%5E/%5D+%5C/(%5Ba-zA-Z0-9%5D%7B12,%7D)(?:%5B%5Ea-zA-Z0-9%5D.*%7C$)/i,replace:%27https://www.microsoft.com/store/apps/$1%27%7D,%27chrome.google.com/webstore%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/chrome%5C.google%5C.com%5C/webstore%5C/detail%5C/%5B%5E%5C/%5D+%5C/(%5Ba-z%5D%7B32%7D).*/i,replace:%27https://chrome.google.com/webstore/detail/$1%27%7D,%27s.taobao.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/s%5C.taobao%5C.com%5C/search.*$/i,replace:%27https://s.taobao.com/search%27,query:%5B%27q%27%5D%7D,%27list.tmall.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/list%5C.tmall%5C.com%5C/search_product%5C.htm.*$/i,replace:%27https://list.tmall.com/search_product.htm%27,query:%5B%27q%27%5D%7D,%27item.taobao.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/item%5C.taobao%5C.com%5C/item%5C.htm.*$/i,replace:%27https://item.taobao.com/item.htm%27,query:%5B%27id%27%5D%7D,%27detail.tmall.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/detail%5C.tmall%5C.com%5C/item%5C.htm.*$/i,replace:%27https://detail.tmall.com/item.htm%27,query:%5B%27id%27%5D%7D,%27taobao/tmall.com/shop%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(%5Cw+)%5C.(taobao%7Ctmall)%5C.com%5C/shop%5C/view_shop%5C.htm.*$/i,replace:%27https://$1.$2.com/%27%7D,%27c.pc.qq.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/c%5C.pc%5C.qq%5C.com%5C/middle.html%5C?.*pfurl=(%5B%5E&%5D*)(?:&.*$%7C$)/i,replace:%27$1%27,query:%5B%5D,methods:%5B%27decodeUrl%27%5D%7D,%27item.m.jd.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/item%5C.m%5C.jd%5C.com%5C/product%5C/(%5Cd+)%5C.html(%5C?.*)?$/i,replace:%27https://item.jd.com/$1.html%27%7D,%27item.m.jd.com/ware/%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/item%5C.m%5C.jd%5C.com%5C/ware%5C/view%5C.action%5C?.*wareId=(%5Cd+).*$/i,replace:%27https://item.jd.com/$1.html%27%7D,%27search.jd.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/search%5C.jd%5C.com%5C/Search%5C?.*$/i,query:%5B%27keyword%27,%27enc%27%5D%7D,%27re.jd.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/re%5C.jd%5C.com%5C/cps%5C/item%5C/(%5Cd+)%5C.html.*$/i,replace:%27https://item.jd.com/$1.html%27%7D,%27weibo.com/u%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?weibo%5C.com%5C/u%5C/(%5Cd+)(%5C?.*)?$/i,replace:%27https://m.weibo.cn/$1%27%7D,%27weibo.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?weibo%5C.com%5C/(?:%5Cd+)%5C/(%5Cw+)(%5C?.*)?$/i,replace:%27https://m.weibo.cn/status/$1%27%7D,%27greasyfork.org/script/tabs%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?greasyfork%5C.org%5C/(?:%5B%5Cw-%5D*%5C/)?scripts%5C/(%5Cd+)-%5B%5E//%5D*%5C/(code%7Cversions%7Cstats%7Cderivatives%7Cadmin).*$/i,replace:%27https://greasyfork.org/scripts/$1/$2%27,hash:!0%7D,%27greasyfork.org%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?greasyfork%5C.org%5C/(?:%5B%5Cw-%5D*%5C/)?(scripts%7Cusers)%5C/(%5Cd+)-%5B%5E//%5D*$/i,replace:%27https://greasyfork.org/$1/$2%27%7D,%27greasyfork.org/scripts/list%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?greasyfork%5C.org%5C/(?:%5B%5Cw-%5D*%5C/)?scripts%5C?.*$/i,query:%5B%27set%27,%27page%27%5D%7D,%27greasyfork.org/script/discussions%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?greasyfork%5C.org%5C/(?:%5B%5Cw-%5D*%5C/)?scripts%5C/(%5Cd+)-%5B%5E//%5D*%5C/discussions%5C/(%5Cd+).*$/i,replace:%27https://greasyfork.org/scripts/$1/discussions/$2%27,hash:!0%7D,%27greasyfork.org/discussions%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?greasyfork%5C.org%5C/(?:%5B%5Cw-%5D*%5C/)?discussions%5C/(greasyfork%7Cdevelopment%7Crequests)%5C/(%5Cd+)(?:%5B%5E%5Cd%5D.*)?$/i,replace:%27https://greasyfork.org/discussions/$1/$2%27,hash:!0%7D,%27store.steampowered.com%7Csteamcommunity.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(store%5C.steampowered%7Csteamcommunity)%5C.com%5C/app%5C/(%5Cd+).*$/i,replace:%27https://$1.com/app/$2%27%7D,%27meta.appinn.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/meta%5C.appinn%5C.net%5C/t(?:%5C/%5B%5E/%5D*)*?%5C/(%5Cd+)(%5C/.*$%7C$)/i,replace:%27https://meta.appinn.net/t/$1%27%7D,%27amazon.co.jp%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?amazon%5C.co%5C.jp%5C/(%5B%5E%5C/%5D+)%5C/dp%5C/(%5Cw+)%5C/.*$/i,replace:%27https://www.amazon.co.jp/$1/dp/$2%27%7D,%27yangkeduo.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/mobile%5C.yangkeduo%5C.com%5C/goods.html%5C?.*$/i,query:%5B%27goods_id%27%5D%7D,%27trello.com%27:%7BtestReg:/%5Ehttp(?:s)?:%5C/%5C/(?:www%5C.)?trello%5C.com%5C/(%5Cw)%5C/(%5Cw+)(%5C/.*$%7C$)/i,replace:%27https://trello.com/$1/$2%27,hash:!0%7D,other:%7BtestReg:/%5E(http(?:s)?:%5C/%5C/%5B%5E?%23%5D*)%5B?%23%5D.*$/i,query:%5B%27id%27,%27tid%27,%27uid%27,%27q%27,%27wd%27,%27query%27,%27keyword%27,%27keywords%27%5D%7D%7D;const%20pureUrl=function(url=window.location.href)%7Bconst%20hash=url.replace(/%5E%5B%5E%23%5D*(%23.*)?$/,%27$1%27),base=url.replace(/(%5C?%7C%23).*$/,%27%27);let%20pureUrl=url;const%20getQueryString=function(key)%7Blet%20ret=url.match(new%20RegExp(%27(?:%5C%5C?%7C&)(%27+key+%27=%5B%5E?%23&%5D*)%27,%27i%27));return%20null===ret?%27%27:ret%5B1%5D%7D,methods=%7BdecodeUrl:function(url)%7Breturn%20decodeURIComponent(url)%7D%7D;for(let%20i%20in%20rules)%7Blet%20rule=rules%5Bi%5D,reg=rule.testReg,replace=rule.replace;if(reg.test(url))%7Blet%20newQuerys=%27%27;void%200!==rule.query&&rule.query.length%3E0&&rule.query.map(query=%3E%7Bconst%20ret=getQueryString(query);%27%27!==ret&&(newQuerys+=(newQuerys.length?%27&%27:%27?%27)+ret)%7D),newQuerys+=void%200!==rule.hash&&rule.hash?hash:%27%27,pureUrl=(void%200===replace?base:url.replace(reg,replace))+newQuerys,void%200!==rule.methods&&rule.methods.length%3E0&&rule.methods.map(methodName=%3E%7BpureUrl=methods%5BmethodName%5D(pureUrl)%7D);break%7D%7Dreturn%20pureUrl%7D();let%20newnode=document.createElement(%27input%27);newnode.id=%27pure-url-for-copy%27,newnode.value=pureUrl,document.body.appendChild(newnode);let%20copyinput=document.getElementById(%27pure-url-for-copy%27);copyinput.select();try%7Bdocument.execCommand(%27copy%27);window.location.href===pureUrl?window.location.reload():window.location.href=pureUrl%7Dcatch(err)%7Bnull!=prompt(%27%E5%87%80%E5%8C%96%E5%90%8E%E7%9A%84%E7%BD%91%E5%9D%80%E6%98%AF%EF%BC%9A%27,pureUrl)&&(window.location.href=pureUrl)%7Ddocument.body.removeChild(copyinput)%7D)();
+        icon: fab fa-google
+        description: ""
+      - name: InfiniCLOUD
+        url: https://infini-cloud.net/en/
+        icon: fas fa-link
+        description: ""
+  - name: ai
+    icon: fas fa-folder
+    sites:
+      - name: dmxapi
+        url: https://www.dmxapi.com/token
+        icon: fas fa-link
+        description: ""
+      - name: promote
+        url: https://github.com/PlexPt/awesome-chatgpt-prompts-zh?tab=readme-ov-file
+        icon: fab fa-github
+        description: ""
+      - name: Linux Do – Chat Web UI for Linux Do
+        url: https://typingmind-linuxdo.pages.dev/
+        icon: fas fa-link
+        description: ""
+      - name: DEV API
+        url: https://api.crond.dev/token
+        icon: fas fa-link
+        description: ""
+      - name: NextChat
+        url: https://chat.toapis.org/#/chat
+        icon: fas fa-link
+        description: ""
+      - name: HF Space Manager -控制面板
+        url: https://esesseska-apikey.hf.space/dashboard
+        icon: fas fa-link
+        description: ""
+      - name: 示例工作区 - AI as Workspace
+        url: https://aiaw.app/workspaces/1ij5knvrk48ogpmmnm
+        icon: fas fa-link
+        description: ""
+      - name: EAI API
+        url: https://api.cymru/pricing
+        icon: fas fa-link
+        description: ""
+  - name: mac
+    icon: fas fa-folder
+    sites:
+      - name: MacApp分享频道 - 精品Mac资源分享
+        url: https://macapp.org.cn/
+        icon: fas fa-link
+        description: ""
+      - name: MacKed
+        url: https://macked.app/
+        icon: fas fa-link
+        description: ""
+      - name: JetBrains 系列全家桶激活服务器
+        url: https://jetbrains-plum.vercel.app/
+        icon: fas fa-link
+        description: ""
+      - name: eSIM 转 SIM 实体卡 | 回声
+        url: https://iecho.cc/2023/10/20/Convert-eSIM-to-physical-SIM/#Windows%E3%80%81macOS-%E5%92%8C-Linux-%E5%B9%B3%E5%8F%B0
+        icon: fas fa-link
+        description: ""
+  - name: 接码
+    icon: fas fa-folder
+    sites:
+      - name: 天启
+        url: https://web.tqsms.xyz/#/message/getCode
+        icon: fas fa-link
+        description: ""
+      - name: 豪猪
+        url: https://h5.haozhuma.cn/index.php
+        icon: fas fa-link
+        description: ""
+      - name: 椰子
+        url: http://h5.yezi66.net:90/invite/803355#/work
+        icon: fas fa-link
+        description: ""
+      - name: 新标签页
+        url: https://jbls.ide-soft.com/
+        icon: fas fa-link
+        description: ""
+      - name: IP查询工具 | TechQuery
+        url: https://ip.tsy.ink/
+        icon: fas fa-link
+        description: ""
