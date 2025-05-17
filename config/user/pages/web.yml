@@ -16,5 +16,13 @@ categories:                   # 该页面的分类和网站
         url: "https://dyeixmidoovq.us-east-1.clawcloudrun.com/subs"
         icon: "fab fa-link"
         description: "SubStore"
+      - name: "主页 | 视频站"
+        url: "https://alist.221041.xyz"
+        icon: "fas fa-link"
+        description: "视频站"
+      - name: "email"
+        url: "https://email.221041.xyz/"
+        icon: "fas fa-link"
+        description: "基于cloudfare的临时邮箱网站"
       
       # 更多网站...
