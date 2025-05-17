@@ -75,33 +75,37 @@ categories:
         url: http://oj.lgwenda.com/
         icon: fas fa-link
         description: "c语言"
-  - name: 论坛
-    icon: fas fa-folder
-    sites:
-      - name: V2EX
-        url: https://www.v2ex.com/
-        icon: fas fa-link
-        description: "V2EX"
-      - name: 全球主机
-        url: https://hostloc.com/
-        icon: fas fa-link
-        description: "全球主机"
-      - name: NodeSeek
-        url: https://www.nodeseek.com/
-        icon: fas fa-link
-        description: "NodeSeek"
-      - name: LINUX DO - 新的理想型社区
-        url: https://linux.do/
-        icon: fas fa-linux
-        description: "LINUX"
-      - name: 数字居民论坛
-        url: https://shuzijumin.com/
-        icon: fas fa-link
-        description: "数字居民论坛"
       - name: 软考资料分享
         url: https://docs.qq.com/sheet/DY2xrbXVYb0xBc1N4?tab=BB08J2
         icon: fas fa-link
         description: "软考资料分享"
+  - name: 论坛
+    icon: fas fa-folder
+    sites:
+      - name: V2EX
+        url: https://www.v2ex.com
+        icon: fas fa-link
+        description: "V2EX"
+      - name: 全球主机
+        url: https://hostloc.com
+        icon: fas fa-link
+        description: "全球主机"
+      - name: NodeSeek
+        url: https://www.nodeseek.com
+        icon: fas fa-link
+        description: "NodeSeek"
+      - name: LINUX DO - 新的理想型社区
+        url: https://linux.do
+        icon: fas fa-linux
+        description: "LINUX"
+      - name: 数字居民论坛
+        url: https://shuzijumin.com
+        icon: fas fa-link
+        description: "数字居民论坛"
+      - name: ShareMjj
+        url: https://share.cjy.me
+        icon: fas fa-link
+        description: "ShareMjj"
   - name: 影视
     icon: fas fa-folder
     sites:
