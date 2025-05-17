@@ -20,9 +20,9 @@ categories:
         icon: "fab fa-cloud"
         description: "infiniCloud" 
       - name: "cloudfare"
-        url: "https://dash.cloudflare.com“
+        url: "https://dash.cloudflare.com"
         icon: "fab fa-link"
-        description: "cloudfare" 
+        description: "cloudfare"
   - name: "在线网站"          
     icon: "fas fa-wrench"     
     sites:
