@@ -18,6 +18,21 @@ categories:
       - name: blooger
         url: https://www.blogger.com/
         icon: fa fa-blogger
+  - name: "开发者的好助手"
+    icon: fas fa-folder
+    sites:
+      - name: "clerk"
+        url: "https://clerk.com"
+        icon: fab fa-link
+        decription: "clerk"
+      - name: "upstash"
+        url: "https://console.upstash.com"
+        icon: fab fa-link
+        decription: "upstash 免费Redis"
+      - name: "vercel"
+        url: "https://vercel.com"
+        icon: fab fa-link
+        decription: "vercel"
   - name: 图床
     icon: fas fa-folder
     sites:
