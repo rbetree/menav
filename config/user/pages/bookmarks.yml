@@ -5,13 +5,6 @@ subtitle: 从浏览器导入的书签收藏
 template: bookmarks
 
 categories:
-  - name: 技术资源
-    icon: fas fa-folder
-    sites:
-      - name: GitHub
-        url: https://github.com/
-        icon: fab fa-github
-        description: "从书签导入: GitHub"
   - name: 谷歌系
     icon: fas fa-folder
     sites:
@@ -97,10 +90,6 @@ categories:
   - name: 影视
     icon: fas fa-folder
     sites:
-      - name: 主页 | 视频站
-        url: https://alist.221041.xyz
-        icon: fas fa-link
-        description: "视频站"
       - name: 不太灵影视_4k高清电影下载_蓝光迅雷电影下载_最新电视剧下载
         url: https://www.2bt0.com/
         icon: fas fa-link
