@@ -50,8 +50,7 @@
   - [配置详解](#配置详解)
 - [书签导入](#书签导入功能)
 - [常见问题](#常见问题)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+- [Star-History](#Star-History)
 
 ## 快速预览
 
@@ -762,21 +761,8 @@ MarksVault浏览器扩展与MeNav的集成相当简单：
    - 配置目标仓库：填写您的用户名和fork的MeNav仓库名
    - 确认bookmarks文件夹路径（默认即可）
 3. 使用扩展的任务功能，自动推送书签到项目
+</details>
 
-## 贡献指南
+## Star-History
 
-欢迎通过 Issues 或 Pull Requests 的形式做出贡献。如果您有好的想法或发现了问题，请随时提出。
-
-## 许可证
-
-[![AGPL-3.0 License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
-
-MeNav 基于 GNU Affero General Public License v3.0 (AGPL-3.0) 开源许可证发布。
-
-主要条款：
-- 允许商业使用、修改、分发、专利使用和私人使用
-- 不提供任何担保
-- 修改后的代码必须使用相同许可证
-- 网络使用也视为分发，必须开源
-
-在使用本项目时，请确保遵守AGPL-3.0协议的所有条款。完整许可证文本可在[LICENSE](LICENSE)文件中查看。 
+[![Star History Chart](https://api.star-history.com/svg?repos=rbetree/menav&type=Date)](https://www.star-history.com/#rbetree/menav&Date)
