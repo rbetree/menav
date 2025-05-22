@@ -1,0 +1,197 @@
+name: Build and Deploy Site
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  
+# 设置GITHUB_TOKEN的权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 允许一个并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+  
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # 使用persist-credentials: false，以便后续步骤可以使用自定义的提交者
+        with:
+          persist-credentials: false 
+          fetch-depth: 0 # 获取所有历史记录以进行diff检查
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      # --- 书签处理步骤 --- 
+      - name: Check for bookmark HTML files
+        id: check_bookmark_files
+        run: |
+          if [ -d bookmarks ] && [ "$(find bookmarks -type f -name "*.html" 2>/dev/null)" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "Bookmark HTML files found, will process them."
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "No bookmark HTML files found, skipping bookmark processing."
+          fi
+        
+      - name: Process bookmark files
+        if: steps.check_bookmark_files.outputs.found == 'true'
+        run: |
+          echo "Processing bookmark files..."
+          node src/bookmark-processor.js
+          
+      - name: Debug directory contents
+        if: steps.check_bookmark_files.outputs.found == 'true'
+        run: |
+          echo "Current directory contents:"
+          ls -la
+          echo "Checking config/user/pages directory:"
+          if [ -d config/user/pages ]; then 
+            echo "Directory exists, listing contents:"
+            ls -la config/user/pages/
+            if [ -f config/user/pages/bookmarks.yml ]; then 
+              echo "✓ bookmarks.yml exists in config/user/pages/"
+              cat config/user/pages/bookmarks.yml | head -n 10
+            else 
+              echo "✗ bookmarks.yml does not exist in config/user/pages/"
+            fi
+          else 
+            echo "✗ config/user/pages directory does not exist"
+          fi
+        
+      - name: Commit bookmark configuration changes
+        if: steps.check_bookmark_files.outputs.found == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action (Bookmarks)"
+          
+          # Check if config/user/pages/bookmarks.yml exists
+          if [ -f config/user/pages/bookmarks.yml ]; then
+            # Check if this is a new file or it has changes
+            if git ls-files --error-unmatch config/user/pages/bookmarks.yml 2>/dev/null; then
+              echo "config/user/pages/bookmarks.yml exists and is tracked by git"
+              # Check if it has changes
+              if ! git diff --quiet config/user/pages/bookmarks.yml; then
+                echo "config/user/pages/bookmarks.yml has changes, committing..."
+                git add config/user/pages/bookmarks.yml
+                git commit -m "Update bookmarks configuration from imported bookmarks"
+              else
+                echo "No changes to bookmarks configuration"
+              fi
+            else
+              echo "config/user/pages/bookmarks.yml exists but is not tracked by git (new file)"
+              git add config/user/pages/bookmarks.yml
+              git commit -m "Add bookmarks configuration from imported bookmarks"
+            fi
+            
+            # Also check for navigation file changes
+            if [ -f config/user/navigation.yml ]; then
+              if ! git diff --quiet config/user/navigation.yml; then
+                echo "config/user/navigation.yml has changes, committing..."
+                git add config/user/navigation.yml
+                git commit -m "Update navigation to include bookmarks page"
+              fi
+            fi
+          else
+            echo "ERROR: config/user/pages/bookmarks.yml does not exist! Bookmark processing may have failed."
+            echo "Current directory contents:"
+            ls -la config/user/pages/ || echo "Directory does not exist"
+          fi
+          
+      - name: Clean up processed bookmark files
+        if: steps.check_bookmark_files.outputs.found == 'true'
+        run: |
+          # 先记录当前HTML文件列表
+          HTML_FILES=$(find bookmarks -type f -name "*.html" 2>/dev/null)
+          if [ -n "$HTML_FILES" ]; then 
+             git config --local user.email "action@github.com"
+             git config --local user.name "GitHub Action (Cleanup)"
+             echo "HTML files before cleanup:"
+             echo "$HTML_FILES" | tee html_files_before.txt
+             
+             # 计算文件数量
+             FILE_COUNT=$(echo "$HTML_FILES" | wc -l)
+             echo "Found $FILE_COUNT HTML files to clean up."
+             
+             # 执行删除操作
+             echo "Cleaning up HTML files..."
+             find bookmarks -type f -name "*.html" -delete
+             
+             # 验证文件已被删除
+             REMAINING=$(find bookmarks -type f -name "*.html" 2>/dev/null)
+             if [ -z "$REMAINING" ]; then
+               echo "All HTML files successfully deleted."
+               # 不管git diff结果如何，只要有文件被删除就提交
+               git add bookmarks/
+               git commit -m "Clean up processed bookmark files ($FILE_COUNT files removed)"
+               echo "Changes committed."
+             else
+               echo "WARNING: Some HTML files could not be deleted:"
+               echo "$REMAINING"
+             fi
+          else
+             echo "No HTML files found to clean up."
+          fi
+      # --- 书签处理步骤结束 ---
+
+      - name: Push configuration changes (if any)
+        # 只有在书签处理步骤修改了文件时才推送
+        # 使用 GITHUB_TOKEN 推送
+        if: steps.check_bookmark_files.outputs.found == 'true'
+        run: |
+          echo "Checking git status before pushing..."
+          git status
+          
+          echo "Checking config/user/pages directory before pushing..."
+          if [ -d config/user/pages ]; then 
+            echo "✓ config/user/pages directory exists"
+            ls -la config/user/pages/
+          else 
+            echo "✗ WARNING: config/user/pages directory does not exist before pushing!"
+          fi
+          
+          echo "Pushing changes to repository..."
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- 网站构建和部署步骤 ---
+      - name: Generate site
+        run: npm run generate
+        
+      - name: Check favicon
+        run: |
+          if [ -f dist/favicon.ico ]; then
+            echo "Favicon exists"
+            ls -l dist/favicon.ico
+          else
+            echo "Warning: favicon.ico not found in dist directory"
+            # 暂时改为警告，避免因为图标问题阻止部署
+            # exit 1 
+          fi
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 

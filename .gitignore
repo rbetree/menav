@@ -1,0 +1,36 @@
+# 依赖相关
+node_modules/
+npm-debug.log*
+
+# 构建输出
+dist/
+
+# IDE/编辑器配置
+.vscode/
+.idea/
+.specstory
+.cursorindexingignore
+.cursor
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+
+# 个人笔记
+docs/*
+
+# 测试相关文件
+jest.config.js
+tests/
+coverage/
+.nyc_output/
+jest-*.json
+jest.results.json
+.eslintcache
+tests/screenshots/
+tests/fixtures/
+*.test.js
+*.spec.js
+# SpecStory explanation file
+.specstory/.what-is-this.md

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{site.title}}</title>
+    <link rel="icon" href="./{{site.favicon}}" type="image/x-icon">
+    <link rel="shortcut icon" href="./{{site.favicon}}" type="image/x-icon">
+    <link href="{{{googleFontsLink}}}" rel="stylesheet">
+    <style>
+{{{fontVariables}}}
+    </style>
+    <!-- 预设主题和侧边栏状态，避免闪烁 -->
+    <script>
+        (function() {
+            // 读取并应用主题设置
+            var savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('theme-preload');
+            }
+            
+            // 读取并应用侧边栏状态
+            var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            var isMobile = window.innerWidth <= 768;
+            if (sidebarCollapsed && !isMobile) {
+                document.documentElement.classList.add('sidebar-collapsed-preload');
+            }
+            
+            // 添加这个类用于控制初始渲染
+            document.documentElement.classList.add('preload');
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="loading">
+    <!-- 滚动进度指示条 -->
+    <div class="scroll-progress"></div>
+    <div class="layout">
+        <!-- 移动端按钮 -->
+        <div class="mobile-buttons">
+            <button class="menu-toggle" aria-label="切换菜单">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button class="search-toggle" aria-label="切换搜索">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- 遮罩层 -->
+        <div class="overlay"></div>
+
+        <!-- 左侧导航 -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>{{site.logo_text}}</h1>
+                <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
+                    <i class="fas fa-chevron-left toggle-icon"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="nav-section">
+                    {{#each navigationData}}
+                        {{> navigation}}
+                    {{/each}}
+                </div>
+                
+                <div class="social-links">
+                    {{> social-links}}
+                </div>
+            </div>
+        </nav>
+
+        <!-- 右侧内容区 -->
+        <main class="content">
+            <!-- 顶部操作栏 -->
+            <div class="main-header">
+                <div class="left-actions">
+                    <button class="theme-toggle" aria-label="切换主题">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <div class="search-container">
+                    <div class="search-input-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" placeholder="搜索..." aria-label="搜索">
+                        <button class="search-clear" aria-label="清除搜索">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="right-actions">
+                    <button class="fullscreen-toggle" aria-label="切换全屏模式">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 主要内容 -->
+            <div class="main-content">
+                <!-- home页 -->
+                <div class="page active" id="home">
+                    {{{pages.home}}}
+                </div>
+                
+                <!-- 项目页 -->
+                <div class="page" id="projects">
+                    {{{pages.projects}}}
+                </div>
+                
+                <!-- 文章页 -->
+                <div class="page" id="articles">
+                    {{{pages.articles}}}
+                </div>
+                
+                <!-- 朋友页 -->
+                <div class="page" id="friends">
+                    {{{pages.friends}}}
+                </div>
+                
+                <!-- 书签页 -->
+                <div class="page" id="bookmarks">
+                    {{{pages.bookmarks}}}
+                </div>
+                
+                <!-- 搜索结果页 -->
+                <div class="page" id="search-results">
+                    {{{pages.search-results}}}
+                </div>
+            </div>
+            
+            <!-- 页脚 -->
+            <footer class="main-footer">
+                <p>© {{currentYear}} {{site.title}} | {{site.footer}}</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

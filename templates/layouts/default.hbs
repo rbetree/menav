@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{site.title}}</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    {{{googleFontsLink}}}
+    <style>
+{{{fontVariables}}}
+    </style>
+    <!-- 预设主题和侧边栏状态，避免闪烁 -->
+    <script>
+        (function() {
+            // 读取并应用主题设置
+            var savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('theme-preload');
+            }
+            
+            // 读取并应用侧边栏状态
+            var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            var isMobile = window.innerWidth <= 768;
+            if (sidebarCollapsed && !isMobile) {
+                document.documentElement.classList.add('sidebar-collapsed-preload');
+            }
+            
+            // 添加这个类用于控制初始渲染
+            document.documentElement.classList.add('preload');
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="loading">
+    <!-- 滚动进度指示条 -->
+    <div class="scroll-progress"></div>
+    <div class="layout">
+        <!-- 移动端按钮 -->
+        <div class="mobile-buttons">
+            <button class="menu-toggle" aria-label="切换菜单">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button class="search-toggle" aria-label="切换搜索">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- 遮罩层 -->
+        <div class="overlay"></div>
+
+        <!-- 左侧导航 -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>{{site.logo_text}}</h1>
+                <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
+                    <i class="fas fa-chevron-left toggle-icon"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="nav-section">
+                    {{#if navigationData}}
+                    {{> navigation navigationData}}
+                    {{else}}
+                    {{{navigation}}}
+                    {{/if}}
+                </div>
+
+                <div class="nav-section">
+                    <div class="section-title">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    {{#if social}}
+                    {{> social-links social}}
+                    {{else}}
+                    {{{socialLinks}}}
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="copyright">
+                <p>© {{currentYear}} <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a></p>
+                <p>by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a></p>
+            </div>
+        </nav>
+
+        <!-- 右侧内容区 -->
+        <main class="content">
+            <!-- 搜索框容器 -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="搜索... (点击右侧图标切换搜索引擎)">
+                    <i class="fas fa-search search-icon" title="本地搜索"></i>
+                    <div class="search-engine-dropdown">
+                        <div class="search-engine-option" data-engine="local" title="本地搜索">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="google" title="Google搜索">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="bing" title="Bing搜索">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <div class="search-engine-option" data-engine="baidu" title="百度搜索">
+                            <i class="fas fa-paw"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 页面容器 -->
+            {{#each pages}}
+            <div class="page {{@key}}{{#if @first}} active{{/if}}" id="{{@key}}">
+                {{{this}}}
+            </div>
+            {{/each}}
+        </main>
+        
+        <!-- 主题切换按钮 -->
+        <button class="theme-toggle" aria-label="切换主题">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

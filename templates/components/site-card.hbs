@@ -1,0 +1,7 @@
+{{#if url}}
+<a href="{{url}}" class="site-card{{#if style}} site-card-{{style}}{{/if}}" title="{{name}} - {{#if description}}{{description}}{{else}}{{url}}{{/if}}" {{#if external}}target="_blank" rel="noopener"{{/if}}>
+    <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
+    <h3>{{#if name}}{{name}}{{else}}未命名站点{{/if}}</h3>
+    <p>{{#if description}}{{description}}{{else}}{{url}}{{/if}}</p>
+</a>
+{{/if}} 

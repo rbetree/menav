@@ -1,0 +1,11 @@
+{{#if this}}
+{{#each this}}
+<a href="{{url}}" class="nav-item" target="_blank" rel="noopener">
+    <div class="icon-container">
+        <i class="{{icon}}"></i>
+    </div>
+    <span class="nav-text">{{name}}</span>
+    <i class="fas fa-external-link-alt external-icon"></i>
+</a>
+{{/each}}
+{{/if}} 
