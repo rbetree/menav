@@ -1,6 +1,6 @@
-<section class="category" id="{{name}}">
+<section class="category" id="{{name}}" data-menav-id="category-{{@index}}" data-menav-type="category">
     <h2><i class="{{icon}}"></i> {{name}}</h2>
-    <div class="sites-grid">
+    <div class="sites-grid" data-menav-category="{{name}}">
         {{#if sites.length}}
             {{#each sites}}
                 {{> site-card}}
@@ -9,4 +9,4 @@
             <p class="empty-sites">暂无网站</p>
         {{/if}}
     </div>
-</section> 
+</section>

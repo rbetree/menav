@@ -17,17 +17,17 @@
 
 📋 一键部署的静态个人导航站 | ⚡ 自动化构建 | 🔖 支持书签导入
 
-> MeNav是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。无需数据库和后端服务，完全静态部署，支持一键Fork部署到GitHub Pages，还可以从浏览器书签一键导入网站。MeNav is a lightweight, highly customizable personal navigation website generator. One-click deployment to GitHub Pages, automated build, bookmark import support, and more.
+> MeNav是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。无需数据库和后端服务，完全静态部署，支持一键Fork部署到GitHub Pages，还可以从浏览器书签一键导入网站。配合 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展，更支持书签自动同步和导航站自动更新。MeNav is a lightweight, highly customizable personal navigation website generator. One-click deployment to GitHub Pages, automated build, bookmark import support, and more.
 
 如果觉得项目有用，欢迎⭐Star/Fork支持，谢谢！
 
 
-## 预览 | Preview
+## 预览
 
 <table>
   <tr>
-    <td><b>明亮主题 | Light Theme</b></td>
-    <td><b>黑暗主题 | Dark Theme</b></td>
+    <td><b>明亮主题</b></td>
+    <td><b>黑暗主题</b></td>
   </tr>
   <tr>
     <td><img src="assets/preview_light.png" alt="明亮主题预览" /></td>
@@ -53,8 +53,7 @@
   - [配置详解](#配置详解)
 - [书签导入](#书签导入功能)
 - [常见问题](#常见问题)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+- [Star-History](#Star-History)
 
 ## 快速预览
 
@@ -70,6 +69,7 @@
 - 👥 支持展示社交媒体链接
 - 📝 支持多个内容页面
 - 📌 支持从浏览器导入书签
+- 🔄 与 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展集成，支持自动推送书签
 - 🧩 模块化配置
 - 🔄 可部署到GitHub Pages或任何类似的CI/CD服务，及任何服务器
 
@@ -77,6 +77,13 @@
 
 <details>
 <summary>点击查看/隐藏更新日志</summary>
+
+### 2025/05/16
+
+**1. MarksVault 浏览器扩展集成**
+- ✅ 支持与 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展集成
+- ✅ 使用扩展自动推送书签文件到 MeNav
+- ✅ 自动处理推送的书签文件并更新网站
 
 ### 2025/05/09
 
@@ -662,6 +669,16 @@ MeNav支持从浏览器导入书签，快速批量添加网站链接，无需手
 
 > **⚠️ 开发模式说明**：在本地开发中，`npm run dev` 命令**不会**自动处理书签文件。您必须先手动运行 `npm run import-bookmarks` 命令处理书签，然后再运行 `npm run dev` 或 `npm run build` 查看效果。这与 GitHub Actions 中的自动处理流程不同，请务必注意。
 
+### MarksVault 浏览器扩展集成
+
+[MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展提供与 MeNav 的无缝集成：
+
+- **一键推送书签**：通过扩展直接将书签推送到您的 MeNav 项目
+- **自动化处理**：推送的书签文件会被自动处理并转换为配置
+- **GitHub同步**：无需手动导出导入，直接从浏览器到 GitHub 到网站
+
+通过安装 MarksVault 扩展，您可以在日常使用浏览器过程中随时更新您的导航站，极大简化了书签管理流程。
+
 ### 配置加载优先级
 
 书签配置按以下优先级加载（从高到低）：
@@ -673,6 +690,14 @@ MeNav支持从浏览器导入书签，快速批量添加网站链接，无需手
 
 ### 导入步骤详解
 
+#### 使用 MarksVault 浏览器扩展（推荐）
+
+   - 安装 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展
+   - 在浏览器中登录并授权
+   - 使用扩展任务页中新建任务，将书签推送到您的 MeNav 项目
+   - 系统将自动处理并部署更新后的导航站
+
+#### 手动导入
 <details>
 <summary>点击展开</summary>
 
@@ -709,14 +734,6 @@ MeNav支持从浏览器导入书签，快速批量添加网站链接，无需手
    - 运行`npm run import-bookmarks`命令处理书签文件
    - 系统生成配置文件后即可使用`npm run dev`预览
 
-3. **处理结果**
-   
-   处理完成后：
-   - 书签分类会变成网站分类
-   - 书签文件夹结构会被保留
-   - 系统自动尝试匹配网站图标
-   - 生成的配置可在`config/user/pages/bookmarks.yml`中查看和编辑
-
 ### 书签导入注意事项
 
 - 仅支持标准HTML格式的书签文件（大多数浏览器导出格式）
@@ -724,6 +741,8 @@ MeNav支持从浏览器导入书签，快速批量添加网站链接，无需手
 - 文件夹结构会保留，但可能需要手动调整图标和描述
 - 处理完成后，原始书签文件会被自动删除，以防止重复处理
 </details>
+
+> 生成的配置可在`config/user/pages/bookmarks.yml`中查看和编辑
 
 ## 常见问题
 
@@ -786,20 +805,18 @@ MeNav现在使用Handlebars模板系统，您可以通过以下步骤自定义�
 **重要提示**：MeNav现在只支持模块化配置文件。如果您仍在使用旧式配置，必须使用迁移工具进行转换才能继续使用最新版本的MeNav。
 </details>
 
-## 贡献指南
+<details>
+<summary>如何使用MarksVault扩展自动同步书签？</summary>
+MarksVault浏览器扩展与MeNav的集成相当简单：
 
-欢迎通过 Issues 或 Pull Requests 的形式做出贡献。如果您有好的想法或发现了问题，请随时提出。
+1. 首先，从[GitHub仓库](https://github.com/rbetree/MarksVault)下载并安装MarksVault扩展
+2. 打开扩展，进入同步设置：
+   - 设置GitHub令牌（需要有对目标仓库的写入权限）
+   - 配置目标仓库：填写您的用户名和fork的MeNav仓库名
+   - 确认bookmarks文件夹路径（默认即可）
+3. 使用扩展的任务功能，自动推送书签到项目
+</details>
 
-## 许可证
+## Star-History
 
-[![AGPL-3.0 License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
-
-MeNav 基于 GNU Affero General Public License v3.0 (AGPL-3.0) 开源许可证发布。
-
-主要条款：
-- 允许商业使用、修改、分发、专利使用和私人使用
-- 不提供任何担保
-- 修改后的代码必须使用相同许可证
-- 网络使用也视为分发，必须开源
-
-在使用本项目时，请确保遵守AGPL-3.0协议的所有条款。完整许可证文本可在[LICENSE](LICENSE)文件中查看。 
+[![Star History Chart](https://api.star-history.com/svg?repos=rbetree/menav&type=Date)](https://www.star-history.com/#rbetree/menav&Date)

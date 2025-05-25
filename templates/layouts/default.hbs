@@ -18,14 +18,14 @@
             if (savedTheme === 'light') {
                 document.documentElement.classList.add('theme-preload');
             }
-            
+
             // 读取并应用侧边栏状态
             var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             var isMobile = window.innerWidth <= 768;
             if (sidebarCollapsed && !isMobile) {
                 document.documentElement.classList.add('sidebar-collapsed-preload');
             }
-            
+
             // 添加这个类用于控制初始渲染
             document.documentElement.classList.add('preload');
         })();
@@ -58,7 +58,7 @@
                     <i class="fas fa-chevron-left toggle-icon"></i>
                 </button>
             </div>
-            
+
             <div class="sidebar-content">
                 <div class="nav-section">
                     {{#if navigationData}}
@@ -117,12 +117,16 @@
             </div>
             {{/each}}
         </main>
-        
+
         <!-- 主题切换按钮 -->
         <button class="theme-toggle" aria-label="切换主题">
             <i class="fas fa-moon"></i>
         </button>
     </div>
+    <!-- 配置数据 - 用于浏览器扩展 -->
+    <script id="menav-config-data" type="application/json" style="display: none;">
+        {{{configJSON}}}
+    </script>
     <script src="script.js"></script>
 </body>
-</html> 
+</html>

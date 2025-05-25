@@ -1,3 +1,185 @@
+// 全局MeNav对象 - 用于浏览器扩展
+window.MeNav = {
+    version: "1.0.0",
+
+    // 获取配置数据
+    getConfig: function() {
+        const configData = document.getElementById('menav-config-data');
+        return configData ? JSON.parse(configData.textContent) : null;
+    },
+
+    // 更新DOM元素
+    updateElement: function(id, newData) {
+        const element = document.querySelector(`[data-menav-id="${id}"]`);
+        if (!element) return false;
+
+        // 根据元素类型更新内容
+        const type = element.getAttribute('data-menav-type');
+
+        if (type === 'site') {
+            // 更新站点卡片
+            if (newData.url) element.href = newData.url;
+            if (newData.name) element.querySelector('h3').textContent = newData.name;
+            if (newData.description) element.querySelector('p').textContent = newData.description;
+            if (newData.icon) {
+                const iconElement = element.querySelector('i');
+                if (iconElement) {
+                    iconElement.className = newData.icon;
+                }
+            }
+            if (newData.title) element.title = newData.title;
+
+            // 触发元素更新事件
+            this.events.emit('elementUpdated', {
+                id: id,
+                type: 'site',
+                data: newData
+            });
+
+            return true;
+        } else if (type === 'category') {
+            // 更新分类
+            if (newData.name) {
+                const titleElement = element.querySelector('h2');
+                if (titleElement) {
+                    // 保留图标
+                    const iconElement = titleElement.querySelector('i');
+                    const iconClass = iconElement ? iconElement.className : '';
+                    titleElement.innerHTML = `<i class="${newData.icon || iconClass}"></i> ${newData.name}`;
+                }
+            }
+
+            // 触发元素更新事件
+            this.events.emit('elementUpdated', {
+                id: id,
+                type: 'category',
+                data: newData
+            });
+
+            return true;
+        }
+
+        return false;
+    },
+
+    // 添加新元素
+    addElement: function(type, parentId, data) {
+        const parent = document.querySelector(`[data-menav-id="${parentId}"]`);
+        if (!parent) return null;
+
+        if (type === 'site' && parent.getAttribute('data-menav-type') === 'category') {
+            // 添加站点卡片到分类
+            const sitesGrid = parent.querySelector('.sites-grid');
+            if (!sitesGrid) return null;
+
+            // 创建新的站点卡片
+            const newSite = document.createElement('a');
+            newSite.className = 'site-card';
+            newSite.href = data.url || '#';
+            newSite.title = data.name + (data.description ? ' - ' + data.description : '');
+            const elementId = `site-new-${Date.now()}`;
+            newSite.setAttribute('data-menav-id', elementId);
+            newSite.setAttribute('data-menav-type', 'site');
+            newSite.setAttribute('data-menav-category', parent.id);
+
+            // 添加内容
+            newSite.innerHTML = `
+                <i class="${data.icon || 'fas fa-link'}"></i>
+                <h3>${data.name || '未命名站点'}</h3>
+                <p>${data.description || ''}</p>
+            `;
+
+            // 添加到DOM
+            sitesGrid.appendChild(newSite);
+
+            // 移除"暂无网站"提示（如果存在）
+            const emptyMessage = sitesGrid.querySelector('.empty-sites');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+
+            // 触发元素添加事件
+            this.events.emit('elementAdded', {
+                id: elementId,
+                type: 'site',
+                parentId: parentId,
+                data: data
+            });
+
+            return elementId;
+        }
+
+        return null;
+    },
+
+    // 删除元素
+    removeElement: function(id) {
+        const element = document.querySelector(`[data-menav-id="${id}"]`);
+        if (!element) return false;
+
+        // 获取元素类型和分类（如果是站点卡片）
+        const type = element.getAttribute('data-menav-type');
+        const category = element.getAttribute('data-menav-category');
+
+        // 删除元素
+        element.remove();
+
+        // 触发元素删除事件
+        this.events.emit('elementRemoved', {
+            id: id,
+            type: type,
+            category: category
+        });
+
+        return true;
+    },
+
+    // 获取所有元素
+    getAllElements: function(type) {
+        return Array.from(document.querySelectorAll(`[data-menav-type="${type}"]`)).map(el => {
+            return {
+                id: el.getAttribute('data-menav-id'),
+                type: el.getAttribute('data-menav-type'),
+                element: el
+            };
+        });
+    },
+
+    // 事件系统
+    events: {
+        listeners: {},
+
+        // 添加事件监听器
+        on: function(event, callback) {
+            if (!this.listeners[event]) {
+                this.listeners[event] = [];
+            }
+            this.listeners[event].push(callback);
+            return this;
+        },
+
+        // 触发事件
+        emit: function(event, data) {
+            if (this.listeners[event]) {
+                this.listeners[event].forEach(callback => callback(data));
+            }
+            return this;
+        },
+
+        // 移除事件监听器
+        off: function(event, callback) {
+            if (this.listeners[event]) {
+                if (callback) {
+                    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+                } else {
+                    delete this.listeners[event];
+                }
+            }
+            return this;
+        }
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // 先声明所有状态变量
     let isSearchActive = false;
@@ -9,13 +191,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSidebarCollapsed = false; // 侧边栏折叠状态
     let pages; // 页面元素的全局引用
     let currentSearchEngine = 'local'; // 当前选择的搜索引擎
-    
+
     // 搜索索引，用于提高搜索效率
     let searchIndex = {
         initialized: false,
         items: []
     };
-    
+
     // 搜索引擎配置
     const searchEngines = {
         local: {
@@ -39,46 +221,46 @@ document.addEventListener('DOMContentLoaded', () => {
             url: 'https://www.baidu.com/s?wd='
         }
     };
-    
+
     // 获取DOM元素 - 基本元素
     const searchInput = document.getElementById('search');
     const searchBox = document.querySelector('.search-box');
     const searchResultsPage = document.getElementById('search-results');
     const searchSections = searchResultsPage.querySelectorAll('.search-section');
-    
+
     // 搜索引擎相关元素
     const searchIcon = document.querySelector('.search-icon');
     const searchEngineDropdown = document.querySelector('.search-engine-dropdown');
     const searchEngineOptions = document.querySelectorAll('.search-engine-option');
-    
+
     // 移动端元素
     const menuToggle = document.querySelector('.menu-toggle');
     const searchToggle = document.querySelector('.search-toggle');
     const sidebar = document.querySelector('.sidebar');
     const searchContainer = document.querySelector('.search-container');
     const overlay = document.querySelector('.overlay');
-    
+
     // 侧边栏折叠功能
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const content = document.querySelector('.content');
-    
+
     // 主题切换元素
     const themeToggle = document.querySelector('.theme-toggle');
     const themeIcon = themeToggle.querySelector('i');
-    
+
     // 滚动进度条元素
     const scrollProgress = document.querySelector('.scroll-progress');
-    
+
     // 移除预加载类，允许CSS过渡效果
     document.documentElement.classList.remove('preload');
-    
+
     // 应用从localStorage读取的主题设置
     if (document.documentElement.classList.contains('theme-preload')) {
         document.documentElement.classList.remove('theme-preload');
         document.body.classList.add('light-theme');
         isLightTheme = true;
     }
-    
+
     // 应用从localStorage读取的侧边栏状态
     if (document.documentElement.classList.contains('sidebar-collapsed-preload')) {
         document.documentElement.classList.remove('sidebar-collapsed-preload');
@@ -86,30 +268,30 @@ document.addEventListener('DOMContentLoaded', () => {
         content.classList.add('expanded');
         isSidebarCollapsed = true;
     }
-    
+
     // 即时移除loading类，确保侧边栏可见
     document.body.classList.remove('loading');
     document.body.classList.add('loaded');
-    
+
     // 侧边栏折叠功能
     function toggleSidebarCollapse() {
         isSidebarCollapsed = !isSidebarCollapsed;
-        
+
         // 使用 requestAnimationFrame 确保平滑过渡
         requestAnimationFrame(() => {
             sidebar.classList.toggle('collapsed', isSidebarCollapsed);
             content.classList.toggle('expanded', isSidebarCollapsed);
-            
+
             // 保存折叠状态到localStorage
             localStorage.setItem('sidebarCollapsed', isSidebarCollapsed ? 'true' : 'false');
         });
     }
-    
+
     // 初始化侧边栏折叠状态 - 已在页面加载前处理，此处仅完成图标状态初始化等次要任务
     function initSidebarState() {
         // 从localStorage获取侧边栏状态
         const savedState = localStorage.getItem('sidebarCollapsed');
-        
+
         // 图标状态与折叠状态保持一致
         if (savedState === 'true' && !isMobile()) {
             isSidebarCollapsed = true;
@@ -117,17 +299,17 @@ document.addEventListener('DOMContentLoaded', () => {
             isSidebarCollapsed = false;
         }
     }
-    
+
     // 侧边栏折叠按钮点击事件
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', toggleSidebarCollapse);
     }
-    
+
     // 主题切换功能
     function toggleTheme() {
         isLightTheme = !isLightTheme;
         document.body.classList.toggle('light-theme', isLightTheme);
-        
+
         // 更新图标
         if (isLightTheme) {
             themeIcon.classList.remove('fa-moon');
@@ -136,16 +318,16 @@ document.addEventListener('DOMContentLoaded', () => {
             themeIcon.classList.remove('fa-sun');
             themeIcon.classList.add('fa-moon');
         }
-        
+
         // 保存主题偏好到localStorage
         localStorage.setItem('theme', isLightTheme ? 'light' : 'dark');
     }
-    
+
     // 初始化主题 - 已在页面加载前处理，此处仅完成图标状态初始化等次要任务
     function initTheme() {
         // 从localStorage获取主题偏好
         const savedTheme = localStorage.getItem('theme');
-        
+
         // 更新图标状态以匹配当前主题
         if (savedTheme === 'light') {
             isLightTheme = true;
@@ -157,34 +339,34 @@ document.addEventListener('DOMContentLoaded', () => {
             themeIcon.classList.add('fa-moon');
         }
     }
-    
+
     // 主题切换按钮点击事件
     themeToggle.addEventListener('click', toggleTheme);
-    
+
     // 初始化搜索索引
     function initSearchIndex() {
         if (searchIndex.initialized) return;
-        
+
         searchIndex.items = [];
-        
+
         try {
             // 为每个页面创建索引
             if (!pages) {
                 pages = document.querySelectorAll('.page');
             }
-            
+
             pages.forEach(page => {
                 if (page.id === 'search-results') return;
-                
+
                 const pageId = page.id;
-                
+
                 page.querySelectorAll('.site-card').forEach(card => {
                     try {
                         const title = card.querySelector('h3')?.textContent?.toLowerCase() || '';
                         const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
                         const url = card.href || card.getAttribute('href') || '#';
                         const icon = card.querySelector('i')?.className || '';
-                        
+
                         // 将卡片信息添加到索引中
                         searchIndex.items.push({
                             pageId,
@@ -201,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
-            
+
             searchIndex.initialized = true;
         } catch (error) {
             console.error('Error initializing search index:', error);
@@ -265,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.remove('collapsed');
             content.classList.remove('expanded');
         }
-        
+
         // 重新计算滚动进度
         updateScrollProgress();
     });
@@ -277,17 +459,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const scrollPercent = (scrollTop / scrollHeight) * 100;
         scrollProgress.style.width = scrollPercent + '%';
     }
-    
+
     // 监听内容区域的滚动事件
     content.addEventListener('scroll', updateScrollProgress);
-    
+
     // 初始化时更新一次滚动进度
     updateScrollProgress();
 
     // 页面切换功能
     function showPage(pageId, skipSearchReset = false) {
         if (currentPageId === pageId && !skipSearchReset && !isInitialLoad) return;
-        
+
         currentPageId = pageId;
 
         // 使用 RAF 确保动画流畅
@@ -295,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!pages) {
                 pages = document.querySelectorAll('.page');
             }
-            
+
             pages.forEach(page => {
                 const shouldBeActive = page.id === pageId;
                 if (shouldBeActive !== page.classList.contains('active')) {
@@ -309,11 +491,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.classList.add('loaded');
             }
         });
-        
+
         // 重置滚动位置并更新进度条
         content.scrollTop = 0;
         updateScrollProgress();
-        
+
         // 只有在非搜索状态下才重置搜索
         if (!skipSearchReset) {
             searchInput.value = '';
@@ -327,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchIndex.initialized) {
             initSearchIndex();
         }
-        
+
         searchTerm = searchTerm.toLowerCase().trim();
 
         // 如果搜索框为空，重置所有内容
@@ -344,12 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // 使用搜索索引进行搜索
             const searchResults = new Map();
             let hasResults = false;
-            
+
             // 使用更高效的搜索算法
             const matchedItems = searchIndex.items.filter(item => {
                 return item.searchText.includes(searchTerm);
             });
-            
+
             // 按页面分组结果
             matchedItems.forEach(item => {
                 if (!searchResults.has(item.pageId)) {
@@ -384,13 +566,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const grid = section.querySelector('.sites-grid');
                                 if (grid) {
                                     const fragment = document.createDocumentFragment();
-                                    
+
                                     matches.forEach(card => {
                                         // 高亮匹配文本
                                         highlightSearchTerm(card, searchTerm);
                                         fragment.appendChild(card);
                                     });
-                                    
+
                                     grid.appendChild(fragment);
                                     section.style.display = 'block';
                                 }
@@ -403,8 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 更新搜索结果页面状态
                     const subtitle = searchResultsPage.querySelector('.subtitle');
                     if (subtitle) {
-                        subtitle.textContent = hasResults 
-                            ? `在所有页面中找到 ${matchedItems.length} 个匹配项` 
+                        subtitle.textContent = hasResults
+                            ? `在所有页面中找到 ${matchedItems.length} 个匹配项`
                             : '未找到匹配的结果';
                     }
 
@@ -427,27 +609,27 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error performing search');
         }
     }
-    
+
     // 高亮搜索匹配文本
     function highlightSearchTerm(card, searchTerm) {
         if (!card || !searchTerm) return;
-        
+
         try {
             const title = card.querySelector('h3');
             const description = card.querySelector('p');
-            
+
             if (!title || !description) return;
-            
+
             // 安全地高亮标题中的匹配文本
             if (title.textContent.toLowerCase().includes(searchTerm)) {
                 const titleText = title.textContent;
                 const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                
+
                 // 创建安全的DOM结构而不是直接使用innerHTML
                 const titleFragment = document.createDocumentFragment();
                 let lastIndex = 0;
                 let match;
-                
+
                 // 使用正则表达式查找所有匹配项
                 const titleRegex = new RegExp(regex);
                 while ((match = titleRegex.exec(titleText)) !== null) {
@@ -457,43 +639,43 @@ document.addEventListener('DOMContentLoaded', () => {
                             titleText.substring(lastIndex, match.index)
                         ));
                     }
-                    
+
                     // 添加高亮的匹配文本
                     const span = document.createElement('span');
                     span.className = 'highlight';
                     span.textContent = match[0];
                     titleFragment.appendChild(span);
-                    
+
                     lastIndex = match.index + match[0].length;
-                    
+
                     // 防止无限循环
                     if (titleRegex.lastIndex === 0) break;
                 }
-                
+
                 // 添加剩余文本
                 if (lastIndex < titleText.length) {
                     titleFragment.appendChild(document.createTextNode(
                         titleText.substring(lastIndex)
                     ));
                 }
-                
+
                 // 清空原标题并添加新内容
                 while (title.firstChild) {
                     title.removeChild(title.firstChild);
                 }
                 title.appendChild(titleFragment);
             }
-            
+
             // 安全地高亮描述中的匹配文本
             if (description.textContent.toLowerCase().includes(searchTerm)) {
                 const descText = description.textContent;
                 const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                
+
                 // 创建安全的DOM结构而不是直接使用innerHTML
                 const descFragment = document.createDocumentFragment();
                 let lastIndex = 0;
                 let match;
-                
+
                 // 使用正则表达式查找所有匹配项
                 const descRegex = new RegExp(regex);
                 while ((match = descRegex.exec(descText)) !== null) {
@@ -503,26 +685,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             descText.substring(lastIndex, match.index)
                         ));
                     }
-                    
+
                     // 添加高亮的匹配文本
                     const span = document.createElement('span');
                     span.className = 'highlight';
                     span.textContent = match[0];
                     descFragment.appendChild(span);
-                    
+
                     lastIndex = match.index + match[0].length;
-                    
+
                     // 防止无限循环
                     if (descRegex.lastIndex === 0) break;
                 }
-                
+
                 // 添加剩余文本
                 if (lastIndex < descText.length) {
                     descFragment.appendChild(document.createTextNode(
                         descText.substring(lastIndex)
                     ));
                 }
-                
+
                 // 清空原描述并添加新内容
                 while (description.firstChild) {
                     description.removeChild(description.firstChild);
@@ -533,7 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error highlighting search term');
         }
     }
-    
+
     // 转义正则表达式特殊字符
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -570,7 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const currentActiveNav = document.querySelector('.nav-item.active');
                     if (currentActiveNav) {
                         const targetPageId = currentActiveNav.getAttribute('data-page');
-                        
+
                         if (targetPageId && currentPageId !== targetPageId) {
                             currentPageId = targetPageId;
                             pages.forEach(page => {
@@ -626,60 +808,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedEngine && searchEngines[savedEngine]) {
             currentSearchEngine = savedEngine;
         }
-        
+
         // 设置当前搜索引擎的激活状态及图标
         updateSearchEngineUI();
-        
+
         // 初始化搜索引擎下拉菜单事件
         searchIcon.addEventListener('click', (e) => {
             e.stopPropagation();
             searchEngineDropdown.classList.toggle('active');
         });
-        
+
         // 点击搜索引擎选项
         searchEngineOptions.forEach(option => {
             // 初始化激活状态
             if (option.getAttribute('data-engine') === currentSearchEngine) {
                 option.classList.add('active');
             }
-            
+
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
-                
+
                 // 获取选中的搜索引擎
                 const engine = option.getAttribute('data-engine');
-                
+
                 // 更新当前搜索引擎
                 if (engine && searchEngines[engine]) {
                     // 如果搜索引擎变更，且之前有活跃的本地搜索结果，重置搜索状态
                     if (currentSearchEngine !== engine && isSearchActive) {
                         resetSearch();
                     }
-                    
+
                     currentSearchEngine = engine;
                     localStorage.setItem('searchEngine', engine);
-                    
+
                     // 更新UI显示
                     updateSearchEngineUI();
-                    
+
                     // 关闭下拉菜单
                     searchEngineDropdown.classList.remove('active');
                 }
             });
         });
-        
+
         // 点击页面其他位置关闭下拉菜单
         document.addEventListener('click', () => {
             searchEngineDropdown.classList.remove('active');
         });
     }
-    
+
     // 更新搜索引擎UI显示
     function updateSearchEngineUI() {
         // 移除所有选项的激活状态
         searchEngineOptions.forEach(option => {
             option.classList.remove('active');
-            
+
             // 如果是当前选中的搜索引擎，添加激活状态
             if (option.getAttribute('data-engine') === currentSearchEngine) {
                 option.classList.add('active');
@@ -691,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 清除所有类，保留基本的search-icon类
             const classList = searchIcon.className.split(' ').filter(cls => cls === 'search-icon');
             searchIcon.className = classList.join(' ');
-            
+
             // 添加当前搜索引擎的图标类
             const engine = searchEngines[currentSearchEngine];
             if (engine) {
@@ -699,17 +881,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconClasses.forEach(cls => {
                     searchIcon.classList.add(cls);
                 });
-                
+
                 // 更新标题提示
                 searchIcon.setAttribute('title', engine.name);
             }
         }
     }
-    
+
     // 执行搜索（根据选择的搜索引擎）
     function executeSearch(searchTerm) {
         if (!searchTerm.trim()) return;
-        
+
         // 根据当前搜索引擎执行搜索
         if (currentSearchEngine === 'local') {
             // 执行本地搜索
@@ -754,27 +936,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const navItemWrappers = document.querySelectorAll('.nav-item-wrapper');
         const submenuItems = document.querySelectorAll('.submenu-item');
         pages = document.querySelectorAll('.page');
-        
+
         // 初始化主题
         initTheme();
-        
+
         // 初始化侧边栏状态
         initSidebarState();
-        
+
         // 初始化搜索引擎选择
         initSearchEngine();
-        
+
+        // 初始化MeNav对象版本信息
+        try {
+            const config = window.MeNav.getConfig();
+            if (config && config.version) {
+                window.MeNav.version = config.version;
+                console.log('MeNav API initialized with version:', config.version);
+            }
+        } catch (error) {
+            console.error('Error initializing MeNav API:', error);
+        }
+
         // 立即执行初始化，不再使用requestAnimationFrame延迟
         // 显示首页
         showPage('home');
-        
+
         // 添加载入动画
         categories.forEach((category, index) => {
             setTimeout(() => {
                 category.style.opacity = '1';
             }, index * 100);
         });
-        
+
         // 初始展开当前页面的子菜单
         const activeNavItem = document.querySelector('.nav-item.active');
         if (activeNavItem) {
@@ -782,18 +975,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeWrapper) {
             }
         }
-        
+
         // 导航项点击效果
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 if (item.getAttribute('target') === '_blank') return;
-                
+
                 e.preventDefault();
-                
+
                 // 获取当前项的父级wrapper
                 const wrapper = item.closest('.nav-item-wrapper');
                 const hasSubmenu = wrapper && wrapper.querySelector('.submenu');
-                
+
                 // 处理子菜单展开/折叠
                 if (hasSubmenu) {
                     // 如果点击的导航项已经激活且有子菜单，则切换子菜单展开状态
@@ -806,12 +999,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 navWrapper.classList.remove('expanded');
                             }
                         });
-                        
+
                         // 展开当前子菜单
                         wrapper.classList.add('expanded');
                     }
                 }
-                
+
                 // 激活导航项
                 navItems.forEach(nav => {
                     nav.classList.toggle('active', nav === item);
@@ -820,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pageId = item.getAttribute('data-page');
                 if (pageId) {
                     showPage(pageId);
-                    
+
                     // 在移动端视图下点击导航项后自动收起侧边栏
                     if (isMobile() && isSidebarOpen && !hasSubmenu) {
                         closeAllPanels();
@@ -833,28 +1026,28 @@ document.addEventListener('DOMContentLoaded', () => {
         submenuItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                
+
                 // 获取页面ID和分类名称
                 const pageId = item.getAttribute('data-page');
                 const categoryName = item.getAttribute('data-category');
-                
+
                 if (pageId) {
                     // 清除所有子菜单项的激活状态
                     submenuItems.forEach(subItem => {
                         subItem.classList.remove('active');
                     });
-                    
+
                     // 激活当前子菜单项
                     item.classList.add('active');
-                    
+
                     // 激活相应的导航项
                     navItems.forEach(nav => {
                         nav.classList.toggle('active', nav.getAttribute('data-page') === pageId);
                     });
-                    
+
                     // 显示对应页面
                     showPage(pageId);
-                    
+
                     // 等待页面切换完成后滚动到对应分类
                     setTimeout(() => {
                         // 查找目标分类元素
@@ -863,24 +1056,24 @@ document.addEventListener('DOMContentLoaded', () => {
                             const targetCategory = Array.from(targetPage.querySelectorAll('.category h2')).find(
                                 heading => heading.textContent.trim().includes(categoryName)
                             );
-                            
+
                             if (targetCategory) {
                                 // 优化的滚动实现：滚动到使目标分类位于视口1/4处（更靠近顶部位置）
                                 try {
                                     // 直接获取所需元素和属性，减少重复查询
                                     const contentElement = document.querySelector('.content');
-                                    
+
                                     if (contentElement && contentElement.scrollHeight > contentElement.clientHeight) {
                                         // 获取目标元素相对于内容区域的位置
                                         const rect = targetCategory.getBoundingClientRect();
                                         const containerRect = contentElement.getBoundingClientRect();
-                                        
+
                                         // 计算目标应该在视口中的位置（视口高度的1/4处）
                                         const desiredPosition = containerRect.height / 4;
-                                        
+
                                         // 计算需要滚动的位置
                                         const scrollPosition = contentElement.scrollTop + rect.top - containerRect.top - desiredPosition;
-                                        
+
                                         // 执行滚动
                                         contentElement.scrollTo({
                                             top: scrollPosition,
@@ -898,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     }, 25); // 延迟时间
-                    
+
                     // 在移动端视图下点击子菜单项后自动收起侧边栏
                     if (isMobile() && isSidebarOpen) {
                         closeAllPanels();
@@ -906,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
+
         // 初始化搜索索引（使用requestIdleCallback或setTimeout延迟初始化，避免影响页面加载）
         if ('requestIdleCallback' in window) {
             requestIdleCallback(() => initSearchIndex());
@@ -914,4 +1107,4 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(initSearchIndex, 1000);
         }
     });
-}); 
+});
