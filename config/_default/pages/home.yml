@@ -28,6 +28,18 @@ categories:
         url: https://chat.openai.com
         icon: fas fa-robot
         description: AI智能助手
+      - name: YouTube
+        url: https://www.youtube.com
+        icon: fab fa-youtube
+        description: 视频分享平台
+      - name: Twitter
+        url: https://twitter.com
+        icon: fab fa-twitter
+        description: 社交媒体平台
+      - name: Reddit
+        url: https://www.reddit.com
+        icon: fab fa-reddit
+        description: 社区讨论平台
   - name: 学习资源
     icon: fas fa-graduation-cap
     sites:
@@ -47,6 +59,22 @@ categories:
         url: https://leetcode.cn
         icon: fas fa-code
         description: 算法刷题平台
+      - name: Coursera
+        url: https://www.coursera.org
+        icon: fas fa-university
+        description: 在线课程平台
+      - name: edX
+        url: https://www.edx.org
+        icon: fas fa-graduation-cap
+        description: 高质量在线教育
+      - name: Udemy
+        url: https://www.udemy.com
+        icon: fas fa-chalkboard-teacher
+        description: 技能学习平台
+      - name: MDN Web Docs
+        url: https://developer.mozilla.org
+        icon: fas fa-file-code
+        description: Web开发文档
   - name: 开发工具
     icon: fas fa-tools
     sites:
@@ -66,6 +94,22 @@ categories:
         url: https://www.docker.com
         icon: fab fa-docker
         description: 容器化平台
+      - name: JetBrains
+        url: https://www.jetbrains.com
+        icon: fas fa-laptop-code
+        description: 专业开发IDE
+      - name: npm
+        url: https://www.npmjs.com
+        icon: fab fa-npm
+        description: Node.js包管理器
+      - name: Webpack
+        url: https://webpack.js.org
+        icon: fas fa-box-open
+        description: 前端打包工具
+      - name: GitHub Copilot
+        url: https://github.com/features/copilot
+        icon: fas fa-robot
+        description: AI编程助手
   - name: 设计资源
     icon: fas fa-palette
     sites:
@@ -85,6 +129,22 @@ categories:
         url: https://www.iconfont.cn
         icon: fas fa-icons
         description: 图标资源库
+      - name: Unsplash
+        url: https://unsplash.com
+        icon: fas fa-camera
+        description: 免费高质量图片
+      - name: Adobe XD
+        url: https://www.adobe.com/products/xd.html
+        icon: fab fa-adobe
+        description: UI/UX设计工具
+      - name: Sketch
+        url: https://www.sketch.com
+        icon: fas fa-pencil-ruler
+        description: 矢量设计工具
+      - name: Canva
+        url: https://www.canva.com
+        icon: fas fa-paint-brush
+        description: 在线平面设计
   - name: 在线工具
     icon: fas fa-wrench
     sites:
@@ -104,3 +164,54 @@ categories:
         url: https://carbon.now.sh
         icon: fas fa-code
         description: 代码图片生成器
+      - name: RegExr
+        url: https://regexr.com
+        icon: fas fa-search
+        description: 正则表达式测试
+      - name: Excalidraw
+        url: https://excalidraw.com
+        icon: fas fa-pencil-alt
+        description: 手绘风格图表工具
+      - name: Notion
+        url: https://www.notion.so
+        icon: fas fa-sticky-note
+        description: 多功能笔记工具
+      - name: Grammarly
+        url: https://www.grammarly.com
+        icon: fas fa-spell-check
+        description: 英文语法检查工具
+  - name: 云服务平台
+    icon: fas fa-cloud
+    sites:
+      - name: AWS
+        url: https://aws.amazon.com
+        icon: fab fa-aws
+        description: 亚马逊云服务
+      - name: Azure
+        url: https://azure.microsoft.com
+        icon: fab fa-microsoft
+        description: 微软云平台
+      - name: Google Cloud
+        url: https://cloud.google.com
+        icon: fab fa-google
+        description: 谷歌云平台
+      - name: Cloudflare
+        url: https://www.cloudflare.com
+        icon: fas fa-cloud
+        description: CDN与安全服务
+      - name: Vercel
+        url: https://vercel.com
+        icon: fas fa-server
+        description: 前端部署平台
+      - name: Netlify
+        url: https://www.netlify.com
+        icon: fas fa-globe
+        description: 静态网站托管
+      - name: DigitalOcean
+        url: https://www.digitalocean.com
+        icon: fab fa-digital-ocean
+        description: 简单云服务器
+      - name: Heroku
+        url: https://www.heroku.com
+        icon: fas fa-h-square
+        description: 应用部署平台

@@ -1,10 +1,11 @@
+<div data-container="nav-items">
 {{#each this}}
 <div class="nav-item-wrapper">
-    <a href="#" class="nav-item{{#if isActive}} active{{/if}}{{#if active}} active{{/if}}" data-page="{{id}}">
+    <a href="#" class="nav-item{{#if isActive}} active{{/if}}{{#if active}} active{{/if}}" data-page="{{id}}" data-type="nav-item" data-id="{{id}}" data-name="{{name}}" data-icon="{{icon}}">
         <div class="icon-container">
             <i class="{{icon}}"></i>
         </div>
-        <span class="nav-text">{{name}}</span>
+        <span class="nav-text" data-editable="nav-item-name">{{name}}</span>
         {{#if submenu}}<i class="fas fa-chevron-down submenu-toggle"></i>{{/if}}
     </a>
     {{#if submenu}}
@@ -19,3 +20,4 @@
     {{/if}}
 </div>
 {{/each}} 
+</div> 

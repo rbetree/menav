@@ -8,24 +8,56 @@ window.MeNav = {
         return configData ? JSON.parse(configData.textContent) : null;
     },
 
-    // 更新DOM元素
-    updateElement: function(id, newData) {
-        const element = document.querySelector(`[data-menav-id="${id}"]`);
-        if (!element) return false;
+    // 获取元素的唯一标识符
+    _getElementId: function(element) {
+        const type = element.getAttribute('data-type');
+        if (type === 'nav-item') {
+            return element.getAttribute('data-id');
+        } else if (type === 'social-link') {
+            return element.getAttribute('data-url');
+        } else {
+            return element.getAttribute('data-name');
+        }
+    },
 
-        // 根据元素类型更新内容
-        const type = element.getAttribute('data-menav-type');
+    // 根据类型和ID查找元素
+    _findElement: function(type, id) {
+        let selector;
+        if (type === 'nav-item') {
+            selector = `[data-type="${type}"][data-id="${id}"]`;
+        } else if (type === 'social-link') {
+            selector = `[data-type="${type}"][data-url="${id}"]`;
+        } else {
+            selector = `[data-type="${type}"][data-name="${id}"]`;
+        }
+        return document.querySelector(selector);
+    },
+
+    // 更新DOM元素
+    updateElement: function(type, id, newData) {
+        const element = this._findElement(type, id);
+        if (!element) return false;
 
         if (type === 'site') {
             // 更新站点卡片
-            if (newData.url) element.href = newData.url;
-            if (newData.name) element.querySelector('h3').textContent = newData.name;
-            if (newData.description) element.querySelector('p').textContent = newData.description;
+            if (newData.url) {
+                element.href = newData.url;
+                element.setAttribute('data-url', newData.url);
+            }
+            if (newData.name) {
+                element.querySelector('h3').textContent = newData.name;
+                element.setAttribute('data-name', newData.name);
+            }
+            if (newData.description) {
+                element.querySelector('p').textContent = newData.description;
+                element.setAttribute('data-description', newData.description);
+            }
             if (newData.icon) {
                 const iconElement = element.querySelector('i');
                 if (iconElement) {
                     iconElement.className = newData.icon;
                 }
+                element.setAttribute('data-icon', newData.icon);
             }
             if (newData.title) element.title = newData.title;
 
@@ -47,12 +79,70 @@ window.MeNav = {
                     const iconClass = iconElement ? iconElement.className : '';
                     titleElement.innerHTML = `<i class="${newData.icon || iconClass}"></i> ${newData.name}`;
                 }
+                element.setAttribute('data-name', newData.name);
+            }
+            if (newData.icon) {
+                element.setAttribute('data-icon', newData.icon);
             }
 
             // 触发元素更新事件
             this.events.emit('elementUpdated', {
                 id: id,
                 type: 'category',
+                data: newData
+            });
+
+            return true;
+        } else if (type === 'nav-item') {
+            // 更新导航项
+            if (newData.name) {
+                const textElement = element.querySelector('.nav-text');
+                if (textElement) {
+                    textElement.textContent = newData.name;
+                }
+                element.setAttribute('data-name', newData.name);
+            }
+            if (newData.icon) {
+                const iconElement = element.querySelector('i');
+                if (iconElement) {
+                    iconElement.className = newData.icon;
+                }
+                element.setAttribute('data-icon', newData.icon);
+            }
+
+            // 触发元素更新事件
+            this.events.emit('elementUpdated', {
+                id: id,
+                type: 'nav-item',
+                data: newData
+            });
+
+            return true;
+        } else if (type === 'social-link') {
+            // 更新社交链接
+            if (newData.url) {
+                element.href = newData.url;
+                element.setAttribute('data-url', newData.url);
+            }
+            if (newData.name) {
+                const textElement = element.querySelector('.nav-text');
+                if (textElement) {
+                    textElement.textContent = newData.name;
+                }
+                element.setAttribute('data-name', newData.name);
+            }
+            if (newData.icon) {
+                const iconElement = element.querySelector('i');
+                if (iconElement) {
+                    iconElement.className = newData.icon;
+                }
+                element.setAttribute('data-icon', newData.icon);
+            }
+
+            // 触发元素更新事件
+            this.events.emit('elementUpdated', {
+                id: id,
+                type: 'social-link',
                 data: newData
             });
 
@@ -64,12 +154,15 @@ window.MeNav = {
 
     // 添加新元素
     addElement: function(type, parentId, data) {
-        const parent = document.querySelector(`[data-menav-id="${parentId}"]`);
-        if (!parent) return null;
+        let parent;
+        
+        if (type === 'site') {
+            // 查找父级分类
+            parent = document.querySelector(`[data-type="category"][data-name="${parentId}"]`);
+            if (!parent) return null;
 
-        if (type === 'site' && parent.getAttribute('data-menav-type') === 'category') {
             // 添加站点卡片到分类
-            const sitesGrid = parent.querySelector('.sites-grid');
+            const sitesGrid = parent.querySelector('[data-container="sites"]');
             if (!sitesGrid) return null;
 
             // 创建新的站点卡片
@@ -77,10 +170,13 @@ window.MeNav = {
             newSite.className = 'site-card';
             newSite.href = data.url || '#';
             newSite.title = data.name + (data.description ? ' - ' + data.description : '');
-            const elementId = `site-new-${Date.now()}`;
-            newSite.setAttribute('data-menav-id', elementId);
-            newSite.setAttribute('data-menav-type', 'site');
-            newSite.setAttribute('data-menav-category', parent.id);
+            
+            // 设置数据属性
+            newSite.setAttribute('data-type', 'site');
+            newSite.setAttribute('data-name', data.name || '未命名站点');
+            newSite.setAttribute('data-url', data.url || '');
+            newSite.setAttribute('data-icon', data.icon || 'fas fa-link');
+            newSite.setAttribute('data-description', data.description || '');
 
             // 添加内容
             newSite.innerHTML = `
@@ -100,26 +196,65 @@ window.MeNav = {
 
             // 触发元素添加事件
             this.events.emit('elementAdded', {
-                id: elementId,
+                id: data.name,
                 type: 'site',
                 parentId: parentId,
                 data: data
             });
 
-            return elementId;
+            return data.name;
+        } else if (type === 'category') {
+            // 查找父级页面容器
+            parent = document.querySelector(`[data-container="categories"]`);
+            if (!parent) return null;
+
+            // 创建新的分类
+            const newCategory = document.createElement('section');
+            newCategory.className = 'category';
+            
+            // 设置数据属性
+            newCategory.setAttribute('data-type', 'category');
+            newCategory.setAttribute('data-name', data.name || '未命名分类');
+            newCategory.setAttribute('data-icon', data.icon || 'fas fa-folder');
+            newCategory.setAttribute('data-container', 'categories');
+
+            // 添加内容
+            newCategory.innerHTML = `
+                <h2 data-editable="category-name"><i class="${data.icon || 'fas fa-folder'}"></i> ${data.name || '未命名分类'}</h2>
+                <div class="sites-grid" data-container="sites">
+                    <p class="empty-sites">暂无网站</p>
+                </div>
+            `;
+
+            // 添加到DOM
+            parent.appendChild(newCategory);
+
+            // 触发元素添加事件
+            this.events.emit('elementAdded', {
+                id: data.name,
+                type: 'category',
+                data: data
+            });
+
+            return data.name;
         }
 
         return null;
     },
 
     // 删除元素
-    removeElement: function(id) {
-        const element = document.querySelector(`[data-menav-id="${id}"]`);
+    removeElement: function(type, id) {
+        const element = this._findElement(type, id);
         if (!element) return false;
 
-        // 获取元素类型和分类（如果是站点卡片）
-        const type = element.getAttribute('data-menav-type');
-        const category = element.getAttribute('data-menav-category');
+        // 获取父级容器（如果是站点卡片）
+        let parentId = null;
+        if (type === 'site') {
+            const categoryElement = element.closest('[data-type="category"]');
+            if (categoryElement) {
+                parentId = categoryElement.getAttribute('data-name');
+            }
+        }
 
         // 删除元素
         element.remove();
@@ -128,7 +263,7 @@ window.MeNav = {
         this.events.emit('elementRemoved', {
             id: id,
             type: type,
-            category: category
+            parentId: parentId
         });
 
         return true;
@@ -136,10 +271,11 @@ window.MeNav = {
 
     // 获取所有元素
     getAllElements: function(type) {
-        return Array.from(document.querySelectorAll(`[data-menav-type="${type}"]`)).map(el => {
+        return Array.from(document.querySelectorAll(`[data-type="${type}"]`)).map(el => {
+            const id = this._getElementId(el);
             return {
-                id: el.getAttribute('data-menav-id'),
-                type: el.getAttribute('data-menav-type'),
+                id: id,
+                type: type,
                 element: el
             };
         });
