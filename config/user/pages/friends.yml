@@ -12,13 +12,13 @@ categories:
         icon: fa-solid fa-code
         description: 专注于分享免费、实用软件和有趣的网站、探索AI 黑科技与最新前沿的IT技术动态，帮助用户提升技术水平
         url: "https://www.freedidi.com//"
-      - name: 小红的前端
-        icon: fas fa-paint-brush
-        description: 专注前端开发与设计
+      - name: 
+        icon: 
+        description: 
         url: "#"
-      - name: 小张的后端
-        icon: fas fa-server
-        description: 分享后端开发经验
+      - name: 
+        icon: 
+        description: 
         url: "#"
     - name: 技术博主
     icon: fas fa-user-friends
