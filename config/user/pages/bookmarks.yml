@@ -1,5 +1,5 @@
 # 自动生成的书签配置文件
-# 由bookmark-processor.js生成于 2025-07-29T05:03:22.471Z
+# 由bookmark-processor.js生成于 2025-07-29T07:32:13.199Z
 # 若要更新，请将新的书签HTML文件放入bookmarks/目录
 # 此文件使用模块化配置格式，位于config/user/pages/目录下
 
@@ -403,6 +403,13 @@ categories:
       - name: Find Icons with the Perfect Look &amp; Feel | Font Awesome
         url: https://fontawesome.com/search?q=youtube&amp;o=r
         icon: fas fa-link
+        description: ""
+  - name: 网站
+    icon: fas fa-folder
+    sites:
+      - name: rbetree/menav：一键部署的个人导航站生成器，支持书签导入与自动构建，轻松整理展示您的网络收藏
+        url: https://github.com/rbetree/menav?tab=readme-ov-file#%E4%B9%A6%E7%AD%BE%E5%AF%BC%E5%85%A5%E5%8A%9F%E8%83%BD
+        icon: fab fa-github
         description: ""
   - name: 在线
     icon: fas fa-folder
@@ -5934,4 +5941,12 @@ categories:
       - name: 如何创建GitHub个人网站 | 诒森的博客
         url: https://canjisam.github.io/2025/03/09/%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BAGitHub%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%AB%99/index.html
         icon: fab fa-github
+        description: ""
+      - name: HTMLPro - 本地版
+        url: https://lius99.github.io/HtmlToPage/
+        icon: fab fa-github
+        description: ""
+      - name: markdown编辑器 - 在线工具
+        url: https://tool.lu/markdown/
+        icon: fas fa-link
         description: ""
