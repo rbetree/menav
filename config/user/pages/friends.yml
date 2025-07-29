@@ -12,6 +12,9 @@ categories:
         icon: fa-solid fa-paper-plane
         description: 专注于分享免费、实用软件和有趣的网站、探索AI 黑科技与最新前沿的IT技术动态，帮助用户提升技术水平
         url: https://www.freedidi.com
+      - name: GitHub
+        url: https://www.freedidi.com
+        icon: fab fa-github
   - name: 技术博主
     icon: fas fa-user-friends
     sites:
