@@ -11,8 +11,7 @@ categories:
       - name: 零度博客
         icon: fa-solid fa-paper-plane
         description: 专注于分享免费、实用软件和有趣的网站、探索AI 黑科技与最新前沿的IT技术动态，帮助用户提升技术水平
-        url: <a href="https://www.freedidi.com/" target="_blank">文章列表（新窗口打开）</a>
-  - name: 技术博主
+        url: "https://www.freedidi.com" 
     icon: fas fa-user-friends
     sites:
       - name: 小明的博客
