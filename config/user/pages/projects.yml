@@ -15,7 +15,7 @@ categories:
       - name: MoonTV
         icon: fa-brands fa-youtube
         description: 基于cloudflare部署的影视资源网
-        url: "https://www.itv.mvpbook.cn"
+        url: "https://itv.mvpbook.cn"
       - name: 个人博客
         icon: fas fa-blog
         description: 使用Hexo搭建的技术博客
