@@ -5,7 +5,7 @@ subtitle: 优秀的博主和朋友们
 template: friends
 
 categories:
-- name: 优质博主
+  - name: 优质博主
     icon: fa-solid fa-web-awesome
     sites:
       - name: 零度博客
