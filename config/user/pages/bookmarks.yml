@@ -1,5 +1,5 @@
 # 自动生成的书签配置文件
-# 由bookmark-processor.js生成于 2025-07-29T07:32:13.199Z
+# 由bookmark-processor.js生成于 2025-07-29T08:38:41.071Z
 # 若要更新，请将新的书签HTML文件放入bookmarks/目录
 # 此文件使用模块化配置格式，位于config/user/pages/目录下
 
@@ -5948,5 +5948,13 @@ categories:
         description: ""
       - name: markdown编辑器 - 在线工具
         url: https://tool.lu/markdown/
+        icon: fas fa-link
+        description: ""
+      - name: ICO图标在线转换工具
+        url: https://ico.nyaasu.top/
+        icon: fas fa-link
+        description: ""
+      - name: ICON ICX 图标 | 加密货币扁平图标包 | Christopher Downer
+        url: https://www.iconarchive.com/show/cryptocurrency-flat-icons-by-cjdowner/ICON-ICX-icon.html
         icon: fas fa-link
         description: ""
