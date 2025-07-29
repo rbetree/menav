@@ -5,6 +5,21 @@ subtitle: 优秀的博主和朋友们
 template: friends
 
 categories:
+- name: 优质博主
+    icon: fas fa-user-friends
+    sites:
+      - name: 小明的博客
+        icon: fas fa-code
+        description: 全栈开发工程师，分享技术心得
+        url: "#"
+      - name: 小红的前端
+        icon: fas fa-paint-brush
+        description: 专注前端开发与设计
+        url: "#"
+      - name: 小张的后端
+        icon: fas fa-server
+        description: 分享后端开发经验
+        url: "#"
   - name: 技术博主
     icon: fas fa-user-friends
     sites:
