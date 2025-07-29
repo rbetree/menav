@@ -8,10 +8,10 @@ categories:
   - name: 技术博主
     icon: fas fa-user-friends
     sites:
-      - name: 小明的博客
-        icon: fas fa-code
+      - name: 小明的部落格
+        icon: fa-regular fa-circle-user
         description: 全栈开发工程师，分享技术心得
-        url: "#"
+        url: "https://www.xmdblog.com/"
       - name: 小红的前端
         icon: fas fa-paint-brush
         description: 专注前端开发与设计
