@@ -9,9 +9,9 @@ categories:
     icon: fas fa-code
     sites:
       - name: 个人导航站
-        icon: fas fa-compass
-        description: 一个简洁美观的个人导航页面
-        url: "#"
+        icon: fa-solid fa-user
+        description: 一个简洁美观的个人网站
+        url: "https://bento.me/yufengxiang"
       - name: Todo List
         icon: fas fa-tasks
         description: 基于Vue3的待办事项管理器
