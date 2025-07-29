@@ -9,6 +9,10 @@ categories:
     icon: fa-solid fa-web-awesome
     sites:
       - name: 零度博客
+        url: https://www.freedidi.com
+        icon: fa-solid fa-paper-plane
+        description: 专注于分享免费、实用软件和有趣的网站、探索AI 黑科技与最新前沿的IT技术动态，帮助用户提升技术水平
+      - name: 零度博客
         icon: fa-solid fa-paper-plane
         description: 专注于分享免费、实用软件和有趣的网站、探索AI 黑科技与最新前沿的IT技术动态，帮助用户提升技术水平
         url: https://www.freedidi.com
