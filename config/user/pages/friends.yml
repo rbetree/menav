@@ -6,7 +6,7 @@ template: friends
 
 categories:
 - name: 优质博主
-    icon: fas fa-user-friends
+    icon: fa-solid fa-web-awesome
     sites:
       - name: 小明的博客
         icon: fas fa-code
