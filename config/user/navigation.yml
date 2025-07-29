@@ -5,9 +5,6 @@
 - name: 项目
   icon: fa-regular fa-face-smile
   id: projects
-- name: 文章
-  icon: fas fa-book
-  id: articles
 - name: 朋友
   icon: fas fa-users
   id: friends
