@@ -1,0 +1,33 @@
+title: 友情链接
+subtitle: 优秀的博主和朋友们
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: friends
+
+categories:
+  - name: 技术博主
+    icon: fas fa-user-friends
+    sites:
+      - name: 小明的博客
+        icon: fas fa-code
+        description: 全栈开发工程师，分享技术心得
+        url: "#"
+      - name: 小红的前端
+        icon: fas fa-paint-brush
+        description: 专注前端开发与设计
+        url: "#"
+      - name: 小张的后端
+        icon: fas fa-server
+        description: 分享后端开发经验
+        url: "#"
+  - name: 技术社区
+    icon: fas fa-laptop-code
+    sites:
+      - name: GitHub
+        icon: fab fa-github
+        description: 开源代码托管平台
+        url: https://github.com
+      - name: Stack Overflow
+        icon: fab fa-stack-overflow
+        description: 程序员问答社区
+        url: https://stackoverflow.com 

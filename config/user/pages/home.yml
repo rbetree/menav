@@ -1,0 +1,142 @@
+title: 我的主页
+subtitle: 常用网站导航
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: home
+
+categories:
+  - name: 常用网站
+    icon: fas fa-star
+    sites:
+      - name: Linux.do
+        url: https://linux.do/
+        icon: fab fa-linux
+        description: 新的理想型社区
+      - name: Google
+        url: https://www.google.com
+        icon: fab fa-google
+        description: 全球最大的搜索引擎
+      - name: ChatGPT
+        url: https://chat.openai.com
+        icon: fas fa-robot
+        description: AI智能助手
+      - name: Gemini
+        url: https://gemini.google.com
+        icon: fas fa-brain
+        description: Google AI助手
+      - name: GitHub
+        url: https://www.github.com
+        icon: fab fa-github
+        description: 代码托管平台
+      - name: 我的博客
+        url: https://z-z-h.xyz
+        icon: fas fa-blog
+        description: 个人技术博客
+  - name: 学习资源
+    icon: fas fa-graduation-cap
+    sites:
+      - name: 哔哩哔哩
+        url: https://www.bilibili.com
+        icon: fas fa-play-circle
+        description: 视频学习平台
+      - name: 知乎
+        url: https://www.zhihu.com
+        icon: fab fa-zhihu
+        description: 问答社区
+      - name: 掘金
+        url: https://juejin.cn
+        icon: fas fa-book
+        description: 高质量技术社区
+      - name: LeetCode
+        url: https://leetcode.cn
+        icon: fas fa-code
+        description: 算法刷题平台
+      - name: MDN Web Docs
+        url: https://developer.mozilla.org
+        icon: fas fa-file-code
+        description: Web开发文档
+      - name: W3Schools
+        url: https://www.w3schools.com
+        icon: fas fa-globe
+        description: Web技术教程
+  - name: 开发工具
+    icon: fas fa-tools
+    sites:
+      - name: VS Code
+        url: https://code.visualstudio.com
+        icon: fas fa-code
+        description: 强大的代码编辑器
+      - name: Postman
+        url: https://www.postman.com
+        icon: fas fa-paper-plane
+        description: API调试工具
+      - name: Git
+        url: https://git-scm.com
+        icon: fab fa-git-alt
+        description: 版本控制工具
+      - name: Docker
+        url: https://www.docker.com
+        icon: fab fa-docker
+        description: 容器化平台
+      - name: npm
+        url: https://www.npmjs.com
+        icon: fab fa-npm
+        description: Node.js包管理器
+  - name: 在线工具
+    icon: fas fa-wrench
+    sites:
+      - name: JSON Editor
+        url: https://jsoneditoronline.org
+        icon: fas fa-code-branch
+        description: JSON在线编辑器
+      - name: TinyPNG
+        url: https://tinypng.com
+        icon: fas fa-compress
+        description: 图片压缩工具
+      - name: Carbon
+        url: https://carbon.now.sh
+        icon: fas fa-code
+        description: 代码图片生成器
+      - name: RegExr
+        url: https://regexr.com
+        icon: fas fa-search
+        description: 正则表达式测试
+      - name: Notion
+        url: https://www.notion.so
+        icon: fas fa-sticky-note
+        description: 多功能笔记工具
+  - name: 云服务平台
+    icon: fas fa-cloud
+    sites:
+      - name: AWS
+        url: https://aws.amazon.com
+        icon: fab fa-aws
+        description: 亚马逊云服务
+      - name: Azure
+        url: https://azure.microsoft.com
+        icon: fab fa-microsoft
+        description: 微软云平台
+      - name: Google Cloud
+        url: https://cloud.google.com
+        icon: fab fa-google
+        description: 谷歌云平台
+      - name: 阿里云
+        url: https://www.aliyun.com
+        icon: fab fa-alipay
+        description: 阿里云服务平台
+      - name: 腾讯云
+        url: https://cloud.tencent.com
+        icon: fab fa-tencent-weibo
+        description: 腾讯云服务平台
+      - name: 火山云
+        url: https://www.volcengine.com
+        icon: fas fa-volcano
+        description: 火山引擎云服务
+      - name: Vercel
+        url: https://vercel.com
+        icon: fas fa-server
+        description: 前端部署平台
+      - name: Netlify
+        url: https://www.netlify.com
+        icon: fas fa-globe
+        description: 静态网站托管

@@ -1,0 +1,35 @@
+title: 我的个人导航站
+description: 个人网址导航和工具集合
+author: handsomezhuzhu
+favicon: favicon.ico
+logo_text: 我的导航
+
+fonts:
+  title:
+    family: Poppins
+    weight: 600
+    source: google
+  subtitle:
+    family: Quicksand
+    weight: 500
+    source: google
+  body:
+    family: Noto Sans SC
+    weight: 400
+    source: google
+    
+profile:
+  title: 欢迎来到我的导航站
+  subtitle: 收集实用网站和工具
+  description: 这里整理了我日常使用的网站和工具，方便快速访问。包括学习资源、开发工具、娱乐网站等分类。
+
+social:
+  - name: GitHub
+    url: https://github.com/handsomezhuzhu
+    icon: fab fa-github
+  - name: 博客
+    url: https://z-z-h.xyz
+    icon: fas fa-blog
+  - name: 邮箱
+    url: mailto:zhuzh67.sysu@vip.163.com
+    icon: fas fa-envelope 

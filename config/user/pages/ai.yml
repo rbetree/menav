@@ -1,0 +1,84 @@
+title: AI工具导航
+subtitle: 人工智能工具集合
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: page
+
+categories:
+  - name: 对话平台
+    icon: fas fa-comments
+    sites:
+      - name: ChatGPT
+        url: https://chat.openai.com
+        icon: fab fa-openai
+        description: OpenAI智能助手
+      - name: Gemini
+        url: https://gemini.google.com
+        icon: fab fa-google
+        description: Google AI助手
+      - name: Claude
+        url: https://claude.ai
+        icon: iconify:logos:anthropic
+        description: Anthropic AI助手
+      - name: 豆包
+        url: https://www.doubao.com
+        icon: iconify:logos:douyin
+        description: 字节跳动AI助手
+      - name: DeepSeek
+        url: https://chat.deepseek.com
+        icon: iconify:logos:deepseek
+        description: DeepSeek对话模型
+      - name: 通义千问
+        url: https://qianwen.aliyun.com
+        icon: iconify:logos:alibaba
+        description: 阿里云AI助手
+      - name: Kimi
+        url: https://kimi.moonshot.cn
+        icon: iconify:logos:moonshot
+        description: 月之暗面AI助手
+      - name: Grok
+        url: https://grok.x.ai
+        icon: iconify:logos:x
+        description: xAI智能助手
+  - name: 开发者平台
+    icon: fas fa-code
+    sites:
+      - name: OpenAI
+        url: https://platform.openai.com
+        icon: fab fa-openai
+        description: OpenAI开发者平台
+      - name: Claude
+        url: https://console.anthropic.com
+        icon: iconify:logos:anthropic
+        description: Anthropic开发者平台
+      - name: Gemini Studio
+        url: https://aistudio.google.com
+        icon: fab fa-google
+        description: Google AI Studio
+      - name: 阿里云通义
+        url: https://tongyi.aliyun.com
+        icon: fab fa-alipay
+        description: 阿里云AI开发平台
+      - name: 腾讯云混元
+        url: https://hunyuan.tencent.com
+        icon: iconify:logos:tencent
+        description: 腾讯云AI开发平台
+      - name: 百度文心
+        url: https://yiyan.baidu.com
+        icon: fab fa-baidu
+        description: 百度AI开发平台
+      - name: 讯飞星火
+        url: https://xinghuo.xfyun.cn
+        icon: iconify:logos:iflytek
+        description: 科大讯飞AI平台
+  - name: 其他AI工具
+    icon: fas fa-tools
+    sites:
+      - name: Cursor
+        url: https://cursor.sh
+        icon: iconify:logos:cursor
+        description: AI编程编辑器
+      - name: Cherry Studio
+        url: https://www.cherry-ai.com/
+        icon: iconify:logos:cherry
+        description: AI创意工作室

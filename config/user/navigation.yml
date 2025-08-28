@@ -1,0 +1,13 @@
+- name: 首页
+  icon: fas fa-home
+  id: home
+  active: true
+- name: AI
+  icon: fas fa-robot
+  id: ai
+- name: 文章
+  icon: fas fa-book
+  id: articles
+- name: 项目
+  icon: fas fa-project-diagram
+  id: projects 

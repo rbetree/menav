@@ -7,7 +7,15 @@
    data-url="{{url}}"
    data-icon="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"
    data-description="{{#if description}}{{description}}{{else}}{{url}}{{/if}}">
-    <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
+    {{#if icon}}
+        {{#if (startsWith icon "iconify:")}}
+            <span class="iconify-placeholder" data-iconify="{{icon}}"></span>
+        {{else}}
+            <i class="{{icon}}"></i>
+        {{/if}}
+    {{else}}
+        <i class="fas fa-link"></i>
+    {{/if}}
     <h3>{{#if name}}{{name}}{{else}}未命名站点{{/if}}</h3>
     <p>{{#if description}}{{description}}{{else}}{{url}}{{/if}}</p>
 </a>

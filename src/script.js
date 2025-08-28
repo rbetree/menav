@@ -1,3 +1,16 @@
+// Iconify图标处理
+function initIconifyIcons() {
+    const iconifyPlaceholders = document.querySelectorAll('.iconify-placeholder');
+    iconifyPlaceholders.forEach(placeholder => {
+        const iconifyData = placeholder.getAttribute('data-iconify');
+        if (iconifyData && iconifyData.startsWith('iconify:')) {
+            const iconName = iconifyData.substring(8); // 移除 "iconify:" 前缀
+            placeholder.className = 'iconify';
+            placeholder.setAttribute('data-icon', iconName);
+        }
+    });
+}
+
 // 全局MeNav对象 - 用于浏览器扩展
 window.MeNav = {
     version: "1.0.0",

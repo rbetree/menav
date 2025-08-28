@@ -166,6 +166,79 @@ function keys(object) {
   return Object.keys(object);
 }
 
+/**
+ * 检查字符串是否以指定前缀开始
+ * @param {string} str 要检查的字符串
+ * @param {string} prefix 前缀
+ * @returns {boolean} 是否以指定前缀开始
+ * @example {{#if (startsWith str "iconify:")}}...{{/if}}
+ */
+function startsWith(str, prefix) {
+  if (!str || typeof str !== 'string') {
+    return false;
+  }
+  
+  return str.startsWith(prefix);
+}
+
+/**
+ * 字符串切片操作
+ * @param {string} str 要处理的字符串
+ * @param {number} start 起始索引
+ * @param {number} [end] 结束索引（可选）
+ * @returns {string} 切片结果
+ * @example {{substring str 8}}
+ */
+function substring(str, start, end) {
+  if (!str || typeof str !== 'string') {
+    return '';
+  }
+  
+  return end ? str.substring(start, end) : str.substring(start);
+}
+
+/**
+ * 检查字符串是否包含指定子字符串
+ * @param {string} str 要检查的字符串
+ * @param {string} searchStr 要搜索的子字符串
+ * @returns {boolean} 是否包含指定子字符串
+ * @example {{#if (contains str "iconify:")}}...{{/if}}
+ */
+function contains(str, searchStr) {
+  if (!str || typeof str !== 'string') {
+    return false;
+  }
+  
+  return str.includes(searchStr);
+}
+
+/**
+ * 字符串替换操作
+ * @param {string} str 要处理的字符串
+ * @param {string} searchStr 要搜索的字符串
+ * @param {string} replaceStr 要替换的字符串
+ * @returns {string} 替换后的字符串
+ * @example {{replace str "iconify:" ""}}
+ */
+function replace(str, searchStr, replaceStr) {
+  if (!str || typeof str !== 'string') {
+    return '';
+  }
+  
+  return str.replace(searchStr, replaceStr);
+}
+
+/**
+ * 相等比较
+ * @param {any} a 第一个值
+ * @param {any} b 第二个值
+ * @returns {boolean} 是否相等
+ * @example {{#if (eq a b)}}...{{/if}}
+ */
+function eq(a, b) {
+  return a === b;
+}
+
 // 导出所有工具类助手函数
 module.exports = {
   slice,
@@ -175,5 +248,10 @@ module.exports = {
   last,
   range,
   pick,
-  keys
+  keys,
+  startsWith,
+  substring,
+  contains,
+  replace,
+  eq
 }; 

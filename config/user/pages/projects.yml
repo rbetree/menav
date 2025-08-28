@@ -1,0 +1,33 @@
+title: 我的项目
+subtitle: 这里展示了我的一些个人项目和开源贡献
+
+# 指定使用的模板文件名，现有页面模板可见templates\pages
+template: projects
+
+categories:
+  - name: 个人项目
+    icon: fas fa-code
+    sites:
+      - name: 个人导航站
+        icon: fas fa-compass
+        description: 一个简洁美观的个人导航页面
+        url: "#"
+      - name: Todo List
+        icon: fas fa-tasks
+        description: 基于Vue3的待办事项管理器
+        url: "#"
+      - name: 个人博客
+        icon: fas fa-blog
+        description: 使用Hexo搭建的技术博客
+        url: "#"
+  - name: 开源贡献
+    icon: fas fa-code-branch
+    sites:
+      - name: Project A
+        icon: fab fa-github
+        description: 开源项目贡献
+        url: "#"
+      - name: Project B
+        icon: fab fa-github
+        description: 开源项目贡献
+        url: "#" 
