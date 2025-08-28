@@ -18,11 +18,11 @@ categories:
         description: 全球最大的搜索引擎
       - name: ChatGPT
         url: https://chat.openai.com
-        icon: fas fa-robot
+        icon: fab fa-openai
         description: AI智能助手
       - name: Gemini
         url: https://gemini.google.com
-        icon: fas fa-brain
+        icon: fab fa-google
         description: Google AI助手
       - name: GitHub
         url: https://www.github.com
@@ -122,15 +122,15 @@ categories:
         description: 谷歌云平台
       - name: 阿里云
         url: https://www.aliyun.com
-        icon: fab fa-alipay
+        icon: fas fa-cloud
         description: 阿里云服务平台
       - name: 腾讯云
         url: https://cloud.tencent.com
-        icon: fab fa-tencent-weibo
+        icon: fas fa-cloud
         description: 腾讯云服务平台
       - name: 火山云
         url: https://www.volcengine.com
-        icon: fas fa-volcano
+        icon: fas fa-fire
         description: 火山引擎云服务
       - name: Vercel
         url: https://vercel.com
