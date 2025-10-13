@@ -877,6 +877,12 @@ function copyStaticFiles(config) {
         console.error('Error copying style.css:', e);
     }
 
+    try {
+      fs.copyFileSync('assets/pinyin-match.js', 'dist/pinyin-match.js');
+    } catch (e) {
+      console.error('Error copying pinyin-match.js:', e);
+    }
+  
     // 复制JavaScript文件
     try {
         fs.copyFileSync('src/script.js', 'dist/script.js');

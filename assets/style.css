@@ -13,7 +13,6 @@
     --secondary-bg: #3a3b3f;
     --border-color: rgba(255, 255, 255, 0.05);
     --shadow-color: rgba(0, 0, 0, 0.15);
-    --highlight-bg: rgba(74, 158, 255, 0.3);
     --scrollbar-color: rgba(255, 255, 255, 0.15);
     --scrollbar-hover-color: rgba(255, 255, 255, 0.25);
     --accent-color: #4a9eff;
@@ -42,7 +41,6 @@ body.light-theme {
     --secondary-bg: #d9d9d4;
     --border-color: rgba(0, 0, 0, 0.08);
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --highlight-bg: rgba(74, 158, 255, 0.15);
     --scrollbar-color: rgba(0, 0, 0, 0.1);
     --scrollbar-hover-color: rgba(0, 0, 0, 0.2);
     --accent-color: #4a9eff;
@@ -150,11 +148,8 @@ html {
 
 /* 搜索高亮样式 */
 .highlight {
-    background-color: var(--highlight-bg);
-    border-radius: 2px;
-    padding: 0 2px;
     font-weight: bold;
-    color: var(--text-color);
+    color: red;
 }
 
 body {
