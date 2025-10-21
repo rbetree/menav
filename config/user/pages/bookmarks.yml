@@ -1,5 +1,5 @@
 # 自动生成的书签配置文件
-# 由bookmark-processor.js生成于 2025-10-21T14:04:22.557Z
+# 由bookmark-processor.js生成于 2025-10-21T15:18:08.291Z
 # 若要更新，请将新的书签HTML文件放入bookmarks/目录
 # 此文件使用模块化配置格式，位于config/user/pages/目录下
 
@@ -48,6 +48,10 @@ categories:
       - name: Srenix动漫社
         url: https://www.srenix.com/
         icon: fas fa-link
+        description: ""
+      - name: yoomob-nav
+        url: https://yoomob.github.io/menav/
+        icon: fab fa-github
         description: ""
       - name: 阿里云盘
         url: https://www.aliyundrive.com/drive?adtag=share
