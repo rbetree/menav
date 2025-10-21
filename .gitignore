@@ -11,6 +11,7 @@ dist/
 .specstory
 .cursorindexingignore
 .cursor
+.spec-workflow/
 
 # 系统文件
 .DS_Store
@@ -18,9 +19,10 @@ Thumbs.db
 
 
 # 个人笔记
-docs/*
+docs/
 
 # 测试相关文件
+dev/
 jest.config.js
 tests/
 coverage/
@@ -32,5 +34,6 @@ tests/screenshots/
 tests/fixtures/
 *.test.js
 *.spec.js
+
 # SpecStory explanation file
 .specstory/.what-is-this.md

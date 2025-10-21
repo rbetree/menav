@@ -1,17 +1,21 @@
+# 默认页面配置（请勿直接修改）。
+# 建议复制到 config/user/pages/bookmarks.yml 并按需调整。
+# 说明：该页面通常由“书签导入工具”自动生成，手工修改时请保持字段结构一致。
 title: 我的书签
 subtitle: 从浏览器导入的书签收藏
 
-# 指定使用的模板文件名，现有页面模板可见templates\pages
+# 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
 template: bookmarks
 
+# 页面分类与站点列表（大量示例项，按需删减）
 categories:
   - name: 技术资源
-    icon: fas fa-folder
+    icon: fas fa-folder # 分类图标
     sites:
-      - name: GitHub
-        url: https://github.com/
-        icon: fab fa-github
-        description: "从书签导入: GitHub"
+      - name: GitHub                      # 站点名称
+        url: https://github.com/          # http/https URL（favicon 模式将尝试加载站点图标）
+        icon: fab fa-github               # 手动图标（manual 模式显示；favicon 失败时回退）
+        description: "从书签导入: GitHub" # 描述
       - name: Stack Overflow
         url: https://stackoverflow.com/
         icon: fab fa-stack-overflow

@@ -50,6 +50,19 @@ MeNav 的助手函数分为四类：
 - 空值检查
 - 逻辑运算（与、或、非）
 
+#### ifHttpUrl
+
+判断字符串是否为 http/https URL，用于在模板中分支渲染仅对外链生效的逻辑（如 favicon 加载）：
+
+```handlebars
+{{#ifHttpUrl url}}
+  {{!-- 只有 http/https 才尝试加载 favicon --}}
+  <img src="https://t3.gstatic.com/faviconV2?url={{encodeURIComponent url}}&size=32" alt="{{name}} favicon" />
+{{else}}
+  <i class="fas fa-link"></i>
+{{/ifHttpUrl}}
+```
+
 ### 工具函数
 
 位置：`src/helpers/utils.js`
@@ -60,6 +73,15 @@ MeNav 的助手函数分为四类：
 - 集合长度计算
 - 范围数组生成
 - 对象属性选择
+
+#### encodeURIComponent
+
+对字符串进行 URL 组件编码（同名于浏览器 API，用作模板内联助手），适用于将动态 URL 参数安全拼接到查询串：
+
+```handlebars
+{{!-- 构造第三方 Favicon API 的 url 参数 --}}
+<img src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&url={{encodeURIComponent url}}&size=32" alt="favicon" />
+```
 
 ### 核心函数
 

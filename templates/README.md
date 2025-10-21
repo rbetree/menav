@@ -128,6 +128,44 @@ templates/
 {{/if}}
 ```
 
+### 站点图标渲染（favicon/manual）
+
+当启用 `icons.mode: favicon`（默认）时，站点卡片会优先显示站点 favicon；当 URL 非 http/https、加载失败或网络受限，则自动回退到 Font Awesome 图标。相关助手：`ifHttpUrl`（条件）与 `encodeURIComponent`（工具）。
+
+示例（与内置组件实现保持一致）：
+
+```handlebars
+{{#if url}}
+  <a href="{{url}}" class="site-card" title="{{name}} - {{#if description}}{{description}}{{else}}{{url}}{{/if}}" {{#if external}}target="_blank" rel="noopener"{{/if}}>
+    {{#ifEquals @root.icons.mode "favicon"}}
+      {{#ifHttpUrl url}}
+        <i class="fas fa-circle-notch fa-spin icon-placeholder" aria-hidden="true"></i>
+        <img
+          class="favicon-icon"
+          src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={{encodeURIComponent url}}&size=32"
+          alt="{{name}} favicon"
+          loading="lazy"
+          {{!-- 可选：降低引用者信息外泄 --}}
+          {{!-- referrerpolicy="no-referrer" --}}
+          style="opacity:0;"
+          onload="this.style.opacity='1'; this.previousElementSibling.style.display='none';"
+          onerror="this.style.display='none'; this.previousElementSibling.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+        />
+        <i class="fas fa-link icon-fallback" aria-hidden="true" style="display:none;"></i>
+      {{else}}
+        <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
+      {{/ifHttpUrl}}
+    {{else}}
+      <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
+    {{/ifEquals}}
+    <h3>{{#if name}}{{name}}{{else}}未命名站点{{/if}}</h3>
+    <p>{{#if description}}{{description}}{{else}}{{url}}{{/if}}</p>
+  </a>
+{{/if}}
+```
+
+提示：关于 `icons.mode` 与隐私说明，请参见 README 的“网站图标模式（icons.mode）”章节与“近期更新”。
+
 ## 模板数据流
 
 MeNav 模板系统的数据流如下：

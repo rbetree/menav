@@ -78,6 +78,49 @@
 <details>
 <summary>点击查看/隐藏更新日志</summary>
 
+### 2025/10/18
+
+**1. 图标模式默认行为变更**
+- ✅ 默认启用 `icons.mode: favicon`，自动根据站点 URL 加载 favicon（失败回退为 Font Awesome 图标）
+- ℹ️ 如需关闭外部请求并完全使用手动图标，请在 `config/user/site.yml` 中设置：
+
+```yaml
+# config/user/site.yml
+icons:
+  mode: manual  # 关闭 favicon 请求，纯手动图标
+```
+
+**ℹ️ 隐私说明（Favicon API）**
+
+- 使用 `https://t3.gstatic.com/faviconV2` 服务会将站点 `URL` 发送至第三方（Google）以获取 favicon 图片
+- 若不希望产生外部网络请求或在内网/离线环境中部署，请设置 `icons.mode: manual`
+
+### 2025/10/14
+
+**1. 拼音搜索支持**
+
+- ✅ 支持中文拼音与首字母匹配检索（基于 `pinyin-match`）
+
+### 2025/07/30
+
+**1. 链接打开行为一致性**
+- ✅ 统一站点/导航外链为新标签页打开，改善导航体验
+
+### 2025/07/07
+
+**1. UI 细节优化**
+
+- ✅ 侧边栏显示与布局细节优化
+- ✅ 明暗主题切换按钮样式改进
+- ✅ 欢迎文本与布局对齐优化
+
+### 2025/05/22
+
+**1. MeNav 浏览器扩展支持接口**
+- ✅ 注入序列化的配置数据供扩展读取（`configJSON`）
+- ✅ 暴露 `window.MeNav` 基础能力与 DOM 数据属性，支持元素精准定位与更新
+- ✅ 为扩展推送与页面联动打通基础能力
+
 ### 2025/05/16
 
 **1. MarksVault 浏览器扩展集成**
@@ -145,7 +188,7 @@
 **4. 书签导入功能**
 - ✅ 支持从Chrome、Firefox和Edge浏览器导入HTML格式书签
 - ✅ 自动处理书签文件，解析文件夹结构和链接
-- ✅ 智能匹配网站图标，根据URL自动分配合适的Font Awesome图标
+- ✅ 图标处理：默认加载站点 favicon；在 manual 模式下保留 Font Awesome 匹配
 - ✅ 生成配置文件，无需手动录入即可批量导入网站链接
 - ✅ 与GitHub Actions集成，全自动化的导入和部署流程
 
@@ -156,7 +199,7 @@
 - HTML5 + CSS3
 - JavaScript (原生)
 - Handlebars 模板引擎
-- Font Awesome 图标
+- Font Awesome 图标 + Google Favicon API
 - GitHub Pages托管/其他各种CI/CD服务托管
 
 ## 项目结构
@@ -471,6 +514,9 @@ author: "张三"             # 作者姓名
 favicon: "favicon.ico"     # 网站图标，支持ico、png等格式
 logo_text: "导航站"         # 左上角显示的Logo文本
 
+icons:
+  mode: favicon   # 可选: favicon | manual（默认 favicon）
+
 # 字体设置
 fonts:
   title:  # 标题字体设置
@@ -502,6 +548,20 @@ social:
     icon: "fab fa-twitter"
   # 更多社交媒体...
 ```
+
+#### 网站图标模式（icons.mode）
+
+支持两种站点卡片图标模式，默认使用 favicon API：
+
+- mode=favicon：使用 Google Favicon API 加载站点图标；加载失败时回退为 Font Awesome 的 `fas fa-link`；图标图片使用 `loading="lazy"` 延迟加载以提升首页性能。
+- mode=manual：沿用手动指定的 Font Awesome 图标，不发起任何 favicon 请求。
+
+所用 Favicon API：
+`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={{url}}&size=32`
+
+隐私说明：
+- 启用 `mode=favicon` 时，页面会请求第三方服务以获取图片，可能将站点 `URL` 发送至该服务商（Google）。
+
 
 > **📝 温馨提示**：
 > - 关于**字体设置**：
@@ -778,7 +838,19 @@ MeNav现在使用Handlebars模板系统，您可以通过以下步骤自定义�
 
 <details>
 <summary>导入的书签没有正确显示图标怎么办？</summary>
-系统会尝试根据网址自动匹配Font Awesome图标。如果匹配不理想，您可以手动编辑`config/user/pages/bookmarks.yml`，修改每个站点的icon属性。
+默认启用 favicon 模式：页面会尝试从第三方服务获取站点 favicon；若 URL 不是 http/https、站点无 favicon 或网络受限，将自动回退为 Font Awesome 图标。
+
+如果您希望完全关闭外部请求并手动控制图标：
+
+关闭 favicon 模式：
+
+```yaml
+# config/user/site.yml
+icons:
+  mode: manual  # 全局不再请求 favicon，仅使用 Font Awesome 图标
+```
+
+提示：更改配置后重新构建即可生效。
 </details>
 
 <details>

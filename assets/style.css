@@ -7,6 +7,7 @@
     --card-bg-gradient-2: #2b2c30;
     --site-card-bg-gradient-1: #363940;
     --site-card-bg-gradient-2: #31343a;
+    --site-card-hover-bg: linear-gradient(145deg, #3f434b, #353940);
     --text-color: #e4e6eb;
     --text-muted: #8b8c8f;
     --text-bright: #ffffff;
@@ -28,14 +29,16 @@
     --sidebar-collapsed-width: 60px;
 }
 
-/* 浅色主题 */
+/* 浅色主题：预加载阶段同样应用变量，避免读取默认暗色值 */
+html.theme-preload,
 body.light-theme {
     --bg-color: #e0e0d8;
     --sidebar-bg: #f0f0eb;
     --card-bg-gradient-1: #f0f0eb;
     --card-bg-gradient-2: #e9e9e4;
-    --site-card-bg-gradient-1: #f0f0eb;
-    --site-card-bg-gradient-2: #e5e5e0;
+    --site-card-bg-gradient-1: #ffffff;
+    --site-card-bg-gradient-2: #f4f5f0;
+    --site-card-hover-bg: linear-gradient(145deg, #fafaf8, #eef0eb);
     --text-color: #333333;
     --text-muted: #666666;
     --text-bright: #000000;
@@ -157,6 +160,7 @@ html {
     color: var(--text-color);
 }
 
+
 body {
     font-family: var(--font-body);
     font-weight: var(--font-weight-body);
@@ -272,7 +276,7 @@ body.loaded .layout {
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: var(--scrollbar-color) transparent; /* Firefox */
     overflow-y: hidden; /* 防止整个侧边栏滚动 */
-    transition: width 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 /* 侧边栏折叠状态 */
@@ -288,6 +292,7 @@ body.loaded .layout {
     display: flex;
     align-items: center;
     height: 60px; /* 确保与展开状态高度一致 */
+    margin-bottom: 0.8rem; /* 收起态同样拉开与按钮的间距 */
 }
 
 /* 折叠状态下的侧边栏内容区域调整 */
@@ -323,6 +328,7 @@ body.loaded .layout {
     overflow: hidden; /* 防止内容溢出 */
     position: relative; /* 添加相对定位，作为按钮的参考 */
     height: 60px; /* 固定高度，确保两种状态下一致 */
+    margin-bottom: 0.8rem; /* 与下方按钮区域拉开间距 */
 }
 
 .logo h1 {
@@ -331,7 +337,7 @@ body.loaded .layout {
     margin-bottom: 0;
     padding-left: 0.5rem;
     letter-spacing: 0.5px;
-    transition: opacity 0.3s ease, transform 0.3s ease, width 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -354,10 +360,7 @@ body.loaded .layout {
     margin-left: 8px;
     padding: 0;
     flex-shrink: 0; /* 防止按钮被压缩 */
-    position: absolute; /* 绝对定位 */
-    right: 16px; /* 右侧对齐 */
-    top: 50%; /* 垂直居中 */
-    transform: translateY(-50%); /* 精确垂直居中 */
+    /* 在展开态使用flex对齐，保持与标题自然对齐 */
 }
 
 .sidebar-toggle .toggle-icon {
@@ -367,29 +370,27 @@ body.loaded .layout {
 
 .sidebar-toggle:hover {
     background: var(--secondary-bg);
-    transform: translateY(-2px) translateY(-50%);
 }
 
 .sidebar-toggle:active {
-    transform: translateY(0) translateY(-50%);
 }
 
 .sidebar.collapsed .sidebar-toggle {
-    position: absolute; /* 保持绝对定位 */
-    right: 50%; /* 在折叠状态下水平居中 */
+    position: absolute;
+    right: 16px; /* 与展开态保持一致的右侧间距 */
     top: 50%;
-    transform: translate(50%, -50%); /* 精确居中定位 */
-    margin: 0; /* 移除边距 */
-    height: 24px;
-    width: 24px;
+    transform: translateY(-50%);
+    margin: 0;
+    height: 28px; /* 与展开态一致 */
+    width: 28px;  /* 与展开态一致 */
 }
 
 .sidebar.collapsed .sidebar-toggle:hover {
-    transform: translate(50%, -52%);
+    transform: translateY(-50%);
 }
 
 .sidebar.collapsed .sidebar-toggle:active {
-    transform: translate(50%, -50%);
+    transform: translateY(-50%);
 }
 
 /* 侧边栏折叠状态下的按钮图标旋转180度 */
@@ -435,14 +436,14 @@ body.loaded .layout {
 .nav-section {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem; /* 从0.4rem减小到0.25rem */
+    gap: 0.4rem; /* 增大按钮间距 */
 }
 
 .section-title {
     font-size: 1rem;
     color: var(--accent-color);
     padding: 0.4rem 0.5rem; /* 减小上下padding */
-    margin-bottom: 0.2rem; /* 从0.4rem减小到0.2rem */
+    margin-bottom: 0.2rem; /* 增大与下方按钮组的间距 */
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -456,9 +457,10 @@ body.loaded .layout {
 /* 调整侧边栏折叠状态下的章节标题 */
 .sidebar.collapsed .section-title {
     justify-content: center;
-    padding: 0.6rem 0 0.3rem;
+    /* 统一与展开态的垂直间距 */
+    padding: 0.4rem 0; 
     text-align: center;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.2rem; /* 与展开态保持一致且更大 */
 }
 
 .sidebar.collapsed .section-title i {
@@ -475,12 +477,12 @@ body.loaded .layout {
 .sidebar.collapsed .nav-item {
     padding: 0;
     justify-content: center;
-    width: 40px; /* 设置固定宽度 */
-    height: 40px; /* 设置与宽度相等的高度 */
+    width: 44px; /* 增大按钮方块尺寸 */
+    height: 44px; /* 增大按钮方块尺寸 */
     text-align: center;
     margin-left: auto;
     margin-right: auto;
-    border-radius: 8px; /* 保持圆角 */
+    border-radius: 10px; /* 略增圆角 */
     display: flex;
     align-items: center;
     box-sizing: border-box;
@@ -515,16 +517,19 @@ body.loaded .layout {
 .nav-item {
     display: flex;
     align-items: center;
-    padding: 0.6rem 0.8rem; /* 从0.8rem减小到上下0.6rem,左右保持0.8rem */
+    height: 44px; /* 增大按钮高度 */
+    padding: 0 0.9rem; /* 略增左右内边距 */
     color: var(--nav-item-color);
     text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 10px; /* 略增圆角，与增大高度协调 */
+    /* 限定可过渡属性，避免折叠/展开时Y向抖动 */
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
     position: relative;
 }
 
 .nav-item .icon-container {
     width: 24px;
+    height: 100%; /* 与按钮高度一致，垂直对齐更稳定 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -582,13 +587,12 @@ body.loaded .layout {
     height: 100vh; /* 固定高度 */
     overflow-y: auto; /* 使用auto替代scroll，只在需要时显示滚动条 */
     overflow-x: hidden;
-    max-width: calc(100vw - var(--sidebar-width));
+    width: calc(100vw - var(--sidebar-width));
     display: flex;
     flex-direction: column;
     align-items: center;
     /* 隐藏滚动条但保持滚动功能 */
     scrollbar-width: none; /* Firefox */
-    transition: background-color 0.3s ease, margin-left 0.3s ease, max-width 0.3s ease;
 }
 
 .content::-webkit-scrollbar {
@@ -598,7 +602,16 @@ body.loaded .layout {
 /* 优化内容区域在侧边栏折叠状态下的边距 */
 body .content.expanded {
     margin-left: var(--sidebar-collapsed-width);
-    max-width: calc(100vw - var(--sidebar-collapsed-width));
+    width: calc(100vw - var(--sidebar-collapsed-width));
+}
+
+/* 仅在交互时启用布局相关过渡，避免首帧闪烁 */
+.with-anim .sidebar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.with-anim .content {
+    transition: background-color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
 }
 
 /* 搜索框容器 - 固定在顶部 */
@@ -626,7 +639,7 @@ body .content.expanded {
 .search-box::after {
     content: '';
     position: absolute;
-    right: 3.5rem;
+    right: 4rem;
     top: 50%;
     transform: translateY(-50%);
     width: 6px;
@@ -634,6 +647,7 @@ body .content.expanded {
     border-radius: 50%;
     opacity: 0;
     transition: all 0.3s ease;
+    pointer-events: none; /* 不阻挡点击，避免遮住图标可点击区域 */
 }
 
 .search-box.has-results::after {
@@ -648,7 +662,7 @@ body .content.expanded {
 
 .search-box input {
     width: 100%;
-    padding: 1rem 4rem 1rem 1.5rem;
+    padding: 1rem 6rem 1rem 1.5rem; /* 扩大右侧内边距，给左移的点留空间 */
     border: none;
     border-radius: 12px;
     background-color: transparent;
@@ -687,15 +701,30 @@ body .content.expanded {
 
 /* 搜索图标和搜索引擎切换图标位置调整 */
 .search-box .search-icon {
-    right: 1.5rem;
+    right: 2.0rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* 下拉指示图标交互与状态 */
+.search-box .search-engine-toggle:hover { color: inherit; }
+
+.search-box.dropdown-open .search-engine-toggle { transform: translateY(-50%) rotate(180deg); }
+
 .search-box .search-engine-toggle {
-    right: 3.5rem;
+    right: 0.8rem;
     cursor: pointer;
     font-size: 0.8rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 搜索引擎下拉菜单 */
@@ -761,7 +790,6 @@ body .content.expanded {
 
 .page.active {
     display: flex;
-    animation: fadeIn 0.3s ease-out forwards;
 }
 
 /* 欢迎区域 */
@@ -842,8 +870,7 @@ body .content.expanded {
     max-width: 1300px;
     position: relative;
     z-index: 1;
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 1; /* 移除进入时的浮动/淡入动画，避免切页时跳动 */
     box-shadow: 0 4px 20px var(--shadow-color);
     border: 1px solid var(--border-color);
     transition: background 0.3s ease, box-shadow 0.3s ease;
@@ -899,8 +926,7 @@ body .content.expanded {
 
 .site-card:hover {
     transform: translateY(-4px);
-    background: linear-gradient(145deg, var(--secondary-bg), var(--site-card-bg-gradient-1));
-    box-shadow: 0 6px 20px var(--shadow-color);
+    background: var(--site-card-hover-bg);
     border-color: var(--border-color);
 }
 
@@ -911,9 +937,35 @@ body .content.expanded {
     transition: all 0.3s ease;
 }
 
+/* 网站卡片 favicon 图片样式，与图标尺寸保持一致 */
+.site-card .favicon-icon {
+    display: inline-block;
+    width: 1.8rem;
+    height: 1.8rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    object-fit: cover;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.site-card .icon-placeholder,
+.site-card .icon-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    flex-shrink: 0;
+}
+
 .site-card:hover i {
     transform: scale(1.1);
     color: var(--accent-hover);
+}
+
+.site-card:hover .favicon-icon {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 1px var(--border-color);
 }
 
 .site-card h3 {
@@ -1181,6 +1233,7 @@ body .content.expanded {
     
     .content {
         margin-left: 0;
+        width: 100vw;
         max-width: 100vw;
         padding-top: 5rem;
     }
@@ -1188,7 +1241,7 @@ body .content.expanded {
     .sidebar {
         transform: translateX(-100%);
         box-shadow: none;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .sidebar .logo {
@@ -1278,6 +1331,11 @@ body .content.expanded {
         margin-top: 1rem; /* 增加顶部间距 */
     }
 
+    .page {
+        padding-left: 0.15rem;
+        padding-right: 0.15rem;
+    }
+
     .welcome-section h2 {
         font-size: 2rem;
     }
@@ -1292,18 +1350,18 @@ body .content.expanded {
 
     /* 分类样式优化 */
     .category {
-        margin: 0 1.5rem 1.5rem 1.5rem;
-        padding: 1.5rem;
-        width: calc(100% - 3rem);
+        margin: 0 0.15rem 0.9rem 0.15rem;
+        padding: 1.1rem;
+        width: calc(100% - 0.3rem);
     }
 
     .sites-grid {
-        gap: 0.8rem;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.7rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     
     .site-card {
-        padding: 1rem 0.8rem;
+        padding: 0.9rem 0.7rem;
     }
     
     .site-card i {
@@ -1358,26 +1416,28 @@ body .content.expanded {
     }
 
     .category {
-        margin: 0 1.2rem 1.2rem 1.2rem;
-        padding: 1.2rem;
-        width: calc(100% - 2.4rem);
+        margin: 0 0.1rem 0.8rem 0.1rem;
+        padding: 0.95rem;
+        width: calc(100% - 0.2rem);
     }
 
     .search-container {
         padding: 0 1rem;
     }
-
+    
     .page {
         padding-top: 1rem;
+        padding-left: 0.1rem;
+        padding-right: 0.1rem;
     }
     
     .sites-grid {
-        gap: 0.6rem;
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 0.5rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     
     .site-card {
-        padding: 0.8rem 0.6rem;
+        padding: 0.75rem 0.5rem;
     }
     
     .site-card i {
@@ -1404,18 +1464,18 @@ body .content.expanded {
 
 @media (max-width: 400px) {
     .category {
-        padding: 1rem;
-        margin: 0 0.8rem 1rem 0.8rem;
-        width: calc(100% - 1.6rem);
+        padding: 0.85rem;
+        margin: 0 0.05rem 0.6rem 0.05rem;
+        width: calc(100% - 0.1rem);
     }
     
     .sites-grid {
-        gap: 0.5rem;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.4rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     
     .site-card {
-        padding: 0.7rem 0.5rem;
+        padding: 0.6rem 0.4rem;
     }
     
     .site-card i {

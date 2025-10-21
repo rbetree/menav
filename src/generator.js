@@ -283,12 +283,36 @@ function ensureConfigDefaults(config) {
   result.site = result.site || {};
   result.navigation = result.navigation || [];
   result.fonts = result.fonts || {};
+
+  // 确保字体配置完整
+  result.fonts.title = result.fonts.title || {};
+  result.fonts.title.family = result.fonts.title.family || 'Arial';
+  result.fonts.title.weight = result.fonts.title.weight || 700;
+  result.fonts.title.source = result.fonts.title.source || 'system';
+
+  result.fonts.subtitle = result.fonts.subtitle || {};
+  result.fonts.subtitle.family = result.fonts.subtitle.family || 'Arial';
+  result.fonts.subtitle.weight = result.fonts.subtitle.weight || 500;
+  result.fonts.subtitle.source = result.fonts.subtitle.source || 'system';
+
+  result.fonts.body = result.fonts.body || {};
+  result.fonts.body.family = result.fonts.body.family || 'Arial';
+  result.fonts.body.weight = result.fonts.body.weight || 400;
+  result.fonts.body.source = result.fonts.body.source || 'system';
+
   result.profile = result.profile || {};
   result.social = result.social || [];
   result.categories = result.categories || [];
+  // 图标配置默认值
+  result.icons = result.icons || {};
+  // icons.mode: manual | favicon, 默认 favicon
+  result.icons.mode = result.icons.mode || 'favicon';
 
   // 站点基本信息默认值
   result.site.title = result.site.title || 'MeNav导航';
+  result.site.description = result.site.description || '个人网络导航站';
+  result.site.author = result.site.author || 'MeNav User';
+  result.site.logo_text = result.site.logo_text || '导航站';
   result.site.favicon = result.site.favicon || 'favicon.ico';
   result.site.logo = result.site.logo || null;
   result.site.footer = result.site.footer || '';
@@ -304,20 +328,33 @@ function ensureConfigDefaults(config) {
   result.profile.subtitle = result.profile.subtitle || 'MeNav个人导航系统';
   result.profile.description = result.profile.description || '简单易用的个人导航站点';
 
-  // 为每个类别和站点设置默认值
-  result.categories = result.categories || [];
-  result.categories.forEach(category => {
+  // 处理站点默认值的辅助函数
+  function processSiteDefaults(site) {
+    site.name = site.name || '未命名站点';
+    site.url = site.url || '#';
+    site.description = site.description || '';
+    site.icon = site.icon || 'fas fa-link';
+    site.external = typeof site.external === 'boolean' ? site.external : true;
+  }
+
+  // 处理分类默认值的辅助函数
+  function processCategoryDefaults(category) {
     category.name = category.name || '未命名分类';
     category.sites = category.sites || [];
+    category.sites.forEach(processSiteDefaults);
+  }
 
-    // 为每个站点设置默认值
-    category.sites.forEach(site => {
-      site.name = site.name || '未命名站点';
-      site.url = site.url || '#';
-      site.description = site.description || '';
-      site.icon = site.icon || 'fas fa-link';
-      site.external = typeof site.external === 'boolean' ? site.external : true;
-    });
+  // 为首页的每个类别和站点设置默认值
+  result.categories = result.categories || [];
+  result.categories.forEach(processCategoryDefaults);
+
+  // 为所有页面配置中的类别和站点设置默认值
+  Object.keys(result).forEach(key => {
+    const pageConfig = result[key];
+    // 检查是否是页面配置对象且包含categories数组
+    if (pageConfig && typeof pageConfig === 'object' && Array.isArray(pageConfig.categories)) {
+      pageConfig.categories.forEach(processCategoryDefaults);
+    }
   });
 
   return result;
@@ -406,7 +443,7 @@ function prepareRenderData(config) {
   renderData.configJSON = JSON.stringify({
     version: process.env.npm_package_version || '1.0.0',
     timestamp: new Date().toISOString(),
-    data: config
+    data: renderData // 使用经过处理的renderData而不是原始config
   });
 
   // 添加导航项的活动状态标记和子菜单
@@ -741,6 +778,7 @@ function renderPage(pageId, config) {
 
   // 页面特定的额外数据
   if (config[pageId]) {
+    // 使用已经经过ensureConfigDefaults处理的配置数据
     Object.assign(data, config[pageId]);
   }
 
@@ -863,6 +901,12 @@ function copyStaticFiles(config) {
         console.error('Error copying style.css:', e);
     }
 
+    try {
+      fs.copyFileSync('assets/pinyin-match.js', 'dist/pinyin-match.js');
+    } catch (e) {
+      console.error('Error copying pinyin-match.js:', e);
+    }
+  
     // 复制JavaScript文件
     try {
         fs.copyFileSync('src/script.js', 'dist/script.js');

@@ -159,6 +159,20 @@ function not(value, options) {
   return !value ? options.fn(this) : options.inverse(this);
 }
 
+/**
+ * 判断URL是否为http/https
+ * @param {string} url 输入URL
+ * @param {object} options Handlebars选项
+ * @returns {string} 渲染结果
+ * @example {{#ifHttpUrl url}}...{{else}}...{{/ifHttpUrl}}
+ */
+function ifHttpUrl(url, options) {
+  if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
+}
+
 // 导出所有条件判断助手函数
 module.exports = {
   ifEquals,
@@ -169,5 +183,6 @@ module.exports = {
   and,
   or,
   orHelper,
-  not
-}; 
+  not,
+  ifHttpUrl
+};

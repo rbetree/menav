@@ -166,6 +166,21 @@ function keys(object) {
   return Object.keys(object);
 }
 
+/**
+ * 对字符串进行URL组件编码（encodeURIComponent）
+ * @param {string} text 输入文本
+ * @returns {string} 编码后的字符串
+ * @example {{encodeURIComponent url}}
+ */
+function encodeURIComponentHelper(text) {
+  if (text === undefined || text === null) return '';
+  try {
+    return encodeURIComponent(String(text));
+  } catch (e) {
+    return '';
+  }
+}
+
 // 导出所有工具类助手函数
 module.exports = {
   slice,
@@ -175,5 +190,6 @@ module.exports = {
   last,
   range,
   pick,
-  keys
-}; 
+  keys,
+  encodeURIComponent: encodeURIComponentHelper
+};

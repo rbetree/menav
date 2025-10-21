@@ -4,13 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="menav-version" content="{{_meta.version}}">
-    <title>{{site.title}}</title>
+    <title data-editable="site-title">{{site.title}}</title>
+    <meta name="description" content="{{site.description}}" data-editable="site-description">
+    <meta name="author" content="{{site.author}}" data-editable="site-author">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     {{{googleFontsLink}}}
     <style>
 {{{fontVariables}}}
     </style>
+    <!-- 字体配置数据,供扩展读取 -->
+    <meta name="font-title-family" content="{{fonts.title.family}}" data-editable="font-title-family">
+    <meta name="font-title-weight" content="{{fonts.title.weight}}" data-editable="font-title-weight">
+    <meta name="font-title-source" content="{{fonts.title.source}}" data-editable="font-title-source">
+    <meta name="font-subtitle-family" content="{{fonts.subtitle.family}}" data-editable="font-subtitle-family">
+    <meta name="font-subtitle-weight" content="{{fonts.subtitle.weight}}" data-editable="font-subtitle-weight">
+    <meta name="font-subtitle-source" content="{{fonts.subtitle.source}}" data-editable="font-subtitle-source">
+    <meta name="font-body-family" content="{{fonts.body.family}}" data-editable="font-body-family">
+    <meta name="font-body-weight" content="{{fonts.body.weight}}" data-editable="font-body-weight">
+    <meta name="font-body-source" content="{{fonts.body.source}}" data-editable="font-body-source">
     <!-- 预设主题和侧边栏状态，避免闪烁 -->
     <script>
         (function() {
@@ -92,8 +104,9 @@
             <!-- 搜索框容器 -->
             <div class="search-container">
                 <div class="search-box">
-                    <input type="text" id="search" placeholder="搜索... (点击右侧图标切换搜索引擎)">
+                    <input type="text" id="search" placeholder="搜索...">
                     <i class="fas fa-search search-icon" title="本地搜索"></i>
+                    <i class="fas fa-chevron-down search-engine-toggle" title="选择搜索引擎" role="button" aria-label="选择搜索引擎" aria-expanded="false" tabindex="0"></i>
                     <div class="search-engine-dropdown">
                         <div class="search-engine-option" data-engine="local" title="本地搜索">
                             <i class="fas fa-search"></i>
@@ -128,6 +141,7 @@
     <script id="menav-config-data" type="application/json" style="display: none;">
         {{{configJSON}}}
     </script>
+    <script src="pinyin-match.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
