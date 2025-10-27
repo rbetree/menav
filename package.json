@@ -5,8 +5,10 @@
   "main": "src/generator.js",
   "homepage": "https://rbetree.github.io/menav",
   "scripts": {
-    "generate": "node src/generator.js",
+    "generate": "node src/generator.js && npm run minify",
+    "minify": "node src/minify",
     "dev": "node src/generator.js && serve dist -l 5173",
+    "serve": "npm run build && serve dist -l 5173",
     "clean": "node ./scripts/clean.js",
     "build": "npm run clean && npm run generate",
     "import-bookmarks": "node src/bookmark-processor.js"
@@ -27,7 +29,11 @@
     "has-flag": "^5.0.1",
     "color-convert": "^2.0.1",
     "color-name": "^2.0.0",
-    "mime-db": "^1.52.0"
+    "mime-db": "^1.52.0",
+    "clean-css": "^5.3.3",
+    "fs-extra": "^11.3.2",
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.44.0"
   },
   "devDependencies": {
     "serve": "^14.2.1"
