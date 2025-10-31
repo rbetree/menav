@@ -8,17 +8,18 @@
    data-description="{{#if description}}{{description}}{{else}}{{url}}{{/if}}">
     {{#ifEquals @root.icons.mode "favicon"}}
       {{#ifHttpUrl url}}
-        <i class="fas fa-circle-notch fa-spin icon-placeholder" aria-hidden="true"></i>
-        <img
-          class="favicon-icon"
-          src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={{encodeURIComponent url}}&size=32"
-          alt="{{name}} favicon"
-          loading="lazy"
-          style="opacity:0;"
-          onload="this.style.opacity='1'; this.previousElementSibling.style.display='none';"
-          onerror="this.style.display='none'; this.previousElementSibling.style.display='none'; this.nextElementSibling.style.display='inline-block';"
-        />
-        <i class="fas fa-link icon-fallback" aria-hidden="true" style="display:none;"></i>
+        <div class="icon-container">
+          <i class="fas fa-circle-notch fa-spin icon-placeholder" aria-hidden="true"></i>
+          <img
+            class="favicon-icon"
+            src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={{encodeURIComponent url}}&size=32"
+            alt="{{name}} favicon"
+            loading="lazy"
+            onload="this.classList.add('loaded'); this.previousElementSibling.classList.add('hidden');"
+            onerror="this.classList.add('error'); this.previousElementSibling.classList.add('hidden'); this.nextElementSibling.classList.add('visible');"
+          />
+          <i class="fas fa-link icon-fallback" aria-hidden="true"></i>
+        </div>
       {{else}}
         <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
       {{/ifHttpUrl}}

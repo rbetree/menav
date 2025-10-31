@@ -181,6 +181,19 @@ function encodeURIComponentHelper(text) {
   }
 }
 
+/**
+ * 数学加法运算助手函数
+ * @param {number} a 第一个数
+ * @param {number} b 第二个数
+ * @returns {number} 两数之和
+ * @example {{add level 1}}
+ */
+function add(a, b) {
+  const numA = parseInt(a, 10) || 0;
+  const numB = parseInt(b, 10) || 0;
+  return numA + numB;
+}
+
 // 导出所有工具类助手函数
 module.exports = {
   slice,
@@ -191,5 +204,6 @@ module.exports = {
   range,
   pick,
   keys,
-  encodeURIComponent: encodeURIComponentHelper
+  encodeURIComponent: encodeURIComponentHelper,
+  add
 };

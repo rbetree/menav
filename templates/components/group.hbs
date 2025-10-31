@@ -1,0 +1,32 @@
+<div class="group {{#if level}}group-level-{{level}}{{else}}group-level-3{{/if}}" 
+     data-type="group" 
+     data-name="{{name}}" 
+     data-icon="{{icon}}"
+     data-level="{{#if level}}{{level}}{{else}}3{{/if}}">
+    
+    <div class="group-header" data-toggle="group">
+        <h{{#if level}}{{add level 1}}{{else}}3{{/if}} data-editable="group-name">
+            <i class="{{icon}}"></i> 
+            {{name}}
+            <span class="toggle-icon">
+                <i class="fas fa-chevron-down"></i>
+            </span>
+        </h{{#if level}}{{add level 1}}{{else}}3{{/if}}>
+    </div>
+    
+    <div class="group-content">
+        {{#if sites}}
+            <div class="sites-grid" data-container="sites">
+                {{#if sites.length}}
+                    {{#each sites}}
+                        {{> site-card}}
+                    {{/each}}
+                {{else}}
+                    <p class="empty-sites">暂无网站</p>
+                {{/if}}
+            </div>
+        {{else}}
+            <p class="empty-content">暂无网站</p>
+        {{/if}}
+    </div>
+</div>

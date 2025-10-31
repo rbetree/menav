@@ -8,6 +8,7 @@
   - [布局模板](#布局模板)
   - [页面模板](#页面模板)
   - [组件模板](#组件模板)
+  - [多层级嵌套模板组件](#多层级嵌套模板组件)
 - [模板数据流](#模板数据流)
 - [模板使用示例](#模板使用示例)
 - [最佳实践](#最佳实践)
@@ -113,7 +114,8 @@ templates/
 **主要组件**:
 - `navigation.hbs` - 导航菜单
 - `site-card.hbs` - 站点卡片
-- `category.hbs` - 分类容器
+- `category.hbs` - 分类容器（支持多层级嵌套）
+- `group.hbs` - 分组容器（支持多层级嵌套）
 - `social-links.hbs` - 社交链接
 - `search-results.hbs` - 搜索结果展示
 
@@ -127,6 +129,139 @@ templates/
 </a>
 {{/if}}
 ```
+
+### 多层级嵌套模板组件
+
+#### category.hbs - 分类容器组件
+
+`category.hbs` 是支持多层级嵌套的核心组件，可以递归渲染分类和子分类结构。
+
+**功能特性**:
+- 支持无限层级的分类嵌套
+- 自动计算标题层级（h2, h3, h4...）
+- 根据层级自动应用对应的CSS类
+- 支持三种内容类型：子分类、分组、站点
+
+**递归渲染原理**:
+通过在模板内部调用自身实现递归渲染：
+```handlebars
+{{#each subcategories}}
+    {{> category level=2}}
+{{/each}}
+```
+
+**level参数的作用**:
+- 用于跟踪当前嵌套层级
+- 控制标题标签的层级（h{{add level 1}}）
+- 应用对应的CSS类（category-level-{{level}}）
+- 传递给子组件以保持层级一致性
+
+**使用示例**:
+```handlebars
+<!-- 顶级分类 -->
+{{> category category}}
+
+<!-- 指定层级的分类 -->
+{{> category category level=2}}
+```
+
+#### group.hbs - 分组容器组件
+
+`group.hbs` 是用于在分类内组织站点的组件，同样支持层级参数。
+
+**功能特性**:
+- 支持在分类内创建站点分组
+- 自动应用层级样式
+- 支持展开/折叠功能
+- 与category.hbs保持一致的层级系统
+
+**使用示例**:
+```handlebars
+<!-- 在分类模板中使用 -->
+{{#each groups}}
+    {{> group}}
+{{/each}}
+
+<!-- 指定层级的分组 -->
+{{> group group level=3}}
+```
+
+#### 多层级嵌套结构示例
+
+典型的四层级结构：分类 → 子分类 → 分组 → 站点
+
+```yaml
+# 配置示例
+categories:
+  - name: "技术"
+    icon: "fas fa-code"
+    subcategories:
+      - name: "前端开发"
+        icon: "fas fa-laptop-code"
+        groups:
+          - name: "框架"
+            icon: "fas fa-cubes"
+            sites:
+              - name: "React"
+                url: "https://reactjs.org"
+                icon: "fab fa-react"
+              - name: "Vue"
+                url: "https://vuejs.org"
+                icon: "fab fa-vuejs"
+```
+
+对应的模板渲染：
+```handlebars
+<!-- category.hbs 会递归渲染 -->
+<section class="category category-level-1" data-level="1">
+  <div class="category-header">
+    <h2><i class="fas fa-code"></i> 技术</h2>
+  </div>
+  <div class="category-content">
+    <div class="subcategories-container">
+      <!-- 递归调用 category.hbs，level=2 -->
+      <section class="category category-level-2" data-level="2">
+        <div class="category-header">
+          <h3><i class="fas fa-laptop-code"></i> 前端开发</h3>
+        </div>
+        <div class="category-content">
+          <div class="groups-container">
+            <!-- 使用 group.hbs，默认 level=3 -->
+            <div class="group group-level-3" data-level="3">
+              <div class="group-header">
+                <h4><i class="fas fa-cubes"></i> 框架</h4>
+              </div>
+              <div class="group-content">
+                <div class="sites-grid">
+                  <!-- 渲染站点卡片 -->
+                  {{> site-card site}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+```
+
+#### 层级系统说明
+
+- **层级1 (level=1)**: 顶级分类，使用h2标题
+- **层级2 (level=2)**: 子分类，使用h3标题
+- **层级3 (level=3)**: 分组，使用h4标题
+- **层级4+**: 更深层级，继续递增标题层级
+
+每个层级都有对应的CSS类：
+- `category-level-1`, `category-level-2`, ...
+- `group-level-1`, `group-level-2`, ...
+
+这种设计确保了：
+1. 语义化的HTML结构
+2. 一致的视觉层级
+3. 可扩展的嵌套深度
+4. 灵活的样式定制
 
 ### 站点图标渲染（favicon/manual）
 

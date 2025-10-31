@@ -69,6 +69,7 @@
 - 👥 支持展示社交媒体链接
 - 📝 支持多个内容页面
 - 📌 支持从浏览器导入书签
+- 📚 支持2-4层级的多层级嵌套书签结构，更好地组织内容
 - 🔄 与 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展集成，支持自动推送书签
 - 🧩 模块化配置
 - 🔄 可部署到GitHub Pages或任何类似的CI/CD服务，及任何服务器
@@ -148,7 +149,6 @@ icons:
 **1. 移除双文件配置支持**
 - ✅ 完全移除了对双文件配置方法的支持
 - ✅ 简化了配置加载逻辑，现在仅支持模块化配置
-- ✅ 保留配置迁移工具
 
 ### 2025/05/03
 
@@ -212,7 +212,6 @@ menav/
 ├── src/              # 源代码
 │   ├── generator.js  # 静态网站生成器
 │   ├── bookmark-processor.js # 书签导入处理器
-│   ├── migrate-config.js # 配置迁移工具
 │   └── script.js     # 前端JavaScript脚本
 ├── templates/        # Handlebars模板目录
 │   ├── layouts/      # 布局模板
@@ -651,6 +650,92 @@ categories:                   # 该页面的分类和网站
         description: "Python编程技巧和案例"
       # 更多网站...
 ```
+#### 多层级嵌套配置
+
+MeNav 支持多层级嵌套配置，允许创建更复杂的内容组织结构。特别适用于书签页面，可以创建分类 -> 子分类 -> 分组 -> 网站的多层结构。
+
+##### 配置结构说明
+
+多层级嵌套配置支持以下层级结构：
+
+1. **二层级结构**（默认）：
+   ```
+   分类 (categories)
+   └── 网站 (sites)
+   ```
+
+2. **三层级结构**：
+   ```
+   分类 (categories)
+   └── 分组 (groups)
+       └── 网站 (sites)
+   ```
+
+3. **四层级结构**：
+   ```
+   分类 (categories)
+   └── 子分类 (subcategories)
+       └── 分组 (groups)
+           └── 网站 (sites)
+   ```
+
+##### 四层级结构示例
+
+```yaml
+categories:
+  - name: "技术资源"
+    icon: "fas fa-laptop-code"
+    subcategories:
+      - name: "前端开发"
+        icon: "fas fa-code"
+        groups:
+          - name: "框架库"
+            icon: "fas fa-cube"
+            sites:
+              - name: "React"
+                url: "https://reactjs.org/"
+                icon: "fab fa-react"
+                description: "React官方文档"
+              - name: "Vue.js"
+                url: "https://vuejs.org/"
+                icon: "fab fa-vuejs"
+                description: "Vue.js官方文档"
+          - name: "状态管理"
+            icon: "fas fa-database"
+            sites:
+              - name: "Redux"
+                url: "https://redux.js.org/"
+                icon: "fas fa-database"
+                description: "Redux状态管理"
+              - name: "Vuex"
+                url: "https://vuex.vuejs.org/"
+                icon: "fas fa-database"
+                description: "Vue状态管理"
+      - name: "后端开发"
+        icon: "fas fa-server"
+        groups:
+          - name: "Node.js生态"
+            icon: "fab fa-node-js"
+            sites:
+              - name: "Express"
+                url: "https://expressjs.com/"
+                icon: "fas fa-server"
+                description: "Node.js Web框架"
+              - name: "Koa"
+                url: "https://koajs.com/"
+                icon: "fas fa-leaf"
+                description: "下一代Node.js框架"
+```
+
+### 向后兼容性
+
+多层级嵌套配置完全向后兼容：
+
+- 现有的二层级结构（categories -> sites）配置无需修改即可继续使用
+- 系统会自动检测配置结构并应用相应的模板和样式
+- 可以在同一配置中混合使用不同层级结构（某些分类使用二级结构，某些使用三级或四级结构）
+- 模板系统会自动处理不同层级结构，无需手动指定模板类型
+
 
 > **📝提示**：
 > - 每个页面可以拥有不同的分类和网站
@@ -853,29 +938,6 @@ icons:
 提示：更改配置后重新构建即可生效。
 </details>
 
-<details>
-<summary>如何从旧式配置迁移到模块化配置？</summary>
-
-由于MeNav已经移除了对旧式配置文件的支持，如果您仍在使用旧式配置文件，必须使用迁移工具进行转换：
-
-1. 自动迁移方式：
-   ```bash
-   npm run migrate-config
-   ```
-   该命令会自动检测旧式配置文件，并将其全部转换为模块化配置格式。
-
-2. 迁移过程：
-   - 工具会识别`config.yml`、`config.user.yml`、`bookmarks.yml`和`bookmarks.user.yml`
-   - 将它们转换并拆分到`config/user/`目录的对应文件中
-   - 保留所有原始配置数据，不会丢失任何设置
-
-3. 迁移后：
-   - 所有配置将被放置在`config/user/`目录及其子目录
-   - 迁移工具会告诉您可以安全删除的旧式配置文件
-   - 新的模块化配置立即生效，无需额外设置
-
-**重要提示**：MeNav现在只支持模块化配置文件。如果您仍在使用旧式配置，必须使用迁移工具进行转换才能继续使用最新版本的MeNav。
-</details>
 
 <details>
 <summary>如何使用MarksVault扩展自动同步书签？</summary>

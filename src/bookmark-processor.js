@@ -103,11 +103,10 @@ function getLatestBookmarkFile() {
   }
 }
 
-// 解析书签HTML内容
+// 解析书签HTML内容，支持2-4层级嵌套结构
 function parseBookmarks(htmlContent) {
-  // 简单的正则表达式匹配方法解析书签文件
-  // 注意：这是一个简化实现，可能不适用于所有浏览器的书签格式
-  const folderRegex = /<DT><H3[^>]*>(.*?)<\/H3>/g;
+  // 正则表达式匹配文件夹和书签
+  const folderRegex = /<DT><H3([^>]*)>(.*?)<\/H3>/g;
   const bookmarkRegex = /<DT><A HREF="([^"]+)"[^>]*>(.*?)<\/A>/g;
   
   // 储存解析结果
@@ -115,31 +114,89 @@ function parseBookmarks(htmlContent) {
     categories: []
   };
   
-  // 提取文件夹
-  let match;
-  let folderMatches = [];
-  while ((match = folderRegex.exec(htmlContent)) !== null) {
-    folderMatches.push({
-      index: match.index,
-      name: match[1].trim(),
-      end: match.index + match[0].length
-    });
+  // 递归解析嵌套文件夹
+  function parseNestedFolder(htmlContent, parentPath = [], level = 1) {
+    const folders = [];
+    let match;
+    
+    // 使用正则表达式匹配文件夹
+    folderRegex.lastIndex = 0;
+    
+    while ((match = folderRegex.exec(htmlContent)) !== null) {
+      const folderName = match[2].trim();
+      const folderStart = match.index;
+      const folderEnd = match.index + match[0].length;
+      
+      // 查找文件夹的结束位置
+      let folderContentEnd = htmlContent.length;
+      let depth = 1;
+      let pos = folderEnd;
+      
+      while (pos < htmlContent.length && depth > 0) {
+        const dlStart = htmlContent.substring(pos).match(/<DL><p>/gi);
+        const dlEnd = htmlContent.substring(pos).match(/<\/DL><p>/gi);
+        
+        if (dlStart && dlStart.index < (dlEnd ? dlEnd.index : htmlContent.length)) {
+          depth++;
+          pos += dlStart.index + dlStart[0].length;
+        } else if (dlEnd) {
+          depth--;
+          pos += dlEnd.index + dlEnd[0].length;
+        } else {
+          break;
+        }
+      }
+      
+      folderContentEnd = pos;
+      const folderContent = htmlContent.substring(folderEnd, folderContentEnd);
+      
+      // 解析文件夹内容
+      const folder = {
+        name: folderName,
+        icon: 'fas fa-folder',
+        path: [...parentPath, folderName]
+      };
+      
+      // 检查是否包含子文件夹
+      const hasSubfolders = folderRegex.test(folderContent);
+      folderRegex.lastIndex = 0;
+      
+      if (hasSubfolders && level < 4) {
+        // 递归解析子文件夹
+        const subfolders = parseNestedFolder(folderContent, folder.path, level + 1);
+        
+        // 根据层级深度决定数据结构
+        if (level === 1) {
+          folder.subcategories = subfolders;
+        } else if (level === 2) {
+          folder.groups = subfolders;
+        } else if (level === 3) {
+          // 层级3直接解析书签
+          folder.sites = parseSitesInFolder(folderContent);
+        }
+      } else {
+        // 解析书签
+        folder.sites = parseSitesInFolder(folderContent);
+      }
+      
+      // 只添加包含内容的文件夹
+      const hasContent = folder.sites && folder.sites.length > 0 ||
+                        folder.subcategories && folder.subcategories.length > 0 ||
+                        folder.groups && folder.groups.length > 0;
+      
+      if (hasContent) {
+        folders.push(folder);
+      }
+    }
+    
+    return folders;
   }
   
-  // 对每个文件夹，提取其中的书签
-  for (let i = 0; i < folderMatches.length; i++) {
-    const folder = folderMatches[i];
-    const nextFolder = folderMatches[i + 1];
-    
-    // 确定当前文件夹的内容范围
-    const folderContent = nextFolder 
-      ? htmlContent.substring(folder.end, nextFolder.index)
-      : htmlContent.substring(folder.end);
-    
-    // 从文件夹内容中提取书签
+  // 解析文件夹中的书签
+  function parseSitesInFolder(folderContent) {
     const sites = [];
     let bookmarkMatch;
-    bookmarkRegex.lastIndex = 0; // 重置regex索引
+    bookmarkRegex.lastIndex = 0;
     
     while ((bookmarkMatch = bookmarkRegex.exec(folderContent)) !== null) {
       const url = bookmarkMatch[1];
@@ -162,15 +219,11 @@ function parseBookmarks(htmlContent) {
       });
     }
     
-    // 只添加包含书签的文件夹
-    if (sites.length > 0) {
-      bookmarks.categories.push({
-        name: folder.name,
-        icon: 'fas fa-folder', // 默认使用文件夹图标
-        sites: sites
-      });
-    }
+    return sites;
   }
+  
+  // 开始解析
+  bookmarks.categories = parseNestedFolder(htmlContent);
   
   return bookmarks;
 }

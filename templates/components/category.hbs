@@ -1,12 +1,46 @@
-<section class="category" id="{{name}}" data-type="category" data-name="{{name}}" data-icon="{{icon}}" data-container="categories">
-    <h2 data-editable="category-name"><i class="{{icon}}"></i> {{name}}</h2>
-    <div class="sites-grid" data-container="sites">
-        {{#if sites.length}}
-            {{#each sites}}
-                {{> site-card}}
-            {{/each}}
+<section class="category {{#if level}}category-level-{{level}}{{else}}category-level-1{{/if}}"
+         id="{{name}}"
+         data-type="category"
+         data-name="{{name}}"
+         data-icon="{{icon}}"
+         data-level="{{#if level}}{{level}}{{else}}1{{/if}}"
+         data-container="categories">
+    
+    <div class="category-header" data-toggle="category">
+        <h{{#if level}}{{add level 1}}{{else}}2{{/if}} data-editable="category-name">
+            <i class="{{icon}}"></i>
+            {{name}}
+            <span class="toggle-icon">
+                <i class="fas fa-chevron-down"></i>
+            </span>
+        </h{{#if level}}{{add level 1}}{{else}}2{{/if}}>
+    </div>
+    
+    <div class="category-content">
+        {{#if subcategories}}
+            <div class="subcategories-container" data-container="subcategories">
+                {{#each subcategories}}
+                    {{> category level=2}}
+                {{/each}}
+            </div>
+        {{else if groups}}
+            <div class="groups-container" data-container="groups">
+                {{#each groups}}
+                    {{> group}}
+                {{/each}}
+            </div>
+        {{else if sites}}
+            <div class="sites-grid" data-container="sites">
+                {{#if sites.length}}
+                    {{#each sites}}
+                        {{> site-card}}
+                    {{/each}}
+                {{else}}
+                    <p class="empty-sites">暂无网站</p>
+                {{/if}}
+            </div>
         {{else}}
-            <p class="empty-sites">暂无网站</p>
+            <p class="empty-content">暂无内容</p>
         {{/if}}
     </div>
 </section>

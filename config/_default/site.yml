@@ -50,3 +50,25 @@ social:
   - name: Steam
     url: https://steam.com
     icon: fab fa-steam
+
+# 导航配置
+navigation:
+  - name: 首页        # 菜单名称
+    icon: fas fa-home  # Font Awesome 图标类
+    id: home           # 页面标识符（唯一，需与 pages/home.yml 对应）
+    active: true       # 是否默认激活（全局仅一个 true）
+  - name: 项目
+    icon: fas fa-project-diagram
+    id: projects
+  - name: 文章
+    icon: fas fa-book
+    id: articles
+  - name: 朋友
+    icon: fas fa-users
+    id: friends
+  - name: 书签
+    icon: fas fa-bookmark
+    id: bookmarks
+  - name: 书签(多层级)
+    icon: fas fa-bookmark
+    id: bookmarks-four-level
