@@ -1,91 +1,164 @@
 # 自动生成的书签配置文件
-# 由bookmark-processor.js生成于 2025-10-21T15:18:08.291Z
+# 由bookmark-processor.js生成于 2025-10-31T16:54:45.738Z
 # 若要更新，请将新的书签HTML文件放入bookmarks/目录
 # 此文件使用模块化配置格式，位于config/user/pages/目录下
 
 title: 我的书签
 subtitle: 从浏览器导入的书签收藏
 categories:
-  - name: 资源检索
+  - name: ""
     icon: fas fa-folder
-    sites:
-      - name: 网盘小站-阿里云盘站-优质网盘资源分享平台
-        url: https://a.sousou.pro/
-        icon: fas fa-link
-        description: ""
-      - name: 无人问津小站
-        url: https://wrwj.top/
-        icon: fas fa-link
-        description: ""
-      - name: 磁力猫最新网址，收藏我回家不迷路！
-        url: https://xn--tfrs17es0d.xyz/
-        icon: fas fa-link
-        description: ""
-      - name: 一个好用的网盘搜索引擎 - 乌鸦搜
-        url: https://www.wuyasou.com/
-        icon: fas fa-link
-        description: ""
-      - name: 奈斯搜索 - 资源超丰富的阿里云盘资源搜索网站！
-        url: https://www.niceso.net/
-        icon: fas fa-link
-        description: ""
-      - name: 茶杯狐 Cupfox - 努力让找电影变得简单
-        url: https://cupfox.app/
-        icon: fas fa-link
-        description: ""
-      - name: 大盘搜，网盘资源搜索
-        url: https://dapanso.com/search?keyword=&amp;page=1&amp;type=
-        icon: fas fa-link
-        description: ""
-      - name: 我的小站-阿里云盘资源共享站
-        url: https://pan666.net/
-        icon: fas fa-link
-        description: ""
-      - name: YiOVE - 1OVE CLUB - 一个充满无限可能的地方
-        url: https://www.yiove.com/?from=coolapk.com#introduce
-        icon: fas fa-link
-        description: ""
-      - name: Srenix动漫社
-        url: https://www.srenix.com/
-        icon: fas fa-link
-        description: ""
-      - name: yoomob-nav
-        url: https://yoomob.github.io/menav/
-        icon: fab fa-github
-        description: ""
-      - name: 阿里云盘
-        url: https://www.aliyundrive.com/drive?adtag=share
-        icon: fas fa-link
-        description: ""
-      - name: 百度网盘
-        url: https://pan.baidu.com/disk/main?redirecturl=https%3A%2F%2Fpan.baidu.com%2Fdisk%2Fhome%3Ffrom%3Dnewversion%26stayAtHome%3Dtrue&amp;_at_=1689056527389#/index?category=all
-        icon: fas fa-link
-        description: ""
-      - name: 夸克网盘
-        url: https://pan.quark.cn/list#/list/all
-        icon: fas fa-link
-        description: ""
-      - name: 迅雷云盘
-        url: https://pan.xunlei.com/?path=%2F
-        icon: fas fa-link
-        description: ""
-      - name: 七嗖雲盤
-        url: https://pan.7so.top/home?path=%2F
-        icon: fas fa-link
-        description: ""
-      - name: 就是加速 用户操作演示面板
-        url: https://58.87.88.194/
-        icon: fas fa-link
-        description: ""
-      - name: linuxdo-scripts-backup - 坚果云
-        url: https://www.jianguoyun.com/d/home
-        icon: fas fa-link
-        description: ""
-      - name: GitHub公益项目
-        url: https://github.site/
-        icon: fas fa-link
-        description: ""
-      - name: InfiniCLOUD File
-        url: https://bora.teracloud.jp/
-        icon: fas fa-link
-        description: ""
+    path:
+      - ""
+    subcategories:
+      - name: 書籤列
+        icon: fas fa-folder
+        path:
+          - ""
+          - 書籤列
+        groups:
+          - name: 论坛
+            icon: fas fa-folder
+            path:
+              - ""
+              - 書籤列
+              - 论坛
+            subgroups:
+              - name: 新增資料夾
+                icon: fas fa-folder
+                path:
+                  - ""
+                  - 書籤列
+                  - 论坛
+                  - 新增資料夾
+                sites:
+                  - name: INUX DO CDK
+                    url: https://cdk.linux.do/
+                    icon: fas fa-link
+                    description: ""
+                  - name: 飞牛
+                    url: https://club.fnnas.com/
+                    icon: fas fa-link
+                    description: ""
+                  - name: 卡饭网_计算机安全_杀毒软件交流中心 - 互助分享 - 大气谦和!
+                    url: https://bbs.kafan.cn/portal.php
+                    icon: fas fa-link
+                    description: ""
+                  - name: 小众软件官方论坛 - 小众软件
+                    url: https://meta.appinn.net/
+                    icon: fas fa-link
+                    description: ""
+            sites:
+              - name: LINUX DO
+                url: https://linux.do/
+                icon: fas fa-link
+                description: ""
+              - name: IDC Flare - 域名、主机等信息集散地
+                url: https://idcflare.com/
+                icon: fas fa-link
+                description: ""
+              - name: CSDN - 专业开发者社区
+                url: https://www.csdn.net/
+                icon: fas fa-link
+                description: ""
+              - name: 克隆窝 | 助互联网玩家寻找每一条道路
+                url: https://www.uy5.net/
+                icon: fas fa-link
+                description: ""
+              - name: 黑客说 - 技术驱动优质交流
+                url: https://hackertalk.net/
+                icon: fas fa-link
+                description: ""
+              - name: 恩山无线论坛
+                url: https://www.right.com.cn/FORUM/forum.php
+                icon: fas fa-link
+                description: ""
+              - name: 百度贴吧——全球领先的中文社区
+                url: https://tieba.baidu.com/
+                icon: fas fa-link
+                description: ""
+              - name: NodeSeek
+                url: https://www.nodeseek.com/
+                icon: fas fa-link
+                description: ""
+              - name: 全球主机交流论坛 - Powered by Discuz!
+                url: https://hostloc.com/
+                icon: fas fa-link
+                description: ""
+              - name: 超理论坛
+                url: https://chaoli.club/
+                icon: fas fa-link
+                description: ""
+              - name: 油猴中文网 - 油猴脚本分享交流
+                url: https://bbs.tampermonkey.net.cn/forum.php
+                icon: fas fa-link
+                description: ""
+              - name: LowEndTalk
+                url: https://lowendtalk.com/
+                icon: fas fa-link
+                description: ""
+              - name: "[~]#棱角 ::Edge.Forum*"
+                url: https://forum.ywhack.com/index.php
+                icon: fas fa-link
+                description: ""
+              - name: V2EX
+                url: https://www.v2ex.com/
+                icon: fas fa-link
+                description: ""
+              - name: Hot Questions - Stack Exchange
+                url: https://stackexchange.com/
+                icon: fas fa-link
+                description: ""
+              - name: LetITFly BBS
+                url: https://bbs.letitfly.me/
+                icon: fas fa-link
+                description: ""
+              - name: 美卡论坛 - 在美漂泊的中国人的家园
+                url: https://www.uscardforum.com/
+                icon: fas fa-link
+                description: ""
+              - name: 電腦領域 HKEPC Hardware - 全港 No.1 PC網站
+                url: https://www.hkepc.com/
+                icon: fas fa-link
+                description: ""
+        sites:
+          - name: Google
+            url: https://www.google.com/
+            icon: fab fa-google
+            description: ""
+          - name: GitHub
+            url: https://github.com/
+            icon: fab fa-github
+            description: ""
+          - name: Follow
+            url: https://app.follow.is/
+            icon: fas fa-link
+            description: ""
+          - name: Chat | Google AI Studio
+            url: https://aistudio.google.com/prompts/new_chat
+            icon: fab fa-google
+            description: ""
+          - name: ChatGPT
+            url: https://chatgpt.com/
+            icon: fas fa-link
+            description: ""
+          - name: Claude
+            url: https://zhucn.org/user-new/#/claude-carlist
+            icon: fas fa-link
+            description: ""
+          - name: Claude
+            url: https://demo.fuclaude.com/chat/
+            icon: fas fa-link
+            description: ""
+          - name: DeepSeek
+            url: https://chat.deepseek.com/
+            icon: fas fa-link
+            description: ""
+          - name: Grok
+            url: https://grok.com/
+            icon: fas fa-link
+            description: ""
+          - name: cto.new
+            url: https://cto.new/
+            icon: fas fa-link
+            description: ""
