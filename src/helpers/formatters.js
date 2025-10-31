@@ -91,11 +91,37 @@ function json(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
+/**
+ * 从URL中提取干净的域名
+ * @param {string} url 完整URL
+ * @returns {string} 提取的域名（不包含协议和尾部斜杠）
+ * @example {{extractDomain "https://app.follow.is/"}} => "app.follow.is"
+ */
+function extractDomain(url) {
+  if (!url) return '';
+  
+  try {
+    // 移除协议部分 (http://, https://, etc.)
+    let domain = String(url).replace(/^[a-zA-Z]+:\/\//, '');
+    
+    // 移除路径、查询参数和锚点
+    domain = domain.split('/')[0].split('?')[0].split('#')[0];
+    
+    // 移除端口号（如果有）
+    domain = domain.split(':')[0];
+    
+    return domain;
+  } catch (e) {
+    return String(url);
+  }
+}
+
 // 导出所有格式化助手函数
 module.exports = {
   formatDate,
   limit,
   toLowerCase,
   toUpperCase,
-  json
-}; 
+  json,
+  extractDomain
+};

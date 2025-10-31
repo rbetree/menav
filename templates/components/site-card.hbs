@@ -5,7 +5,7 @@
    data-name="{{name}}"
    data-url="{{url}}"
    data-icon="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"
-   data-description="{{#if description}}{{description}}{{else}}{{url}}{{/if}}">
+   data-description="{{#if description}}{{description}}{{else}}{{extractDomain url}}{{/if}}">
     {{#ifEquals @root.icons.mode "favicon"}}
       {{#ifHttpUrl url}}
         <div class="icon-container">
@@ -27,6 +27,6 @@
       <i class="{{#if icon}}{{icon}}{{else}}fas fa-link{{/if}}"></i>
     {{/ifEquals}}
     <h3>{{#if name}}{{name}}{{else}}未命名站点{{/if}}</h3>
-    <p>{{#if description}}{{description}}{{else}}{{url}}{{/if}}</p>
+    <p>{{#if description}}{{description}}{{else}}{{extractDomain url}}{{/if}}</p>
 </a>
 {{/if}}

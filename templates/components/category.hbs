@@ -23,13 +23,17 @@
                     {{> category level=2}}
                 {{/each}}
             </div>
-        {{else if groups}}
+        {{/if}}
+        
+        {{#if groups}}
             <div class="groups-container" data-container="groups">
                 {{#each groups}}
                     {{> group}}
                 {{/each}}
             </div>
-        {{else if sites}}
+        {{/if}}
+        
+        {{#if sites}}
             <div class="sites-grid" data-container="sites">
                 {{#if sites.length}}
                     {{#each sites}}
@@ -39,8 +43,14 @@
                     <p class="empty-sites">暂无网站</p>
                 {{/if}}
             </div>
-        {{else}}
-            <p class="empty-content">暂无内容</p>
         {{/if}}
+        
+        {{#unless subcategories}}
+        {{#unless groups}}
+        {{#unless sites}}
+            <p class="empty-content">暂无内容</p>
+        {{/unless}}
+        {{/unless}}
+        {{/unless}}
     </div>
 </section>
