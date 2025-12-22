@@ -44,7 +44,7 @@
         })();
     </script>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@6/css/all.min.css">
 </head>
 <body class="loading">
     <!-- 滚动进度指示条 -->
@@ -87,21 +87,21 @@
                 </div>
             </div>
 
-	            <div class="sidebar-social" data-container="social-links">
-	                {{#if social}}
-	                {{> social-links social}}
-	                {{else}}
-	                {{{socialLinks}}}
-	                {{/if}}
-	            </div>
+                <div class="sidebar-social" data-container="social-links">
+                    {{#if social}}
+                    {{> social-links social}}
+                    {{else}}
+                    {{{socialLinks}}}
+                    {{/if}}
+                </div>
 
-	            <div class="sidebar-footer">
-	                <div class="copyright">
-	                    <p>© {{currentYear}} <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a></p>
-	                    <p>by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a></p>
-	                </div>
-	            </div>
-	        </nav>
+                <div class="sidebar-footer">
+                    <div class="copyright">
+                        <p>© {{currentYear}} <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a></p>
+                        <p>by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a></p>
+                    </div>
+                </div>
+            </nav>
 
         <!-- 右侧内容区 -->
         <main class="content">
