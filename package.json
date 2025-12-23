@@ -36,6 +36,6 @@
   },
   "devDependencies": {
     "prettier": "^3.4.2",
-    "serve": "^14.2.1"
+    "serve": "^14.2.5"
   }
 }
