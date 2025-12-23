@@ -1,0 +1,2193 @@
+# 自动生成的书签配置文件
+# 若要更新，请将新的书签HTML文件放入bookmarks/目录
+# 此文件使用模块化配置格式，位于config/user/pages/目录下
+
+title: 我的书签
+subtitle: 从浏览器导入的书签收藏
+categories:
+  - name: 根目录书签
+    icon: fas fa-star
+    path:
+      - 根目录书签
+    sites:
+      - name: 书签集
+        url: chrome://bookmarks/
+        icon: fas fa-link
+        description: ""
+  - name: 个人
+    icon: fas fa-folder
+    path:
+      - 个人
+    sites:
+      - name: 一线运维各场景监控详解（2022最新汇总）
+        url: https://mp.weixin.qq.com/s/YcfU_RTXtQQx_3JQ8puc7A
+        icon: fas fa-link
+        description: ""
+      - name: 1.2 数据库工作总结 · 运维工作笔记 · 看云
+        url: https://www.kancloud.cn/devops-centos/centos-linux-devops/1558860
+        icon: fas fa-link
+        description: ""
+      - name: DevOps 工具元素周期表 - Ledge DevOps 知识平台
+        url: https://devops.phodal.com/home
+        icon: fas fa-link
+        description: ""
+      - name: linux安全策略加固_ITPUB博客
+        url: http://blog.itpub.net/30592920/viewspace-2143893/
+        icon: fas fa-link
+        description: ""
+      - name: MiaoSS
+        url: https://www.miaosscib.com/my/panel.php?page=1
+        icon: fas fa-link
+        description: ""
+      - name: 全国计算机技术与软件专业技术资格（水平）考试
+        url: http://bm.ruankao.org.cn/sign/in
+        icon: fas fa-link
+        description: ""
+      - name: 运维咖啡吧
+        url: https://blog.ops-coffee.cn/
+        icon: fas fa-link
+        description: ""
+      - name: Not Diamond | The last chatbot you’ll ever need
+        url: https://chat.notdiamond.ai/2d6fadf8-b93e-4c53-b7ce-8326bb87fdd1
+        icon: fas fa-link
+        description: ""
+      - name: 在线传文件
+        url: https://www.filemail.com/
+        icon: fas fa-link
+        description: ""
+      - name: onehub仪表盘
+        url: https://bbbb.grafana.net/goto/WJ6w7UNHg?orgId=1
+        icon: fas fa-link
+        description: ""
+  - name: 工具类
+    icon: fas fa-folder
+    path:
+      - 工具类
+    subcategories:
+      - name: PDF相关
+        icon: fas fa-folder
+        path:
+          - 工具类
+          - PDF相关
+        sites:
+          - name: PDF转Word转换器 - 免费、快速且准确
+            url: https://pdf2docx.cn/
+            icon: fas fa-link
+            description: ""
+          - name: iLovePDF | Online PDF tools for PDF lovers
+            url: https://www.ilovepdf.com/
+            icon: fas fa-link
+            description: ""
+    sites:
+      - name: ECharts 数据可视化实验室
+        url: https://vis.baidu.com/
+        icon: fas fa-link
+        description: ""
+      - name: 简介 | Markdown
+        url: https://ouweiya.gitbooks.io/markdown/index.html
+        icon: fas fa-link
+        description: ""
+      - name: nginxconfig.io
+        url: https://nginxconfig.io/
+        icon: fas fa-link
+        description: ""
+      - name: 在线PDF抓换
+        url: https://smallpdf.com/
+        icon: fas fa-link
+        description: ""
+      - name: iLovePDF | 为PDF爱好者提供的PDF文件在线处理工具
+        url: https://www.ilovepdf.com/zh-cn
+        icon: fas fa-link
+        description: ""
+      - name: ProcessOn - 免费在线作图，思维导图，流程图，实时协作
+        url: https://www.processon.com/
+        icon: fas fa-link
+        description: ""
+      - name: 万能命令-快捷寻找和直达你想要的各类工具
+        url: https://wn.run/cn/#seeSome
+        icon: fas fa-link
+        description: ""
+      - name: 代码片段分享 - 在线工具
+        url: https://tool.lu/tip/?lang=shell
+        icon: fas fa-link
+        description: ""
+      - name: 图片模板_综合排序图片在线处理-图怪兽在线PS
+        url: https://818ps.com/search/0-0-47-0-0-null-0_0_0_0-0-0-0.html?route_id=15822600859485&amp;route=1,187_3,&amp;after_route=1_187,3
+        icon: fas fa-link
+        description: ""
+      - name: Python教程 - 廖雪峰的官方网站
+        url: https://www.liaoxuefeng.com/wiki/1016959663602400
+        icon: fas fa-link
+        description: ""
+      - name: CMS漏洞检测工具 – CMSmap - FreeBuf.COM | 关注黑客与极客
+        url: http://www.freebuf.com/sectool/58022.html
+        icon: fas fa-link
+        description: ""
+      - name: bugclose | 简单，免费，够用的BUG管理工具
+        url: https://www.bugclose.com/index.html
+        icon: fas fa-link
+        description: ""
+      - name: 监控宝-中国最好的服务监控神器 云智慧旗下网站
+        url: http://www.jiankongbao.com/new_signup
+        icon: fas fa-link
+        description: ""
+      - name: mysql管理性能状态优化
+        url: https://blog.csdn.net/yangxuepeng89/article/details/77855818
+        icon: fas fa-link
+        description: ""
+      - name: 阿里源
+        url: https://developer.aliyun.com/mirror/centos?spm=a2c6h.13651102.0.0.3e221b11AQkA7u
+        icon: fas fa-link
+        description: ""
+      - name: 搜索 命令，Linux 搜索 命令详解：最专业的Linux命令大全，命令搜索引擎，内容包含Linux命令手册、详解、学习，值得收藏的Linux命令速查手册。 - Linux 命令搜索引擎
+        url: https://wangchujiang.com/linux-command/list.html#!kw=
+        icon: fas fa-link
+        description: ""
+      - name: SQLmap使用方法
+        url: https://www.freebuf.com/sectool/164608.html
+        icon: fas fa-link
+        description: ""
+      - name: JSON 数组 编辑和生成器 - 在线表格转换工具
+        url: https://tableconvert.com/zh-cn/json-generator
+        icon: fas fa-link
+        description: ""
+      - name: AI生成PPT
+        url: https://www.beautiful.ai/
+        icon: fas fa-link
+        description: ""
+  - name: 有意思的
+    icon: fas fa-folder
+    path:
+      - 有意思的
+    sites:
+      - name: 紫菱917. - 秀场
+        url: http://x.kuwo.cn/54917
+        icon: fas fa-link
+        description: ""
+      - name: 小众软件
+        url: http://www.appinn.com/
+        icon: fas fa-link
+        description: ""
+      - name: 面试经历-two - 日行一善的博客
+        url: https://www.52wiki.cn/Doc/Read/id/58.html
+        icon: fas fa-link
+        description: ""
+      - name: xyplorer的‘完美’设置 - 简书
+        url: https://www.jianshu.com/p/c0249f8d7593
+        icon: fas fa-link
+        description: ""
+      - name: 公章专家_公司电子印章图片生成器_印章在线制作大师
+        url: http://seal.ssjjss.com/?chara=%E5%AE%81%E6%B3%A2%E8%81%9A%E5%85%83%E8%B4%A2%E5%AF%8C%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8&amp;fonta=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizea=24&amp;fontheighta=155&amp;charspacinga=8&amp;paddinga=3&amp;charb=&amp;number=0&amp;fontb=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizeb=20&amp;fontheightb=155&amp;charspacingb=1&amp;paddingb=113&amp;charc=3302120236750&amp;fontc=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizec=14&amp;fontheightc=100&amp;charspacingc=10&amp;paddingc=3&amp;borderwidth=8&amp;size=160&amp;rotation=0&amp;forecolor=%23E62828&amp;sign=star&amp;signscale=100&amp;forealpha=100&amp;effect=0
+        icon: fas fa-link
+        description: ""
+      - name: 绿盟章
+        url: http://seal.ssjjss.com/?chara=%E5%8C%97%E4%BA%AC%E7%A5%9E%E5%B7%9E%E7%BB%BF%E7%9B%9F%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8&amp;fonta=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizea=24&amp;fontheighta=155&amp;charspacinga=8&amp;paddinga=3&amp;charb=&amp;number=0&amp;fontb=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizeb=20&amp;fontheightb=155&amp;charspacingb=1&amp;paddingb=113&amp;charc=1101080110381&amp;fontc=%E9%95%BF%E5%9F%8E%E5%A4%A7%E6%A0%87%E5%AE%8B%E4%BD%93&amp;fontsizec=14&amp;fontheightc=100&amp;charspacingc=10&amp;paddingc=3&amp;borderwidth=8&amp;size=160&amp;rotation=0&amp;forecolor=%23E62828&amp;sign=star&amp;signscale=100&amp;forealpha=100&amp;effect=0
+        icon: fas fa-link
+        description: ""
+      - name: Powerful Workflow Automation Software &amp; Tools - n…
+        url: https://n8n.io/
+        icon: fas fa-link
+        description: ""
+      - name: 在线环境学习
+        url: https://killercoda.com/
+        icon: fas fa-link
+        description: ""
+      - name: 最佳 BrowserScan 指纹检测工具 - 提高您的在线隐私安全 | BrowserScan
+        url: https://www.browserscan.net/zh
+        icon: fas fa-link
+        description: ""
+      - name: Tcoo.cc -自托管推荐
+        url: https://tcoo.cc/en
+        icon: fas fa-link
+        description: ""
+  - name: 资源类
+    icon: fas fa-folder
+    path:
+      - 资源类
+    subcategories:
+      - name: 工具类资源
+        icon: fas fa-folder
+        path:
+          - 资源类
+          - 工具类资源
+        sites:
+          - name: Poe - ChatGPT
+            url: https://poe.com/chatgpt
+            icon: fas fa-link
+            description: ""
+          - name: PPT超级市场官网
+            url: http://pptsupermarket.com/
+            icon: fas fa-link
+            description: ""
+          - name: GitMind
+            url: https://gitmind.cn/app/template
+            icon: fas fa-link
+            description: ""
+          - name: 优秀个人简历模板列表
+            url: https://www.job592.com/doc/
+            icon: fas fa-link
+            description: ""
+          - name: 风鸟-免费企业查询平台
+            url: https://riskbird.com/center/account
+            icon: fas fa-link
+            description: ""
+          - name: md转PDF word
+            url: https://doc2x.noedgeai.com/markdownEdit
+            icon: fas fa-link
+            description: ""
+          - name: 在线简历生成工具
+            url: https://dnd-resume.com/
+            icon: fas fa-link
+            description: ""
+          - name: Reddit - 互联网之心 --- Reddit - Heart of the internet
+            url: https://www.reddit.com/
+            icon: fab fa-reddit
+            description: ""
+          - name: 全国企业查询系统
+            url: https://javaw.icu/
+            icon: fab fa-java
+            description: ""
+          - name: 172号卡订单管理系统
+            url: https://haoka.lot-ml.com/view/iframe.html
+            icon: fas fa-link
+            description: ""
+          - name: 2API-文档站 | 2API文档站
+            url: https://2api-docs.pages.dev/
+            icon: fas fa-link
+            description: ""
+          - name: 有趣的开源社区 - HelloGitHub
+            url: https://hellogithub.com/
+            icon: fab fa-github
+            description: ""
+          - name: FRP教程
+            url: https://jwinks.com/p/frp/#frp%E6%98%AF%E4%BB%80%E4%B9%88
+            icon: fas fa-link
+            description: ""
+          - name: PDFword转markdown
+            url: https://doctomd.com/
+            icon: fas fa-link
+            description: ""
+          - name: docker镜像资源站
+            url: https://mirror.kentxxq.com/image
+            icon: fas fa-link
+            description: ""
+      - name: 视频资源
+        icon: fas fa-folder
+        path:
+          - 资源类
+          - 视频资源
+        sites:
+          - name: Watch 中國AV-兄妹蕉谈 - 中國人, 青少年, Asian Porn - SpankBang
+            url: https://spankbang.com/58n1q/video/av
+            icon: fas fa-link
+            description: ""
+          - name: 宁洋子-麻豆社
+            url: https://madou.club/tag/%E5%AE%81%E6%B4%8B%E5%AD%90
+            icon: fas fa-link
+            description: ""
+          - name: 工具达人 | 实用工具分享达人
+            url: https://dartools.com/#term-12
+            icon: fas fa-link
+            description: ""
+          - name: 强上妹妹 直捣黄龙 勇拿一血-麻豆社
+            url: https://madou.club/%e5%bc%ba%e4%b8%8a%e5%a6%b9%e5%a6%b9-%e7%9b%b4%e6%8d%a3%e9%bb%84%e9%be%99-%e5%8b%87%e6%8b%bf%e4%b8%80%e8%a1%80.html
+            icon: fas fa-link
+            description: ""
+          - name: VIDEOS - Search Results For &#039;鹿少女&#039; - Avgle
+            url: https://avgle.com/search/videos/%E9%B9%BF%E5%B0%91%E5%A5%B3
+            icon: fas fa-link
+            description: ""
+          - name: 清纯学妹借口补习表白即将毕业学长 献出自己的第一次-麻豆社
+            url: https://madou.club/%e6%b8%85%e7%ba%af%e5%ad%a6%e5%a6%b9%e5%80%9f%e5%8f%a3%e8%a1%a5%e4%b9%a0%e8%a1%a8%e7%99%bd%e5%8d%b3%e5%b0%86%e6%af%95%e4%b8%9a%e5%ad%a6%e9%95%bf.html
+            icon: fas fa-link
+            description: ""
+          - name: Watch Cam_15948477024 - Can, Solo Porn - SpankBang
+            url: https://tr.spankbang.com/rik4/video/cam+15948477024
+            icon: fas fa-link
+            description: ""
+          - name: Chinese couple part asiafr3ak | xHamster
+            url: https://xhamster.com/search/chinese+couple+part+asiafr3ak
+            icon: fas fa-link
+            description: ""
+          - name: 91混血哥最新系列之183cm纯情长腿大眼妹720P高清完整版
+            url: https://fcw.xxx/videos/3064/91-183cm-720p/
+            icon: fas fa-link
+            description: ""
+          - name: 寂寞少妇约一名帅哥过春节 - Pornhub.com
+            url: https://cn.pornhub.com/view_video.php?viewkey=ph61fc8dea7b292
+            icon: fas fa-link
+            description: ""
+          - name: 国产情色 - XSZ-AV.COM
+            url: https://cn.xsz-av.com/search/videos/%E5%9B%BD%E4%BA%A7%E6%83%85%E8%89%B2
+            icon: fas fa-link
+            description: ""
+          - name: 國產專區-CAOAV-成人BT聚合,操AV社区,大色妹,操AV社区欢迎生活苦闷的狼友来一起操AV吧　▓▓ｃａｏａｖ．ｎｅｔ▓▓
+            url: https://caoav.net/forum-8.htm
+            icon: fas fa-link
+            description: ""
+          - name: 第2页-色聚–老司机福利资源站-色聚--老司机福利资源站
+            url: https://seju.life/page/2/
+            icon: fas fa-link
+            description: ""
+          - name: 這麽純的大學生女神 柔柔校園風情立馬讓人情欲沸騰 好甜啊，苗條精致舔吸雞巴很用力 配合默契啪啪猛操 - 肉視頻,您的私人AV影院
+            url: https://rou.video/v/clmv8mefm00001gyhwddzayyj
+            icon: fas fa-link
+            description: ""
+          - name: 电影-网盘小站
+            url: https://a.sousou.pro/forum-1.htm
+            icon: fas fa-link
+            description: ""
+          - name: 电影更新
+            url: https://docs.qq.com/doc/DRlZ5enJ0Q2dkY0NW
+            icon: fas fa-link
+            description: ""
+          - name: 老司機論壇
+            url: https://www.seejav.work/forum/
+            icon: fas fa-link
+            description: ""
+          - name: 国产原创 - 98堂[原色花堂] - Powered by Discuz!
+            url: https://sehuatang.net/forum-2-1.html
+            icon: fas fa-link
+            description: ""
+          - name: 【新提醒】4K世界 - 4K电影_4K视频 | 8K资源_分享全球4K蓝光原盘
+            url: https://www.4ksj.com/
+            icon: fas fa-link
+            description: ""
+          - name: 门户 - 手机版 - Powered by Discuz!
+            url: https://sehuatang.net/portal.php?mod=index&amp;mobile=2
+            icon: fas fa-link
+            description: ""
+          - name: 小雅使用说明
+            url: https://www.kdocs.cn/l/cvEe3cv6dGkH
+            icon: fas fa-link
+            description: ""
+          - name: 115在线看片字眼
+            url: https://nullbr.eu.org/nullbr_nsfw
+            icon: fas fa-link
+            description: ""
+          - name: 【asdasdxerxes】个人资源导航 - 个人导航 - 98堂[原色花堂] - Powered by Discuz!
+            url: https://sehuatang.net/thread-1510358-1-1.html
+            icon: fas fa-link
+            description: ""
+          - name: 【整理】【ed2k】国产直播探花合集（源码录制无任何水印，带关键词+准确日期，酌情检索下载）【3.7T/4467v/4467配额】 - 综合讨论区 - 98堂[原色花堂] - Powered by Discuz!
+            url: https://sehuatang.net/forum.php?mod=viewthread&amp;tid=2651013&amp;extra=page%3D1%26filter%3Ddigest%26digest%3D1
+            icon: fas fa-link
+            description: ""
+          - name: 观影 GYING
+            url: https://www.gying.in/
+            icon: fas fa-link
+            description: ""
+      - name: 源码类
+        icon: fas fa-folder
+        path:
+          - 资源类
+          - 源码类
+        sites:
+          - name: "datagear: 数据可视化分析平台，使用Java语言开发，采用浏览器/服务器架构，支持多种数据库"
+            url: https://gitee.com/datagear/datagear
+            icon: fas fa-link
+            description: ""
+          - name: Lang/大屏数据展示模板 - 码云 - 开源中国
+            url: https://gitee.com/lvyeyou/DaShuJuZhiDaPingZhanShi/tree/master
+            icon: fas fa-link
+            description: ""
+          - name: "GitHub - Neeky/mysqltools: 一个用于快速构建大规模，高质量，全自动化的 mysql分布式集群环境的工具；包含mysql 安装、备份、监控、高可用、读写分离、优化、巡检、自行化运维"
+            url: https://github.com/Neeky/mysqltools#%E7%8E%AF%E5%A2%83%E8%A7%84%E5%88%92
+            icon: fab fa-github
+            description: ""
+          - name: 简介 · GitBook
+            url: https://guide.yearning.io/
+            icon: fas fa-link
+            description: ""
+          - name: 你好网络 - 非著名不专业的资源站 - NiHaowl.com
+            url: https://www.nihaowl.com/
+            icon: fas fa-link
+            description: ""
+      - name: 开发资源
+        icon: fas fa-folder
+        path:
+          - 资源类
+          - 开发资源
+        sites:
+          - name: BUI框架
+            url: http://www.builive.com/scaffolding/index.php
+            icon: fas fa-link
+            description: ""
+          - name: ThinkPHP单字母函数详解
+            url: http://www.thinkphp.cn/document/309.html
+            icon: fas fa-link
+            description: ""
+          - name: C#操作INI文件 - 那叫啥啥啥的，你过来...... - 博客频道 - CSDN.NET
+            url: http://blog.csdn.net/sdfkfkd/article/details/7050733
+            icon: fas fa-link
+            description: ""
+          - name: niechao - Cloud9
+            url: https://ide.c9.io/ttainidx/niechao
+            icon: fas fa-link
+            description: ""
+          - name: 百度API集市
+            url: http://apistore.baidu.com/astore/classificationservicelist.html
+            icon: fas fa-link
+            description: ""
+          - name: SWAP云中心 - 控制面板
+            url: http://www.idcswap.com/index.php/swapidc/index/#%E4%BD%A0%E8%BF%98%E6%B2%A1%E8%AE%BE%E7%BD%AE%E9%BB%98%E8%AE%A4%E7%BD%91%E7%AB%99%2C%E6%97%A0%E6%B3%95%E8%BF%9B%E5%85%A5%E7%AE%A1%E7%90%86%E6%A8%A1%E5%BC%8F
+            icon: fas fa-link
+            description: ""
+          - name: 💻 编程 | RSSHub-RSS聚合
+            url: https://docs.rsshub.app/routes/programming
+            icon: fas fa-link
+            description: ""
+    sites:
+      - name: 苏水目收藏的网站（公众号：水母说）
+        url: https://mubu.com/doc/7ve0wUstwhl
+        icon: fas fa-link
+        description: ""
+      - name: 看云文档
+        url: http://www.kancloud.cn/user/projects/create
+        icon: fas fa-link
+        description: ""
+      - name: CentOS 6.3中安装与配置SVN的方法
+        url: http://www.jb51.net/os/RedHat/73031.html
+        icon: fas fa-link
+        description: ""
+      - name: Thinkphp Sublime插件 显示优化，兼容St3版本) - ThinkPHP框架
+        url: http://www.thinkphp.cn/extend/257.html
+        icon: fas fa-link
+        description: ""
+      - name: VPN server
+        url: http://www.vpngate.net/cn/download.aspx
+        icon: fas fa-link
+        description: ""
+      - name: Win7美化攻略：替换imageres.dll，图标全变样 - Windows7之家，Win7之家
+        url: http://www.win7china.com/html/15279.html
+        icon: fas fa-link
+        description: ""
+      - name: 樱花SS
+        url: https://app.arukas.io/
+        icon: fas fa-link
+        description: ""
+      - name: 创意动态全屏大图百变配色通用企业织梦模板-dede源码分享-跟版网
+        url: http://www.genban.org/share/yuanma/moban-13002.html
+        icon: fas fa-link
+        description: ""
+      - name: TorrentKitty中文网-TorrentKitty中文镜像-torrentkittyjx.org
+        url: http://www.torrentkittyjx.org/
+        icon: fas fa-link
+        description: ""
+      - name: PPT
+        url: http://www.51pptmoban.com/texiao/1678.html
+        icon: fas fa-link
+        description: ""
+      - name: 微窗 官方网站 - 一款开源的微信公众号及支付宝服务窗管理系统
+        url: http://www.vwins.cn/
+        icon: fas fa-link
+        description: ""
+      - name: zd423 - 软件分享平台
+        url: http://www.zdfans.com/
+        icon: fas fa-link
+        description: ""
+      - name: FreeNAS 中文精品教程发布中心 - GetNAS中文网
+        url: http://www.getnas.com/
+        icon: fas fa-link
+        description: ""
+      - name: 首页-OSA开源运维监控管理平台
+        url: http://osapub.com/
+        icon: fas fa-link
+        description: ""
+      - name: Excel2010基础教程-我要自学网
+        url: http://www.51zxw.net/list.aspx?cid=427
+        icon: fas fa-link
+        description: ""
+      - name: AMH5.3开心版
+        url: http://amh53.ssvip.gs/
+        icon: fas fa-link
+        description: ""
+      - name: 专业演出常用的音视频播放软件
+        url: http://www.av010.com/zixun/news_info_15308.html
+        icon: fas fa-link
+        description: ""
+      - name: Kloxo-MR免费Linux VPS管理面板配置安装及设置简体中文语言方法 | 老左博客
+        url: http://www.laozuo.org/5123.html
+        icon: fas fa-link
+        description: ""
+      - name: 微赞WZ_V77.7版本20161117商业版同步程序（完整版）测试完整-悟空源码网-分享精品整站源码,商业破解源码,企业网站模板,dedecms模板,织梦cms模板,ecshop模板插件,di
+        url: http://www.5kym.com/weizan/3747.html
+        icon: fas fa-link
+        description: ""
+      - name: 2016通达OA官方原版附破解补丁、通达2016完美破解版 - 『精品软件区』 - 吾爱破解 - LCG - LSG |安卓破解|病毒分析|破解软件|www.52pojie.cn
+        url: http://www.52pojie.cn/forum.php?mod=viewthread&amp;tid=551817&amp;page=1
+        icon: fas fa-link
+        description: ""
+      - name: 爱盘，最新的在线破解工具包
+        url: http://down.52pojie.cn/Tools/
+        icon: fas fa-link
+        description: ""
+      - name: 免费logo在线制作, 标志设计, 公司logo设计
+        url: http://www.logomaker.com.cn/logo-maker.jsp
+        icon: fas fa-link
+        description: ""
+      - name: 搜刮好东西-好东西分享、源码分享、免费分享、营销推广、技术交流。
+        url: http://www.sogua2008.com/
+        icon: fas fa-link
+        description: ""
+      - name: HiPPTER | PPT资源导航 | PPT模板下载
+        url: http://www.hippter.com/
+        icon: fas fa-link
+        description: ""
+      - name: 用分期 - 管理员登录
+        url: http://139.196.17.27/m.php?m=Public&amp;a=login&amp;
+        icon: fas fa-link
+        description: ""
+      - name: 佳句赏析_&quot;人生的长度我们无法测量，我们只能看着时光流逝，在似水流年里，我们也曾迷失，有过彷徨，而时光交错，一切已成过往，我们却无能为力，只能在时光里听着记忆浅唱。&quot; 原作者
+        url: http://www.juzimi.com/ju/3368499
+        icon: fas fa-link
+        description: ""
+      - name: 3D片源下载
+        url: http://bbs.cnliti.com/
+        icon: fas fa-link
+        description: ""
+      - name: .ba域名注册
+        url: https://www.onlydomains.com/domain/frontSearch
+        icon: fas fa-link
+        description: ""
+      - name: 【PHP】非常强大的PHP多平台云主机聚合IDC代理整合平台网站源码 – 分享吧
+        url: http://www.zlei.net/4470.html
+        icon: fas fa-link
+        description: ""
+      - name: chinese lovers making lover outdoor - XVIDEOS.COM
+        url: http://www.xvideos.com/video22431619/chinese_lovers_making_lover_outdoor
+        icon: fas fa-link
+        description: ""
+      - name: Redhead Futanari sologirl - XVIDEOS.COM
+        url: http://www.xvideos.com/video15724031/redhead_futanari_sologirl
+        icon: fas fa-link
+        description: ""
+      - name: Flatchested teen nailed - XVIDEOS.COM
+        url: http://www.xvideos.com/video18334611/flatchested_teen_nailed
+        icon: fas fa-link
+        description: ""
+      - name: 一键重装系统_电脑系统重装_系统win10_系统win8_系统win7_系统xp - 韩博士装机大师一键重装官网
+        url: http://hbs.ahbda.cn/zxaz/
+        icon: fas fa-link
+        description: ""
+      - name: 工作总结PPT模板_工作汇报PPT模板_工作报告PPT模板下载 - 优品PPT
+        url: http://www.ypppt.com/moban/zongjie/
+        icon: fas fa-link
+        description: ""
+      - name: 匠心ppt导航|PPT+ | PPT资源导航 | PPT网站导航 | PPT模板下载
+        url: http://www.ejwww.com/
+        icon: fas fa-link
+        description: ""
+      - name: Greasy Fork -油猴脚本
+        url: https://greasyfork.org/zh-CN/
+        icon: fas fa-link
+        description: ""
+      - name: workerman 一个高性能的PHP Socket 服务器框架
+        url: http://www.workerman.net/
+        icon: fas fa-link
+        description: ""
+      - name: Buckets Of Jizz Loads
+        url: https://www.youjizz.com/videos/buckets-of-jizz-loads-2183219.html
+        icon: fas fa-link
+        description: ""
+      - name: 免费PPT模版
+        url: http://www.1ppt.com/article/41742.html
+        icon: fas fa-link
+        description: ""
+      - name: 百度文库下载券_百度文库免费下载_下载百度文库_百度文库免费下载方法
+        url: http://www.ebuymed.cn/
+        icon: fas fa-link
+        description: ""
+      - name: 使用O2OA二次开发搭建企业办公平台（五）平台部署篇：连接O2云使用APP - liyi_hz2008的博客 - CSDN博客
+        url: https://blog.csdn.net/liyi_hz2008/article/details/82968148
+        icon: fas fa-link
+        description: ""
+      - name: 蕾丝 Lovelace Win10主题 - 桌面主题 - 致美化 - 漫锋网
+        url: https://zhutix.com/pc/lovelace/#xiazai
+        icon: fas fa-link
+        description: ""
+      - name: 全民跳转_vip视频在线解析_vip电影解析
+        url: https://www.bavei.com/
+        icon: fas fa-link
+        description: ""
+      - name: (1条消息)40张技术图谱，架构师阶梯 （附高清下载）_大数据公社-CSDN博客
+        url: https://blog.csdn.net/sfM06sqVW55DFt1/article/details/78779670
+        icon: fas fa-link
+        description: ""
+      - name: NO视频 – 不负追剧好时光 (￣▽￣)&quot;
+        url: https://www.novipnoad.com/
+        icon: fas fa-link
+        description: ""
+      - name: 《机器人总动员》免费在线观看-策驰影院免费在线观看高清电影机器人总动员
+        url: http://www.5nj.com/?m=vod-play-id-19248-src-1-num-1.html
+        icon: fas fa-link
+        description: ""
+      - name: ISLIDE PPT插件
+        url: https://store.islide.cc/#/homepage
+        icon: fas fa-link
+        description: ""
+      - name: CAJ转word
+        url: https://speedpdf.com/convert/caj-to-word.html
+        icon: fas fa-link
+        description: ""
+      - name: PPT模板免费下载_精美免费PPT模板下载 - 优品PPT
+        url: http://www.ypppt.com/
+        icon: fas fa-link
+        description: ""
+      - name: 180.100.134.66
+        url: https://www.yuque.com/dawnedu/devops/ikkndk
+        icon: fas fa-link
+        description: ""
+      - name: BT吧-高清电影电视剧BT种子迅雷下载
+        url: https://www.ibtba.cc/
+        icon: fas fa-link
+        description: ""
+      - name: TV影院 密码：5qif
+        url: https://www.lanzoui.com/b00npwqfc
+        icon: fas fa-link
+        description: ""
+      - name: zabbix5.2一键安装脚本 | 任我乐
+        url: https://renwole.com/tags/zabbix5-2%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%AC
+        icon: fas fa-link
+        description: ""
+      - name: 【Zabbix】Docker方式安装Zabbix 5.2_Let&#039;s Golang的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_39974140/article/details/109495951
+        icon: fas fa-link
+        description: ""
+      - name: DevOps 工具元素周期表 - Ledge DevOps 知识平台
+        url: https://devops.phodal.com/
+        icon: fas fa-link
+        description: ""
+      - name: 阿里盘搜 - 阿里云盘资源搜索
+        url: https://www.alipansou.com/
+        icon: fas fa-link
+        description: ""
+      - name: HiFiNi - 音乐磁场
+        url: https://hifini.com/
+        icon: fas fa-link
+        description: ""
+      - name: 【新手教程】2022最新V2Ray搭建图文教程，V2Ray一键搭建脚本！
+        url: https://www.itblogcn.com/article/1501.html?ivk_sa=1024609v#title-6
+        icon: fas fa-link
+        description: ""
+      - name: 4K蓝光原盘影视资源免费随便下载，九个保姆级高清资源网站让你轻松下载全网影视资源_软件应用_什么值得买
+        url: https://post.smzdm.com/p/a27g04dd/
+        icon: fas fa-link
+        description: ""
+      - name: 图片转Excel表格在线 - 表格文字识别 - 照片转换成Excel - 白描网页版
+        url: https://web.baimiaoapp.com/image-to-excel
+        icon: fas fa-link
+        description: ""
+      - name: PPT图表模板_PPT图表素材下载 - 优品PPT
+        url: https://www.ypppt.com/tubiao/
+        icon: fas fa-link
+        description: ""
+      - name: 【自制】桃花坞影音工作室剑网叁MV《参商》_哔哩哔哩_bilibili
+        url: https://www.bilibili.com/video/BV1Ux411T7Gb?spm_id_from=333.337.search-card.all.click&amp;vd_source=091c0e111bfdeb6977f0d9dc302456ad
+        icon: fas fa-link
+        description: ""
+      - name: 自动PPT- MindShow，让想法快速展示
+        url: https://www.mindshow.fun/#/folder/home
+        icon: fas fa-link
+        description: ""
+      - name: 磁力-20241026可用
+        url: https://skrbtxz.top/search?keyword=%E7%B3%96%E5%BF%83vlog&amp;sos=relevance&amp;sofs=gt5gb&amp;sot=all&amp;soft=all&amp;som=auto&amp;p=1
+        icon: fas fa-link
+        description: ""
+      - name: 115网盘资源分享
+        url: https://docs.qq.com/sheet/DYUNKVU1RWm9ZVXVm?tab=vr7wif
+        icon: fas fa-link
+        description: ""
+  - name: 各类教程
+    icon: fas fa-folder
+    path:
+      - 各类教程
+    subcategories:
+      - name: 服务器折腾相关
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 服务器折腾相关
+        sites:
+          - name: 软路由上ESXi安装与配置（含网卡直通）-手把手小白教程 - 简书
+            url: https://www.jianshu.com/p/4f2d2b59e42f?ivk_sa=1024320u
+            icon: fas fa-link
+            description: ""
+          - name: ESXi搭建 ALL IN ONE 服务器之双软路由篇_网络设备_什么值得买
+            url: https://post.smzdm.com/p/akx3z85e/
+            icon: fas fa-link
+            description: ""
+          - name: 安装esxi时候的No Network Adapters报错 解决办法_Jenrey的博客-CSDN博客_安装esxi提示没有网络适配器
+            url: https://blog.csdn.net/JENREY/article/details/105774542
+            icon: fas fa-link
+            description: ""
+          - name: (6条消息) 老笔记本安装ESXI和群晖，不再吃灰_韩麸子的博客-CSDN博客_笔记本安装esxi
+            url: https://blog.csdn.net/hahofe/article/details/117519109
+            icon: fas fa-link
+            description: ""
+          - name: 在Esxi中使用usb网卡的技巧 – 筷子铺的博客
+            url: https://kzpu.com/archives/4400.html?ivk_sa=1024320u
+            icon: fas fa-link
+            description: ""
+          - name: esxcli  network  vswitch  standard uplink
+            url: https://www.jianshu.com/p/bd0d4ba4a285?open_source=weibo_search
+            icon: fas fa-link
+            description: ""
+          - name: (10条消息) VMware ESXI CLI常用命令_R.scorpio的博客-CSDN博客_esxi ssh命令esxcli
+            url: https://blog.csdn.net/qq_38028248/article/details/115527006?spm=1001.2101.3001.6650.1&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1-115527006-blog-107535396.pc_relevant_multi_platform_whitelistv2&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1-115527006-blog-107535396.pc_relevant_multi_platform_whitelistv2&amp;utm_relevant_index=2
+            icon: fas fa-link
+            description: ""
+          - name: 在ESXi里开启USB直通&amp;Synology群晖用U盘或移动硬盘做存储空间 | 刘馨的私人收藏馆
+            url: https://lx-soft.net/archives/242
+            icon: fas fa-link
+            description: ""
+          - name: esxi添加usb移动硬盘存储数据_移动硬盘_什么值得买
+            url: https://post.smzdm.com/p/a5kl4x4l/
+            icon: fas fa-link
+            description: ""
+          - name: VMWare ESXi系统中给虚拟机硬盘扩容记录（CentOS7）_esxi查看系统分区-CSDN博客
+            url: https://blog.csdn.net/QIU176161650/article/details/118379783
+            icon: fas fa-link
+            description: ""
+          - name: 宝塔转发ssh端口
+            url: https://zhuanlan.zhihu.com/p/561464794
+            icon: fas fa-link
+            description: ""
+          - name: 借助CloudFlare Pro套餐的Spectrum实现SSH加速，解决绕路、IPv6 VPS的…
+            url: https://haoduck.com/691.html
+            icon: fas fa-link
+            description: ""
+          - name: 库苏恩
+            url: https://virt.spiritlhl.net/
+            icon: fas fa-link
+            description: ""
+          - name: ESXi导出OVA | 泠泫凝的异次元空间
+            url: https://lxnchan.cn/esxi-ova.html
+            icon: fas fa-link
+            description: ""
+          - name: 监控 | 安安稳稳
+            url: https://anwen-anyi.github.io/other/
+            icon: fab fa-github
+            description: ""
+          - name: EDU邮箱
+            url: https://my.phoenix.edu/
+            icon: fas fa-link
+            description: ""
+      - name: 要实践的
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 要实践的
+        sites:
+          - name: Jenkins与Docker的自动化CI/CD实战_李振良的技术博客的技术博客_51CTO博客
+            url: https://blog.51cto.com/lizhenliang/2159817
+            icon: fas fa-link
+            description: ""
+          - name: 在Esxi中使用usb网卡的技巧 – 筷子铺的博客
+            url: https://kzpu.com/archives/4400.html
+            icon: fas fa-link
+            description: ""
+          - name: 什么？Siri也能控制Windows关机？ - 知乎
+            url: https://zhuanlan.zhihu.com/p/347228706
+            icon: fas fa-link
+            description: ""
+          - name: 三万字无坑搭建基于Docker+K8S+GitLab/SVN+Jenkins+Harbor持续集成交付环境 - 冰河团队 - 博客园
+            url: https://www.cnblogs.com/binghe001/p/14077217.html
+            icon: fas fa-link
+            description: ""
+          - name: (15 封私信) 使用GitLab+Jenkins实现CI/CD？ - 知乎
+            url: https://www.zhihu.com/question/317793108/answer/2708161009
+            icon: fas fa-link
+            description: ""
+          - name: telegram media downloader用法，版本v2.0.2, 2022-07-26 - 知乎
+            url: https://zhuanlan.zhihu.com/p/563410571
+            icon: fas fa-link
+            description: ""
+      - name: 学习
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 学习
+        groups:
+          - name: K8S
+            icon: fas fa-folder
+            path:
+              - 各类教程
+              - 学习
+              - K8S
+            sites:
+              - name: Helm | Chart Test
+                url: https://helm.sh/zh/docs/topics/chart_tests/
+                icon: fas fa-link
+                description: ""
+              - name: K8s CKA认证学习全套笔记_格洛米爱学习的博客-CSDN博客_k8s cka认证教材
+                url: https://blog.csdn.net/tushanpeipei/article/details/118709134
+                icon: fas fa-link
+                description: ""
+              - name: 基于 Docker 的几种常用 CentOS7 镜像_Yore Yuen的博客-CSDN博客_docker centos 推荐
+                url: https://blog.csdn.net/github_39577257/article/details/107180891
+                icon: fas fa-link
+                description: ""
+              - name: 如何降低Kubernetes学习门槛 | Kuboard
+                url: https://kuboard.cn/overview/concepts.html#kubernetes-%E5%AD%A6%E4%B9%A0%E9%97%A8%E6%A7%9B%E5%9C%A8%E5%93%AA%E5%84%BF
+                icon: fas fa-link
+                description: ""
+              - name: Kuboard vs KubeSphere vs KubeOperator - 简书
+                url: https://www.jianshu.com/p/821ef8e9e69e
+                icon: fas fa-link
+                description: ""
+              - name: Docker安装Tomcat镜像并部署web项目简述_GreaterBuilder的博客-CSDN博客_docker部署tomcat镜像
+                url: https://blog.csdn.net/qq_26709459/article/details/80475068
+                icon: fas fa-link
+                description: ""
+              - name: 阿里云容器镜像服务
+                url: https://cr.console.aliyun.com/cn-hangzhou/instances
+                icon: fas fa-link
+                description: ""
+              - name: containerd镜像拉取配置 - 高佳丰 - 博客园
+                url: https://www.cnblogs.com/ggborn-001/p/16797078.html#:~:text=containerd%E7%9A%84%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7%E6%98%AFctr%EF%BC%8C%E6%8B%89%E5%8F%96%E9%95%9C%E5%83%8F%E7%9A%84%E5%91%BD%E4%BB%A4%E5%A6%82%E4%B8%8B%EF%BC%9A%20ctr,image%20pull%20docker.io%2Fjenkins%2Fjenkins%3Alts
+                icon: fas fa-link
+                description: ""
+              - name: 📚 Kubernetes（K8S）简介 - K8S 教程 - 易文档
+                url: https://k8s.easydoc.net/docs/dRiQjyTY/28366845/6GiNOzyZ/9EX8Cp45
+                icon: fas fa-link
+                description: ""
+        sites:
+          - name: shell编程 · linux运维 · 看云
+            url: https://www.kancloud.cn/noahs/linux/878498
+            icon: fas fa-link
+            description: ""
+          - name: KooLabs云实验_在线实验_上云实践_云计算实验_AI实验_华为云官方实验平台-华为云
+            url: https://lab.huaweicloud.com/testdetail_1733
+            icon: fas fa-link
+            description: ""
+          - name: Nginx 集群负载（基于LVS和Keepalived）搭建
+            url: https://www.w3schools.cn/nginx/nginx_cluster_lvs_keepalived.asp#:~:text=%E5%9F%BA%E4%BA%8E%20LVS%20%E5%92%8C%20Keepalived%20%E7%9A%84%20Nginx,%E9%9B%86%E7%BE%A4%E8%B4%9F%E8%BD%BD%E6%98%AF%E4%BD%BF%E7%94%A8%20LVS%20%E5%81%9A%E4%BC%A0%E8%BE%93%E5%B1%82%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E8%AE%BE%E5%A4%87%EF%BC%8C%E5%B0%86%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%AF%B7%E6%B1%82%E4%BB%8E%E4%BC%A0%E8%BE%93%E5%B1%82%E8%B4%9F%E8%BD%BD%E5%88%B0%E5%90%8E%E7%AB%AF%E7%9A%84%E5%A4%9A%E7%BB%84%20Nginx%20%E9%9B%86%E7%BE%A4%EF%BC%8C%E5%B9%B6%E7%94%B1%20Nginx%20%E9%9B%86%E7%BE%A4%E5%AE%9E%E7%8E%B0%E5%BA%94%E7%94%A8%E5%B1%82%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E5%A4%84%E7%90%86%E7%9A%84%E5%A4%9A%E5%B1%82%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E3%80%82
+            icon: fas fa-link
+            description: ""
+          - name: 神秘的热心网友 - 收集免费实用有趣的东西，做最好的资源导航
+            url: https://imyshare.com/?utm_source=NiceSo&amp;utm_medium=CommunityTopBanner
+            icon: fas fa-link
+            description: ""
+          - name: 书栈网 · BookStack_程序员IT互联网开源编程书籍免费阅读，助您【码】力十足！
+            url: https://www.bookstack.cn/cate
+            icon: fas fa-link
+            description: ""
+          - name: Ubuntu 22.04.1 LTS 编译安装 nginx-1.22.1_AloneMou的博客-CSDN博客_ubuntu22.04安装nginx
+            url: https://blog.csdn.net/qq_41322460/article/details/127666325?spm=1001.2101.3001.6650.2&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EYuanLiJiHua%7EPosition-2-127666325-blog-83069672.pc_relevant_3mothn_strategy_recovery&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EYuanLiJiHua%7EPosition-2-127666325-blog-83069672.pc_relevant_3mothn_strategy_recovery&amp;utm_relevant_index=3
+            icon: fas fa-link
+            description: ""
+          - name: SSH服务器端/etc/ssh/sshd_conf配置文件详解 - 丢丢vv - 博客园
+            url: https://www.cnblogs.com/shaoerwei/articles/7594879.html
+            icon: fas fa-link
+            description: ""
+          - name: nginx入门之----编译安装 - 知乎
+            url: https://zhuanlan.zhihu.com/p/128579141
+            icon: fas fa-link
+            description: ""
+          - name: Linux-- Centos 7 rpm、yum、编译安装_奔腾的小野马~~的博客-CSDN博客_linux7 rpm编译安装
+            url: https://blog.csdn.net/weixin_44342108/article/details/97490327
+            icon: fas fa-link
+            description: ""
+          - name: 03-配置文件和虚拟主机 · linux运维 · 看云
+            url: https://www.kancloud.cn/noahs/linux/1536906
+            icon: fas fa-link
+            description: ""
+          - name: ICT学堂-浙江华为旗下平台
+            url: https://www.ictxuetang.com/bict/course/detail?courseId=1002651732234809344
+            icon: fas fa-link
+            description: ""
+          - name: 最强的linux命令总结.pdf
+            url: https://mp.weixin.qq.com/s/Vw5fGwSeFps_mRj7kWK-Ng
+            icon: fas fa-link
+            description: ""
+          - name: linux特殊符号大全 - balaamwe - 博客园
+            url: https://www.cnblogs.com/balaamwe/archive/2012/03/15/2397998.html
+            icon: fas fa-link
+            description: ""
+          - name: 兵器|代码重工
+            url: https://www.wolai.com/nnRjHcUSv2mrRbFKZUpBMS
+            icon: fas fa-link
+            description: ""
+          - name: (11条消息) k8s+jenkins+docker部署微服务实现CI/CD_jenkins+docker+k8s_zlhmeng的博客-CSDN博客
+            url: https://blog.csdn.net/zlhmeng/article/details/103397918
+            icon: fas fa-link
+            description: ""
+          - name: 在Linux中利用Service命令添加系统服务及开机自启动_linux添加service_EthanYYYY的博客-CSDN博客
+            url: https://blog.csdn.net/u013554213/article/details/78792686
+            icon: fas fa-link
+            description: ""
+          - name: CorelDRAW 2022 v24.0.0.301 绿色精简版 211M - 云盘资源分享社区-提供阿里云盘资源、影视资源、学习资源、软件资源、动漫资源、游戏资源等分享。
+            url: https://yunpan1.com/d/5897-coreldraw-2022-v2400301-211m
+            icon: fas fa-link
+            description: ""
+          - name: k8s详细教程(一)
+            url: https://znunwm.top/archives/k8s-xiang-xi-jiao-cheng
+            icon: fas fa-link
+            description: ""
+          - name: docker对已经启动的容器添加目录映射(挂载目录)_docker容器增加挂载目录-CSDN博客
+            url: https://blog.csdn.net/qq_39198749/article/details/127731024
+            icon: fas fa-link
+            description: ""
+          - name: OpsAny - 数字化运维管理平台
+            url: https://www.opsany.com/#/download
+            icon: fas fa-link
+            description: ""
+      - name: 复用类教程
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 复用类教程
+        sites:
+          - name: 搭建 Keepalived + Nginx + Tomcat 的高可用负载均衡架构-Linux运维日志
+            url: https://www.centos.bz/2019/01/%E6%90%AD%E5%BB%BA-keepalived-nginx-tomcat-%E7%9A%84%E9%AB%98%E5%8F%AF%E7%94%A8%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E6%9E%B6%E6%9E%84/
+            icon: fas fa-link
+            description: ""
+          - name: 超简单的Liunx软件自动安装脚本（JAVA MySQL Nginx TomCat）_运维_lliangminw的博客-CSDN博客
+            url: https://blog.csdn.net/lliangminw/article/details/103450296
+            icon: fas fa-link
+            description: ""
+          - name: zabbix的各种键值 - Jack-秦 - 博客园
+            url: https://www.cnblogs.com/qinyujie/p/7845378.html
+            icon: fas fa-link
+            description: ""
+          - name: Tomcat 下4个配置文件详解 - 玲珑醉 - 博客园
+            url: https://www.cnblogs.com/sunshine-1/p/8990044.html
+            icon: fas fa-link
+            description: ""
+          - name: Python_Openpyxl-excel操作
+            url: https://blog.csdn.net/weixin_43094965/article/details/82226263
+            icon: fas fa-link
+            description: ""
+          - name: (1条消息)Python使用openpyxl库操作Excel之（二）访问已有的Excel文件_Python_Gsdxiaohei-CSDN博客
+            url: https://blog.csdn.net/Gsdxiaohei/article/details/82052889?depth_1-utm_source=distribute.pc_relevant.none-task&amp;utm_source=distribute.pc_relevant.none-task
+            icon: fas fa-link
+            description: ""
+          - name: VMware vCenter 6.7安装及群集配置介绍（一）_运维_spring cloud 微服务技术开发-CSDN博客
+            url: https://blog.csdn.net/rfidgroup/article/details/102960184?depth_1-utm_source=distribute.pc_relevant.none-task&amp;utm_source=distribute.pc_relevant.none-task
+            icon: fas fa-link
+            description: ""
+          - name: Tomcat 内存与优化篇 - Alan@wu - 博客园
+            url: https://www.cnblogs.com/wulaijun/p/5490699.html
+            icon: fas fa-link
+            description: ""
+          - name: Mysql数据库优化 - Mysql
+            url: https://www.52wiki.cn/Doc/Read/id/1493.html
+            icon: fas fa-link
+            description: ""
+          - name: （转）戴尔Dell服务器远程管理卡的配置和应用_Java_漠效的博客-CSDN博客
+            url: https://blog.csdn.net/GX_1_11_real/article/details/100085885
+            icon: fas fa-link
+            description: ""
+          - name: keepalive的配置解析与一个巧妙配置&amp;keepalived安装与爬坑 - 水鬼子 - 博客园
+            url: https://www.cnblogs.com/shuiguizi/p/11172267.html
+            icon: fas fa-link
+            description: ""
+          - name: 一、工作感悟 · 运维工作笔记 · 看云
+            url: https://www.kancloud.cn/devops-centos/centos-linux-devops/1394168
+            icon: fas fa-link
+            description: ""
+      - name: 数据库
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 数据库
+        groups:
+          - name: 主从相关
+            icon: fas fa-folder
+            path:
+              - 各类教程
+              - 数据库
+              - 主从相关
+            sites:
+              - name: 与MySQL传统复制相比，GTID有哪些独特的复制姿势? - MySQL - dbaplus社群：围绕Data、Blockchain、AiOps的企业级专业社群。技术大咖、原创干货，每天精品原创文章推送，每周线上技术分享，每月线下技术沙龙。
+                url: https://dbaplus.cn/news-11-857-1.html
+                icon: fas fa-link
+                description: ""
+        sites:
+          - name: MySQL性能全面优化方法参考,从CPU,文件系统选择到mysql.cnf参数优化_Mysql_脚本之家
+            url: https://www.jb51.net/article/136577.htm
+            icon: fas fa-link
+            description: ""
+          - name: MySQL修改innodb_data_file_path参数的一些注意事项_Mysql_脚本之家
+            url: https://www.jb51.net/article/159056.htm
+            icon: fas fa-link
+            description: ""
+          - name: Mysql 性能优化-百度经验
+            url: https://jingyan.baidu.com/article/4f34706e234040e386b56d72.html
+            icon: fas fa-link
+            description: ""
+          - name: Mysql 查看连接数,状态 最大并发数 max_connections timeout_数据库_demonson的专栏-CSDN博客
+            url: https://blog.csdn.net/demonson/article/details/80308853
+            icon: fas fa-link
+            description: ""
+          - name: MySQL主从复制，主主复制，半同步复制 - zangfans - 博客园
+            url: https://www.cnblogs.com/zangfans/p/9140805.html
+            icon: fas fa-link
+            description: ""
+          - name: centos 安装 mysql-5.7.23-linux-glibc2.12-x86_64.tar.gz 详细步骤 - 关键步就几步 - 博客园
+            url: https://www.cnblogs.com/javabg/p/9951852.html
+            icon: fab fa-java
+            description: ""
+          - name: Mysql主从配置_数据库（验证安装）
+            url: https://blog.csdn.net/qq_33196814/article/details/81513907
+            icon: fas fa-link
+            description: ""
+          - name: 关于MySQL主主配置的auto_increment_offset和auto_increment_increment参数的解释_ITPUB博客
+            url: http://blog.itpub.net/15498/viewspace-2124730/
+            icon: fas fa-link
+            description: ""
+          - name: amoeba实现mysql读写分离+主从复制架构-12266890-51CTO博客
+            url: https://blog.51cto.com/12276890/1935015?utm_source=oschina-app
+            icon: fas fa-link
+            description: ""
+          - name: MySQL优化之参数调整配置详解（理解后根据业务场景调整参数） – 鸡书之家
+            url: https://dbawsp.com/573.html
+            icon: fas fa-link
+            description: ""
+          - name: Mysql数据库优化 - Mysql
+            url: https://www.52wiki.cn/Doc/Read/id/1493.html#MySQL%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90
+            icon: fas fa-link
+            description: ""
+          - name: mysql快速生成批量测试数据 - davie2020 - 博客园
+            url: https://www.cnblogs.com/bjx2020/p/9727898.html
+            icon: fas fa-link
+            description: ""
+          - name: MySQL数据同步，出现Slave_SQL_Running：no和slave_io_running：no问题的解决方法 - LingClassmate - 博客园
+            url: https://www.cnblogs.com/l-hh/p/9922548.html#_label2
+            icon: fas fa-link
+            description: ""
+          - name: Mysql主从同步（复制） - kylinlin - 博客园
+            url: https://www.cnblogs.com/kylinlin/p/5258719.html
+            icon: fas fa-link
+            description: ""
+          - name: (3条消息)MySQL主从复制与读写分离_数据库_看清所以看轻-CSDN博客
+            url: https://blog.csdn.net/weixin_44907813/article/details/101349587
+            icon: fas fa-link
+            description: ""
+          - name: (3条消息)MySQL并行写入、查询性能调优（多核CPU）_数据库_qq_32828253的博客-CSDN博客
+            url: https://blog.csdn.net/qq_32828253/article/details/78801679
+            icon: fas fa-link
+            description: ""
+          - name: "案例 |\_PingCAP"
+            url: https://pingcap.com/cases-cn/#
+            icon: fas fa-link
+            description: ""
+          - name: MHA+keepalived 高可用MYSQL集群(续) - BelieveYous - 博客园
+            url: https://www.cnblogs.com/believeMy/articles/6800032.html
+            icon: fas fa-link
+            description: ""
+          - name: MySQL高可用架构之MHA - yayun - 博客园
+            url: https://www.cnblogs.com/gomysql/p/3675429.html
+            icon: fas fa-link
+            description: ""
+          - name: 已测试--Zabbix安装部署_运维_yuzhentong的博客-CSDN博客
+            url: https://blog.csdn.net/yuzhentong/article/details/86608934
+            icon: fas fa-link
+            description: ""
+          - name: 字，字节，byte以及存储的大小 - 简书
+            url: https://www.jianshu.com/p/da368790447f
+            icon: fas fa-link
+            description: ""
+          - name: mysql之MHA、Mycat综合分析
+            url: http://www.mamicode.com/info-detail-2375598.html
+            icon: fas fa-link
+            description: ""
+          - name: 乐维Zabbix技术资料Zabbix交流区MySQL-mycat读写分离
+            url: http://www.lwops.cn/forum.php?mod=viewthread&amp;tid=387
+            icon: fas fa-link
+            description: ""
+          - name: TIDB
+            url: https://pingcap.com/zh/
+            icon: fas fa-link
+            description: ""
+          - name: "Neeky/mysqltools: 一个用于快速构建大规模，高质量，全自动化的 mysql分布式集群环境的工具；包含mysql 安装、备份、监控、高可用、读写分离、优化、巡检、自行化运维"
+            url: https://github.com/Neeky/mysqltools#mycat%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB
+            icon: fab fa-github
+            description: ""
+          - name: "Neeky/dbm-agent: dbma -- 数据库管理中心客户端程序"
+            url: https://github.com/Neeky/dbm-agent
+            icon: fab fa-github
+            description: ""
+          - name: MySQL 配置文件生成器
+            url: https://www.sqlpy.com/onlinetools/mycnf
+            icon: fas fa-link
+            description: ""
+          - name: 在线测试TiDB
+            url: https://tour.pingcap.com/
+            icon: fas fa-link
+            description: ""
+          - name: mysql高可用集群 MHA 搭建实例 - 简书
+            url: https://www.jianshu.com/p/f5a751645bcf
+            icon: fas fa-link
+            description: ""
+          - name: MHA架构实施（一主一从）学不会，你来打我？加油！奥利给_南宫乘风-Linux运维-虚拟化容器-Java-CSDN博客
+            url: https://blog.csdn.net/heian_99/article/details/106939828#1%E3%80%81%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B1%82
+            icon: fas fa-link
+            description: ""
+      - name: 监控
+        icon: fas fa-folder
+        path:
+          - 各类教程
+          - 监控
+        sites:
+          - name: Zabbix监控WEB页面配置教程-未来往事的博客
+            url: https://www.xxshell.com/2307.html
+            icon: fas fa-link
+            description: ""
+          - name: ZABBIX利用自带模板监控mysql数据库-细哥细妹-51CTO博客
+            url: https://blog.51cto.com/12131824/2344353
+            icon: fas fa-link
+            description: ""
+          - name: 字符云监控系统(xrkmonitor)
+            url: http://open.xrkmonitor.cn/
+            icon: fas fa-link
+            description: ""
+          - name: "大屏数据展示模板: 各类大屏展示模板持续更新中..."
+            url: https://gitee.com/lvyeyou/DaShuJuZhiDaPingZhanShi
+            icon: fas fa-link
+            description: ""
+          - name: 葫芦视频
+            url: http://www.wgstart.com/
+            icon: fas fa-link
+            description: ""
+    sites:
+      - name: Nginx用法详解 - 诸葛风流 - 博客园
+        url: https://www.cnblogs.com/xiangzhong/p/11355414.html
+        icon: fas fa-link
+        description: ""
+      - name: 细节！永远的神，TCP 图解 - 知乎
+        url: https://zhuanlan.zhihu.com/p/420055054
+        icon: fas fa-link
+        description: ""
+      - name: TCP三次握手四次挥手 - 知乎
+        url: https://zhuanlan.zhihu.com/p/596538527#:~:text=%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8F%A1%E6%89%8B%E8%A6%81%E4%B8%89%E6%AC%A1%EF%BC%8C%E6%8C%A5%E6%89%8B%E5%8D%B4%E8%A6%81%E5%9B%9B%E6%AC%A1%E5%91%A2%3F%20%E9%82%A3%E6%98%AF%E5%9B%A0%E4%B8%BA%E6%8F%A1%E6%89%8B%E7%9A%84%E6%97%B6%E5%80%99%E5%B9%B6%E6%B2%A1%E6%9C%89%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%EF%BC%8C%E6%89%80%E4%BB%A5%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%20SYN%20%E5%92%8C%20ACK,%E6%8A%A5%E6%96%87%E5%8F%AF%E4%BB%A5%E4%B8%80%E8%B5%B7%E5%8F%91%E9%80%81%EF%BC%8C%E4%BD%86%E6%98%AF%E6%8C%A5%E6%89%8B%E7%9A%84%E6%97%B6%E5%80%99%E6%9C%89%E6%95%B0%E6%8D%AE%E5%9C%A8%E4%BC%A0%E8%BE%93%EF%BC%8C%E6%89%80%E4%BB%A5%20ACK%20%E5%92%8C%20FIN%20%E6%8A%A5%E6%96%87%E4%B8%8D%E8%83%BD%E5%90%8C%E6%97%B6%E5%8F%91%E9%80%81%EF%BC%8C%E9%9C%80%E8%A6%81%E5%88%86%E4%B8%A4%E6%AD%A5%EF%BC%8C%E6%89%80%E4%BB%A5%E4%BC%9A%E6%AF%94%E6%8F%A1%E6%89%8B%E5%A4%9A%E4%B8%80%E6%AD%A5%202.
+        icon: fas fa-link
+        description: ""
+      - name: 运维知识体系v3.1【赵班长】
+        url: https://www.unixhot.com/page/ops
+        icon: fas fa-link
+        description: ""
+      - name: 【Linux】一步一步学Linux系列教程汇总（更新中......）_嵌入式开发工程师---欢迎大家一起交流-CSDN博客_csdn dengjin
+        url: https://blog.csdn.net/dengjin20104042056/article/details/94669639
+        icon: fas fa-link
+        description: ""
+      - name: 高可用的Mysql双机热备(Mysql_HA)
+        url: http://www.360doc.com/content/17/1129/14/597197_708294249.shtml
+        icon: fas fa-link
+        description: ""
+      - name: 自动安装 - OneinStack
+        url: https://oneinstack.com/auto/
+        icon: fas fa-link
+        description: ""
+      - name: "YoLoveLife/DevOps: DevOps System - devEops - 开发自运维平台 - 运维体系解决方案，适用于多个应用环境的资产组织以及运维脚本的适配运行。"
+        url: https://github.com/YoLoveLife/DevOps#introduce
+        icon: fab fa-github
+        description: ""
+      - name: Keepalived - 简书
+        url: https://www.jianshu.com/p/a6b5ab36292a
+        icon: fas fa-link
+        description: ""
+      - name: LVS+KeepAlived+Nginx高可用实现方案 - 阿飞的博客 - CSDN博客
+        url: https://blog.csdn.net/lupengfei1009/article/details/86514445#_5
+        icon: fas fa-link
+        description: ""
+      - name: 搭建高可用web和数据库集群-王秀燕的博客-51CTO博客
+        url: https://blog.51cto.com/13731599/2133651
+        icon: fas fa-link
+        description: ""
+      - name: linux awk命令分析http server访问日志 - weixin_33824363的博客
+        url: https://blog.csdn.net/weixin_33824363/article/details/93126517
+        icon: fas fa-link
+        description: ""
+      - name: zabbix监控DELL iRADC风扇+温度+内存（zabbix模板自行下载） - qq_41664031的博客
+        url: https://blog.csdn.net/qq_41664031/article/details/99695602
+        icon: fas fa-link
+        description: ""
+      - name: linux nfs+portmap 远程磁盘映射 - 简书
+        url: https://www.jianshu.com/p/7289cfd1f036
+        icon: fas fa-link
+        description: ""
+      - name: 【大型网站技术实践】初级篇：借助LVS+Keepalived实现负载均衡 - EdisonZhou - 博客园
+        url: https://www.cnblogs.com/edisonchou/p/4281978.html
+        icon: fas fa-link
+        description: ""
+      - name: Java项目部署到云服务器最简单的方法 | 言曌博客
+        url: https://liuyanzhao.com/6878.html
+        icon: fas fa-link
+        description: ""
+      - name: 使用vscode打造python开发环境 - DesignerA - 博客园
+        url: https://www.cnblogs.com/DesignerA/p/11604200.html
+        icon: fas fa-link
+        description: ""
+      - name: 爬取小说可用验证
+        url: https://blog.csdn.net/xjm850552586/article/details/78585286
+        icon: fas fa-link
+        description: ""
+      - name: MySQL配置文件优化 - cervelo - 博客园
+        url: https://www.cnblogs.com/qiming0322/p/10137822.html
+        icon: fas fa-link
+        description: ""
+      - name: 压测工具
+        url: https://github.com/wg/wrk
+        icon: fab fa-github
+        description: ""
+      - name: (1条消息)一次qps测试实践（续）_silyvin-CSDN博客
+        url: https://blog.csdn.net/silyvin/article/details/79143761
+        icon: fas fa-link
+        description: ""
+      - name: 数据库学习day04：SQL基础优化-索引及执行计划 - 简书
+        url: https://www.jianshu.com/p/4f105b7819b3
+        icon: fas fa-link
+        description: ""
+      - name: LVS+Keepalived+Nginx+Tomcat高可用负载均衡集群配置_赵英超的博客-CSDN博客
+        url: https://blog.csdn.net/zyc88888/article/details/81226820
+        icon: fas fa-link
+        description: ""
+      - name: LVS+Keepalived+Tomcat实现高可用性及均衡负载 - alec1312 - 博客园
+        url: https://www.cnblogs.com/alec1312/p/5828090.html
+        icon: fas fa-link
+        description: ""
+      - name: 单机Qps上限是多少？-沙耶博士-51CTO博客
+        url: https://blog.51cto.com/12008764/2140297
+        icon: fas fa-link
+        description: ""
+      - name: LVS + keepalived + nginx + tomcat 实现主从热备 + 负载均衡 - 青石路 - 博客园
+        url: https://www.cnblogs.com/youzhibing/p/5061786.html
+        icon: fas fa-link
+        description: ""
+      - name: MySQL入门篇（七）之Xtrabackup备份与恢复 - 烟雨浮华 - 博客园
+        url: https://www.cnblogs.com/linuxk/p/9372990.html
+        icon: fas fa-link
+        description: ""
+      - name: 史上最全后端架构师技术图谱，值得收藏 - u011896537的博客
+        url: https://blog.csdn.net/u011896537/article/details/79837845
+        icon: fas fa-link
+        description: ""
+      - name: 使用gitlab时多人协作流程总结_枫之木落的博客-CSDN博客
+        url: https://blog.csdn.net/qq_32337109/article/details/85566069
+        icon: fas fa-link
+        description: ""
+      - name: 致 Python 初学者_Python作业辅导员 - 天元浪子【许向武】-CSDN博客
+        url: https://blog.csdn.net/xufive/article/details/102993570
+        icon: fas fa-link
+        description: ""
+      - name: PMM 监控MySQL_博科交换机QQ616496171的博客-CSDN博客
+        url: https://blog.csdn.net/yajie_12/article/details/79001307
+        icon: fas fa-link
+        description: ""
+      - name: Shell (())：对整数进行数学运算
+        url: http://c.biancheng.net/view/2480.html
+        icon: fas fa-link
+        description: ""
+      - name: Linux 命令总结 - 后天星期天 - 博客园
+        url: https://www.cnblogs.com/sunday294/p/6907974.html
+        icon: fas fa-link
+        description: ""
+      - name: Linux 变量的使用 - 刘合栋 - 博客园
+        url: https://www.cnblogs.com/liuhedong/p/10356411.html
+        icon: fas fa-link
+        description: ""
+      - name: 利用shell批量更改文件后缀名_不小心打碎了-CSDN博客
+        url: https://blog.csdn.net/buxiaoxindasuile/article/details/50791050
+        icon: fas fa-link
+        description: ""
+      - name: SSH端口转发详解及实例 - 珂儿吖 - 博客园
+        url: https://www.cnblogs.com/keerya/p/7612715.html#_label1
+        icon: fas fa-link
+        description: ""
+      - name: 鸟哥的 Linux 私房菜 -- 浅谈备份策略
+        url: http://cn.linux.vbird.org/linux_basic/linux_basic.php
+        icon: fas fa-link
+        description: ""
+      - name: SSM 项目教程-模仿天猫整站 SSM版 | 基于实例代码分步讲解 一站式学习Java | how2j.cn
+        url: http://how2j.cn/k/tmall_ssm/tmall_ssm-1399/1399.html
+        icon: fas fa-link
+        description: ""
+      - name: Linux学习教程，Linux入门教程（超详细）
+        url: http://c.biancheng.net/linux_tutorial/
+        icon: fas fa-link
+        description: ""
+      - name: tomcat的maxThreads、acceptCount（最大线程数、最大排队数） - baibaluo - 博客园
+        url: https://www.cnblogs.com/baibaluo/archive/2011/08/23/2150305.html
+        icon: fas fa-link
+        description: ""
+      - name: 【Zabbix ActiveMode】Zabbix Agent 主动模式的监控 - 简书
+        url: https://www.jianshu.com/p/ddc7f2dc51ae
+        icon: fas fa-link
+        description: ""
+      - name: (1条消息)关于Raid0,Raid1,Raid5,Raid10的总结_网络_weixin_34417635的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_34417635/article/details/85834299?depth_1-utm_source=distribute.pc_relevant_right.none-task&amp;utm_source=distribute.pc_relevant_right.none-task
+        icon: fas fa-link
+        description: ""
+      - name: SSH端口转发（本地转发、远程转发、动态转发） - zangfans - 博客园
+        url: https://www.cnblogs.com/zangfans/p/8848279.html
+        icon: fas fa-link
+        description: ""
+      - name: SSH端口转发 - 简书
+        url: https://www.jianshu.com/p/4b8c551b8b51
+        icon: fas fa-link
+        description: ""
+      - name: "概览 :: ShardingSphere"
+        url: https://shardingsphere.apache.org/document/current/cn/overview/
+        icon: fas fa-link
+        description: ""
+      - name: MySQL 主从复制-开启并发SQL线程复制 – 鸡书之家
+        url: https://dbawsp.com/1310.html
+        icon: fas fa-link
+        description: ""
+      - name: 鸡书之家Linux运维-超详细文档（初中级运维） – 鸡书之家
+        url: https://dbawsp.com/shop/1354.html
+        icon: fas fa-link
+        description: ""
+      - name: linux中的(),(()),[],[[]],{}的作用_运维_The Void-CSDN博客
+        url: https://blog.csdn.net/zs064811/article/details/73969669
+        icon: fas fa-link
+        description: ""
+      - name: PV与并发之间换算的算法换算公式+根据PV计算带宽_网络_摘取天上星-CSDN博客
+        url: https://blog.csdn.net/zqtsx/article/details/44671615
+        icon: fas fa-link
+        description: ""
+      - name: tomcat增加内存 JVM内存调优 - 乌托邦眺望 - 博客园
+        url: https://www.cnblogs.com/centos2017/p/9956432.html
+        icon: fas fa-link
+        description: ""
+      - name: Linux—shell中$(( ))、$( )、``与${ }的区别 - chengd - 博客园
+        url: https://www.cnblogs.com/chengd/p/7803664.html
+        icon: fas fa-link
+        description: ""
+      - name: Zabbix 微信报警 | 逗哥-架构师之路
+        url: https://www.dgstack.cn/archives/1799.html
+        icon: fas fa-link
+        description: ""
+      - name: IPTV和局域网共用网线的办法-分线法 - 知乎
+        url: https://zhuanlan.zhihu.com/p/103516237
+        icon: fas fa-link
+        description: ""
+      - name: 验证过-详解SSH隧道端口转发，iptables规则_运维_什么好呢-CSDN博客
+        url: https://blog.csdn.net/sinat_34820292/article/details/84997117
+        icon: fas fa-link
+        description: ""
+      - name: (1条消息)防火墙iptables转发规则-增加、删除、查看_运维_lizhigang_bj的博客 QQ:1423253159 Telegram:@A1423253159-CSDN博客
+        url: https://blog.csdn.net/lizhigang_bj/article/details/80495395
+        icon: fas fa-link
+        description: ""
+      - name: (1条消息)防火墙iptables转发规则-增加、删除、查看_运维_lizhigang_bj的博客 QQ:1423253159 Telegram:@A1423253159-CSDN博客
+        url: https://blog.csdn.net/lizhigang_bj/article/details/80495395?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-29&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-29
+        icon: fas fa-link
+        description: ""
+      - name: iptables端口转发配置_网络_zorsea的博客-CSDN博客
+        url: https://blog.csdn.net/zorsea/article/details/81437020?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1
+        icon: fas fa-link
+        description: ""
+      - name: (1条消息)记一次给线上服务器添加IPv6支持的步骤_python_IT技术讨论-CSDN博客
+        url: https://blog.csdn.net/kaikai0803/article/details/94615666
+        icon: fas fa-link
+        description: ""
+      - name: 深入理解CI/CD：工具、方法、环境、基础架构的全面指南 - 简书
+        url: https://www.jianshu.com/p/cf050d5fd391
+        icon: fas fa-link
+        description: ""
+      - name: 当初我要是这么学习Nginx就好了！（多图详解） - 简书
+        url: https://www.jianshu.com/p/215600b11413
+        icon: fas fa-link
+        description: ""
+      - name: IPV4服务器如何支持ipv6访问_运维_火侬智能科技-CSDN博客
+        url: https://blog.csdn.net/u013488847/article/details/52472151
+        icon: fas fa-link
+        description: ""
+      - name: 全文搜索引擎 Elasticsearch 入门教程 - 阮一峰的网络日志
+        url: http://www.ruanyifeng.com/blog/2017/08/elasticsearch.html
+        icon: fas fa-link
+        description: ""
+      - name: Ansible配置免密登陆 - 阿牛 - 博客园
+        url: https://www.cnblogs.com/evlon/p/8094306.html
+        icon: fas fa-link
+        description: ""
+      - name: 2 自动注册 [Zabbix Documentation 3.4]
+        url: https://www.zabbix.com/documentation/3.4/zh/manual/discovery/auto_registration
+        icon: fas fa-link
+        description: ""
+      - name: 关于Nginx的一些优化(突破十万并发)。_weixin_33920401的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_33920401/article/details/92932711?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&amp;depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase
+        icon: fas fa-link
+        description: ""
+      - name: JAVA_OPTS设置_云深海阔专栏-CSDN博客_java_opts jar
+        url: https://blog.csdn.net/baidu_38432732/article/details/98310800
+        icon: fas fa-link
+        description: ""
+      - name: )Git版本控制（完美整理版）_清平の居士馆-CSDN博客_git版本控制
+        url: https://blog.csdn.net/ZZQHELLO2018/article/details/82354900?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&amp;depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase
+        icon: fas fa-link
+        description: ""
+      - name: "[Ansible实战]-ansible部署rsync全网备份项目 - 那个萝卜在飘 - 博客园"
+        url: https://www.cnblogs.com/syy1757528181/p/13096788.html
+        icon: fas fa-link
+        description: ""
+      - name: 文档中心|蓝鲸智云
+        url: https://bk.tencent.com/docs/document/5.1/91/3903
+        icon: fas fa-link
+        description: ""
+      - name: 这才是我心中linux最完整、最详细的yum仓库配置教程——强烈推荐
+        url: https://baijiahao.baidu.com/s?id=1661333295536028266&amp;wfr=spider&amp;for=pc
+        icon: fas fa-link
+        description: ""
+      - name: zabbix 分布式zabbix_proxy - linux笔记 - 博客园
+        url: https://www.cnblogs.com/legenidongma/p/10738795.html
+        icon: fas fa-link
+        description: ""
+      - name: centos7源码编译安装lamp/lnmp_西瓜的博客-CSDN博客_centos7源码安装lamp
+        url: https://blog.csdn.net/qq_33862644/article/details/80146508
+        icon: fas fa-link
+        description: ""
+      - name: nginx 之 proxy_pass详解 - 简书
+        url: https://www.jianshu.com/p/b010c9302cd0
+        icon: fas fa-link
+        description: ""
+      - name: Zabbix-PPT-监控
+        url: https://dbaplus.cn/news-160-1885-1.html
+        icon: fas fa-link
+        description: ""
+      - name: nginx location配置详细解释_西瓜的博客-CSDN博客_nginx location配置详细解释
+        url: https://blog.csdn.net/qq_33862644/article/details/79337348
+        icon: fas fa-link
+        description: ""
+      - name: MHA架构实施（一主一从）学不会，你来打我？加油！奥利给_南宫乘风-Linux运维-虚拟化容器-Java-CSDN博客_为啥mha必须要是1主2从
+        url: https://blog.csdn.net/heian_99/article/details/106939828
+        icon: fas fa-link
+        description: ""
+      - name: Linux升级OpenSSH8.0p1、OpenSSL1.1.1b教程-未来往事的博客
+        url: https://www.xxshell.com/2725.html
+        icon: fas fa-link
+        description: ""
+      - name: 深入理解Linux系统、恢复误删文件、xfs 类型文件的备份和恢复 小结_weixin_47219725的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_47219725/article/details/106923022?utm_medium=distribute.pc_relevant.none-task-blog-title-4&amp;spm=1001.2101.3001.4242
+        icon: fas fa-link
+        description: ""
+      - name: 创建EOIP隧道-RouterOS中级教程14 - 知乎
+        url: https://zhuanlan.zhihu.com/p/91312747
+        icon: fas fa-link
+        description: ""
+      - name: 三大主流负载均衡器LVS、Nginx、HAproxy详解_lilygg的博客-CSDN博客_haproxy lvs
+        url: https://blog.csdn.net/lilygg/article/details/89538862?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.control&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.control
+        icon: fas fa-link
+        description: ""
+      - name: 随笔：大数据技术相关组件，概念，导图_change 阿光的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_45242835/article/details/106930174
+        icon: fas fa-link
+        description: ""
+      - name: 文档预览
+        url: https://www.aliyun.com/acts/best-practice/preview?spm=5176.10695662.J_8058803260.617.711766f4srMu8K&amp;id=353649
+        icon: fas fa-link
+        description: ""
+      - name: 什么是trunk端口？_chenglanche9990的博客-CSDN博客_trunk口
+        url: https://blog.csdn.net/chenglanche9990/article/details/100987468
+        icon: fas fa-link
+        description: ""
+      - name: 性能测试之数据库监控分析工具PMM - 老僧观天下 - 博客园
+        url: https://www.cnblogs.com/hally/p/12862568.html
+        icon: fas fa-link
+        description: ""
+      - name: tomcat线程释放时间_详解 Tomcat 的连接数与线程池_等闲平地的博客-CSDN博客
+        url: https://blog.csdn.net/weixin_33728774/article/details/112877119
+        icon: fas fa-link
+        description: ""
+  - name: 要看内容
+    icon: fas fa-folder
+    path:
+      - 要看内容
+    sites:
+      - name: 实用运维之gitlab主从实时同步 - 简书
+        url: https://www.jianshu.com/p/52de6a8d29d6
+        icon: fas fa-link
+        description: ""
+      - name: git服务器配置与搭建 | 运维之道
+        url: http://www.myjishu.com/?p=155
+        icon: fas fa-link
+        description: ""
+      - name: Gitlab运维日常使用记录 - 简书
+        url: https://www.jianshu.com/p/7898be109fad
+        icon: fas fa-link
+        description: ""
+      - name: AD域配置详解_图文_百度文库
+        url: https://wenku.baidu.com/view/c3113a97ab00b52acfc789eb172ded630a1c987e.html
+        icon: fas fa-link
+        description: ""
+      - name: javaweb部署服务器 详细版 - CSDN博客
+        url: https://blog.csdn.net/sinat_33388558/article/details/53991954
+        icon: fas fa-link
+        description: ""
+      - name: 大型系统的发布部署方案 - CSDN博客
+        url: https://blog.csdn.net/ygjdatou/article/details/51037699
+        icon: fas fa-link
+        description: ""
+      - name: 我是如何利用Github Pages搭建起我的博客，细数一路的坑 - JackyRoc - 博客园
+        url: https://www.cnblogs.com/jackyroc/p/7681938.html
+        icon: fas fa-link
+        description: ""
+      - name: 自动化部署之jenkins及简介 - jimmy_xuli - 博客园
+        url: https://www.cnblogs.com/jimmy-xuli/p/9020825.html
+        icon: fas fa-link
+        description: ""
+      - name: Jenkins+Ansible+Gitlab自动化部署实践-HelloWorld-51CTO博客
+        url: https://blog.51cto.com/hebutyx/2104315
+        icon: fas fa-link
+        description: ""
+      - name: DevOps落地三部曲：如何归责？用啥工具？往哪里去？ - 运维 - dbaplus社群：围绕Data、Blockchain、AiOps的企业级专业社群。技术大咖、原创干货，每天精品原创文章推送，每周线上技术分享，每月线
+        url: https://dbaplus.cn/news-134-1732-1.html
+        icon: fas fa-link
+        description: ""
+      - name: Jenkins详细教程 - 简书
+        url: https://www.jianshu.com/p/5f671aca2b5a
+        icon: fas fa-link
+        description: ""
+      - name: 史上最全的后端技术大全，你都了解哪些技术呢？ - easylife206的专栏 - CSDN博客
+        url: https://blog.csdn.net/easylife206/article/details/100516028
+        icon: fas fa-link
+        description: ""
+      - name: Linux命令速记 - weixin_41687289的博客
+        url: https://blog.csdn.net/weixin_41687289/article/details/88316740
+        icon: fas fa-link
+        description: ""
+      - name: SSH -R 反向端口转发_运维_Avalon-CSDN博客
+        url: https://blog.csdn.net/autoliuweijie/article/details/80283689
+        icon: fas fa-link
+        description: ""
+      - name: 用SoftEther + L2TP 建立虚拟局域网 | Anderson&#039;s blog
+        url: https://andersonfeng.github.io/2020/05/03/SoftEtherVPN-L2TP-Local-Network/
+        icon: fab fa-github
+        description: ""
+      - name: 个人信息中心
+        url: http://www.12315.cn/cuser/portal/
+        icon: fas fa-link
+        description: ""
+      - name: tomcxat相关 · linux运维 · 看云
+        url: https://www.kancloud.cn/noahs/linux/1536914
+        icon: fas fa-link
+        description: ""
+      - name: MySQL 故障诊断：MySQL 占用 CPU 过高问题定位及优化-51CTO.COM
+        url: https://www.51cto.com/article/703691.html
+        icon: fas fa-link
+        description: ""
+      - name: tomcat各个端口的作用 - 构建巨人肩膀 - 博客园
+        url: https://www.cnblogs.com/yuan951/p/7637431.html
+        icon: fas fa-link
+        description: ""
+      - name: WEB服务软件 · linux运维 · 看云
+        url: https://www.kancloud.cn/noahs/linux/1536902
+        icon: fas fa-link
+        description: ""
+      - name: Docker经典入门学习教程 - 运维派
+        url: http://www.yunweipai.com/34721.html
+        icon: fas fa-link
+        description: ""
+  - name: 内网链接
+    icon: fas fa-folder
+    path:
+      - 内网链接
+    sites:
+      - name: 内网WRT
+        url: http://10.1.1.250/cgi-bin/luci/
+        icon: fas fa-link
+        description: ""
+      - name: 内网爱快
+        url: http://10.1.1.1:3579/#/network-setting/lan-wan-set?type=wan&amp;id=1
+        icon: fas fa-link
+        description: ""
+      - name: 内网群晖
+        url: http://10.1.1.251:5000/
+        icon: fas fa-link
+        description: ""
+      - name: Super-NAS-emby
+        url: http://10.1.1.251:8096/web/index.html#!/home
+        icon: fas fa-link
+        description: ""
+      - name: Music Tag Web
+        url: http://10.1.1.251:8002/#/
+        icon: fas fa-link
+        description: ""
+      - name: yacd
+        url: http://10.1.1.250:9090/ui/yacd/#/connections
+        icon: fas fa-link
+        description: ""
+      - name: AdGuard Home
+        url: http://10.1.1.250:3000/
+        icon: fas fa-link
+        description: ""
+      - name: 5G CPE 5
+        url: https://hwcpe.ll.sd/#/developermode
+        icon: fas fa-link
+        description: ""
+  - name: 免费资源折腾
+    icon: fas fa-folder
+    path:
+      - 免费资源折腾
+    subcategories:
+      - name: 服务器管理
+        icon: fas fa-folder
+        path:
+          - 免费资源折腾
+          - 服务器管理
+        sites:
+          - name: 日本xui面板
+            url: http://131.186.46.129:3579/xui/
+            icon: fas fa-link
+            description: ""
+          - name: 东京宝塔Linux面板
+            url: https://131.186.46.129:10541/home
+            icon: fas fa-link
+            description: ""
+          - name: 圣何塞AMD宝塔Linux面板
+            url: http://192.9.240.53:36826/
+            icon: fas fa-link
+            description: ""
+          - name: 圣何塞ARM宝塔Linux面板
+            url: https://165.1.72.222:21705/b1b758e1
+            icon: fas fa-link
+            description: ""
+          - name: 张欣依-xui
+            url: http://8.219.9.161:3579/ttainidx/panel/
+            icon: fas fa-link
+            description: ""
+          - name: 香港diy-1Panel
+            url: http://156.254.115.114:29933/apps/all
+            icon: fas fa-link
+            description: ""
+          - name: 阿里云SS面板
+            url: http://47.76.65.114:2053/BBkKwmWfgA/panel/
+            icon: fas fa-link
+            description: ""
+          - name: 日本xui-8.211.151.222-x-ui
+            url: http://8.211.151.222:2053/ttainidx/panel/
+            icon: fas fa-link
+            description: ""
+          - name: 阿里轻量云1Panel
+            url: https://hkal.ggaa.eu.org:3579/a24be1a0fb
+            icon: fas fa-link
+            description: ""
+          - name: 首尔SS面板
+            url: http://193.123.247.236:3579/drfy/panel/
+            icon: fas fa-link
+            description: ""
+          - name: 240b:4001:278:8401:ffff:5e3a:58ff:4437-欢迎
+            url: http://[240b:4001:278:8401:ffff:5e3a:58ff:4437]:2053/GiFNa1yxzQ/
+            icon: fas fa-link
+            description: ""
+          - name: 日本claw-1Panel
+            url: http://8.211.151.222:3579/ttainidx
+            icon: fas fa-link
+            description: ""
+    sites:
+      - name: 比较所有顶级域名的价格 | 顶级域名列表
+        url: https://zh-hans.tld-list.com/
+        icon: fas fa-link
+        description: ""
+      - name: 哪里续费com域名最便宜 - 第1页 - 哪煮米
+        url: https://www.nazhumi.com/domain/com/renew
+        icon: fas fa-link
+        description: ""
+      - name: 地址生成器
+        url: https://poi.moyutime.cn/address
+        icon: fas fa-link
+        description: ""
+      - name: Node Hatch开小鸡
+        url: https://www.nodehatch.com/host/coupon
+        icon: fas fa-link
+        description: ""
+      - name: Cloudflare Workers优秀项目收集（持续更新） - iGdu
+        url: https://igdux.com/workers
+        icon: fas fa-link
+        description: ""
+      - name: 精选的 Cloudflare 工具、开源项目、指南、博客和其他资源列表
+        url: https://github.com/zhuima/awesome-cloudflare?tab=readme-ov-file#%E6%B5%8B%E9%80%9F
+        icon: fab fa-github
+        description: ""
+      - name: 接口大全-免费API,收集所有免费的API
+        url: https://www.free-api.com/
+        icon: fas fa-link
+        description: ""
+      - name: OpenClash 常用与维护 - Jacks Blog
+        url: https://blog.dreamtobe.cn/openclash_maintain/
+        icon: fas fa-link
+        description: ""
+      - name: 网络空间测绘，网络空间安全搜索引擎，网络空间搜索引擎，安全态势感知 - FOFA网络空间测绘系统
+        url: https://fofa.info/
+        icon: fas fa-link
+        description: ""
+      - name: Serv00搭建各种服务 | Saika&#039;s Blog
+        url: https://saika.us.kg/2024/01/27/serv00_logs/#One-api
+        icon: fas fa-link
+        description: ""
+      - name: 实现简单 CF Workers AI Bot
+        url: https://blogcdn.blog.highp.ing/p/rustcfwksaibot/#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81
+        icon: fas fa-link
+        description: ""
+      - name: 检查您自己的IP地址和DNS地址
+        url: https://whoer.net/zh
+        icon: fas fa-link
+        description: ""
+      - name: 地址API
+        url: https://saddress.dizhi666.com/getExpressAddress?areaType=2&amp;areaName=%E6%B5%99%E6%B1%9F%E7%9C%81-%E6%9D%AD%E5%B7%9E%E5%B8%82&amp;num=5&amp;orderNo&amp;needEmptyPhone=1&amp;fullRoomNum=1&amp;dataType=communityStreet
+        icon: fas fa-link
+        description: ""
+      - name: 汉字转拼音 - 在线中文汉字拼音转换器_汉语文字转拼音
+        url: https://www.hzzpy.net/
+        icon: fas fa-link
+        description: ""
+      - name: Netlify容器SAAS
+        url: https://app.netlify.com/sites/hstz/overview
+        icon: fas fa-link
+        description: ""
+      - name: 生信用卡3
+        url: https://namso-gen.com/?tab=advance&amp;network=random
+        icon: fas fa-link
+        description: ""
+      - name: 美国信息生成
+        url: https://fauxid.com/fake-name-generator/united-states/alaska?age=18-24
+        icon: fas fa-link
+        description: ""
+      - name: 用fscj学生邮箱接入Apple ID并注册perplexity - 福利羊毛 / 福利羊毛, Lv2 - LINUX DO
+        url: https://linux.do/t/topic/199795
+        icon: fas fa-link
+        description: ""
+      - name: 免费在线接收短信验证码,短信接码,免费接短信,临时手机号码 - 云接码
+        url: https://yunjiema.net/
+        icon: fas fa-link
+        description: ""
+      - name: az100
+        url: https://portal.azure.com/#browse/Microsoft.Compute%2FvirtualMachines
+        icon: fas fa-link
+        description: ""
+      - name: 教育 - Microsoft Azure
+        url: https://portal.azure.com/?Microsoft_Azure_Education_correlationId=e322b8c1-95fd-4391-b05b-8a8096924c35#view/Microsoft_Azure_Education/EducationMenuBlade/~/overview
+        icon: fas fa-link
+        description: ""
+      - name: 学生卡生成器
+        url: https://linux.do/t/topic/46755
+        icon: fas fa-link
+        description: ""
+      - name: 学生证生成器 (仅供内部测试使用)
+        url: https://student-id.pages.dev/
+        icon: fas fa-link
+        description: ""
+      - name: Client Area - Itex Integrated Ventures
+        url: https://customer.itexint.com/clientarea.php?action=domains#
+        icon: fas fa-link
+        description: ""
+      - name: Afriregister - 我的域名 --- Afriregister - My Domains
+        url: https://www.afriregister.com/domainmanager.php
+        icon: fas fa-link
+        description: ""
+      - name: 微软MSTC-EDU邮箱
+        url: https://outlook.office365.com/mail/?url=%2fowa%2f%3frealm%253dmstc.edu
+        icon: fas fa-link
+        description: ""
+      - name: 无损生活 - 全网无损音乐免费下载，音乐搜索,音乐在线试听,下载,在线解析网
+        url: https://flac.life/
+        icon: fas fa-link
+        description: ""
+      - name: 美国地址生成器 - 美国身份生成器 - 美国信用卡生成器
+        url: https://www.meiguodizhi.com/
+        icon: fas fa-link
+        description: ""
+      - name: Domain Name Database | DomDB
+        url: https://domdb.com/
+        icon: fas fa-link
+        description: ""
+      - name: Cloud Studio
+        url: https://ide.cloud.tencent.com/dashboard/ai
+        icon: fas fa-link
+        description: ""
+      - name: 免费监控测活
+        url: https://uptimerobot.com/pricing/
+        icon: fas fa-link
+        description: ""
+      - name: Redis - 免费
+        url: https://console.upstash.com/redis/40f0b209-b771-43db-8ffe-285c9a7e6a8d
+        icon: fas fa-link
+        description: ""
+      - name: Free for Developers
+        url: https://free-for.dev/#/
+        icon: fas fa-link
+        description: ""
+      - name: 临时邮箱 - TempMail.Plus
+        url: https://tempmail.plus/zh/#!mail/2728486994
+        icon: fas fa-link
+        description: ""
+      - name: 艺术文字logo设计,免费logo在线制作,logo设计,公司logo设计,标志设计,U钙网
+        url: https://www.uugai.com/logoa/wenzi.php
+        icon: fas fa-link
+        description: ""
+      - name: 免费pg数据库
+        url: https://console.neon.tech/app/welcome
+        icon: fas fa-link
+        description: ""
+      - name: Billing | drfy&#039;s team | Northflank Cloud Platform
+        url: https://app.northflank.com/t/drfys-team/billing
+        icon: fas fa-link
+        description: ""
+      - name: deno原始管理
+        url: https://dash.deno.com/account/overview
+        icon: fas fa-link
+        description: ""
+      - name: DNSHE.COM免费域名
+        url: https://my.dnshe.com/index.php?m=domain_hub
+        icon: fas fa-link
+        description: ""
+      - name: 信用卡生成测活
+        url: https://chkr.cc/
+        icon: fas fa-link
+        description: ""
+  - name: AI相关
+    icon: fas fa-folder
+    path:
+      - AI相关
+    subcategories:
+      - name: 免费在线使用
+        icon: fas fa-folder
+        path:
+          - AI相关
+          - 免费在线使用
+        sites:
+          - name: Aurora.ai - 看更大的世界
+            url: https://aurorai.cn/chat/#/
+            icon: fas fa-link
+            description: ""
+          - name: 茶台AI
+            url: https://www.chatai.ee/chat
+            icon: fas fa-link
+            description: ""
+          - name: Perplexity
+            url: https://www.perplexity.ai/
+            icon: fas fa-link
+            description: ""
+          - name: 🤯 随便聊聊 · LobeChat
+            url: https://chat.1app.site/chat?session=inbox&amp;topic=O0a9EPD6
+            icon: fas fa-link
+            description: ""
+          - name: llama205模型
+            url: https://huggingface.co/chat/conversation/66beeda9957b2310751435ad
+            icon: fas fa-link
+            description: ""
+          - name: Llama Coder – AI Code Generator
+            url: https://llamacoder.together.ai/
+            icon: fas fa-link
+            description: ""
+          - name: 聊天仪表盘
+            url: https://aichatru.ru/zh-CN/app
+            icon: fas fa-link
+            description: ""
+          - name: 潺潺流水小桥家 | ChatK
+            url: https://chat2.oaichat.cc/c/e84a73f3-1763-45bb-90ff-acf7ecaa1478
+            icon: fas fa-link
+            description: ""
+          - name: API CHECKER
+            url: https://api-checker.kici.me/
+            icon: fas fa-link
+            description: ""
+          - name: 多模型对比AI
+            url: https://chat.notdiamond.ai/
+            icon: fas fa-link
+            description: ""
+          - name: OpenGPT 4o - a Hugging Face Space by KingNish
+            url: https://huggingface.co/spaces/KingNish/OpenGPT-4o
+            icon: fas fa-link
+            description: ""
+          - name: 200K claude
+            url: https://hermchats.com/chat
+            icon: fas fa-link
+            description: ""
+          - name: 始皇的ChatGPT
+            url: https://shared.oaifree.com/?temporary-chat=true
+            icon: fas fa-link
+            description: ""
+          - name: ChatGPT VV佬
+            url: https://plus.aivvm.com/auth/login_share?token=fk-ew6cEsD0Chd-oUq_RPeTQ-jbkSQWDTzXk_AiBbtOODI
+            icon: fas fa-link
+            description: ""
+          - name: Shopping Cart - Itex Integrated Ventures
+            url: https://customer.itexint.com/cart.php?a=view
+            icon: fas fa-link
+            description: ""
+          - name: 生成代码AI Artifacts by E2B
+            url: https://artifacts.e2b.dev/
+            icon: fas fa-link
+            description: ""
+          - name: 设计 - Canva可画
+            url: https://www.canva.com/design/DAGQ0A6eIHs/GveUuyCC36T62sUCQQ4OHA/edit
+            icon: fas fa-link
+            description: ""
+          - name: 互联网常用资源聚合
+            url: https://free-for.dev/#/?id=managed-data-services
+            icon: fas fa-link
+            description: ""
+          - name: OiChat (Open WebUI)
+            url: https://happyapi.org/
+            icon: fas fa-link
+            description: ""
+          - name: 🐕 Drawing a Puppy | Open WebUI
+            url: https://chat.yingmiwo.me/c/486a42c3-b794-43c9-9177-701b8efa2ac7
+            icon: fas fa-link
+            description: ""
+          - name: My drive
+            url: https://app.giz.ai/folders/mySpace
+            icon: fas fa-link
+            description: ""
+          - name: 360AI助手
+            url: https://bot.360.com/cooperation
+            icon: fas fa-link
+            description: ""
+          - name: 在线AI抠图
+            url: https://text2img.vip/dashboard/playground/remove-bg
+            icon: fas fa-link
+            description: ""
+          - name: Arya - 在线 Markdown 编辑器
+            url: https://markdown.lovejade.cn/
+            icon: fas fa-link
+            description: ""
+          - name: 小狐狸的智慧 | Qwen
+            url: https://chat.qwenlm.ai/c/d54c4da9-6756-4f75-829d-3f5397ca97b8
+            icon: fas fa-link
+            description: ""
+          - name: (19) Grok / X
+            url: https://x.com/i/grok?conversation=1892509297747329239
+            icon: fas fa-link
+            description: ""
+          - name: AI画图表
+            url: https://vdraw.ai/ai-infographic-generator
+            icon: fas fa-link
+            description: ""
+          - name: Ask AI
+            url: https://iask.ai/?mode=pro
+            icon: fas fa-link
+            description: ""
+          - name: MD2Card - Markdown 转知识卡片工具
+            url: https://md2card.com/zh
+            icon: fas fa-link
+            description: ""
+          - name: 精选299套个人简历模板【免费下载|word可编辑】- 精品简历模板网
+            url: https://www.51386.com/
+            icon: fas fa-link
+            description: ""
+          - name: 谷歌免费空间 - Firebase Studio
+            url: https://studio.firebase.google.com/njhcxb-04465544
+            icon: fab fa-google
+            description: ""
+      - name: 免费API
+        icon: fas fa-folder
+        path:
+          - AI相关
+          - 免费API
+        sites:
+          - name: MAX API
+            url: https://api.7xnn.cn/token
+            icon: fas fa-link
+            description: ""
+          - name: One API
+            url: https://api.dragonvirt.com/
+            icon: fas fa-link
+            description: ""
+          - name: NAI API
+            url: https://nai.typegpt.net/midjourney
+            icon: fas fa-link
+            description: ""
+      - name: AI文档PPT
+        icon: fas fa-folder
+        path:
+          - AI相关
+          - AI文档PPT
+        sites:
+          - name: 运维经理年中总结 - Napkin AI
+            url: https://app.napkin.ai/page/CgoiCHByb2Qtb25lEiwKBFBhZ2UaJDg2ODI5MDgxLWY5YzMtNDlkOC1iM2UxLWJkMmRkMGJjZTExOQ
+            icon: fas fa-link
+            description: ""
+    sites:
+      - name: free-llm-api-resources | A list of free LLM inference resources accessible via API.
+        url: https://jscheah.me/free-llm-api-resources/
+        icon: fas fa-link
+        description: ""
+      - name: AI知识库
+        url: https://agijuejin.feishu.cn/wiki/IaMEwtLr0iEqPzkkGikcJPcgnpc
+        icon: fas fa-link
+        description: ""
+      - name: Genspark - 古风武侠美女图像生成任务
+        url: https://www.genspark.ai/agents?id=d798c059-1a49-4927-8a49-ada3b09d669d
+        icon: fas fa-link
+        description: ""
+      - name: freeapi-公益
+        url: https://freeapi.aiiz.cc/token
+        icon: fas fa-link
+        description: ""
+      - name: 数据库-openwebui | 3377&#039;s Org | Supabase
+        url: https://supabase.com/dashboard/project/gwzektrldrpxrckzdbec
+        icon: fas fa-link
+        description: ""
+      - name: 免费数据库 | drfy | Aiven
+        url: https://console.aiven.io/account/a4d3451791e3/project/fyai/services/drfy/overview
+        icon: fas fa-link
+        description: ""
+      - name: API.66D.EU
+        url: https://api.66d.eu/panel/profile
+        icon: fas fa-link
+        description: ""
+      - name: 免费ChatGPT1
+        url: https://free.netfly.top/
+        icon: fas fa-link
+        description: ""
+      - name: Chat Nio
+        url: http://soul.ggaa.eu.org:8000/admin/channel
+        icon: fas fa-link
+        description: ""
+      - name: g4f - gui
+        url: http://soul.ggaa.eu.org:5050/chat/
+        icon: fas fa-link
+        description: ""
+      - name: 本地部署 Llama3.1 最强开源大模型！支持 Windows、MacOS – 零度解说
+        url: https://www.freedidi.com/13105.html
+        icon: fas fa-link
+        description: ""
+      - name: "[小白的教程]无需服务器一键部署OneAPI? | OneAPI 部署使用指南。 - 这里是一切开始的地方"
+        url: https://www.laogou666.com/posts/AGI/OneAPI
+        icon: fas fa-link
+        description: ""
+      - name: 手把手教你构建一个 本地化的，免费的，企业级的，AI大模型知识库问答系统 - 网旭哈瑞.AI
+        url: https://harryai.cc/post/enterprise-knowledge-llm-qa/
+        icon: fas fa-link
+        description: ""
+      - name: 信用卡生成
+        url: https://checker.top/
+        icon: fas fa-link
+        description: ""
+      - name: 信用卡生产2
+        url: https://cardguru.io/bulk-credit-card-generator
+        icon: fas fa-link
+        description: ""
+      - name: shenzhi-wang/Llama3.1-8B-Chinese-Chat at main
+        url: https://huggingface.co/shenzhi-wang/Llama3.1-8B-Chinese-Chat/tree/main/gguf
+        icon: fas fa-link
+        description: ""
+      - name: 模型和价格说明 - 智增增API
+        url: https://doc.zhizengzeng.com/doc-3979947
+        icon: fas fa-link
+        description: ""
+      - name: AI相关API白嫖和成本评估综合表 - Lark云文档
+        url: https://skyit-uk.jp.larksuite.com/sheets/MOk5scBxHhGjDjtumhMjfwEUpYg?sheet=NxkNQy
+        icon: fas fa-link
+        description: ""
+      - name: drfy88_gcp - 报告 - 结算
+        url: https://console.cloud.google.com/billing/01EA17-2E75FF-C2E607/reports;chartType=STACKED_AREA;grouping=GROUP_BY_SKU;chartCostView=CUMULATIVE?project=innate-summit-424812-b0
+        icon: fab fa-google
+        description: ""
+      - name: https://chat.opao.xyz
+        url: https://chat.opao.xyz/
+        icon: fas fa-link
+        description: ""
+      - name: Google AI Studio-API详情
+        url: https://aistudio.google.com/u/5/usage?project=gen-lang-client-0727000128&amp;tab=rate-limit&amp;timeRange=last-28-days
+        icon: fab fa-google
+        description: ""
+  - name: 常用导航
+    icon: fas fa-folder
+    path:
+      - 常用导航
+    sites:
+      - name: Google
+        url: https://www.google.com.hk/
+        icon: fab fa-google
+        description: ""
+      - name: Gemini
+        url: https://gemini.google.com/app?pli=1
+        icon: fab fa-google
+        description: ""
+      - name: 飞牛Nas
+        url: http://10.1.1.66:5666/
+        icon: fas fa-link
+        description: ""
+      - name: Home Assistant
+        url: http://10.1.1.66:8123/lovelace/default_view
+        icon: fas fa-link
+        description: ""
+      - name: 青龙
+        url: http://10.1.1.66:15700/crontab
+        icon: fas fa-link
+        description: ""
+      - name: LINUX DO
+        url: https://linux.do/
+        icon: fas fa-link
+        description: ""
+      - name: NodeSeek
+        url: https://www.nodeseek.com/
+        icon: fas fa-link
+        description: ""
+      - name: CF
+        url: https://dash.cloudflare.com/e7f6a487169d1ea0815c6b990ca3e61f/
+        icon: fas fa-link
+        description: ""
+      - name: One Hub
+        url: https://drfy-1.hf.space/
+        icon: fas fa-link
+        description: ""
+      - name: 辰星鸡场
+        url: https://tz.ggaa.eu.org/
+        icon: fas fa-link
+        description: ""
+      - name: Oracle MyLearn
+        url: https://mylearn.oracle.com/ou/learning-path/become-a-mysql-80-database-admin-professional/97589
+        icon: fas fa-link
+        description: ""
+      - name: 卡号圈 - 电信
+        url: https://kahaoquan.com/forum.php?mod=forumdisplay&amp;fid=10
+        icon: fas fa-link
+        description: ""
+      - name: ttainidx的贴吧
+        url: https://tieba.baidu.com/home/main?id=tb.1.45cd0b9a.XA60Ah1A5f8HvThRzTZV5A&amp;fr=userbar
+        icon: fas fa-link
+        description: ""
+      - name: 手机归属地查询
+        url: https://tool.lu/mobile/
+        icon: fas fa-link
+        description: ""
+      - name: 🌟 热门 | RSSHub
+        url: https://docs.rsshub.app/zh/routes/popular#%E7%94%A8%E6%88%B7%E7%AC%94%E8%AE%B0-%E6%94%B6%E8%97%8F
+        icon: fas fa-link
+        description: ""
+      - name: 运营商测速
+        url: https://net.ljxnet.cn/
+        icon: fas fa-link
+        description: ""
+      - name: Drfy-Navi
+        url: https://llll.app.tc/
+        icon: fas fa-link
+        description: ""
+      - name: 双不限·神卡大全
+        url: https://www.kdocs.cn/l/chpsCfPYI7tg?R=L1MvMTA=
+        icon: fas fa-link
+        description: ""
+      - name: Google AI Studio
+        url: https://aistudio.google.com/prompts/new_chat
+        icon: fab fa-google
+        description: ""
+      - name: 油猴插件搜索
+        url: https://www.userscript.zone/
+        icon: fas fa-link
+        description: ""
+      - name: NiuLink - 节点管理
+        url: https://portal.niulinkcloud.cn/lite/node-operation/nodes/all?page=1&amp;size=10&amp;owner=self&amp;sortKey=bind&amp;sortType=desc
+        icon: fas fa-link
+        description: ""
+      - name: 布局拼图 &amp; 长图拼接 - 免费在线拼图工具
+        url: https://img.ops-coffee.com/photo/
+        icon: fas fa-link
+        description: ""
+      - name: 超哥家里云爱快-系统概况
+        url: http://10.1.1.1:3579/#/system-overview
+        icon: fas fa-link
+        description: ""
+      - name: 253-ESXi
+        url: https://10.1.1.253/ui/#/login
+        icon: fas fa-link
+        description: ""
+      - name: 153-esxi
+        url: https://10.1.1.153/ui/#/login
+        icon: fas fa-link
+        description: ""
