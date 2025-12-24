@@ -2,7 +2,7 @@
 # 建议复制到 config/user/site.yml 并按需调整；用户配置采用“完全替换”策略，将覆盖默认配置。
 
 # 网站基本信息
-title: MeNav
+title: 晓梦小妮
 description: Personal Navigation Station
 author: rbetree
 favicon: menav.svg
@@ -33,7 +33,7 @@ fonts:
 # 个人资料：显示在首页顶部的欢迎信息
 profile:
   title: Hello,
-  subtitle: Welcome to My Navigation
+  subtitle: Welcome to My 晓梦小妮
 
 # 社交媒体链接：显示在侧边栏底部；可按需增删
 social:
