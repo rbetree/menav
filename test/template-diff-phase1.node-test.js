@@ -147,7 +147,7 @@ test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', ()
   });
 });
 
-test('projects：应输出大卡片样式 class（site-card-large）', () => {
+test('projects：应输出代码仓库风格卡片（site-card-repo）', () => {
   withRepoRoot(() => {
     loadHandlebarsTemplates();
 
@@ -174,7 +174,9 @@ test('projects：应输出大卡片样式 class（site-card-large）', () => {
     const html = pages.projects;
 
     assert.ok(typeof html === 'string' && html.length > 0);
-    assert.ok(html.includes('site-card-large'), 'projects 应包含大卡片样式类');
+    assert.ok(html.includes('page-template-projects'), 'projects 应包含模板容器 class');
+    assert.ok(html.includes('projects-grid'), 'projects 应包含网格容器');
+    assert.ok(html.includes('site-card-repo'), 'projects 应包含代码仓库风格卡片类');
   });
 });
 

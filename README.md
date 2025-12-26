@@ -250,12 +250,18 @@ npm install
    MENAV_BOOKMARKS_DETERMINISTIC=1 npm run import-bookmarks
    ```
    - 系统会自动将书签转换为配置文件保存到`config/user/pages/bookmarks.yml`
-   - **注意**：`npm run dev`命令不会自动处理书签文件，必须先手动运行上述命令
+  - **注意**：`npm run dev`命令不会自动处理书签文件，必须先手动运行上述命令
+  - `npm run dev` 默认会刷新 `articles/projects` 的联网缓存（若你希望离线启动，请使用 `npm run dev:offline`）
 
 5. 构建
 ```bash
 # 启动开发服务器
 npm run dev
+```
+
+```bash
+# 离线启动开发服务器（不刷新联网缓存）
+npm run dev:offline
 ```
 
 ```bash

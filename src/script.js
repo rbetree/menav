@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLightTheme = false; // 主题状态
     let isSidebarCollapsed = false; // 侧边栏折叠状态
     let pages; // 页面元素的全局引用
-    let currentSearchEngine = 'local'; // 当前选择的搜索引擎
+	    let currentSearchEngine = 'local'; // 当前选择的搜索引擎
 
     // 搜索索引，用于提高搜索效率
     let searchIndex = {
@@ -736,8 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
         items: []
     };
 
-    // 搜索引擎配置
-    const searchEngines = {
+	    // 搜索引擎配置
+	    const searchEngines = {
         local: {
             name: '本地搜索',
             icon: 'fas fa-search',
@@ -758,7 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'fas fa-paw',
             url: 'https://www.baidu.com/s?wd='
         }
-    };
+	    };
+
 
     // 获取DOM元素 - 基本元素
     const searchInput = document.getElementById('search');
@@ -1716,11 +1717,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // 初始化嵌套分类功能
-        initializeNestedCategories();
-        
-        // 初始化分类切换按钮
-        const categoryToggleBtn = document.getElementById('category-toggle');
+	        // 初始化嵌套分类功能
+	        initializeNestedCategories();
+	        
+	        // 初始化分类切换按钮
+	        const categoryToggleBtn = document.getElementById('category-toggle');
         if (categoryToggleBtn) {
             categoryToggleBtn.addEventListener('click', function() {
                 window.MeNav.toggleCategories();

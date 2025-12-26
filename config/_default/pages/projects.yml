@@ -1,40 +1,33 @@
 # 默认页面配置（请勿直接修改）。
 # 建议复制到 config/user/pages/projects.yml 并按需调整。
-title: 我的项目                 # 页面标题
-subtitle: 这里展示了我的一些个人项目和开源贡献  # 页面副标题
+title: 项目                 # 页面标题
+subtitle: 项目展示  # 页面副标题
 
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
 template: projects
 
 # 页面分类与站点列表
+#
+# projects 模板采用“代码仓库风”卡片（repo 风格）。
+# 统计信息（language/stars/forks）为自动获取数据：
+# - 运行 `npm run sync-projects` 会联网抓取 GitHub 仓库信息，并写入 dev/ 缓存（仓库默认 gitignore）
+# - `npm run build` 默认不联网；缓存缺失时卡片仅展示标题与描述
 categories:
   - name: 个人项目
     icon: fas fa-code  # 分类图标（Font Awesome）
     sites:
-      - name: MeNav 个人导航站       # 站点名称
-        icon: fas fa-compass        # 手动图标（manual 模式显示；favicon 模式下作为回退）
-        description: 一个简洁美观的个人导航页面 # 站点描述
-        url: https://rbetree.github.io/menav/
-      - name: MeNav 源码仓库
-        icon: fab fa-github
-        description: GitHub 仓库地址（可 Fork 自用）
+      - name: MeNav
+        icon: fab fa-github       # 手动图标（manual 模式显示；favicon 模式下作为回退）
+        description: 一键部署的个人导航站生成器，支持书签导入与自动构建，轻松整理展示您的网络收藏 # 站点描述
         url: https://github.com/rbetree/menav
-      - name: Todo List（示例）
-        icon: fas fa-tasks
-        description: 基于Vue3的待办事项管理器
-        url: "#"
-      - name: 个人博客（示例）
-        icon: fas fa-blog
-        description: 使用Hexo搭建的技术博客
-        url: "#"
-  - name: 开源贡献
-    icon: fas fa-code-branch
+      - name: MarksVault
+        icon: fab fa-github
+        description: 一个强大的浏览器扩展，用于智能管理、整理和安全备份您的书签数据
+        url: "https://github.com/rbetree/MarksVault"
+  - name: star
+    icon: fas fa-star
     sites:
-      - name: Project A（示例）
+      - name: CLIProxyAPI
         icon: fab fa-github
-        description: 开源项目贡献
-        url: "#"
-      - name: Project B（示例）
-        icon: fab fa-github
-        description: 开源项目贡献
-        url: "#"
+        description: Wrap Gemini CLI, Antigravity, ChatGPT Codex, Claude Code, Qwen Code, iFlow as an OpenAI/Gemini/Claude/Codex compatible API service, allowing you to enjoy the free Gemini 2.5 Pro, GPT 5, Claude, Qwen model through API
+        url: "https://github.com/router-for-me/CLIProxyAPI"

@@ -1442,6 +1442,167 @@ body .content.expanded {
     display: contents;
 }
 
+/* projects：代码仓库风格 */
+.page-template-projects {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.page-template-projects .projects-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 18px;
+}
+
+.page-template-projects .projects-page-header h2 {
+    font-size: 1.6rem;
+    margin: 0 0 10px 0;
+    border-left: 5px solid var(--accent-color);
+    padding-left: 14px;
+    letter-spacing: 0.4px;
+}
+
+.page-template-projects .projects-page-header .subtitle {
+    margin: 0;
+}
+
+.page-template-projects .heatmap-container {
+    flex-shrink: 0;
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+}
+
+.page-template-projects .heatmap-container:hover {
+    opacity: 1;
+}
+
+.page-template-projects .heatmap-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.page-template-projects .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+/* projects：把层级容器“摊平”，让卡片直接参与网格布局（保留 data-* 结构供扩展识别） */
+.page-template-projects .category,
+.page-template-projects .category-content,
+.page-template-projects .sites-grid,
+.page-template-projects .groups-container,
+.page-template-projects .subcategories-container {
+    display: contents;
+}
+
+.page-template-projects .category-header,
+.page-template-projects .group-header,
+.page-template-projects .empty-sites,
+.page-template-projects .empty-content {
+    display: none;
+}
+
+/* projects：代码仓库风卡片 */
+.site-card.site-card-repo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.1rem 1.1rem 1rem;
+    gap: 0;
+}
+
+.site-card.site-card-repo:hover {
+    transform: translateY(-4px);
+}
+
+.site-card.site-card-repo .repo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 12px;
+    min-width: 0;
+}
+
+.site-card.site-card-repo .repo-icon {
+    font-size: 1.15rem;
+    color: var(--nav-item-color);
+    opacity: 0.85;
+    transition: color 0.3s ease, opacity 0.3s ease;
+    flex: 0 0 auto;
+}
+
+.site-card.site-card-repo:hover .repo-icon {
+    color: var(--accent-color);
+    opacity: 1;
+}
+
+.site-card.site-card-repo .repo-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-card.site-card-repo .repo-desc {
+    font-size: 0.9rem;
+    color: var(--nav-item-color);
+    opacity: 0.85;
+    line-height: 1.5;
+    flex-grow: 1;
+    margin: 0 0 16px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.site-card.site-card-repo .repo-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.8rem;
+    color: var(--nav-item-color);
+    opacity: 0.85;
+}
+
+.site-card.site-card-repo .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.site-card.site-card-repo .lang-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+@media (max-width: 600px) {
+    .page-template-projects .projects-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-template-projects .heatmap-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
 /* friends/articles：不展示分类/分组标题（即使被扩展插入也隐藏） */
 .page-template-friends .category-header,
 .page-template-articles .category-header,
