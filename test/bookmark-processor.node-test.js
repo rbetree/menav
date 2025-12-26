@@ -64,11 +64,13 @@ test('templates：subgroups（第4层）应可渲染到页面', () => {
 
   const category = fs.readFileSync(path.join(__dirname, '..', 'templates', 'components', 'category.hbs'), 'utf8');
   const group = fs.readFileSync(path.join(__dirname, '..', 'templates', 'components', 'group.hbs'), 'utf8');
+  const pageHeader = fs.readFileSync(path.join(__dirname, '..', 'templates', 'components', 'page-header.hbs'), 'utf8');
   const siteCard = fs.readFileSync(path.join(__dirname, '..', 'templates', 'components', 'site-card.hbs'), 'utf8');
   const page = fs.readFileSync(path.join(__dirname, '..', 'templates', 'pages', 'bookmarks.hbs'), 'utf8');
 
   hbs.registerPartial('category', category);
   hbs.registerPartial('group', group);
+  hbs.registerPartial('page-header', pageHeader);
   hbs.registerPartial('site-card', siteCard);
 
   const tpl = hbs.compile(page);

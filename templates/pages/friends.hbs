@@ -1,14 +1,9 @@
-{{#ifEquals pageId @root.homePageId}}
-<div class="welcome-section">
-    <h2 data-editable="profile-title">{{title}}</h2>
-    <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+{{!-- friends.hbs - 友链页面：扁平化并列卡片展示（不显示分类标题） --}}
+<div class="page-template page-template-friends">
+    {{> page-header}}
+    <div class="flat-sites-grid">
+        {{#each flatCategories}}
+            {{> flat-category}}
+        {{/each}}
+    </div>
 </div>
-{{else}}
-<div class="welcome-section">
-    <h2 data-editable="page-title">{{title}}</h2>
-    <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-</div>
-{{/ifEquals}}
-{{#each categories}}
-    {{> category}}
-{{/each}} 

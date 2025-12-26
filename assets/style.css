@@ -19,6 +19,7 @@
     --scrollbar-hover-color: rgba(255, 255, 255, 0.25);
     --accent-color: #7694B9;
     --accent-hover: #6684A9;
+    --accent-rgb: 118, 148, 185;
     --nav-item-color: #a1a2a5;
     --success-color: #4caf50;
     --error-color: #f44336;
@@ -76,6 +77,7 @@ body.light-theme {
     --scrollbar-hover-color: rgba(0, 0, 0, 0.2);
     --accent-color: #7694B9;
     --accent-hover: #6684A9;
+    --accent-rgb: 118, 148, 185;
     --nav-item-color: #666666;
     --success-color: #4caf50;
     --error-color: #f44336;
@@ -978,6 +980,21 @@ body .content.expanded {
     transition: color 0.3s ease;
 }
 
+/* 页面内容更新时间（bookmarks 模板等） */
+.page-updated-at {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    opacity: 0.9;
+}
+
+.page-updated-at-source {
+    opacity: 0.8;
+}
+
 @keyframes glow {
     from {
         filter: drop-shadow(0 0 2px rgba(118, 148, 185, 0.2))
@@ -1390,6 +1407,38 @@ body .content.expanded {
     width: 100%;
 }
 
+/* friends/articles：扁平化网格容器（视觉无层级，但保留 data-* 结构供扩展识别） */
+.flat-sites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+    margin: 0 var(--spacing-md) var(--spacing-lg) var(--spacing-xl);
+    width: calc(100% - 3rem);
+    max-width: 1300px;
+}
+
+/* 扁平化容器：把中间结构节点“摊平”，让 site-card 直接参与 flat-sites-grid 布局 */
+.flat-sites-grid .flat-category,
+.flat-sites-grid .flat-category .sites-grid {
+    display: contents;
+}
+
+/* friends/articles：不展示分类/分组标题（即使被扩展插入也隐藏） */
+.page-template-friends .category-header,
+.page-template-articles .category-header,
+.page-template-friends .group-header,
+.page-template-articles .group-header {
+    display: none;
+}
+
+/* 扁平页面不展示空分类提示（保留 DOM 供扩展识别） */
+.page-template-friends .empty-sites,
+.page-template-articles .empty-sites {
+    display: none;
+}
+
 /* 网站卡片样式 */
 .site-card {
     background: linear-gradient(145deg, var(--site-card-bg-gradient-1), var(--site-card-bg-gradient-2));
@@ -1411,6 +1460,155 @@ body .content.expanded {
     border: 1px solid var(--border-color);
     z-index: 2;
     overflow: hidden;
+}
+
+/* 网站卡片变体：projects 大卡片 */
+.site-card.site-card-large {
+    padding: 1.1rem 1.2rem;
+    gap: 0.9rem;
+}
+
+.site-card.site-card-large .site-card-icon {
+    width: 3.1rem;
+    height: 3.1rem;
+}
+
+.site-card.site-card-large h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.site-card.site-card-large p {
+    font-size: 0.88rem;
+}
+
+/* 网站卡片变体：friends 友链风格 */
+.site-card.site-card-friend {
+    flex-direction: column;
+    padding: 30px 20px;
+    height: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    text-align: center;
+}
+
+/* 网站卡片变体：articles 文章风格 */
+.site-card.site-card-article {
+    flex-direction: column;
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    align-items: flex-start;
+    text-align: left;
+    justify-content: space-between;
+    min-height: 140px;
+}
+
+/* 友链/文章卡片：hover 提升更明显（匹配设计稿） */
+.site-card.site-card-friend:hover,
+.site-card.site-card-article:hover {
+    transform: translateY(-5px);
+}
+
+/* 文章卡片的图标：左上方矩形高亮块 */
+.site-card.site-card-article .site-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    background: rgba(var(--accent-rgb), 0.10);
+    border: 1px solid rgba(var(--accent-rgb), 0.18);
+}
+
+.site-card.site-card-article .site-card-icon i {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+}
+
+/* 友链卡片的图标：大圆头像居中 */
+.site-card.site-card-friend .site-card-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    background: rgba(var(--card-bg-rgb), 0.35);
+    border: 2px solid var(--border-color);
+    overflow: hidden;
+}
+
+/* 让 favicon/占位符在大圆里居中显示 */
+.site-card.site-card-friend .site-card-icon .icon-container,
+.site-card.site-card-article .site-card-icon .icon-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.site-card.site-card-friend .site-card-icon .icon-container .favicon-icon,
+.site-card.site-card-article .site-card-icon .icon-container .favicon-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+
+.site-card.site-card-friend .site-card-icon .icon-container .icon-placeholder,
+.site-card.site-card-friend .site-card-icon .icon-container .icon-fallback,
+.site-card.site-card-article .site-card-icon .icon-container .icon-placeholder,
+.site-card.site-card-article .site-card-icon .icon-container .icon-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.site-card.site-card-friend .site-card-icon .site-icon {
+    font-size: 2.5rem;
+}
+
+.site-card.site-card-friend .site-card-icon .icon-container .icon-placeholder,
+.site-card.site-card-friend .site-card-icon .icon-container .icon-fallback {
+    font-size: 2.5rem;
+}
+
+.site-card.site-card-article .site-card-icon .icon-container .icon-placeholder,
+.site-card.site-card-article .site-card-icon .icon-container .icon-fallback {
+    font-size: 1.8rem;
+}
+
+/* friends/articles：内容区域不拉伸，避免影响 justify-content 行为 */
+.site-card.site-card-friend .site-card-content,
+.site-card.site-card-article .site-card-content {
+    flex: 0 0 auto;
+}
+
+/* friends/articles：标题与描述排版（两行截断） */
+.site-card.site-card-friend h3,
+.site-card.site-card-article h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.site-card.site-card-friend p,
+.site-card.site-card-article p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--nav-item-color);
+    line-height: 1.5;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.site-card.site-card-friend p {
+    max-width: 90%;
+    margin: 0 auto;
 }
 
 .site-card:hover {
@@ -1942,6 +2140,13 @@ body .content.expanded {
         gap: var(--spacing-sm);
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+
+    .flat-sites-grid {
+        margin: 0 var(--spacing-xs) var(--spacing-lg) var(--spacing-xs);
+        width: calc(100% - var(--spacing-sm));
+        gap: var(--spacing-sm);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     
     .site-card {
         flex-direction: column;
@@ -2045,6 +2250,14 @@ body .content.expanded {
     }
     
     .sites-grid {
+        gap: 0.5rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .flat-sites-grid {
+        margin: 0 0.1rem 1.3rem 0.1rem;
+        padding: 0;
+        width: calc(100% - 0.2rem);
         gap: 0.5rem;
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }

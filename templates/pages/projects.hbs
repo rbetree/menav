@@ -1,14 +1,4 @@
-{{#ifEquals pageId @root.homePageId}}
-<div class="welcome-section">
-    <h2 data-editable="profile-title">{{title}}</h2>
-    <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
-</div>
-{{else}}
-<div class="welcome-section">
-    <h2 data-editable="page-title">{{title}}</h2>
-    <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-</div>
-{{/ifEquals}}
+{{> page-header}}
 {{#each categories}}
     {{> category}}
 {{/each}} 

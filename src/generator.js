@@ -1,6 +1,7 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const Handlebars = require('handlebars');
 
 // 导入Handlebars助手函数
@@ -412,6 +413,13 @@ function getSubmenuForNavItem(navItem, config) {
     return null;
   }
 
+  // friends/articles 模板为“无层级扁平展示”，不生成分类子菜单，避免出现“有子菜单但页面无分类标题”的割裂体验
+  const pageConfig = config[navItem.id];
+  const pageTemplate = pageConfig && pageConfig.template ? pageConfig.template : navItem.id;
+  if (pageTemplate === 'friends' || pageTemplate === 'articles') {
+    return null;
+  }
+
   // 首页页面添加子菜单（分类）
   if (navItem.id === 'home' && Array.isArray(config.categories)) {
     return config.categories;
@@ -452,6 +460,159 @@ function makeJsonSafeForHtmlScript(jsonString) {
   }
 
   return jsonString.replace(/<\/script/gi, '<\\/script');
+}
+
+/**
+ * 解析页面配置文件路径（优先 user，回退 _default）
+ * 注意：仅用于构建期读取文件元信息，不会把路径注入到页面/扩展配置中。
+ * @param {string} pageId 页面ID（与 pages/<id>.yml 文件名对应）
+ * @returns {string|null} 文件路径或 null
+ */
+function resolvePageConfigFilePath(pageId) {
+  if (!pageId) return null;
+
+  const candidates = [
+    path.join(process.cwd(), 'config', 'user', 'pages', `${pageId}.yml`),
+    path.join(process.cwd(), 'config', 'user', 'pages', `${pageId}.yaml`),
+    path.join(process.cwd(), 'config', '_default', 'pages', `${pageId}.yml`),
+    path.join(process.cwd(), 'config', '_default', 'pages', `${pageId}.yaml`),
+  ];
+
+  for (const filePath of candidates) {
+    try {
+      if (fs.existsSync(filePath)) return filePath;
+    } catch (e) {
+      // 忽略 IO 异常，继续尝试下一个候选
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 尝试获取文件最后一次 git 提交时间（ISO 字符串）
+ * @param {string} filePath 文件路径
+ * @returns {string|null} ISO 字符串（UTC），失败返回 null
+ */
+function tryGetGitLastCommitIso(filePath) {
+  if (!filePath) return null;
+
+  try {
+    const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    const output = execFileSync(
+      'git',
+      ['log', '-1', '--format=%cI', '--', relativePath],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
+    );
+    const raw = String(output || '').trim();
+    if (!raw) return null;
+
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.toISOString();
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 获取文件 mtime（ISO 字符串）
+ * @param {string} filePath 文件路径
+ * @returns {string|null} ISO 字符串（UTC），失败返回 null
+ */
+function tryGetFileMtimeIso(filePath) {
+  if (!filePath) return null;
+
+  try {
+    const stats = fs.statSync(filePath);
+    const mtime = stats && stats.mtime ? stats.mtime : null;
+    if (!(mtime instanceof Date) || Number.isNaN(mtime.getTime())) return null;
+    return mtime.toISOString();
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 计算页面配置文件“内容更新时间”（优先 git，回退 mtime）
+ * @param {string} pageId 页面ID
+ * @returns {{updatedAt: string, updatedAtSource: 'git'|'mtime'}|null}
+ */
+function getPageConfigUpdatedAtMeta(pageId) {
+  const filePath = resolvePageConfigFilePath(pageId);
+  if (!filePath) return null;
+
+  const gitIso = tryGetGitLastCommitIso(filePath);
+  if (gitIso) {
+    return { updatedAt: gitIso, updatedAtSource: 'git' };
+  }
+
+  const mtimeIso = tryGetFileMtimeIso(filePath);
+  if (mtimeIso) {
+    return { updatedAt: mtimeIso, updatedAtSource: 'mtime' };
+  }
+
+  return null;
+}
+
+/**
+ * 从任意层级节点递归收集 sites（用于 friends/articles 扁平化展示）
+ * @param {any} node 当前节点（category/subcategory/group/subgroup）
+ * @param {Array<Object>} output 收集到的 sites 数组
+ */
+function collectSitesRecursively(node, output) {
+  if (!node || typeof node !== 'object') return;
+
+  // 先深入子层级（保持与现有模板结构相近的遍历顺序）
+  if (Array.isArray(node.subcategories)) {
+    node.subcategories.forEach(child => collectSitesRecursively(child, output));
+  }
+  if (Array.isArray(node.groups)) {
+    node.groups.forEach(child => collectSitesRecursively(child, output));
+  }
+  if (Array.isArray(node.subgroups)) {
+    node.subgroups.forEach(child => collectSitesRecursively(child, output));
+  }
+
+  // 再收集当前层级 sites
+  if (Array.isArray(node.sites)) {
+    node.sites.forEach(site => {
+      if (site && typeof site === 'object') output.push(site);
+    });
+  }
+}
+
+/**
+ * 将页面 categories 中的所有 sites 扁平化为一个数组
+ * @param {Array<any>} categories 顶层分类数组
+ * @returns {Array<Object>} sites 扁平数组
+ */
+function buildFlatSitesFromCategories(categories) {
+  const output = [];
+  if (!Array.isArray(categories)) return output;
+  categories.forEach(category => collectSitesRecursively(category, output));
+  return output;
+}
+
+/**
+ * 将页面的顶层 categories 映射为“无标题分类容器”数据：保留顶层分类 name/icon，但 sites 扁平化合并其子层级 sites
+ * @param {Array<any>} categories 顶层分类数组
+ * @returns {Array<{name: string, icon: string, sites: Array<Object>}>}
+ */
+function buildFlatCategoriesFromCategories(categories) {
+  if (!Array.isArray(categories)) return [];
+
+  return categories.map(category => {
+    const sites = [];
+    collectSitesRecursively(category, sites);
+
+    return {
+      name: category && category.name ? category.name : '',
+      icon: category && category.icon ? category.icon : '',
+      sites
+    };
+  });
 }
 
 /**
@@ -833,6 +994,29 @@ function renderPage(pageId, config) {
     Object.assign(data, config[pageId]);
   }
 
+  // 检查页面配置中是否指定了模板（用于派生字段与渲染）
+  const templateName = data.template ? data.template : pageId;
+
+  // 页面级卡片风格开关（用于 projects/friends/articles 差异化）
+  if (templateName === 'projects') data.siteCardStyle = 'large';
+  if (templateName === 'friends') data.siteCardStyle = 'friend';
+  if (templateName === 'articles') data.siteCardStyle = 'article';
+
+  // friends/articles：无层级扁平展示所需派生字段（不写回 yml）
+  if (templateName === 'friends' || templateName === 'articles') {
+    const categories = Array.isArray(data.categories) ? data.categories : [];
+    data.flatSites = buildFlatSitesFromCategories(categories);
+    data.flatCategories = buildFlatCategoriesFromCategories(categories);
+  }
+
+  // bookmarks 模板页面：注入配置文件“内容更新时间”（优先 git，回退 mtime）
+  if (templateName === 'bookmarks') {
+    const updatedAtMeta = getPageConfigUpdatedAtMeta(pageId);
+    if (updatedAtMeta) {
+      data.pageMeta = { ...updatedAtMeta };
+    }
+  }
+
   // 首页标题规则：使用 site.yml 的 profile 覆盖首页（导航第一项）的 title/subtitle 显示
   const homePageId = config.homePageId
     || (Array.isArray(config.navigation) && config.navigation[0] ? config.navigation[0].id : null)
@@ -844,10 +1028,7 @@ function renderPage(pageId, config) {
     if (config.profile.subtitle !== undefined) data.subtitle = config.profile.subtitle;
   }
 
-  // 检查页面配置中是否指定了模板
-  let templateName = pageId;
   if (config[pageId] && config[pageId].template) {
-    templateName = config[pageId].template;
     console.log(`页面 ${pageId} 使用指定模板: ${templateName}`);
   }
 

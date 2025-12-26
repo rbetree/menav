@@ -1,0 +1,19 @@
+{{!-- flat-category.hbs - 扁平化分类容器：不输出分类标题，仅保留 data-* 结构供扩展识别 --}}
+<section class="category flat-category"
+         id="{{name}}"
+         data-type="category"
+         data-name="{{name}}"
+         data-icon="{{icon}}"
+         data-level="1"
+         data-container="categories">
+    <div class="sites-grid" data-container="sites">
+        {{#if sites.length}}
+            {{#each sites}}
+                {{> site-card style=@root.siteCardStyle}}
+            {{/each}}
+        {{else}}
+            <p class="empty-sites">暂无网站</p>
+        {{/if}}
+    </div>
+</section>
+

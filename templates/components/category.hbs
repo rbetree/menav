@@ -53,7 +53,7 @@
             <div class="sites-grid" data-container="sites">
                 {{#if sites.length}}
                     {{#each sites}}
-                        {{> site-card}}
+                        {{> site-card style=@root.siteCardStyle}}
                     {{/each}}
                 {{else}}
                     <p class="empty-sites">暂无网站</p>

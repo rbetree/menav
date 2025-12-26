@@ -235,9 +235,32 @@ window.MeNav = {
             const sitesGrid = parent.querySelector('[data-container="sites"]');
             if (!sitesGrid) return null;
 
+            // 站点卡片样式：根据“页面模板”决定（friends/articles/projects 等）
+            let siteCardStyle = '';
+            try {
+                const pageEl = parent.closest('.page');
+                const pageId = pageEl && pageEl.id ? String(pageEl.id) : '';
+                let templateName = pageId;
+
+                const cfg =
+                    window.MeNav && typeof window.MeNav.getConfig === 'function'
+                        ? window.MeNav.getConfig()
+                        : null;
+                const pageConfig = cfg && cfg.data && pageId ? cfg.data[pageId] : null;
+                if (pageConfig && pageConfig.template) {
+                    templateName = String(pageConfig.template);
+                }
+
+                if (templateName === 'projects') siteCardStyle = 'large';
+                if (templateName === 'friends') siteCardStyle = 'friend';
+                if (templateName === 'articles') siteCardStyle = 'article';
+            } catch (e) {
+                siteCardStyle = '';
+            }
+
             // 创建新的站点卡片
             const newSite = document.createElement('a');
-            newSite.className = 'site-card';
+            newSite.className = siteCardStyle ? `site-card site-card-${siteCardStyle}` : 'site-card';
 
             const siteName = data.name || '未命名站点';
             const siteUrl = data.url || '#';
@@ -246,6 +269,10 @@ window.MeNav = {
 
             newSite.href = siteUrl;
             newSite.title = siteName + (siteDescription ? ' - ' + siteDescription : '');
+            if (/^https?:\/\//i.test(siteUrl)) {
+                newSite.target = '_blank';
+                newSite.rel = 'noopener';
+            }
             
             // 设置数据属性
             newSite.setAttribute('data-type', 'site');

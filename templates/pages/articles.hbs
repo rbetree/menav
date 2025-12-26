@@ -1,14 +1,15 @@
-{{#ifEquals pageId @root.homePageId}}
-<div class="welcome-section">
-    <h2 data-editable="profile-title">{{title}}</h2>
-    <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+{{!-- articles.hbs - 文章页面：Phase 1 扁平化展示站点入口；Phase 2 将优先渲染 articlesItems --}}
+<div class="page-template page-template-articles">
+    {{> page-header}}
+    <div class="flat-sites-grid">
+        {{#if articlesItems.length}}
+            {{#each articlesItems}}
+                {{> site-card style=@root.siteCardStyle}}
+            {{/each}}
+        {{else}}
+            {{#each flatCategories}}
+                {{> flat-category}}
+            {{/each}}
+        {{/if}}
+    </div>
 </div>
-{{else}}
-<div class="welcome-section">
-    <h2 data-editable="page-title">{{title}}</h2>
-    <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-</div>
-{{/ifEquals}}
-{{#each categories}}
-    {{> category}}
-{{/each}} 

@@ -1,0 +1,31 @@
+{{!-- page-header.hbs - 统一页面标题区（可选显示书签页内容更新时间） --}}
+{{#ifEquals pageId @root.homePageId}}
+<div class="welcome-section">
+    <h2 data-editable="profile-title">{{title}}</h2>
+    <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+    {{#if pageMeta}}
+    {{#if pageMeta.updatedAt}}
+    <div class="page-updated-at" title="{{pageMeta.updatedAt}}">
+        <span class="page-updated-at-label">内容更新：</span>
+        <span class="page-updated-at-date">{{formatDate pageMeta.updatedAt "YYYY-MM-DD"}}</span>
+        <span class="page-updated-at-source">（{{pageMeta.updatedAtSource}}）</span>
+    </div>
+    {{/if}}
+    {{/if}}
+</div>
+{{else}}
+<div class="welcome-section">
+    <h2 data-editable="page-title">{{title}}</h2>
+    <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
+    {{#if pageMeta}}
+    {{#if pageMeta.updatedAt}}
+    <div class="page-updated-at" title="{{pageMeta.updatedAt}}">
+        <span class="page-updated-at-label">内容更新：</span>
+        <span class="page-updated-at-date">{{formatDate pageMeta.updatedAt "YYYY-MM-DD"}}</span>
+        <span class="page-updated-at-source">（{{pageMeta.updatedAtSource}}）</span>
+    </div>
+    {{/if}}
+    {{/if}}
+</div>
+{{/ifEquals}}
+
