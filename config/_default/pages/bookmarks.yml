@@ -5,6 +5,7 @@ title: 我的书签
 subtitle: 网页书签收藏
 
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
+# 提示：bookmarks 模板页面标题区会自动显示“内容更新：YYYY-MM-DD（git|mtime）”，无需额外配置
 template: bookmarks
 
 categories:

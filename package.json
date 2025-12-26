@@ -9,6 +9,7 @@
     "dev": "node src/generator.js && serve dist -l 5173",
     "clean": "node ./scripts/clean.js",
     "build": "npm run clean && npm run generate",
+    "sync-articles": "node ./scripts/sync-articles.js",
     "import-bookmarks": "node src/bookmark-processor.js",
     "test": "node --test test/*.js",
     "lint": "node --check \"src/generator.js\" && node --check \"src/bookmark-processor.js\" && node --check \"src/script.js\"",
@@ -32,7 +33,8 @@
     "has-flag": "^5.0.1",
     "color-convert": "^2.0.1",
     "color-name": "^2.0.0",
-    "mime-db": "^1.52.0"
+    "mime-db": "^1.52.0",
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

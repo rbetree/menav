@@ -252,8 +252,6 @@ window.MeNav = {
                 }
 
                 if (templateName === 'projects') siteCardStyle = 'large';
-                if (templateName === 'friends') siteCardStyle = 'friend';
-                if (templateName === 'articles') siteCardStyle = 'article';
             } catch (e) {
                 siteCardStyle = '';
             }
@@ -906,6 +904,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 page.querySelectorAll('.site-card').forEach(card => {
                     try {
+                        // 排除“扩展写回影子结构”等不应参与搜索的卡片
+                        if (card.closest('[data-search-exclude="true"]')) return;
+
                         const title = card.querySelector('h3')?.textContent?.toLowerCase() || '';
                         const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
                         const url = card.href || card.getAttribute('href') || '#';

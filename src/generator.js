@@ -375,9 +375,17 @@ function ensureConfigDefaults(config) {
   // 为所有页面配置中的类别和站点设置默认值
   Object.keys(result).forEach(key => {
     const pageConfig = result[key];
-    // 检查是否是页面配置对象且包含categories数组
-    if (pageConfig && typeof pageConfig === 'object' && Array.isArray(pageConfig.categories)) {
+    // 检查是否是页面配置对象
+    if (!pageConfig || typeof pageConfig !== 'object') return;
+
+    // 传统结构：categories -> sites
+    if (Array.isArray(pageConfig.categories)) {
       pageConfig.categories.forEach(processCategoryDefaults);
+    }
+
+    // 扁平结构：sites（用于 friends/articles 等“无层级并列卡片”页面）
+    if (Array.isArray(pageConfig.sites)) {
+      pageConfig.sites.forEach(processSiteDefaults);
     }
   });
 
@@ -554,6 +562,69 @@ function getPageConfigUpdatedAtMeta(pageId) {
   }
 
   return null;
+}
+
+/**
+ * 读取 articles 页面 RSS 缓存（Phase 2）
+ * - 缓存默认放在 dev/（仓库默认 gitignore）
+ * - 构建端只读缓存：缓存缺失/损坏时回退到 Phase 1（flatCategories 扁平站点入口）
+ * @param {string} pageId 页面ID（用于支持多个 articles 页面的独立缓存）
+ * @param {Object} config 全站配置（用于读取 site.rss.cacheDir）
+ * @returns {{items: Array<Object>, meta: Object}|null}
+ */
+function tryLoadArticlesFeedCache(pageId, config) {
+  if (!pageId) return null;
+
+  const cacheDirFromEnv = process.env.RSS_CACHE_DIR ? String(process.env.RSS_CACHE_DIR) : '';
+  const cacheDirFromConfig =
+    config && config.site && config.site.rss && config.site.rss.cacheDir ? String(config.site.rss.cacheDir) : '';
+  const cacheDir = cacheDirFromEnv || cacheDirFromConfig || 'dev';
+
+  const cacheBaseDir = path.isAbsolute(cacheDir) ? cacheDir : path.join(process.cwd(), cacheDir);
+  const cachePath = path.join(cacheBaseDir, `${pageId}.feed-cache.json`);
+  if (!fs.existsSync(cachePath)) return null;
+
+  try {
+    const raw = fs.readFileSync(cachePath, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    const articles = Array.isArray(parsed.articles) ? parsed.articles : [];
+    const items = articles
+      .map(a => {
+        const title = a && a.title ? String(a.title) : '';
+        const url = a && a.url ? String(a.url) : '';
+        if (!title || !url) return null;
+
+        return {
+          // 兼容 site-card partial 字段
+          name: title,
+          url,
+          icon: a && a.icon ? String(a.icon) : 'fas fa-pen',
+          description: a && a.summary ? String(a.summary) : '',
+
+          // Phase 2 文章元信息（只读展示）
+          publishedAt: a && a.publishedAt ? String(a.publishedAt) : '',
+          source: a && a.source ? String(a.source) : '',
+
+          // 文章链接通常应在新标签页打开
+          external: true
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      items,
+      meta: {
+        pageId: parsed.pageId || pageId,
+        generatedAt: parsed.generatedAt || '',
+        total: parsed.stats && Number.isFinite(parsed.stats.totalArticles) ? parsed.stats.totalArticles : items.length
+      }
+    };
+  } catch (e) {
+    console.warn(`[WARN] articles 缓存读取失败：${cachePath}（将回退 Phase 1）`);
+    return null;
+  }
 }
 
 /**
@@ -953,8 +1024,10 @@ function generateFontVariables(config) {
  */
 function renderPage(pageId, config) {
   // 准备页面数据
+  // 注意：config.categories 为 home.yml 的顶层分类（便于生成导航子菜单），不应无条件注入到所有页面，否则会导致“无 categories 的页面误显示首页内容”
+  const { categories: _homeCategories, ...configWithoutHomeCategories } = config || {};
   const data = {
-    ...config,
+    ...configWithoutHomeCategories,
     currentPage: pageId,
     pageId // 同时保留pageId字段，用于通用模板
   };
@@ -997,16 +1070,34 @@ function renderPage(pageId, config) {
   // 检查页面配置中是否指定了模板（用于派生字段与渲染）
   const templateName = data.template ? data.template : pageId;
 
-  // 页面级卡片风格开关（用于 projects/friends/articles 差异化）
+  // 页面级卡片风格开关（用于差异化）
   if (templateName === 'projects') data.siteCardStyle = 'large';
-  if (templateName === 'friends') data.siteCardStyle = 'friend';
-  if (templateName === 'articles') data.siteCardStyle = 'article';
 
   // friends/articles：无层级扁平展示所需派生字段（不写回 yml）
   if (templateName === 'friends' || templateName === 'articles') {
-    const categories = Array.isArray(data.categories) ? data.categories : [];
+    let categories = Array.isArray(data.categories) ? data.categories : [];
+
+    // 如果用户使用了顶层 sites（推荐的扁平配置），则生成一个“隐式分类容器”供模板/扩展使用
+    if (categories.length === 0 && Array.isArray(data.sites) && data.sites.length > 0) {
+      const implicitName = templateName === 'friends' ? '全部友链' : '全部来源';
+      categories = [
+        {
+          name: implicitName,
+          icon: 'fas fa-link',
+          sites: data.sites
+        }
+      ];
+    }
+
     data.flatSites = buildFlatSitesFromCategories(categories);
     data.flatCategories = buildFlatCategoriesFromCategories(categories);
+  }
+
+  // articles 模板页面：Phase 2 若存在 RSS 缓存，则注入 articlesItems（缓存缺失/损坏则回退 Phase 1）
+  if (templateName === 'articles') {
+    const cache = tryLoadArticlesFeedCache(pageId, config);
+    data.articlesItems = cache && Array.isArray(cache.items) ? cache.items : [];
+    data.articlesMeta = cache ? cache.meta : null;
   }
 
   // bookmarks 模板页面：注入配置文件“内容更新时间”（优先 git，回退 mtime）

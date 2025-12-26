@@ -6,31 +6,29 @@ subtitle: 优秀的博主和朋友们 # 页面副标题
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
 template: friends
 
-# 页面分类与站点列表
-categories:
-  - name: 技术博主
-    icon: fas fa-user-friends # 分类图标
-    sites:
-      - name: 小明的博客           # 站点名称
-        icon: fas fa-code         # 站点图标
-        description: 全栈开发工程师，分享技术心得 # 描述
-        url: "#"                  # 链接（示例）
-      - name: 小红的前端
-        icon: fas fa-paint-brush
-        description: 专注前端开发与设计
-        url: "#"
-      - name: 小张的后端
-        icon: fas fa-server
-        description: 分享后端开发经验
-        url: "#"
-  - name: 技术社区
-    icon: fas fa-laptop-code
-    sites:
-      - name: GitHub
-        icon: fab fa-github
-        description: 开源代码托管平台
-        url: https://github.com
-      - name: Stack Overflow
-        icon: fab fa-stack-overflow
-        description: 程序员问答社区
-        url: https://stackoverflow.com 
+# 扁平站点列表（friends/articles 页面为“无层级并列卡片”，推荐直接使用顶层 sites）
+sites:
+  - name: 阮一峰
+    icon: fas fa-pen
+    description: 阮一峰的网络日志
+    url: https://www.ruanyifeng.com/
+  - name: 张鑫旭
+    icon: fas fa-code
+    description: 张鑫旭的鑫空间
+    url: https://www.zhangxinxu.com/
+  - name: 廖雪峰
+    icon: fas fa-book
+    description: 廖雪峰的官方网站
+    url: https://www.liaoxuefeng.com/
+  - name: MDN Web Docs
+    icon: fas fa-file-code
+    description: Web 开发文档与教程
+    url: https://developer.mozilla.org/
+  - name: GitHub
+    icon: fab fa-github
+    description: 开源代码托管平台
+    url: https://github.com/
+  - name: Stack Overflow
+    icon: fab fa-stack-overflow
+    description: 程序员问答社区
+    url: https://stackoverflow.com/

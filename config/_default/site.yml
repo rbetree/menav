@@ -32,8 +32,28 @@ fonts:
     
 # 个人资料：显示在首页顶部的欢迎信息
 profile:
-  title: Hello,
-  subtitle: Welcome to My Navigation
+  # 注意：首页（导航第一项）标题区优先使用 profile.title/profile.subtitle
+  # 因此建议把首页希望展示的文案写在这里，避免“改了 pages/home.yml 但首页不生效”的误会
+  title: 欢迎使用
+  subtitle: 个人导航站点
+
+# RSS（Phase 2）：用于 articles 页面文章聚合
+# 说明：
+# - `npm run build` 默认不联网；仅 `npm run sync-articles` 会联网抓取并写入缓存
+# - 缓存目录建议放在 dev/（仓库默认 gitignore），避免误提交
+rss:
+  enabled: true
+  cacheDir: dev
+  fetch:
+    timeoutMs: 10000       # 单请求超时（毫秒）
+    totalTimeoutMs: 60000  # 全流程总超时（毫秒）
+    concurrency: 5         # 并发抓取站点数
+    maxRetries: 1          # 单站点重试次数（best-effort）
+    maxRedirects: 3        # 最大重定向次数
+  articles:
+    perSite: 5             # 单站点最多抓取条数
+    total: 50              # 全站聚合上限
+    summaryMaxLength: 200  # 摘要最大长度（字符）
 
 # 社交媒体链接：显示在侧边栏底部；可按需增删
 social:

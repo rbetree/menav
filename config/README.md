@@ -125,6 +125,11 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
    - 图标使用 Font Awesome 类名字符串（例如 `fas fa-home`、`fab fa-github`）
    - 导航显示顺序与数组顺序一致，可通过调整数组顺序改变导航顺序
 
+6. **RSS（articles Phase 2）**
+   - `rss.*`：仅用于 `npm run sync-articles`（联网抓取 RSS/Atom 并写入缓存）
+   - `npm run build` 默认不联网；无缓存时 `articles` 页面会回退到 Phase 1 的站点入口展示
+   - 建议将 `rss.cacheDir` 设置为 `dev`（仓库默认 gitignore），避免误提交缓存文件
+
 ### pages/ 页面配置
 
 页面配置位于 `pages/*.yml`，每个文件对应一个页面内容，文件名与导航 `id` 对应：
@@ -136,6 +141,26 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
 > 提示：自定义页面时，先在 `site.yml` 的 `navigation` 中增加一个 `id`，再创建同名的 `pages/<id>.yml`。
 >
 > 站点描述建议简洁（例如不超过 30 个字符），以保证卡片展示更美观。
+
+#### friends/articles 扁平页面配置（推荐）
+
+`friends` 与 `articles` 模板页面为“无层级并列卡片”展示（不显示分类标题），为避免配置结构与页面表现不一致造成误解，推荐直接使用顶层 `sites`：
+
+```yaml
+title: 示例页面
+subtitle: 示例副标题
+template: friends  # 或 articles
+
+sites:
+  - name: 示例站点
+    url: https://example.com
+    icon: fas fa-link
+    description: 示例描述
+```
+
+向后兼容说明：
+
+- 若历史配置仍使用 `categories -> sites`（甚至更深层级），系统仍可渲染，但页面不会展示分类/分组标题，仅保留必要的 `data-*` 结构供浏览器扩展识别与写回。
 
 ### 多层级嵌套配置（2-4层）
 

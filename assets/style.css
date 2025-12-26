@@ -1419,6 +1419,23 @@ body .content.expanded {
     max-width: 1300px;
 }
 
+/* articles：卡片更宽，桌面端每行 3 个（标题更容易完整显示） */
+.page-template-articles .flat-sites-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+    .page-template-articles .flat-sites-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .page-template-articles .flat-sites-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
 /* 扁平化容器：把中间结构节点“摊平”，让 site-card 直接参与 flat-sites-grid 布局 */
 .flat-sites-grid .flat-category,
 .flat-sites-grid .flat-category .sites-grid {
@@ -1482,133 +1499,67 @@ body .content.expanded {
     font-size: 0.88rem;
 }
 
-/* 网站卡片变体：friends 友链风格 */
-.site-card.site-card-friend {
-    flex-direction: column;
-    padding: 30px 20px;
-    height: 100%;
-    box-sizing: border-box;
-    align-items: center;
-    text-align: center;
+/* Phase 2：articles 页面隐藏“扩展写回结构”，避免与文章条目渲染混淆 */
+.menav-extension-shadow {
+    display: none;
 }
 
-/* 网站卡片变体：articles 文章风格 */
-.site-card.site-card-article {
-    flex-direction: column;
-    padding: 20px;
-    height: 100%;
-    box-sizing: border-box;
-    align-items: flex-start;
-    text-align: left;
-    justify-content: space-between;
-    min-height: 140px;
-}
-
-/* 友链/文章卡片：hover 提升更明显（匹配设计稿） */
-.site-card.site-card-friend:hover,
-.site-card.site-card-article:hover {
-    transform: translateY(-5px);
-}
-
-/* 文章卡片的图标：左上方矩形高亮块 */
-.site-card.site-card-article .site-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    background: rgba(var(--accent-rgb), 0.10);
-    border: 1px solid rgba(var(--accent-rgb), 0.18);
-}
-
-.site-card.site-card-article .site-card-icon i {
-    font-size: 1.5rem;
-    color: var(--accent-color);
-}
-
-/* 友链卡片的图标：大圆头像居中 */
-.site-card.site-card-friend .site-card-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-    background: rgba(var(--card-bg-rgb), 0.35);
-    border: 2px solid var(--border-color);
-    overflow: hidden;
-}
-
-/* 让 favicon/占位符在大圆里居中显示 */
-.site-card.site-card-friend .site-card-icon .icon-container,
-.site-card.site-card-article .site-card-icon .icon-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-.site-card.site-card-friend .site-card-icon .icon-container .favicon-icon,
-.site-card.site-card-article .site-card-icon .icon-container .favicon-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: 60%;
-    object-fit: contain;
-}
-
-.site-card.site-card-friend .site-card-icon .icon-container .icon-placeholder,
-.site-card.site-card-friend .site-card-icon .icon-container .icon-fallback,
-.site-card.site-card-article .site-card-icon .icon-container .icon-placeholder,
-.site-card.site-card-article .site-card-icon .icon-container .icon-fallback {
+/* articles：文章元信息（日期 + 来源） */
+.site-card[data-type="article"] .site-card-meta {
+    margin: 0 0 8px 0;
+    font-size: 0.75rem;
+    color: var(--nav-item-color);
+    opacity: 0.9;
     display: flex;
     align-items: center;
-    justify-content: center;
-    line-height: 1;
+    gap: 0.4rem;
 }
 
-.site-card.site-card-friend .site-card-icon .site-icon {
-    font-size: 2.5rem;
+.site-card[data-type="article"] .site-card-meta-sep {
+    opacity: 0.8;
 }
 
-.site-card.site-card-friend .site-card-icon .icon-container .icon-placeholder,
-.site-card.site-card-friend .site-card-icon .icon-container .icon-fallback {
-    font-size: 2.5rem;
+/* articles：文章卡片布局（首行：图标+标题；下方：时间/来源 + 简介 全宽对齐） */
+.site-card[data-type="article"] {
+    display: block;
+    padding: 1rem 1.1rem;
 }
 
-.site-card.site-card-article .site-card-icon .icon-container .icon-placeholder,
-.site-card.site-card-article .site-card-icon .icon-container .icon-fallback {
-    font-size: 1.8rem;
+.site-card[data-type="article"] .article-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
 }
 
-/* friends/articles：内容区域不拉伸，避免影响 justify-content 行为 */
-.site-card.site-card-friend .site-card-content,
-.site-card.site-card-article .site-card-content {
-    flex: 0 0 auto;
+.site-card[data-type="article"] .article-card-title {
+    min-width: 0;
 }
 
-/* friends/articles：标题与描述排版（两行截断） */
-.site-card.site-card-friend h3,
-.site-card.site-card-article h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0 0 8px 0;
+.site-card[data-type="article"] .article-card-body {
+    margin-top: 0.55rem;
 }
 
-.site-card.site-card-friend p,
-.site-card.site-card-article p {
+.site-card[data-type="article"] h3 {
     margin: 0;
-    font-size: 0.85rem;
-    color: var(--nav-item-color);
-    line-height: 1.5;
+}
+
+.site-card[data-type="article"] p {
+    margin: 0;
+}
+
+/* articles：标题/描述允许两行显示（更适合 3 列宽卡片） */
+.page-template-articles .site-card h3 {
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
-.site-card.site-card-friend p {
-    max-width: 90%;
-    margin: 0 auto;
+.page-template-articles .site-card p {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .site-card:hover {

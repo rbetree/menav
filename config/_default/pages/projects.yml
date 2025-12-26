@@ -11,26 +11,30 @@ categories:
   - name: 个人项目
     icon: fas fa-code  # 分类图标（Font Awesome）
     sites:
-      - name: 个人导航站            # 站点名称
+      - name: MeNav 个人导航站       # 站点名称
         icon: fas fa-compass        # 手动图标（manual 模式显示；favicon 模式下作为回退）
         description: 一个简洁美观的个人导航页面 # 站点描述
-        url: "#"                    # 链接（示例）
-      - name: Todo List
+        url: https://rbetree.github.io/menav/
+      - name: MeNav 源码仓库
+        icon: fab fa-github
+        description: GitHub 仓库地址（可 Fork 自用）
+        url: https://github.com/rbetree/menav
+      - name: Todo List（示例）
         icon: fas fa-tasks
         description: 基于Vue3的待办事项管理器
         url: "#"
-      - name: 个人博客
+      - name: 个人博客（示例）
         icon: fas fa-blog
         description: 使用Hexo搭建的技术博客
         url: "#"
   - name: 开源贡献
     icon: fas fa-code-branch
     sites:
-      - name: Project A
+      - name: Project A（示例）
         icon: fab fa-github
         description: 开源项目贡献
         url: "#"
-      - name: Project B
+      - name: Project B（示例）
         icon: fab fa-github
         description: 开源项目贡献
-        url: "#" 
+        url: "#"

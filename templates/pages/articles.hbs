@@ -4,7 +4,7 @@
     <div class="flat-sites-grid">
         {{#if articlesItems.length}}
             {{#each articlesItems}}
-                {{> site-card style=@root.siteCardStyle}}
+                {{> site-card type="article" style=@root.siteCardStyle}}
             {{/each}}
         {{else}}
             {{#each flatCategories}}
@@ -12,4 +12,12 @@
             {{/each}}
         {{/if}}
     </div>
+    {{!-- Phase 2：保留扩展可写回结构（隐藏），避免文章条目卡片影响 DOM → IR → YAML --}}
+    {{#if articlesItems.length}}
+        <div class="menav-extension-shadow" data-extension-shadow="true" data-search-exclude="true" aria-hidden="true">
+            {{#each flatCategories}}
+                {{> flat-category}}
+            {{/each}}
+        </div>
+    {{/if}}
 </div>
