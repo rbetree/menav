@@ -1051,8 +1051,10 @@ function generatePageContent(pageId, data) {
         console.error(`Missing data for page: ${pageId}`);
         return `
                 <div class="welcome-section">
-                    <h2>页面未配置</h2>
-                    <p class="subtitle">请配置 ${pageId} 页面</p>
+                    <div class="welcome-section-main">
+                        <h2>页面未配置</h2>
+                        <p class="subtitle">请配置 ${pageId} 页面</p>
+                    </div>
                 </div>`;
     }
 
@@ -1062,8 +1064,10 @@ function generatePageContent(pageId, data) {
 
         return `
                 <div class="welcome-section">
-                    <h2>${escapeHtml(profile.title || '欢迎使用')}</h2>
-                    <h3>${escapeHtml(profile.subtitle || '个人导航站')}</h3>
+                    <div class="welcome-section-main">
+                        <h2>${escapeHtml(profile.title || '欢迎使用')}</h2>
+                        <h3>${escapeHtml(profile.subtitle || '个人导航站')}</h3>
+                    </div>
                 </div>
 ${generateCategories(data.categories)}`;
     } else {
@@ -1074,8 +1078,10 @@ ${generateCategories(data.categories)}`;
 
         return `
                 <div class="welcome-section">
-                    <h2>${escapeHtml(title)}</h2>
-                    <p class="subtitle">${escapeHtml(subtitle)}</p>
+                    <div class="welcome-section-main">
+                        <h2>${escapeHtml(title)}</h2>
+                        <p class="subtitle">${escapeHtml(subtitle)}</p>
+                    </div>
                 </div>
                 ${generateCategories(categories)}`;
     }
@@ -1104,8 +1110,10 @@ function generateSearchResultsPage(config) {
             <!-- 搜索结果页 -->
             <div class="page" id="search-results">
                 <div class="welcome-section">
-                    <h2>搜索结果</h2>
-                    <p class="subtitle">在所有页面中找到的匹配项</p>
+                    <div class="welcome-section-main">
+                        <h2>搜索结果</h2>
+                        <p class="subtitle">在所有页面中找到的匹配项</p>
+                    </div>
                 </div>
 ${searchSections}
             </div>`;

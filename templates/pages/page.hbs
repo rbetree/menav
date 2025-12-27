@@ -1,13 +1,17 @@
 <div class="page" id="{{pageId}}">
     {{#ifEquals pageId @root.homePageId}}
     <div class="welcome-section">
-        <h2 data-editable="profile-title">{{title}}</h2>
-        <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+        <div class="welcome-section-main">
+            <h2 data-editable="profile-title">{{title}}</h2>
+            <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+        </div>
     </div>
     {{else}}
     <div class="welcome-section">
-        <h2 data-editable="page-title">{{title}}</h2>
-        <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
+        <div class="welcome-section-main">
+            <h2 data-editable="page-title">{{title}}</h2>
+            <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
+        </div>
     </div>
     {{/ifEquals}}
     {{#each categories}}

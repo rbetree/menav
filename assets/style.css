@@ -39,6 +39,9 @@
     --spacing-xl: 2rem;
     --spacing-2xl: 3rem;
 
+    /* 页面内容最大宽度（用于各页边界一致性） */
+    --page-max-width: 1300px;
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -928,19 +931,33 @@ body .content.expanded {
  * 导致分类/网格布局变窄（只剩单列）。 */
 .page-template {
     width: 100%;
-    max-width: 1300px;
+    max-width: var(--page-max-width);
     margin: 0 auto;
 }
 
 /* 欢迎区域 */
 .welcome-section {
     width: 100%;
-    max-width: 1300px;
+    max-width: var(--page-max-width);
     margin: 0 auto 2.2rem auto;
-    padding: 0 6rem 0 2rem;
+    padding: 0 var(--spacing-lg);
     text-align: left;
     position: relative;
     z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.welcome-section-main {
+    flex: 1;
+    min-width: 220px;
+}
+
+.welcome-section-side {
+    flex: 0 0 auto;
 }
 
 .welcome-section h2 {
@@ -989,19 +1006,24 @@ body .content.expanded {
     transition: color 0.3s ease;
 }
 
-/* 页面内容更新时间（bookmarks 模板等） */
-.page-updated-at {
-    margin-top: 0.35rem;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    opacity: 0.9;
+/* bookmarks：标题后追加“更新时间”小字（灰色、只读展示） */
+.welcome-title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
 }
 
-.page-updated-at-source {
-    opacity: 0.8;
+.welcome-title-row h2 {
+    margin: 0;
+}
+
+.page-updated-inline {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    opacity: 0.85;
+    white-space: nowrap;
 }
 
 @keyframes glow {
@@ -1020,9 +1042,9 @@ body .content.expanded {
     background: linear-gradient(145deg, var(--card-bg-gradient-1), var(--card-bg-gradient-2));
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
-    margin: 0 var(--spacing-md) var(--spacing-lg) var(--spacing-xl);
-    width: calc(100% - 3rem);
-    max-width: 1300px;
+    margin: 0 auto var(--spacing-lg) auto;
+    width: 100%;
+    max-width: var(--page-max-width);
     position: relative;
     z-index: 1;
     opacity: 1;
@@ -1416,36 +1438,7 @@ body .content.expanded {
     width: 100%;
 }
 
-/* projects：代码仓库风格 */
-.page-template-projects {
-    width: 100%;
-    max-width: 1300px;
-    margin: 0 auto;
-}
-
-.page-template-projects .projects-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 16px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 18px;
-}
-
-.page-template-projects .projects-page-header h2 {
-    font-size: 1.6rem;
-    margin: 0 0 10px 0;
-    border-left: 5px solid var(--accent-color);
-    padding-left: 14px;
-    letter-spacing: 0.4px;
-}
-
-.page-template-projects .projects-page-header .subtitle {
-    margin: 0;
-}
-
+/* projects：GitHub 热力图（标题区右侧，可选） */
 .page-template-projects .heatmap-container {
     flex-shrink: 0;
     opacity: 0.85;
@@ -1549,11 +1542,6 @@ body .content.expanded {
 }
 
 @media (max-width: 600px) {
-    .page-template-projects .projects-page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
     .page-template-projects .heatmap-container {
         width: 100%;
         overflow-x: auto;
@@ -1651,15 +1639,33 @@ body .content.expanded {
     margin: 0;
 }
 
-/* articles：标题/描述允许两行显示（更适合 3 列宽卡片） */
-.page-template-articles .site-card h3 {
+/* articles：桌面端网格固定 4 列（避免 auto-fill 在大屏上过多列导致阅读密度过高） */
+.page-template-articles .sites-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+    .page-template-articles .sites-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .page-template-articles .sites-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+}
+
+/* articles：标题/描述允许两行显示（更适合多列宽卡片，也适用于搜索结果页） */
+.site-card[data-type="article"] h3 {
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
-.page-template-articles .site-card p {
+.site-card[data-type="article"] p {
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -2031,16 +2037,13 @@ body .content.expanded {
 /* 响应式设计 */
 @media (max-width: 1200px) {
     .welcome-section {
-        padding: 0 4rem 0 1.5rem;
+        padding: 0 var(--spacing-lg);
         margin-bottom: 2rem;
     }
     
     .category {
         max-width: 1100px;
-        margin-bottom: 2.5rem;
-        margin-left: 1.5rem; /* 增加左边距 */
-        margin-right: 1.5rem; /* 增加右边距 */
-        width: calc(100% - 3rem); /* 适应新的左右边距 */
+        margin: 0 auto 2.5rem auto;
     }
 }
 
@@ -2186,9 +2189,9 @@ body .content.expanded {
 
     /* 分类样式优化 */
     .category {
-        margin: 0 var(--spacing-xs) var(--spacing-lg) var(--spacing-xs);
+        margin: 0 auto var(--spacing-lg) auto;
         padding: var(--spacing-md);
-        width: calc(100% - var(--spacing-sm));
+        width: 100%;
     }
 
 	    .sites-grid {
@@ -2282,9 +2285,9 @@ body .content.expanded {
     }
 
     .category {
-        margin: 0 0.1rem 1.3rem 0.1rem;
+        margin: 0 auto 1.3rem auto;
         padding: 0.95rem;
-        width: calc(100% - 0.2rem);
+        width: 100%;
     }
 
     .search-container {
@@ -2437,9 +2440,9 @@ body .content.expanded {
 
 /* 搜索结果区域 */
 .search-section {
-    width: calc(100% - 2rem);
-    max-width: 1100px;
-    margin: 0 1rem 2.5rem 1rem;
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto 2.5rem auto;
     position: relative;
     z-index: 1;
     transform: none !important;
@@ -2448,10 +2451,30 @@ body .content.expanded {
 
 /* 确保搜索结果中的网格有正确的间距 */
 .search-section .sites-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-    gap: 1.2rem;
     margin-top: 1rem;
+}
+
+/* 搜索结果页：按来源页面复用对应网格规则（方案 2：复用原卡片 DOM） */
+#search-results [data-section="projects"] .sites-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+#search-results [data-section="articles"] .sites-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+    #search-results [data-section="articles"] .sites-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    #search-results [data-section="articles"] .sites-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
 }
 
 /* 确保搜索结果中的卡片样式一致 */

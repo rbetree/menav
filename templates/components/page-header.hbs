@@ -1,31 +1,36 @@
 {{!-- page-header.hbs - 统一页面标题区（可选显示书签页内容更新时间） --}}
-{{#ifEquals pageId @root.homePageId}}
-<div class="welcome-section">
-    <h2 data-editable="profile-title">{{title}}</h2>
-    <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
-    {{#if pageMeta}}
-    {{#if pageMeta.updatedAt}}
-    <div class="page-updated-at" title="{{pageMeta.updatedAt}}">
-        <span class="page-updated-at-label">内容更新：</span>
-        <span class="page-updated-at-date">{{formatDate pageMeta.updatedAt "YYYY-MM-DD"}}</span>
-        <span class="page-updated-at-source">（{{pageMeta.updatedAtSource}}）</span>
+<div class="welcome-section{{#ifCond projectsMeta '&&' projectsMeta.heatmap}} welcome-section-with-side{{/ifCond}}">
+    <div class="welcome-section-main">
+        {{#ifEquals pageId @root.homePageId}}
+            <h2 data-editable="profile-title">{{title}}</h2>
+            <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
+        {{else}}
+            <div class="welcome-title-row">
+                <h2 data-editable="page-title">{{title}}</h2>
+                {{#if pageMeta}}
+                {{#if pageMeta.updatedAt}}
+                    <span class="page-updated-inline" title="{{pageMeta.updatedAt}}">
+                        update: {{formatDate pageMeta.updatedAt "YYYY-MM-DD"}} | from: {{pageMeta.updatedAtSource}}
+                    </span>
+                {{/if}}
+                {{/if}}
+            </div>
+            <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
+        {{/ifEquals}}
     </div>
-    {{/if}}
-    {{/if}}
-</div>
-{{else}}
-<div class="welcome-section">
-    <h2 data-editable="page-title">{{title}}</h2>
-    <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-    {{#if pageMeta}}
-    {{#if pageMeta.updatedAt}}
-    <div class="page-updated-at" title="{{pageMeta.updatedAt}}">
-        <span class="page-updated-at-label">内容更新：</span>
-        <span class="page-updated-at-date">{{formatDate pageMeta.updatedAt "YYYY-MM-DD"}}</span>
-        <span class="page-updated-at-source">（{{pageMeta.updatedAtSource}}）</span>
-    </div>
-    {{/if}}
-    {{/if}}
-</div>
-{{/ifEquals}}
 
+    {{#if projectsMeta}}
+    {{#if projectsMeta.heatmap}}
+    <div class="welcome-section-side">
+        <div class="heatmap-container" title="我的 GitHub 贡献热力图">
+            <a href="{{projectsMeta.heatmap.profileUrl}}" target="_blank" rel="noopener">
+                <img class="heatmap-img"
+                     src="{{projectsMeta.heatmap.imageUrl}}"
+                     alt="Github Chart"
+                     loading="lazy" />
+            </a>
+        </div>
+    </div>
+    {{/if}}
+    {{/if}}
+</div>

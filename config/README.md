@@ -129,6 +129,7 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
    - `rss.*`：仅用于 `npm run sync-articles`（联网抓取 RSS/Atom 并写入缓存）
    - `npm run build` 默认不联网；无缓存时 `articles` 页面会回退到 Phase 1 的站点入口展示
    - articles 页面会按 `articles.yml` 的分类进行聚合展示：某分类下配置的来源站点，其文章会显示在该分类下
+   - 抓取条数默认：每个来源站点抓取最新 8 篇（可通过 `site.yml -> rss.articles.perSite` 或 `RSS_ARTICLES_PER_SITE` 调整）
    - 建议将 `rss.cacheDir` 设置为 `dev`（仓库默认 gitignore），避免误提交缓存文件
 
 7. **GitHub（projects 热力图，可选）**

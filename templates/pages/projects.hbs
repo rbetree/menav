@@ -1,24 +1,6 @@
 {{!-- projects.hbs - 项目页：风格 A（代码仓库风），标题栏右侧展示 GitHub 热力图（可选） --}}
 <div class="page-template page-template-projects">
-    <div class="projects-page-header">
-        <div class="header-content">
-            <h2 data-editable="page-title">{{title}}</h2>
-            <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-        </div>
-
-        {{#if projectsMeta}}
-        {{#if projectsMeta.heatmap}}
-        <div class="heatmap-container" title="我的 GitHub 贡献热力图">
-            <a href="{{projectsMeta.heatmap.profileUrl}}" target="_blank" rel="noopener">
-                <img class="heatmap-img"
-                     src="{{projectsMeta.heatmap.imageUrl}}"
-                     alt="Github Chart"
-                     loading="lazy" />
-            </a>
-        </div>
-        {{/if}}
-        {{/if}}
-    </div>
+    {{> page-header}}
 
     {{#each categories}}
         {{> category}}

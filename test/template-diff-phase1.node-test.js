@@ -140,10 +140,11 @@ test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', ()
     const html = pages.bookmarks;
 
     assert.ok(typeof html === 'string' && html.length > 0);
-    assert.ok(html.includes('page-updated-at'));
-    assert.ok(html.includes('内容更新：'));
-    assert.ok(/\d{4}-\d{2}-\d{2}/.test(html), '应显示 YYYY-MM-DD 日期');
-    assert.ok(/（(git|mtime)）/.test(html), '应显示来源（git|mtime）');
+    assert.ok(html.includes('page-updated-inline'));
+    assert.ok(html.includes('update:'), '应显示 update: 前缀');
+    assert.ok(html.includes('from:'), '应显示 from: 前缀');
+    assert.ok(/update:\s*\d{4}-\d{2}-\d{2}/.test(html), '应显示 YYYY-MM-DD 日期');
+    assert.ok(/from:\s*(git|mtime)/.test(html), '应显示来源（git|mtime）');
   });
 });
 

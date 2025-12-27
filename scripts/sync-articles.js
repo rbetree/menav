@@ -21,7 +21,7 @@ const DEFAULT_RSS_SETTINGS = {
     feedMaxBytes: 1024 * 1024
   },
   articles: {
-    perSite: 5,
+    perSite: 8,
     total: 50,
     summaryMaxLength: 200
   }
