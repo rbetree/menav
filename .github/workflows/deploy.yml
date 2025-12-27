@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    # 定时刷新 RSS / projects 仓库元信息（GitHub Actions 的 cron 使用 UTC 时区）
+    - cron: '0 2 * * *'
   
 # 设置GITHUB_TOKEN的权限
 permissions:
@@ -34,7 +37,7 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         
       # --- 书签处理步骤 --- 
       - name: Check for bookmark HTML files
@@ -181,8 +184,18 @@ jobs:
            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # --- 网站构建和部署步骤 ---
-      - name: Generate site
-        run: npm run generate
+      # 同步时效性数据（best-effort）：projects 仓库信息、articles RSS 聚合
+      # 说明：
+      # - 同步结果写入 dev/（仓库默认 gitignore），仅用于本次构建渲染
+      # - 同步脚本内部已做 best-effort（失败不阻断后续 build）
+      - name: Sync projects (best-effort)
+        run: npm run sync-projects
+
+      - name: Sync articles (best-effort)
+        run: npm run sync-articles
+
+      - name: Build site (clean dist + generate)
+        run: npm run build
         
       - name: Check favicon
         run: |
