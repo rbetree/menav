@@ -17,8 +17,6 @@ const MODULAR_DEFAULT_BOOKMARKS_FILE = 'config/_default/pages/bookmarks.yml';
 
 const USER_SITE_YML = path.join(CONFIG_USER_DIR, 'site.yml');
 const DEFAULT_SITE_YML = path.join(CONFIG_DEFAULT_DIR, 'site.yml');
-const LEGACY_USER_NAV_YML = path.join(CONFIG_USER_DIR, 'navigation.yml');
-const LEGACY_DEFAULT_NAV_YML = path.join(CONFIG_DEFAULT_DIR, 'navigation.yml');
 
 function ensureUserConfigInitialized() {
   if (fs.existsSync(CONFIG_USER_DIR)) {
@@ -748,71 +746,9 @@ function updateNavigationWithBookmarks() {
     if (result.reason === 'error') {
       return { updated: false, target: 'site.yml', reason: 'error', error: result.error };
     }
-    // 如果 site.yml 无法更新（如 navigation 格式异常），继续尝试旧版 navigation.yml
+    return { updated: false, target: 'site.yml', reason: result.reason };
   }
-
-  // 2) 兼容旧版：独立 navigation.yml
-  if (fs.existsSync(LEGACY_USER_NAV_YML)) {
-    const updated = updateNavigationFile(LEGACY_USER_NAV_YML);
-    return { updated, target: 'navigation.yml', reason: updated ? 'updated' : 'already_present' };
-  }
-
-  if (fs.existsSync(LEGACY_DEFAULT_NAV_YML)) {
-    try {
-      const defaultNavContent = fs.readFileSync(LEGACY_DEFAULT_NAV_YML, 'utf8');
-      if (!fs.existsSync(CONFIG_USER_DIR)) {
-        fs.mkdirSync(CONFIG_USER_DIR, { recursive: true });
-      }
-      fs.writeFileSync(LEGACY_USER_NAV_YML, defaultNavContent, 'utf8');
-      const updated = updateNavigationFile(LEGACY_USER_NAV_YML);
-      return { updated, target: 'navigation.yml', reason: updated ? 'updated' : 'already_present' };
-    } catch (error) {
-      return { updated: false, target: 'navigation.yml', reason: 'error', error };
-    }
-  }
-
-  return { updated: false, target: null, reason: 'no_navigation_config' };
-}
-
-// 更新单个导航配置文件
-function updateNavigationFile(filePath) {
-  try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const navConfig = yaml.load(content);
-    
-    // 检查是否已有书签页面
-    const hasBookmarksNav = Array.isArray(navConfig) && 
-      navConfig.some(nav => nav.id === 'bookmarks');
-    
-    if (!hasBookmarksNav) {
-      // 添加书签导航项
-      if (!Array.isArray(navConfig)) {
-        console.log(`Warning: Navigation config in ${filePath} is not an array, cannot update`);
-        return false;
-      }
-      
-      navConfig.push({
-        name: '书签',
-        icon: 'fas fa-bookmark',
-        id: 'bookmarks'
-      });
-      
-      // 更新文件
-      const updatedYaml = yaml.dump(navConfig, {
-        indent: 2,
-        lineWidth: -1,
-        quotingType: '"'
-      });
-      
-      fs.writeFileSync(filePath, updatedYaml, 'utf8');
-      return true;
-    }
-    
-    return false; // 无需更新
-  } catch (error) {
-    console.error(`Error updating navigation file ${filePath}:`, error);
-    return false;
-  }
+  return { updated: false, target: null, reason: 'no_site_yml' };
 }
 
 // 主函数

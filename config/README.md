@@ -73,7 +73,7 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
 - 个人资料和社交媒体链接
 - 导航菜单配置（侧边栏导航项、页面标题和图标、页面顺序和可见性）
 
-> **注意**：从 v1.x 版本开始，导航配置已合并到 `site.yml` 文件中，不再使用独立的 `navigation.yml` 文件。如果您从旧版本迁移，请将原 `navigation.yml` 的内容移至 `site.yml` 的 `navigation` 字段下。
+> **注意**：导航配置仅支持写在 `site.yml` 的 `navigation` 字段中。
 
 ### 页面配置
 
@@ -222,7 +222,6 @@ MeNav 配置系统采用“完全替换”策略：只会选择一套目录加�
 
 - `site.yml`：站点全局配置（包含 `navigation` 等）
 - `pages/*.yml`：各页面配置（文件名需与 `navigation.id` 对应）
-- `navigation.yml`：仅在 `site.yml` 未提供 `navigation` 时回退使用（兼容旧版本；推荐迁移到 `site.yml`）
 
 ## 配置示例
 

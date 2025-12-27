@@ -256,17 +256,6 @@ function loadModularConfig(dirPath) {
         }
     }
 
-    // 如果site.yml中没有navigation配置，则回退到独立的navigation.yml
-    if (!config.navigation || config.navigation.length === 0) {
-        const navConfigPath = path.join(dirPath, 'navigation.yml');
-        const navConfig = safeLoadYamlConfig(navConfigPath);
-        if (navConfig) {
-            config.navigation = navConfig;
-            console.log('site.yml 中未找到导航配置，使用独立的 navigation.yml 文件');
-            console.log('提示：建议将导航配置迁移到 site.yml 中，以便统一管理');
-        }
-    }
-
     // 加载页面配置
     const pagesPath = path.join(dirPath, 'pages');
     if (fs.existsSync(pagesPath)) {
@@ -280,12 +269,6 @@ function loadModularConfig(dirPath) {
             if (fileConfig) {
                 // 提取文件名（不含扩展名）作为配置键
                 const configKey = path.basename(file, path.extname(file));
-
-                // 兼容旧结构：若存在 pages/home.yml，则把其 categories 同步到顶层 config.categories
-                // 说明：仅用于历史逻辑（例如生成导航子菜单），页面渲染请以 config[pageId].categories 为准。
-                if (configKey === 'home' && fileConfig.categories) {
-                    config.categories = fileConfig.categories;
-                }
 
                 // 将页面配置添加到主配置对象
                 config[configKey] = fileConfig;
@@ -328,7 +311,6 @@ function ensureConfigDefaults(config) {
 
   result.profile = result.profile || {};
   result.social = result.social || [];
-  result.categories = result.categories || [];
   // 图标配置默认值
   result.icons = result.icons || {};
   // icons.mode: manual | favicon, 默认 favicon
@@ -368,10 +350,6 @@ function ensureConfigDefaults(config) {
     category.sites = category.sites || [];
     category.sites.forEach(processSiteDefaults);
   }
-
-  // 为首页的每个类别和站点设置默认值
-  result.categories = result.categories || [];
-  result.categories.forEach(processCategoryDefaults);
 
   // 为所有页面配置中的类别和站点设置默认值
   Object.keys(result).forEach(key => {
@@ -422,30 +400,8 @@ function getSubmenuForNavItem(navItem, config) {
     return null;
   }
 
-  // 首页页面添加子菜单（分类）
-  if (navItem.id === 'home' && Array.isArray(config.categories)) {
-    return config.categories;
-  }
-  // 书签页面添加子菜单（分类）
-  else if (navItem.id === 'bookmarks' && config.bookmarks && Array.isArray(config.bookmarks.categories)) {
-    return config.bookmarks.categories;
-  }
-  // 项目页面添加子菜单
-  else if (navItem.id === 'projects' && config.projects && Array.isArray(config.projects.categories)) {
-    return config.projects.categories;
-  }
-  // 文章页面添加子菜单
-  else if (navItem.id === 'articles' && config.articles && Array.isArray(config.articles.categories)) {
-    return config.articles.categories;
-  }
-  // 友链页面添加子菜单
-  else if (navItem.id === 'friends' && config.friends && Array.isArray(config.friends.categories)) {
-    return config.friends.categories;
-  }
-  // 通用处理：任意自定义页面的子菜单生成
-  else if (config[navItem.id] && config[navItem.id].categories && Array.isArray(config[navItem.id].categories)) {
-    return config[navItem.id].categories;
-  }
+  // 通用处理：任意页面的子菜单生成（基于 pages/<id>.yml 的 categories）
+  if (config[navItem.id] && Array.isArray(config[navItem.id].categories)) return config[navItem.id].categories;
 
   return null;
 }
@@ -890,8 +846,7 @@ function loadConfig() {
     navigation: [],
     fonts: {},
     profile: {},
-    social: [],
-    categories: []
+    social: []
   };
 
   // 检查模块化配置来源是否存在
@@ -919,20 +874,10 @@ function loadConfig() {
     // 2. 次高优先级: config/_default/ 目录
     config = loadModularConfig('config/_default');
   } else {
-    // 3. 最低优先级: 旧版单文件配置 (config.yml or config.yaml)
-    const legacyConfigPath = fs.existsSync('config.yml') ? 'config.yml' : 'config.yaml';
-
-    if (fs.existsSync(legacyConfigPath)) {
-      try {
-        const fileContent = fs.readFileSync(legacyConfigPath, 'utf8');
-        config = yaml.load(fileContent);
-      } catch (e) {
-        console.error(`Error loading configuration from ${legacyConfigPath}:`, e);
-      }
-    } else {
-      console.error('No configuration found. Please create a configuration file.');
-      process.exit(1);
-    }
+    console.error('[ERROR] 未找到可用配置：缺少 config/user/ 或 config/_default/。');
+    console.error('[ERROR] 本版本已不再支持旧版单文件配置（config.yml / config.yaml）。');
+    console.error('[ERROR] 解决方法：使用模块化配置目录（建议从 config/_default/ 复制到 config/user/ 再修改）。');
+    process.exit(1);
   }
 
   // 确保配置有默认值并通过验证
@@ -1197,11 +1142,8 @@ function buildProjectsMeta(config) {
  */
 function renderPage(pageId, config) {
   // 准备页面数据
-  // 注意：config.categories 为历史兼容字段（旧版本会把 pages/home.yml 的 categories 同步到这里，用于导航子菜单等）
-  // 渲染页面时不应无条件注入到所有页面，否则会导致“无 categories 的页面误显示首页内容”。
-  const { categories: _homeCategories, ...configWithoutHomeCategories } = config || {};
   const data = {
-    ...configWithoutHomeCategories,
+    ...(config || {}),
     currentPage: pageId,
     pageId // 同时保留pageId字段，用于通用模板
   };

@@ -112,14 +112,6 @@ jobs:
               fi
             fi
 
-            # Also check for legacy navigation file changes
-            if [ -f config/user/navigation.yml ]; then
-              if ! git diff --quiet config/user/navigation.yml; then
-                echo "config/user/navigation.yml has changes, committing..."
-                git add config/user/navigation.yml
-                git commit -m "Update navigation to include bookmarks page"
-              fi
-            fi
           else
             echo "ERROR: config/user/pages/bookmarks.yml does not exist! Bookmark processing may have failed."
             echo "Current directory contents:"
