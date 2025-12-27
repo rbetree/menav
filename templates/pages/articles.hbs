@@ -1,23 +1,66 @@
-{{!-- articles.hbs - 文章页面：Phase 1 扁平化展示站点入口；Phase 2 将优先渲染 articlesItems --}}
+{{!-- articles.hbs - 文章页面：恢复分类展示；Phase 2 优先展示文章条目（只读） --}}
 <div class="page-template page-template-articles">
     {{> page-header}}
-    <div class="flat-sites-grid">
-        {{#if articlesItems.length}}
-            {{#each articlesItems}}
-                {{> site-card type="article" style=@root.siteCardStyle}}
+
+    {{#if articlesItems.length}}
+        {{!-- Phase 2：按配置分类聚合展示文章条目（只读），保持与页面分类结构一致 --}}
+        {{#if articlesCategories.length}}
+            {{#each articlesCategories}}
+                <section class="category category-level-1 category-readonly">
+                    <div class="category-header" data-toggle="category">
+                        <h2>
+                            <i class="{{#if icon}}{{icon}}{{else}}fas fa-rss{{/if}}"></i>
+                            {{name}}
+                            <span class="toggle-icon">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                        </h2>
+                    </div>
+                    <div class="category-content">
+                        {{#if items.length}}
+                            <div class="sites-grid">
+                                {{#each items}}
+                                    {{> site-card type="article" style=@root.siteCardStyle}}
+                                {{/each}}
+                            </div>
+                        {{else}}
+                            <p class="empty-content">暂无文章</p>
+                        {{/if}}
+                    </div>
+                </section>
             {{/each}}
         {{else}}
-            {{#each flatCategories}}
-                {{> flat-category}}
-            {{/each}}
+            {{!-- 兜底：无分类映射时展示为单一“最新文章”列表 --}}
+            <section class="category category-level-1 category-readonly">
+                <div class="category-header" data-toggle="category">
+                    <h2>
+                        <i class="fas fa-rss"></i>
+                        最新文章
+                        <span class="toggle-icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </h2>
+                </div>
+                <div class="category-content">
+                    <div class="sites-grid">
+                        {{#each articlesItems}}
+                            {{> site-card type="article" style=@root.siteCardStyle}}
+                        {{/each}}
+                    </div>
+                </div>
+            </section>
         {{/if}}
-    </div>
-    {{!-- Phase 2：保留扩展可写回结构（隐藏），避免文章条目卡片影响 DOM → IR → YAML --}}
-    {{#if articlesItems.length}}
+
+        {{!-- 保留扩展可写回结构（隐藏），避免文章条目影响 DOM → IR → YAML --}}
         <div class="menav-extension-shadow" data-extension-shadow="true" data-search-exclude="true" aria-hidden="true">
-            {{#each flatCategories}}
-                {{> flat-category}}
+            {{#each categories}}
+                {{> category}}
             {{/each}}
         </div>
+    {{else}}
+        {{!-- Phase 1：来源站点入口（可写回） --}}
+        {{#each categories}}
+            {{> category}}
+        {{/each}}
     {{/if}}
 </div>

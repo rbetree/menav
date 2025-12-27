@@ -421,13 +421,6 @@ function getSubmenuForNavItem(navItem, config) {
     return null;
   }
 
-  // friends/articles 模板为“无层级扁平展示”，不生成分类子菜单，避免出现“有子菜单但页面无分类标题”的割裂体验
-  const pageConfig = config[navItem.id];
-  const pageTemplate = pageConfig && pageConfig.template ? pageConfig.template : navItem.id;
-  if (pageTemplate === 'friends' || pageTemplate === 'articles') {
-    return null;
-  }
-
   // 首页页面添加子菜单（分类）
   if (navItem.id === 'home' && Array.isArray(config.categories)) {
     return config.categories;
@@ -567,7 +560,7 @@ function getPageConfigUpdatedAtMeta(pageId) {
 /**
  * 读取 articles 页面 RSS 缓存（Phase 2）
  * - 缓存默认放在 dev/（仓库默认 gitignore）
- * - 构建端只读缓存：缓存缺失/损坏时回退到 Phase 1（flatCategories 扁平站点入口）
+ * - 构建端只读缓存：缓存缺失/损坏时回退到 Phase 1（渲染来源站点分类）
  * @param {string} pageId 页面ID（用于支持多个 articles 页面的独立缓存）
  * @param {Object} config 全站配置（用于读取 site.rss.cacheDir）
  * @returns {{items: Array<Object>, meta: Object}|null}
@@ -606,6 +599,8 @@ function tryLoadArticlesFeedCache(pageId, config) {
           // Phase 2 文章元信息（只读展示）
           publishedAt: a && a.publishedAt ? String(a.publishedAt) : '',
           source: a && a.source ? String(a.source) : '',
+          // 文章来源站点首页 URL（用于按分类聚合展示；旧缓存可能缺失）
+          sourceUrl: a && a.sourceUrl ? String(a.sourceUrl) : '',
 
           // 文章链接通常应在新标签页打开
           external: true
@@ -625,6 +620,113 @@ function tryLoadArticlesFeedCache(pageId, config) {
     console.warn(`[WARN] articles 缓存读取失败：${cachePath}（将回退 Phase 1）`);
     return null;
   }
+}
+
+function normalizeUrlKey(input) {
+  if (!input) return '';
+  try {
+    const u = new URL(String(input));
+    const origin = u.origin;
+    let pathname = u.pathname || '/';
+    // 统一去掉末尾斜杠（根路径除外），避免 https://a.com 与 https://a.com/ 不匹配
+    if (pathname !== '/' && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+    return `${origin}${pathname}`;
+  } catch {
+    return String(input).trim();
+  }
+}
+
+function collectSitesRecursively(node, output) {
+  if (!node || typeof node !== 'object') return;
+
+  if (Array.isArray(node.subcategories)) node.subcategories.forEach(child => collectSitesRecursively(child, output));
+  if (Array.isArray(node.groups)) node.groups.forEach(child => collectSitesRecursively(child, output));
+  if (Array.isArray(node.subgroups)) node.subgroups.forEach(child => collectSitesRecursively(child, output));
+
+  if (Array.isArray(node.sites)) {
+    node.sites.forEach(site => {
+      if (site && typeof site === 'object') output.push(site);
+    });
+  }
+}
+
+/**
+ * articles Phase 2：按页面配置的“分类”聚合文章展示
+ * - 规则：某篇文章的 sourceUrl/source 归属到其来源站点（pages/articles.yml 中配置的站点）所在的分类
+ * - 兼容：旧缓存缺少 sourceUrl 时回退使用 source（站点名称）匹配
+ * @param {Array<Object>} categories 页面配置 categories（可包含更深层级）
+ * @param {Array<Object>} articlesItems Phase 2 文章条目（来自缓存）
+ * @returns {Array<{name: string, icon: string, items: Array<Object>}>}
+ */
+function buildArticlesCategoriesByPageCategories(categories, articlesItems) {
+  const safeItems = Array.isArray(articlesItems) ? articlesItems : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
+  // 若页面未配置分类，则回退为单一分类容器
+  if (safeCategories.length === 0) {
+    return [
+      {
+        name: '最新文章',
+        icon: 'fas fa-rss',
+        items: safeItems
+      }
+    ];
+  }
+
+  const categoryIndex = safeCategories.map(category => {
+    const sites = [];
+    collectSitesRecursively(category, sites);
+
+    const siteUrlKeys = new Set();
+    const siteNameKeys = new Set();
+    sites.forEach(site => {
+      const urlKey = normalizeUrlKey(site && site.url ? String(site.url) : '');
+      if (urlKey) siteUrlKeys.add(urlKey);
+      const nameKey = site && site.name ? String(site.name).trim().toLowerCase() : '';
+      if (nameKey) siteNameKeys.add(nameKey);
+    });
+
+    return { category, siteUrlKeys, siteNameKeys };
+  });
+
+  const buckets = categoryIndex.map(() => []);
+  const uncategorized = [];
+
+  safeItems.forEach(item => {
+    const sourceUrlKey = normalizeUrlKey(item && item.sourceUrl ? String(item.sourceUrl) : '');
+    const sourceNameKey = item && item.source ? String(item.source).trim().toLowerCase() : '';
+
+    let matchedIndex = -1;
+    if (sourceUrlKey) {
+      matchedIndex = categoryIndex.findIndex(idx => idx.siteUrlKeys.has(sourceUrlKey));
+    }
+    if (matchedIndex < 0 && sourceNameKey) {
+      matchedIndex = categoryIndex.findIndex(idx => idx.siteNameKeys.has(sourceNameKey));
+    }
+
+    if (matchedIndex < 0) {
+      uncategorized.push(item);
+      return;
+    }
+
+    buckets[matchedIndex].push(item);
+  });
+
+  const displayCategories = categoryIndex.map((idx, i) => ({
+    name: idx.category && idx.category.name ? String(idx.category.name) : '未命名分类',
+    icon: idx.category && idx.category.icon ? String(idx.category.icon) : 'fas fa-rss',
+    items: buckets[i]
+  }));
+
+  if (uncategorized.length > 0) {
+    displayCategories.push({
+      name: '其他',
+      icon: 'fas fa-ellipsis-h',
+      items: uncategorized
+    });
+  }
+
+  return displayCategories;
 }
 
 function tryLoadProjectsRepoCache(pageId, config) {
@@ -712,65 +814,6 @@ function applyRepoMetaToCategories(categories, repoMetaMap) {
   };
 
   categories.forEach(walk);
-}
-
-/**
- * 从任意层级节点递归收集 sites（用于 friends/articles 扁平化展示）
- * @param {any} node 当前节点（category/subcategory/group/subgroup）
- * @param {Array<Object>} output 收集到的 sites 数组
- */
-function collectSitesRecursively(node, output) {
-  if (!node || typeof node !== 'object') return;
-
-  // 先深入子层级（保持与现有模板结构相近的遍历顺序）
-  if (Array.isArray(node.subcategories)) {
-    node.subcategories.forEach(child => collectSitesRecursively(child, output));
-  }
-  if (Array.isArray(node.groups)) {
-    node.groups.forEach(child => collectSitesRecursively(child, output));
-  }
-  if (Array.isArray(node.subgroups)) {
-    node.subgroups.forEach(child => collectSitesRecursively(child, output));
-  }
-
-  // 再收集当前层级 sites
-  if (Array.isArray(node.sites)) {
-    node.sites.forEach(site => {
-      if (site && typeof site === 'object') output.push(site);
-    });
-  }
-}
-
-/**
- * 将页面 categories 中的所有 sites 扁平化为一个数组
- * @param {Array<any>} categories 顶层分类数组
- * @returns {Array<Object>} sites 扁平数组
- */
-function buildFlatSitesFromCategories(categories) {
-  const output = [];
-  if (!Array.isArray(categories)) return output;
-  categories.forEach(category => collectSitesRecursively(category, output));
-  return output;
-}
-
-/**
- * 将页面的顶层 categories 映射为“无标题分类容器”数据：保留顶层分类 name/icon，但 sites 扁平化合并其子层级 sites
- * @param {Array<any>} categories 顶层分类数组
- * @returns {Array<{name: string, icon: string, sites: Array<Object>}>}
- */
-function buildFlatCategoriesFromCategories(categories) {
-  if (!Array.isArray(categories)) return [];
-
-  return categories.map(category => {
-    const sites = [];
-    collectSitesRecursively(category, sites);
-
-    return {
-      name: category && category.name ? category.name : '',
-      icon: category && category.icon ? category.icon : '',
-      sites
-    };
-  });
 }
 
 /**
@@ -1203,24 +1246,19 @@ function renderPage(pageId, config) {
     }
   }
 
-  // friends/articles：无层级扁平展示所需派生字段（不写回 yml）
-  if (templateName === 'friends' || templateName === 'articles') {
-    let categories = Array.isArray(data.categories) ? data.categories : [];
-
-    // 如果用户使用了顶层 sites（推荐的扁平配置），则生成一个“隐式分类容器”供模板/扩展使用
-    if (categories.length === 0 && Array.isArray(data.sites) && data.sites.length > 0) {
-      const implicitName = templateName === 'friends' ? '全部友链' : '全部来源';
-      categories = [
-        {
-          name: implicitName,
-          icon: 'fas fa-link',
-          sites: data.sites
-        }
-      ];
-    }
-
-    data.flatSites = buildFlatSitesFromCategories(categories);
-    data.flatCategories = buildFlatCategoriesFromCategories(categories);
+  // friends/articles：允许顶层 sites（历史/兼容），自动转换为一个分类容器以保持页面结构一致
+  if ((templateName === 'friends' || templateName === 'articles')
+    && (!Array.isArray(data.categories) || data.categories.length === 0)
+    && Array.isArray(data.sites)
+    && data.sites.length > 0) {
+    const implicitName = templateName === 'friends' ? '全部友链' : '全部来源';
+    data.categories = [
+      {
+        name: implicitName,
+        icon: 'fas fa-link',
+        sites: data.sites
+      }
+    ];
   }
 
   // articles 模板页面：Phase 2 若存在 RSS 缓存，则注入 articlesItems（缓存缺失/损坏则回退 Phase 1）
@@ -1228,6 +1266,10 @@ function renderPage(pageId, config) {
     const cache = tryLoadArticlesFeedCache(pageId, config);
     data.articlesItems = cache && Array.isArray(cache.items) ? cache.items : [];
     data.articlesMeta = cache ? cache.meta : null;
+    // Phase 2：按页面配置分类聚合展示（用于模板渲染只读文章列表）
+    data.articlesCategories = data.articlesItems.length
+      ? buildArticlesCategoriesByPageCategories(data.categories, data.articlesItems)
+      : [];
   }
 
   // bookmarks 模板页面：注入配置文件“内容更新时间”（优先 git，回退 mtime）

@@ -382,6 +382,7 @@ function normalizeArticle(item, sourceSite, settings) {
   const publishedAt = normalizePublishedAt(item);
 
   const source = sourceSite && sourceSite.name ? String(sourceSite.name) : '';
+  const sourceUrl = sourceSite && sourceSite.url ? String(sourceSite.url) : '';
   const icon = sourceSite && sourceSite.icon ? String(sourceSite.icon) : 'fas fa-pen';
 
   return {
@@ -390,6 +391,8 @@ function normalizeArticle(item, sourceSite, settings) {
     summary,
     publishedAt,
     source,
+    // 站点首页 URL（用于生成端按分类聚合展示；文章 url 为具体文章链接）
+    sourceUrl,
     icon
   };
 }

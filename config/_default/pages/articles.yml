@@ -1,36 +1,31 @@
 # 默认页面配置（请勿直接修改）。
 # 建议复制到 config/user/pages/articles.yml 并按需调整。
 title: 技术文章                 # 页面标题
-subtitle: RSS 聚合文章列表（运行 npm run sync-articles 刷新）  # 页面副标题
+subtitle: RSS 聚合文章列表  # 页面副标题
 
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
 template: articles
 
-# 扁平站点列表（articles 页面为“无层级并列卡片”，推荐直接使用顶层 sites）
-# Phase 2：当存在 RSS 缓存时，页面将优先渲染“文章条目卡片”；本处 sites 作为“来源站点列表”输入。
+# Phase 2：当存在 RSS 缓存时，页面将优先渲染“文章条目卡片”（只读）。
+# - 本处的站点列表作为“来源站点”输入（url 填站点首页）
+# - 显示时会将“该分类下配置的站点”抓取到的文章聚合展示在该分类下
 # 重要：url 应填写“站点首页 URL”（不是某一篇文章链接），系统会自动发现 RSS/Atom。
-sites:
-  - name: GitHub Blog
-    icon: fab fa-github
-    description: GitHub 官方博客（工程/产品/安全）
-    url: https://github.blog/
-  - name: Cloudflare Blog
-    icon: fas fa-cloud
-    description: Cloudflare 工程与安全博客
-    url: https://blog.cloudflare.com/
-  - name: 阮一峰的网络日志
-    icon: fas fa-pen
-    description: 技术文章与随笔（Atom）
-    url: https://www.ruanyifeng.com/blog/
-  - name: Smashing Magazine
-    icon: fas fa-bolt
-    description: 前端与设计高质量文章
-    url: https://www.smashingmagazine.com/
-  - name: Web.dev
-    icon: fab fa-chrome
-    description: Web 开发最佳实践与新特性
-    url: https://web.dev/
-  - name: Node.js Blog
-    icon: fab fa-node-js
-    description: Node.js 官方博客
-    url: https://nodejs.org/en/blog/
+categories:
+  - name: 个人博客
+    icon: fas fa-rss
+    sites:
+      - name: 阮一峰的网络日志
+        icon: fas fa-pen
+        description: 技术文章与随笔
+        url: https://www.ruanyifeng.com/blog/
+  - name: 官方博客
+    icon: fas fa-rss
+    sites:
+      - name: GitHub Blog
+        icon: fab fa-github
+        description: GitHub 官方博客（工程/产品/安全）
+        url: https://github.blog/
+      - name: Cloudflare Blog
+        icon: fas fa-cloud
+        description: Cloudflare 工程与安全博客
+        url: https://blog.cloudflare.com/

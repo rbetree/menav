@@ -16,7 +16,7 @@ function withRepoRoot(fn) {
   }
 }
 
-test('friends/articles：应扁平展示且不输出分类标题 DOM（扩展仍可依赖 data-* 结构）', () => {
+test('friends/articles：应恢复分类展示（扩展仍以 data-* 结构为准）', () => {
   withRepoRoot(() => {
     loadHandlebarsTemplates();
 
@@ -60,21 +60,21 @@ test('friends/articles：应扁平展示且不输出分类标题 DOM（扩展仍
 
     assert.ok(typeof pages.friends === 'string' && pages.friends.length > 0);
     assert.ok(pages.friends.includes('page-template-friends'));
-    assert.ok(pages.friends.includes('flat-sites-grid'));
+    assert.ok(pages.friends.includes('sites-grid'));
     assert.ok(pages.friends.includes('class="site-card'), 'friends 应使用普通 site-card 样式（图标在左，标题在右）');
     assert.ok(!pages.friends.includes('site-card-friend'), 'friends 不应使用 site-card-friend 变体样式');
-    assert.ok(!pages.friends.includes('category-header'), 'friends 不应输出分类标题结构');
+    assert.ok(pages.friends.includes('category-header'), 'friends 应输出分类标题结构');
 
     assert.ok(typeof pages.articles === 'string' && pages.articles.length > 0);
     assert.ok(pages.articles.includes('page-template-articles'));
-    assert.ok(pages.articles.includes('flat-sites-grid'));
+    assert.ok(pages.articles.includes('sites-grid'));
     assert.ok(pages.articles.includes('class="site-card'), 'articles 应使用普通 site-card 样式（图标在左，标题在右）');
     assert.ok(!pages.articles.includes('site-card-article'), 'articles 不应使用 site-card-article 变体样式');
-    assert.ok(!pages.articles.includes('category-header'), 'articles 不应输出分类标题结构');
+    assert.ok(pages.articles.includes('category-header'), 'articles 应输出分类标题结构');
   });
 });
 
-test('friends/articles：页面配置使用顶层 sites 时也应扁平展示（避免配置与页面表现不一致）', () => {
+test('friends/articles：页面配置使用顶层 sites 时应自动映射为分类容器', () => {
   withRepoRoot(() => {
     loadHandlebarsTemplates();
 
@@ -106,17 +106,17 @@ test('friends/articles：页面配置使用顶层 sites 时也应扁平展示（
 
     assert.ok(typeof pages.friends === 'string' && pages.friends.length > 0);
     assert.ok(pages.friends.includes('page-template-friends'));
-    assert.ok(pages.friends.includes('flat-sites-grid'));
+    assert.ok(pages.friends.includes('sites-grid'));
     assert.ok(pages.friends.includes('class="site-card'), 'friends 应使用普通 site-card 样式（图标在左，标题在右）');
     assert.ok(!pages.friends.includes('site-card-friend'), 'friends 不应使用 site-card-friend 变体样式');
-    assert.ok(!pages.friends.includes('category-header'), 'friends 不应输出分类标题结构');
+    assert.ok(pages.friends.includes('category-header'), 'friends 应输出分类标题结构');
 
     assert.ok(typeof pages.articles === 'string' && pages.articles.length > 0);
     assert.ok(pages.articles.includes('page-template-articles'));
-    assert.ok(pages.articles.includes('flat-sites-grid'));
+    assert.ok(pages.articles.includes('sites-grid'));
     assert.ok(pages.articles.includes('class="site-card'), 'articles 应使用普通 site-card 样式（图标在左，标题在右）');
     assert.ok(!pages.articles.includes('site-card-article'), 'articles 不应使用 site-card-article 变体样式');
-    assert.ok(!pages.articles.includes('category-header'), 'articles 不应输出分类标题结构');
+    assert.ok(pages.articles.includes('category-header'), 'articles 应输出分类标题结构');
   });
 });
 
@@ -175,7 +175,7 @@ test('projects：应输出代码仓库风格卡片（site-card-repo）', () => {
 
     assert.ok(typeof html === 'string' && html.length > 0);
     assert.ok(html.includes('page-template-projects'), 'projects 应包含模板容器 class');
-    assert.ok(html.includes('projects-grid'), 'projects 应包含网格容器');
+    assert.ok(html.includes('sites-grid'), 'projects 应包含网格容器（sites-grid）');
     assert.ok(html.includes('site-card-repo'), 'projects 应包含代码仓库风格卡片类');
   });
 });
@@ -203,6 +203,7 @@ test('articles Phase 2：存在 RSS 缓存时渲染文章条目，并隐藏扩�
               summary: 'summary',
               publishedAt: '2025-12-25T12:00:00.000Z',
               source: 'Example Blog',
+              sourceUrl: 'https://example.com',
               icon: 'fas fa-pen'
             }
           ],
@@ -245,6 +246,11 @@ test('articles Phase 2：存在 RSS 缓存时渲染文章条目，并隐藏扩�
       assert.ok(html.includes('site-card-meta'), '文章条目应展示日期/来源元信息');
       assert.ok(html.includes('Example Blog'));
       assert.ok(html.includes('2025-12-25'));
+      assert.match(
+        html,
+        /<section class="category category-level-1 category-readonly">[\s\S]*?来源[\s\S]*?Article A[\s\S]*?<\/section>/,
+        '文章条目应按页面配置分类聚合展示'
+      );
       assert.ok(html.includes('data-extension-shadow="true"'), '应保留隐藏的扩展写回结构');
       assert.ok(html.includes('data-search-exclude="true"'), '扩展影子结构应排除搜索索引');
     } finally {

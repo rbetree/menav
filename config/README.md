@@ -128,6 +128,7 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
 6. **RSS（articles Phase 2）**
    - `rss.*`：仅用于 `npm run sync-articles`（联网抓取 RSS/Atom 并写入缓存）
    - `npm run build` 默认不联网；无缓存时 `articles` 页面会回退到 Phase 1 的站点入口展示
+   - articles 页面会按 `articles.yml` 的分类进行聚合展示：某分类下配置的来源站点，其文章会显示在该分类下
    - 建议将 `rss.cacheDir` 设置为 `dev`（仓库默认 gitignore），避免误提交缓存文件
 
 7. **GitHub（projects 热力图，可选）**
@@ -147,25 +148,28 @@ MeNav 配置系统采用“完全替换”策略（不合并），按以下优�
 >
 > 站点描述建议简洁（例如不超过 30 个字符），以保证卡片展示更美观。
 
-#### friends/articles 扁平页面配置（推荐）
+#### friends/articles 页面配置（推荐）
 
-`friends` 与 `articles` 模板页面为“无层级并列卡片”展示（不显示分类标题），为避免配置结构与页面表现不一致造成误解，推荐直接使用顶层 `sites`：
+`friends` 与 `articles` 模板页面已恢复分类展示，为保持与其他页面结构一致，建议使用 `categories -> sites`（可选更深层级）：
 
 ```yaml
 title: 示例页面
 subtitle: 示例副标题
 template: friends  # 或 articles
 
-sites:
-  - name: 示例站点
-    url: https://example.com
-    icon: fas fa-link
-    description: 示例描述
+categories:
+  - name: 示例分类
+    icon: fas fa-folder
+    sites:
+      - name: 示例站点
+        url: https://example.com
+        icon: fas fa-link
+        description: 示例描述
 ```
 
-向后兼容说明：
+兼容说明：
 
-- 若历史配置仍使用 `categories -> sites`（甚至更深层级），系统仍可渲染，但页面不会展示分类/分组标题，仅保留必要的 `data-*` 结构供浏览器扩展识别与写回。
+- 若历史配置仍使用顶层 `sites`，系统会自动映射为一个分类容器（friends=“全部友链”，articles=“全部来源”）以保持页面结构一致。
 
 ### 多层级嵌套配置（2-4层）
 

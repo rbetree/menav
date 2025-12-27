@@ -251,7 +251,8 @@ window.MeNav = {
                     templateName = String(pageConfig.template);
                 }
 
-                if (templateName === 'projects') siteCardStyle = 'large';
+                // projects 模板使用代码仓库风格卡片（与生成端 templates/components/site-card.hbs 保持一致）
+                if (templateName === 'projects') siteCardStyle = 'repo';
             } catch (e) {
                 siteCardStyle = '';
             }
@@ -279,76 +280,163 @@ window.MeNav = {
             newSite.setAttribute('data-icon', siteIcon);
             newSite.setAttribute('data-description', siteDescription);
 
-            // 添加内容（根据图标模式渲染，避免 innerHTML 注入）
-            const iconWrapper = document.createElement('div');
-            iconWrapper.className = 'site-card-icon';
-            iconWrapper.setAttribute('aria-hidden', 'true');
+            // projects repo 风格：与模板中的 repo 结构保持一致（不走 favicon 逻辑）
+            if (siteCardStyle === 'repo') {
+                const repoHeader = document.createElement('div');
+                repoHeader.className = 'repo-header';
 
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'site-card-content';
+                const repoIcon = document.createElement('i');
+                repoIcon.className = `${siteIcon || 'fas fa-code'} repo-icon`;
+                repoIcon.setAttribute('aria-hidden', 'true');
 
-            const titleEl = document.createElement('h3');
-            titleEl.textContent = siteName;
+                const repoTitle = document.createElement('div');
+                repoTitle.className = 'repo-title';
+                repoTitle.textContent = siteName;
 
-            const descEl = document.createElement('p');
-            descEl.textContent = siteDescription;
+                repoHeader.appendChild(repoIcon);
+                repoHeader.appendChild(repoTitle);
 
-            contentWrapper.appendChild(titleEl);
-            contentWrapper.appendChild(descEl);
+                const repoDesc = document.createElement('div');
+                repoDesc.className = 'repo-desc';
+                repoDesc.textContent = siteDescription;
 
-            let iconsMode = 'favicon';
-            try {
-                const cfg =
-                    window.MeNav && typeof window.MeNav.getConfig === 'function'
-                        ? window.MeNav.getConfig()
-                        : null;
-                iconsMode = (cfg && (cfg.data?.icons?.mode || cfg.icons?.mode)) || 'favicon';
-            } catch (e) {
-                iconsMode = 'favicon';
-            }
+                newSite.appendChild(repoHeader);
+                newSite.appendChild(repoDesc);
 
-            if (iconsMode === 'favicon' && data.url && /^https?:\/\//i.test(data.url)) {
-                const faviconUrl = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(data.url)}&size=32`;
+                const hasStats =
+                    data &&
+                    (data.language ||
+                        data.stars ||
+                        data.forks ||
+                        data.issues);
 
-                const iconContainer = document.createElement('div');
-                iconContainer.className = 'icon-container';
+                if (hasStats) {
+                    const repoStats = document.createElement('div');
+                    repoStats.className = 'repo-stats';
 
-                const placeholder = document.createElement('i');
-                placeholder.className = 'fas fa-circle-notch fa-spin icon-placeholder';
-                placeholder.setAttribute('aria-hidden', 'true');
+                    if (data.language) {
+                        const languageItem = document.createElement('div');
+                        languageItem.className = 'stat-item';
 
-                const fallback = document.createElement('i');
-                fallback.className = `${siteIcon} icon-fallback`;
-                fallback.setAttribute('aria-hidden', 'true');
+                        const langDot = document.createElement('span');
+                        langDot.className = 'lang-dot';
+                        langDot.style.backgroundColor = data.languageColor || '#909296';
 
-                const favicon = document.createElement('img');
-                favicon.className = 'favicon-icon';
-                favicon.src = faviconUrl;
-                favicon.alt = `${siteName} favicon`;
-                favicon.loading = 'lazy';
-                favicon.addEventListener('load', () => {
-                    favicon.classList.add('loaded');
-                    placeholder.classList.add('hidden');
-                });
-                favicon.addEventListener('error', () => {
-                    favicon.classList.add('error');
-                    placeholder.classList.add('hidden');
-                    fallback.classList.add('visible');
-                });
+                        languageItem.appendChild(langDot);
+                        languageItem.appendChild(document.createTextNode(String(data.language)));
+                        repoStats.appendChild(languageItem);
+                    }
 
-                iconContainer.appendChild(placeholder);
-                iconContainer.appendChild(favicon);
-                iconContainer.appendChild(fallback);
-                iconWrapper.appendChild(iconContainer);
+                    if (data.stars) {
+                        const starsItem = document.createElement('div');
+                        starsItem.className = 'stat-item';
+
+                        const starIcon = document.createElement('i');
+                        starIcon.className = 'far fa-star';
+                        starIcon.setAttribute('aria-hidden', 'true');
+                        starsItem.appendChild(starIcon);
+                        starsItem.appendChild(document.createTextNode(` ${data.stars}`));
+                        repoStats.appendChild(starsItem);
+                    }
+
+                    if (data.forks) {
+                        const forksItem = document.createElement('div');
+                        forksItem.className = 'stat-item';
+
+                        const forkIcon = document.createElement('i');
+                        forkIcon.className = 'fas fa-code-branch';
+                        forkIcon.setAttribute('aria-hidden', 'true');
+                        forksItem.appendChild(forkIcon);
+                        forksItem.appendChild(document.createTextNode(` ${data.forks}`));
+                        repoStats.appendChild(forksItem);
+                    }
+
+                    if (data.issues) {
+                        const issuesItem = document.createElement('div');
+                        issuesItem.className = 'stat-item';
+
+                        const issueIcon = document.createElement('i');
+                        issueIcon.className = 'fas fa-exclamation-circle';
+                        issueIcon.setAttribute('aria-hidden', 'true');
+                        issuesItem.appendChild(issueIcon);
+                        issuesItem.appendChild(document.createTextNode(` ${data.issues}`));
+                        repoStats.appendChild(issuesItem);
+                    }
+
+                    newSite.appendChild(repoStats);
+                }
             } else {
-                const iconEl = document.createElement('i');
-                iconEl.className = `${siteIcon} site-icon`;
-                iconEl.setAttribute('aria-hidden', 'true');
-                iconWrapper.appendChild(iconEl);
-            }
+                // 添加内容（根据图标模式渲染，避免 innerHTML 注入）
+                const iconWrapper = document.createElement('div');
+                iconWrapper.className = 'site-card-icon';
+                iconWrapper.setAttribute('aria-hidden', 'true');
 
-            newSite.appendChild(iconWrapper);
-            newSite.appendChild(contentWrapper);
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'site-card-content';
+
+                const titleEl = document.createElement('h3');
+                titleEl.textContent = siteName;
+
+                const descEl = document.createElement('p');
+                descEl.textContent = siteDescription;
+
+                contentWrapper.appendChild(titleEl);
+                contentWrapper.appendChild(descEl);
+
+                let iconsMode = 'favicon';
+                try {
+                    const cfg =
+                        window.MeNav && typeof window.MeNav.getConfig === 'function'
+                            ? window.MeNav.getConfig()
+                            : null;
+                    iconsMode = (cfg && (cfg.data?.icons?.mode || cfg.icons?.mode)) || 'favicon';
+                } catch (e) {
+                    iconsMode = 'favicon';
+                }
+
+                if (iconsMode === 'favicon' && data.url && /^https?:\/\//i.test(data.url)) {
+                    const faviconUrl = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(data.url)}&size=32`;
+
+                    const iconContainer = document.createElement('div');
+                    iconContainer.className = 'icon-container';
+
+                    const placeholder = document.createElement('i');
+                    placeholder.className = 'fas fa-circle-notch fa-spin icon-placeholder';
+                    placeholder.setAttribute('aria-hidden', 'true');
+
+                    const fallback = document.createElement('i');
+                    fallback.className = `${siteIcon} icon-fallback`;
+                    fallback.setAttribute('aria-hidden', 'true');
+
+                    const favicon = document.createElement('img');
+                    favicon.className = 'favicon-icon';
+                    favicon.src = faviconUrl;
+                    favicon.alt = `${siteName} favicon`;
+                    favicon.loading = 'lazy';
+                    favicon.addEventListener('load', () => {
+                        favicon.classList.add('loaded');
+                        placeholder.classList.add('hidden');
+                    });
+                    favicon.addEventListener('error', () => {
+                        favicon.classList.add('error');
+                        placeholder.classList.add('hidden');
+                        fallback.classList.add('visible');
+                    });
+
+                    iconContainer.appendChild(placeholder);
+                    iconContainer.appendChild(favicon);
+                    iconContainer.appendChild(fallback);
+                    iconWrapper.appendChild(iconContainer);
+                } else {
+                    const iconEl = document.createElement('i');
+                    iconEl.className = `${siteIcon} site-icon`;
+                    iconEl.setAttribute('aria-hidden', 'true');
+                    iconWrapper.appendChild(iconEl);
+                }
+
+                newSite.appendChild(iconWrapper);
+                newSite.appendChild(contentWrapper);
+            }
 
             // 添加到DOM
             sitesGrid.appendChild(newSite);

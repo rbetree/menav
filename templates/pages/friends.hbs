@@ -1,9 +1,7 @@
-{{!-- friends.hbs - 友链页面：扁平化并列卡片展示（不显示分类标题） --}}
+{{!-- friends.hbs - 友链页面：恢复分类展示，保持与其他页面一致 --}}
 <div class="page-template page-template-friends">
     {{> page-header}}
-    <div class="flat-sites-grid">
-        {{#each flatCategories}}
-            {{> flat-category}}
-        {{/each}}
-    </div>
+    {{#each categories}}
+        {{> category}}
+    {{/each}}
 </div>
