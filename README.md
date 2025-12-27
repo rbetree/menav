@@ -236,6 +236,7 @@ cd menav
 # 安装依赖
 npm install
 ```
+（本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
 
 3. 完成配置（见[设置配置文件](#设置配置文件)）
    
@@ -322,6 +323,8 @@ npm run format
 - GitHub Actions会自动检测您的更改
 - 构建并部署您的网站
 - 部署完成后，您可以在 Settings -> Pages 中找到您的网站地址
+  - 站点内容的“时效性数据”（RSS 文章聚合、projects 仓库统计）会由部署工作流在构建前自动刷新
+  - 也支持定时刷新：默认每天 UTC 02:00 触发一次（GitHub Actions cron 使用 UTC；北京时间=UTC+8，可在 `.github/workflows/deploy.yml` 中调整 `schedule.cron`）
 
 **重要: Sync fork后需要手动触发工作流**:
 
@@ -386,6 +389,16 @@ server {
 - 连接您的GitHub仓库
 - 设置构建命令为`npm run build`
 - 设置输出目录为`dist`
+
+> 如果你希望在构建时刷新“时效性数据”（RSS 文章聚合、projects 仓库统计），请将构建命令改为：
+>
+> ```bash
+> npm ci && npm run sync-projects && npm run sync-articles && npm run build
+> ```
+>
+> 说明：`sync-*` 会联网抓取并写入 `dev/` 缓存（仓库默认 gitignore）；同步脚本为 best-effort，失败不会阻断后续 `build`。
+>
+> 备注：`dev/` 只用于构建过程的中间缓存，默认不会被提交到仓库；部署时也只会上传 `dist/`，不会包含 `dev/`。
 
 > **书签转换依赖 GitHub Actions**
 > 如果需要使用书签自动推送功能，必须先在 GitHub 仓库中启用 GitHub Actions
