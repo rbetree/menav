@@ -1542,9 +1542,23 @@ body .content.expanded {
 }
 
 @media (max-width: 600px) {
+    .welcome-section-with-side {
+        align-items: flex-start;
+    }
+
+    .welcome-section-with-side .welcome-section-side {
+        width: 100%;
+    }
+
     .page-template-projects .heatmap-container {
         width: 100%;
-        overflow-x: auto;
+        overflow: hidden;
+    }
+
+    .page-template-projects .heatmap-img {
+        /* 移动端优先保证“缩小后完整显示” */
+        width: 100%;
+        max-width: 100%;
     }
 }
 
@@ -1652,7 +1666,7 @@ body .content.expanded {
 
 @media (max-width: 480px) {
     .page-template-articles .sites-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 0.5rem;
     }
 }
