@@ -6,7 +6,7 @@ subtitle: RSS 聚合文章列表  # 页面副标题
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
 template: articles
 
-# Phase 2：当存在 RSS 缓存时，页面将优先渲染“文章条目卡片”（只读）。
+# 当存在 RSS 缓存时，页面将优先渲染“文章条目卡片”（只读）。
 # - 本处的站点列表作为“来源站点”输入（url 填站点首页）
 # - 显示时会将“该分类下配置的站点”抓取到的文章聚合展示在该分类下
 # 重要：url 应填写“站点首页 URL”（不是某一篇文章链接），系统会自动发现 RSS/Atom。
@@ -18,6 +18,18 @@ categories:
         icon: fas fa-pen
         description: 技术文章与随笔
         url: https://www.ruanyifeng.com/blog/
+      - name: Coolzr's Blog
+        icon: fas fa-pen
+        description: 偶尔会写点什么
+        url: https://blog.rzlnb.top/
+      - name: 天仙子
+        icon: fas fa-pen
+        description: tianxianzi
+        url: https://www.tianxianzi.me/
+      - name: pseudoyu
+        icon: fas fa-pen
+        description: pseudoyu
+        url: https://www.pseudoyu.com/
   - name: 官方博客
     icon: fas fa-rss
     sites:

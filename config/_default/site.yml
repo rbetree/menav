@@ -33,7 +33,7 @@ fonts:
 # 个人资料：显示在首页顶部的欢迎信息
 profile:
   # 注意：首页（导航第一项）标题区优先使用 profile.title/profile.subtitle
-  # 因此建议把首页希望展示的文案写在这里，避免“改了 pages/home.yml 但首页不生效”的误会
+  # 因此建议把首页希望展示的文案写在这里，避免“改了 pages/<首页id>.yml 但首页不生效”的误会
   title: Hello,
   subtitle: Welcome to My Navigation
 
@@ -59,7 +59,7 @@ rss:
 # - username：你的 GitHub 用户名（例如 torvalds）
 # - heatmapColor：热力图主题色（不带 #，例如 339af0）
 github:
-  username: ""      # 你的 GitHub 用户名（例如 torvalds；为空则 projects 页不展示热力图）
+  username: "rbetree"      # 你的 GitHub 用户名（例如 torvalds；为空则 projects 页不展示热力图）
   heatmapColor: 339af0
   cacheDir: dev     # projects 仓库元信息缓存目录（默认 dev，仓库默认 gitignore）
 
@@ -82,16 +82,13 @@ social:
 navigation:
   - name: 常用        # 菜单名称
     icon: fas fa-star  # Font Awesome 图标类
-    id: home           # 页面标识符（唯一，需与 pages/<id>.yml 对应）
+    id: common          # 页面标识符（唯一，需与 pages/<id>.yml 对应）
   - name: 项目
     icon: fas fa-project-diagram
     id: projects
   - name: 文章
     icon: fas fa-book
     id: articles
-  - name: 朋友
-    icon: fas fa-users
-    id: friends
   - name: 书签
     icon: fas fa-bookmark
     id: bookmarks

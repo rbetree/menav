@@ -1,20 +1,7 @@
-<div class="page" id="{{pageId}}">
-    {{#ifEquals pageId @root.homePageId}}
-    <div class="welcome-section">
-        <div class="welcome-section-main">
-            <h2 data-editable="profile-title">{{title}}</h2>
-            <h3 data-editable="profile-subtitle">{{subtitle}}</h3>
-        </div>
-    </div>
-    {{else}}
-    <div class="welcome-section">
-        <div class="welcome-section-main">
-            <h2 data-editable="page-title">{{title}}</h2>
-            <p class="subtitle" data-editable="page-subtitle">{{subtitle}}</p>
-        </div>
-    </div>
-    {{/ifEquals}}
+{{!-- page.hbs - 通用页面模板：结构与其他页面一致（标题区 + 分类内容） --}}
+<div class="page-template page-template-{{pageId}}">
+    {{> page-header}}
     {{#each categories}}
         {{> category}}
     {{/each}}
-</div> 
+</div>

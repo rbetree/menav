@@ -996,8 +996,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         // 排除“扩展写回影子结构”等不应参与搜索的卡片
                         if (card.closest('[data-search-exclude="true"]')) return;
 
-                        const title = card.querySelector('h3')?.textContent?.toLowerCase() || '';
-                        const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
+                        // 兼容不同页面/卡片样式：优先取可见文本，其次回退到 data-*（确保 projects repo 卡片也能被搜索）
+                        const dataTitle = card.dataset?.name || card.getAttribute('data-name') || '';
+                        const dataDescription = card.dataset?.description || card.getAttribute('data-description') || '';
+
+                        const titleText =
+                            card.querySelector('h3')?.textContent ||
+                            card.querySelector('.repo-title')?.textContent ||
+                            dataTitle;
+                        const descriptionText =
+                            card.querySelector('p')?.textContent ||
+                            card.querySelector('.repo-desc')?.textContent ||
+                            dataDescription;
+
+                        const title = String(titleText || '').toLowerCase();
+                        const description = String(descriptionText || '').toLowerCase();
                         const url = card.href || card.getAttribute('href') || '#';
                         const icon = card.querySelector('i.icon-fallback')?.className || card.querySelector('i')?.className || '';
 
@@ -1271,114 +1284,84 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!card || !searchTerm) return;
 
         try {
-            const title = card.querySelector('h3');
-            const description = card.querySelector('p');
+            // 兼容 projects repo 卡片：title/desc 不一定是 h3/p
+            const titleElement = card.querySelector('h3') || card.querySelector('.repo-title');
+            const descriptionElement = card.querySelector('p') || card.querySelector('.repo-desc');
 
-            if (!title || !description) return;
+            const hasPinyinMatch = typeof PinyinMatch !== 'undefined' && PinyinMatch && typeof PinyinMatch.match === 'function';
 
-            // 安全地高亮标题中的匹配文本
-            if (title.textContent.toLowerCase().includes(searchTerm)) {
-                const titleText = title.textContent;
-                const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+            const applyRangeHighlight = (element, start, end) => {
+                const text = element.textContent || '';
+                const safeStart = Math.max(0, Math.min(text.length, start));
+                const safeEnd = Math.max(safeStart, Math.min(text.length - 1, end));
 
-                // 创建安全的DOM结构而不是直接使用innerHTML
-                const titleFragment = document.createDocumentFragment();
-                let lastIndex = 0;
-                let match;
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(document.createTextNode(text.slice(0, safeStart)));
 
-                // 使用正则表达式查找所有匹配项
-                const titleRegex = new RegExp(regex);
-                while ((match = titleRegex.exec(titleText)) !== null) {
-                    // 添加匹配前的文本
-                    if (match.index > lastIndex) {
-                        titleFragment.appendChild(document.createTextNode(
-                            titleText.substring(lastIndex, match.index)
-                        ));
+                const span = document.createElement('span');
+                span.className = 'highlight';
+                span.textContent = text.slice(safeStart, safeEnd + 1);
+                fragment.appendChild(span);
+
+                fragment.appendChild(document.createTextNode(text.slice(safeEnd + 1)));
+
+                while (element.firstChild) {
+                    element.removeChild(element.firstChild);
+                }
+                element.appendChild(fragment);
+            };
+
+            const highlightInElement = element => {
+                if (!element) return;
+
+                const rawText = element.textContent || '';
+                const lowerText = rawText.toLowerCase();
+                if (!rawText) return;
+
+                if (lowerText.includes(searchTerm)) {
+                    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                    const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
+                    let match;
+
+                    while ((match = regex.exec(rawText)) !== null) {
+                        if (match.index > lastIndex) {
+                            fragment.appendChild(document.createTextNode(rawText.substring(lastIndex, match.index)));
+                        }
+
+                        const span = document.createElement('span');
+                        span.className = 'highlight';
+                        span.textContent = match[0];
+                        fragment.appendChild(span);
+
+                        lastIndex = match.index + match[0].length;
+
+                        // 防止无限循环
+                        if (regex.lastIndex === 0) break;
                     }
 
-                    // 添加高亮的匹配文本
-                    const span = document.createElement('span');
-                    span.className = 'highlight';
-                    span.textContent = match[0];
-                    titleFragment.appendChild(span);
-
-                    lastIndex = match.index + match[0].length;
-
-                    // 防止无限循环
-                    if (titleRegex.lastIndex === 0) break;
-                }
-
-                // 添加剩余文本
-                if (lastIndex < titleText.length) {
-                    titleFragment.appendChild(document.createTextNode(
-                        titleText.substring(lastIndex)
-                    ));
-                }
-
-                // 清空原标题并添加新内容
-                while (title.firstChild) {
-                    title.removeChild(title.firstChild);
-                }
-                title.appendChild(titleFragment);
-            } else if (PinyinMatch.match(title.textContent, searchTerm)) {
-                const arr = PinyinMatch.match(title.textContent, searchTerm);
-                const [start, end] = arr;
-                title.innerHTML = title.textContent.slice(0, start) +
-                    `<span class="highlight">${title.textContent.slice(start, end + 1)}</span>` +
-                    title.textContent.slice(end + 1);
-            }
-
-            // 安全地高亮描述中的匹配文本
-            if (description.textContent.toLowerCase().includes(searchTerm)) {
-                const descText = description.textContent;
-                const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-
-                // 创建安全的DOM结构而不是直接使用innerHTML
-                const descFragment = document.createDocumentFragment();
-                let lastIndex = 0;
-                let match;
-
-                // 使用正则表达式查找所有匹配项
-                const descRegex = new RegExp(regex);
-                while ((match = descRegex.exec(descText)) !== null) {
-                    // 添加匹配前的文本
-                    if (match.index > lastIndex) {
-                        descFragment.appendChild(document.createTextNode(
-                            descText.substring(lastIndex, match.index)
-                        ));
+                    if (lastIndex < rawText.length) {
+                        fragment.appendChild(document.createTextNode(rawText.substring(lastIndex)));
                     }
 
-                    // 添加高亮的匹配文本
-                    const span = document.createElement('span');
-                    span.className = 'highlight';
-                    span.textContent = match[0];
-                    descFragment.appendChild(span);
-
-                    lastIndex = match.index + match[0].length;
-
-                    // 防止无限循环
-                    if (descRegex.lastIndex === 0) break;
+                    while (element.firstChild) {
+                        element.removeChild(element.firstChild);
+                    }
+                    element.appendChild(fragment);
+                    return;
                 }
 
-                // 添加剩余文本
-                if (lastIndex < descText.length) {
-                    descFragment.appendChild(document.createTextNode(
-                        descText.substring(lastIndex)
-                    ));
+                if (hasPinyinMatch) {
+                    const arr = PinyinMatch.match(rawText, searchTerm);
+                    if (Array.isArray(arr) && arr.length >= 2) {
+                        const [start, end] = arr;
+                        applyRangeHighlight(element, start, end);
+                    }
                 }
+            };
 
-                // 清空原描述并添加新内容
-                while (description.firstChild) {
-                    description.removeChild(description.firstChild);
-                }
-                description.appendChild(descFragment);
-            } else if (PinyinMatch.match(description.textContent, searchTerm)) {
-                const arr = PinyinMatch.match(description.textContent, searchTerm);
-                const [start, end] = arr;
-                description.innerHTML = description.textContent.slice(0, start) +
-                    `<span class="highlight">${description.textContent.slice(start, end + 1)}</span>` +
-                    description.textContent.slice(end + 1);
-            }
+            highlightInElement(titleElement);
+            highlightInElement(descriptionElement);
         } catch (error) {
             console.error('Error highlighting search term');
         }

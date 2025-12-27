@@ -1,16 +1,16 @@
 # 默认页面配置（请勿直接修改）。
-# 建议复制到 config/user/pages/home.yml 并按需调整。
-title: 欢迎使用        # 页面标题
-subtitle: 个人导航站点  # 页面副标题
+# 建议复制到 config/user/pages/common.yml 并按需调整。
+title: 常用网站        # 页面标题
+subtitle: Common website  # 页面副标题
 
 # 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
-# 注意：当本页为“导航第一项（首页）”时，标题区会优先显示 `site.yml -> profile.title/profile.subtitle`
-template: home
+# 说明：推荐使用通用模板 page；首页由“导航第一项”决定
+template: page
 
-# 页面分类与站点列表（可按需增删顺序）
+# 页面分类与站点列表
 categories:
-  - name: 常用网站
-    icon: fas fa-star # 分类图标（Font Awesome）
+  - name: 置顶
+    icon: fas fa-star # 分类图标
     sites:
       - name: Linux.do            # 站点名称
         url: https://linux.do/    # http/https URL（favicon 模式将尝试加载站点图标）
@@ -51,10 +51,6 @@ categories:
         url: https://www.bilibili.com
         icon: fas fa-play-circle
         description: 视频学习平台
-      - name: 知乎
-        url: https://www.zhihu.com
-        icon: fas fa-question-circle
-        description: 问答社区
       - name: 掘金
         url: https://juejin.cn
         icon: fas fa-book
@@ -63,57 +59,6 @@ categories:
         url: https://leetcode.cn
         icon: fas fa-code
         description: 算法刷题平台
-      - name: Coursera
-        url: https://www.coursera.org
-        icon: fas fa-university
-        description: 在线课程平台
-      - name: edX
-        url: https://www.edx.org
-        icon: fas fa-graduation-cap
-        description: 高质量在线教育
-      - name: Udemy
-        url: https://www.udemy.com
-        icon: fas fa-chalkboard-teacher
-        description: 技能学习平台
-      - name: MDN Web Docs
-        url: https://developer.mozilla.org
-        icon: fas fa-file-code
-        description: Web开发文档
-  - name: 开发工具
-    icon: fas fa-tools
-    sites:
-      - name: VS Code
-        url: https://code.visualstudio.com
-        icon: fas fa-code
-        description: 强大的代码编辑器
-      - name: Postman
-        url: https://www.postman.com
-        icon: fas fa-paper-plane
-        description: API调试工具
-      - name: Git
-        url: https://git-scm.com
-        icon: fab fa-git-alt
-        description: 版本控制工具
-      - name: Docker
-        url: https://www.docker.com
-        icon: fab fa-docker
-        description: 容器化平台
-      - name: JetBrains
-        url: https://www.jetbrains.com
-        icon: fas fa-laptop-code
-        description: 专业开发IDE
-      - name: npm
-        url: https://www.npmjs.com
-        icon: fab fa-npm
-        description: Node.js包管理器
-      - name: Webpack
-        url: https://webpack.js.org
-        icon: fas fa-box-open
-        description: 前端打包工具
-      - name: GitHub Copilot
-        url: https://github.com/features/copilot
-        icon: fas fa-robot
-        description: AI编程助手
   - name: 设计资源
     icon: fas fa-palette
     sites:
@@ -125,18 +70,10 @@ categories:
         url: https://dribbble.com
         icon: fab fa-dribbble
         description: 设计师社区
-      - name: Behance
-        url: https://www.behance.net
-        icon: fab fa-behance
-        description: 创意设计平台
       - name: IconFont
         url: https://www.iconfont.cn
         icon: fas fa-icons
         description: 图标资源库
-      - name: Unsplash
-        url: https://unsplash.com
-        icon: fas fa-camera
-        description: 免费高质量图片
       - name: Adobe XD
         url: https://www.adobe.com/products/xd.html
         icon: fab fa-adobe
@@ -168,37 +105,13 @@ categories:
         url: https://carbon.now.sh
         icon: fas fa-code
         description: 代码图片生成器
-      - name: RegExr
-        url: https://regexr.com
-        icon: fas fa-search
-        description: 正则表达式测试
       - name: Excalidraw
         url: https://excalidraw.com
         icon: fas fa-pencil-alt
         description: 手绘风格图表工具
-      - name: Notion
-        url: https://www.notion.so
-        icon: fas fa-sticky-note
-        description: 多功能笔记工具
-      - name: Grammarly
-        url: https://www.grammarly.com
-        icon: fas fa-spell-check
-        description: 英文语法检查工具
   - name: 云服务平台
     icon: fas fa-cloud
     sites:
-      - name: AWS
-        url: https://aws.amazon.com
-        icon: fab fa-aws
-        description: 亚马逊云服务
-      - name: Azure
-        url: https://azure.microsoft.com
-        icon: fab fa-microsoft
-        description: 微软云平台
-      - name: Google Cloud
-        url: https://cloud.google.com
-        icon: fab fa-google
-        description: 谷歌云平台
       - name: Cloudflare
         url: https://www.cloudflare.com
         icon: fas fa-cloud
@@ -211,11 +124,15 @@ categories:
         url: https://www.netlify.com
         icon: fas fa-globe
         description: 静态网站托管
-      - name: DigitalOcean
-        url: https://www.digitalocean.com
-        icon: fab fa-digital-ocean
-        description: 简单云服务器
-      - name: Heroku
-        url: https://www.heroku.com
-        icon: fas fa-h-square
-        description: 应用部署平台
+      - name: AWS
+        url: https://aws.amazon.com
+        icon: fab fa-aws
+        description: 亚马逊云服务
+      - name: Azure
+        url: https://azure.microsoft.com
+        icon: fab fa-microsoft
+        description: 微软云平台
+      - name: Google Cloud
+        url: https://cloud.google.com
+        icon: fab fa-google
+        description: 谷歌云平台

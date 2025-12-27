@@ -97,11 +97,11 @@ function renderTemplate(templateName, data, useLayout = true) {
             const genericTemplateContent = fs.readFileSync(genericTemplatePath, 'utf8');
             const genericTemplate = handlebars.compile(genericTemplateContent);
 
-            // 添加 pageId 到数据中，以便通用模板使用
-            const enhancedData = {
-                ...data,
-                pageId: templateName // 确保pageId在模板中可用
-            };
+    // 添加 pageId 到数据中，以便通用模板使用（优先保留原 pageId，避免回退时语义错位）
+    const enhancedData = {
+        ...data,
+        pageId: data && data.pageId ? data.pageId : templateName
+    };
 
             // 渲染页面内容
             const pageContent = genericTemplate(enhancedData);
@@ -281,7 +281,8 @@ function loadModularConfig(dirPath) {
                 // 提取文件名（不含扩展名）作为配置键
                 const configKey = path.basename(file, path.extname(file));
 
-                // 特殊处理home.yml中的categories字段
+                // 兼容旧结构：若存在 pages/home.yml，则把其 categories 同步到顶层 config.categories
+                // 说明：仅用于历史逻辑（例如生成导航子菜单），页面渲染请以 config[pageId].categories 为准。
                 if (configKey === 'home' && fileConfig.categories) {
                     config.categories = fileConfig.categories;
                 }
@@ -1196,7 +1197,8 @@ function buildProjectsMeta(config) {
  */
 function renderPage(pageId, config) {
   // 准备页面数据
-  // 注意：config.categories 为 home.yml 的顶层分类（便于生成导航子菜单），不应无条件注入到所有页面，否则会导致“无 categories 的页面误显示首页内容”
+  // 注意：config.categories 为历史兼容字段（旧版本会把 pages/home.yml 的 categories 同步到这里，用于导航子菜单等）
+  // 渲染页面时不应无条件注入到所有页面，否则会导致“无 categories 的页面误显示首页内容”。
   const { categories: _homeCategories, ...configWithoutHomeCategories } = config || {};
   const data = {
     ...configWithoutHomeCategories,
@@ -1239,8 +1241,24 @@ function renderPage(pageId, config) {
     Object.assign(data, config[pageId]);
   }
 
+  // 页面配置缺失时也尽量给出可用的默认值，避免渲染空标题/undefined
+  if (data.title === undefined) {
+    const navItem = Array.isArray(config.navigation) ? config.navigation.find(nav => nav.id === pageId) : null;
+    if (navItem && navItem.name !== undefined) data.title = navItem.name;
+  }
+  if (data.subtitle === undefined) data.subtitle = '';
+  if (!Array.isArray(data.categories)) data.categories = [];
+
   // 检查页面配置中是否指定了模板（用于派生字段与渲染）
-  const templateName = data.template ? data.template : pageId;
+  const explicitTemplate = typeof data.template === 'string' ? data.template.trim() : '';
+  let templateName = explicitTemplate || pageId;
+  // 未显式指定模板时：若 pages/<pageId>.hbs 不存在，则默认使用通用 page 模板（避免依赖回退日志）
+  if (!explicitTemplate) {
+    const inferredTemplatePath = path.join(process.cwd(), 'templates', 'pages', `${templateName}.hbs`);
+    if (!fs.existsSync(inferredTemplatePath)) {
+      templateName = 'page';
+    }
+  }
 
   // 页面级卡片风格开关（用于差异化）
   if (templateName === 'projects') {
@@ -1255,11 +1273,14 @@ function renderPage(pageId, config) {
   }
 
   // friends/articles：允许顶层 sites（历史/兼容），自动转换为一个分类容器以保持页面结构一致
-  if ((templateName === 'friends' || templateName === 'articles')
+  // 注意：模板名可能被统一为 page（例如 friends/home 取消专属模板后），因此这里同时按 pageId 判断。
+  const isFriendsPage = pageId === 'friends' || templateName === 'friends';
+  const isArticlesPage = pageId === 'articles' || templateName === 'articles';
+  if ((isFriendsPage || isArticlesPage)
     && (!Array.isArray(data.categories) || data.categories.length === 0)
     && Array.isArray(data.sites)
     && data.sites.length > 0) {
-    const implicitName = templateName === 'friends' ? '全部友链' : '全部来源';
+    const implicitName = isFriendsPage ? '全部友链' : '全部来源';
     data.categories = [
       {
         name: implicitName,

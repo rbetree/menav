@@ -167,12 +167,12 @@ test('ensureUserConfigInitialized/ensureUserSiteYmlExists：可在空目录初�
   try {
     fs.mkdirSync('config/_default/pages', { recursive: true });
     fs.writeFileSync('config/_default/site.yml', 'title: Default\n', 'utf8');
-    fs.writeFileSync('config/_default/pages/home.yml', 'categories: []\n', 'utf8');
+    fs.writeFileSync('config/_default/pages/common.yml', 'categories: []\n', 'utf8');
 
     const init = ensureUserConfigInitialized();
     assert.equal(init.initialized, true);
     assert.ok(fs.existsSync('config/user/site.yml'));
-    assert.ok(fs.existsSync('config/user/pages/home.yml'));
+    assert.ok(fs.existsSync('config/user/pages/common.yml'));
 
     // 若 site.yml 已存在，应直接返回 true
     assert.equal(ensureUserSiteYmlExists(), true);

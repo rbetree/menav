@@ -29,11 +29,11 @@ test('friends/articles：应恢复分类展示（扩展仍以 data-* 结构为�
         { id: 'friends', name: '朋友', icon: 'fas fa-users' },
         { id: 'articles', name: '文章', icon: 'fas fa-book' },
       ],
-      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'home', categories: [] },
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
       friends: {
         title: '友情链接',
         subtitle: '朋友们',
-        template: 'friends',
+        template: 'page',
         categories: [
           {
             name: '技术博主',
@@ -87,11 +87,11 @@ test('friends/articles：页面配置使用顶层 sites 时应自动映射为分
         { id: 'friends', name: '朋友', icon: 'fas fa-users' },
         { id: 'articles', name: '文章', icon: 'fas fa-book' },
       ],
-      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'home', categories: [] },
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
       friends: {
         title: '友情链接',
         subtitle: '朋友们',
-        template: 'friends',
+        template: 'page',
         sites: [{ name: 'Example', url: 'https://example.com', icon: 'fas fa-link', description: 'desc' }],
       },
       articles: {
@@ -120,6 +120,32 @@ test('friends/articles：页面配置使用顶层 sites 时应自动映射为分
   });
 });
 
+test('缺少 friends 页面配置时：仍应渲染页面（标题回退为导航名称）', () => {
+  withRepoRoot(() => {
+    loadHandlebarsTemplates();
+
+    const config = {
+      site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
+      profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
+      social: [],
+      navigation: [
+        { id: 'home', name: '首页', icon: 'fas fa-home' },
+        { id: 'friends', name: '朋友', icon: 'fas fa-users' },
+      ],
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
+      // 刻意不提供 friends 配置
+    };
+
+    const pages = generateAllPagesHTML(config);
+    const html = pages.friends;
+
+    assert.ok(typeof html === 'string' && html.length > 0);
+    assert.ok(html.includes('page-template-friends'));
+    assert.ok(html.includes('data-editable="page-title"'));
+    assert.ok(html.includes('朋友'));
+  });
+});
+
 test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', () => {
   withRepoRoot(() => {
     loadHandlebarsTemplates();
@@ -132,7 +158,7 @@ test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', ()
         { id: 'home', name: '首页', icon: 'fas fa-home' },
         { id: 'bookmarks', name: '书签', icon: 'fas fa-bookmark' },
       ],
-      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'home', categories: [] },
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
       bookmarks: { title: '书签', subtitle: '书签页', template: 'bookmarks', categories: [] },
     };
 
@@ -224,7 +250,7 @@ test('articles Phase 2：存在 RSS 缓存时渲染文章条目，并隐藏扩�
           { id: 'home', name: '首页', icon: 'fas fa-home' },
           { id: 'articles', name: '文章', icon: 'fas fa-book' },
         ],
-        home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'home', categories: [] },
+        home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
         articles: {
           title: '文章',
           subtitle: '文章入口',
