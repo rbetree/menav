@@ -220,10 +220,25 @@
   /* 移除顶部 padding，避免标题上方出现缝隙 */
   scrollbar-width: none;
   /* Firefox 隐藏滚动条 */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    visibility 0s linear 0.18s;
 }
 
 .sidebar-submenu-panel:empty {
   display: none;
+}
+
+.sidebar.submenu-panel-visible .sidebar-submenu-panel:not(:empty) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.18s ease,
+    visibility 0s linear 0s;
 }
 
 .sidebar-submenu-panel::-webkit-scrollbar {

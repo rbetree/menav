@@ -13,6 +13,10 @@ module.exports = function initUi(state, dom) {
     themeIcon,
   } = dom;
 
+  const SUBMENU_PANEL_VISIBLE_CLASS = 'submenu-panel-visible';
+  const SIDEBAR_LAYOUT_TRANSITION_MS = 300;
+  let submenuPanelRevealTimer = null;
+
   // 移除预加载类，允许 CSS 过渡效果
   document.documentElement.classList.remove('preload');
 
@@ -100,12 +104,43 @@ module.exports = function initUi(state, dom) {
     return window.innerWidth <= 768;
   }
 
+  function clearSubmenuPanelRevealTimer() {
+    if (submenuPanelRevealTimer) {
+      window.clearTimeout(submenuPanelRevealTimer);
+      submenuPanelRevealTimer = null;
+    }
+  }
+
+  function hideSubmenuPanelImmediately() {
+    clearSubmenuPanelRevealTimer();
+    sidebar.classList.remove(SUBMENU_PANEL_VISIBLE_CLASS);
+  }
+
+  function showSubmenuPanelImmediately() {
+    clearSubmenuPanelRevealTimer();
+    sidebar.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
+  }
+
+  function revealSubmenuPanelAfterSidebarTransition() {
+    clearSubmenuPanelRevealTimer();
+    submenuPanelRevealTimer = window.setTimeout(() => {
+      if (!state.isSidebarCollapsed && !sidebar.classList.contains('collapsed')) {
+        sidebar.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
+      }
+    }, SIDEBAR_LAYOUT_TRANSITION_MS);
+  }
+
   // 侧边栏折叠功能
   function toggleSidebarCollapse() {
     // 仅在交互时启用布局相关动画，避免首屏闪烁
     document.documentElement.classList.add('with-anim');
 
     state.isSidebarCollapsed = !state.isSidebarCollapsed;
+
+    if (state.isSidebarCollapsed) {
+      // 收起时立即隐藏目录面板，避免在动画过程中残留。
+      hideSubmenuPanelImmediately();
+    }
 
     // 使用 requestAnimationFrame 确保平滑过渡
     requestAnimationFrame(() => {
@@ -114,6 +149,11 @@ module.exports = function initUi(state, dom) {
 
       // 保存折叠状态到 localStorage
       localStorage.setItem('sidebarCollapsed', state.isSidebarCollapsed ? 'true' : 'false');
+
+      if (!state.isSidebarCollapsed) {
+        // 展开后再淡入目录面板，避免和宽度动画抢节奏。
+        revealSubmenuPanelAfterSidebarTransition();
+      }
     });
   }
 
@@ -125,8 +165,10 @@ module.exports = function initUi(state, dom) {
     // 图标状态与折叠状态保持一致
     if (savedState === 'true' && !isMobile()) {
       state.isSidebarCollapsed = true;
+      hideSubmenuPanelImmediately();
     } else {
       state.isSidebarCollapsed = false;
+      showSubmenuPanelImmediately();
     }
   }
 
@@ -238,10 +280,16 @@ module.exports = function initUi(state, dom) {
       searchContainer.classList.remove('active');
       overlay.classList.remove('active');
       state.isSidebarOpen = false;
+      if (state.isSidebarCollapsed) {
+        hideSubmenuPanelImmediately();
+      } else {
+        showSubmenuPanelImmediately();
+      }
     } else {
       // 在移动设备下，重置侧边栏折叠状态
       sidebar.classList.remove('collapsed');
       content.classList.remove('expanded');
+      showSubmenuPanelImmediately();
     }
   });
 
