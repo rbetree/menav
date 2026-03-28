@@ -259,6 +259,11 @@
   display: none;
 }
 
+/* 收起侧边栏时，禁止当前激活页面的目录直接显示在按钮下方 */
+.sidebar.collapsed .nav-item-wrapper > .submenu {
+  display: none;
+}
+
 /* 子菜单标题：默认隐藏（在导航栏内折叠时） */
 .submenu-header {
   display: none;

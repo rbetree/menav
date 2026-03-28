@@ -28,3 +28,19 @@ test('默认布局：应输出 data-theme-mode，支持 dark/light/system 默认
     'templates/layouts/default.hbs 应输出 data-theme-mode 属性'
   );
 });
+
+test('侧边栏样式：收起时不应在页面按钮下方显示目录子菜单', () => {
+  const repoRoot = path.resolve(__dirname, '..');
+  const sidebarStylePath = path.join(repoRoot, 'assets', 'styles', '_sidebar.css');
+  const content = fs.readFileSync(sidebarStylePath, 'utf8');
+
+  assert.ok(
+    content.includes('.sidebar.collapsed .nav-item-wrapper > .submenu'),
+    'assets/styles/_sidebar.css 应在收起态隐藏 nav-item-wrapper 下的 submenu'
+  );
+  assert.match(
+    content,
+    /\.sidebar\.collapsed \.nav-item-wrapper > \.submenu\s*\{[^}]*display:\s*none;/m,
+    '收起态的 submenu 应明确设置为 display: none'
+  );
+});
