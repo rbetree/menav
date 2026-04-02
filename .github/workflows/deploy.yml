@@ -138,7 +138,7 @@ jobs:
       # - 默认启用 GitHub Pages 部署以保持向后兼容
       - name: Setup Pages
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
