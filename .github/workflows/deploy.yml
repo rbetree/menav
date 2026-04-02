@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         # 使用persist-credentials: false，以便后续步骤可以使用自定义的提交者
         with:
           persist-credentials: false
