@@ -142,7 +142,7 @@ jobs:
 
       - name: Upload artifact
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: 'dist'
 
