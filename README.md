@@ -303,6 +303,16 @@ server {
 - 设置构建命令为`npm run build`
 - 设置输出目录为`dist`
 
+Vercel 部署:
+
+1. 登录 Vercel，点击 `Add New...` → `Project`
+2. 选择 `Import Git Repository`，连接并选择你的 MeNav 仓库
+3. 构建配置（一般选择 `Other` 或保持默认自动识别即可）：
+   - `Build Command`: `npm run build`
+   - `Output Directory`: `dist`
+   - `Install Command`（可选，但更稳定）：`npm ci`
+4. 点击 `Deploy`，等待完成后用 Vercel 分配的域名/自定义域名访问
+
 **如果您只使用第三方平台部署（不使用 GitHub Pages）**：
 
 为避免 GitHub Actions 中的 Pages 配置错误，您可以禁用 GitHub Pages 部署步骤：
