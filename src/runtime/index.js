@@ -1,4 +1,4 @@
-// 运行时入口（由构建阶段打包输出 dist/script.js）
+// 运行时入口（由构建阶段打包输出 public/script.js，再由 Astro 复制到 dist/script.js）
 const { menavUpdateAppHeight } = require('./shared');
 
 // 让页面在不同视口（含移动端地址栏变化）下保持正确高度

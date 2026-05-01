@@ -3,8 +3,8 @@
 title: 常用网站 # 页面标题
 subtitle: Common website # 页面副标题
 
-# 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
-# 说明：推荐使用通用模板 page；首页由“导航第一项”决定
+# 指定使用的内置页面类型（由 Astro 组件渲染）
+# 说明：推荐使用通用页面类型 page；首页由“导航第一项”决定
 template: page
 
 # 页面分类与站点列表

@@ -1,5 +1,5 @@
 /**
- * Handlebars条件判断助手函数
+ * 条件判断工具函数
  * 提供各种条件判断功能
  */
 
@@ -7,7 +7,7 @@
  * 比较两个值是否相等
  * @param {any} v1 比较值1
  * @param {any} v2 比较值2
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#ifEquals type "article"}}文章{{else}}页面{{/ifEquals}}
  */
@@ -19,7 +19,7 @@ function ifEquals(v1, v2, options) {
  * 比较两个值是否不相等
  * @param {any} v1 比较值1
  * @param {any} v2 比较值2
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#ifNotEquals status "completed"}}进行中{{else}}已完成{{/ifNotEquals}}
  */
@@ -32,7 +32,7 @@ function ifNotEquals(v1, v2, options) {
  * @param {any} v1 比较值1
  * @param {string} operator 比较运算符 ('==', '===', '!=', '!==', '<', '<=', '>', '>=')
  * @param {any} v2 比较值2
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#ifCond count '>' 0}}有内容{{else}}无内容{{/ifCond}}
  */
@@ -66,7 +66,7 @@ function ifCond(v1, operator, v2, options) {
 /**
  * 检查值是否为空（null、undefined、空字符串、空数组或空对象）
  * @param {any} value 要检查的值
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#isEmpty items}}无内容{{else}}有内容{{/isEmpty}}
  */
@@ -93,7 +93,7 @@ function isEmpty(value, options) {
 /**
  * 检查值是否非空
  * @param {any} value 要检查的值
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#isNotEmpty items}}有内容{{else}}无内容{{/isNotEmpty}}
  */
@@ -108,7 +108,7 @@ function isNotEmpty(value, options) {
  * 条件与操作
  * @param {any} a 条件A
  * @param {any} b 条件B
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#and isPremium isActive}}高级活跃用户{{else}}其他用户{{/and}}
  */
@@ -120,7 +120,7 @@ function and(a, b, options) {
  * 条件或操作
  * @param {any} a 条件A
  * @param {any} b 条件B
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#or isPremium isAdmin}}有权限{{else}}无权限{{/or}}
  */
@@ -151,7 +151,7 @@ function orHelper() {
 /**
  * 条件非操作
  * @param {any} value 条件值
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#not isDisabled}}启用{{else}}禁用{{/not}}
  */
@@ -162,7 +162,7 @@ function not(value, options) {
 /**
  * 判断URL是否为http/https
  * @param {string} url 输入URL
- * @param {object} options Handlebars选项
+ * @param {object} options 兼容旧调用形态的渲染选项
  * @returns {string} 渲染结果
  * @example {{#ifHttpUrl url}}...{{else}}...{{/ifHttpUrl}}
  */

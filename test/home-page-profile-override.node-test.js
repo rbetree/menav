@@ -2,15 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, generateAllPagesHTML } = require('../src/generator.js');
+const { preparePageData } = require('../src/generator.js');
 
-test('首页（navigation 第一项）应使用 profile 覆盖 title/subtitle 显示', () => {
+test('首页（navigation 第一项）应使用 profile 覆盖 title/subtitle 数据', () => {
   const originalCwd = process.cwd();
   process.chdir(path.join(__dirname, '..'));
 
   try {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -40,30 +38,21 @@ test('首页（navigation 第一项）应使用 profile 覆盖 title/subtitle �
       },
     };
 
-    const pages = generateAllPagesHTML(config);
+    const bookmarks = preparePageData('bookmarks', config).data;
+    const home = preparePageData('home', config).data;
+    const projects = preparePageData('projects', config).data;
 
-    assert.ok(typeof pages.bookmarks === 'string' && pages.bookmarks.length > 0);
-    assert.ok(pages.bookmarks.includes('PROFILE_TITLE'));
-    assert.ok(pages.bookmarks.includes('PROFILE_SUBTITLE'));
-    assert.ok(pages.bookmarks.includes('data-editable="profile-title"'));
-    assert.ok(pages.bookmarks.includes('data-editable="profile-subtitle"'));
-    assert.ok(pages.bookmarks.includes('<h3'));
-    assert.ok(!pages.bookmarks.includes('书签页标题'));
-    assert.ok(!pages.bookmarks.includes('书签页副标题'));
-    assert.ok(!pages.bookmarks.includes('data-editable="page-title"'));
+    assert.equal(bookmarks.title, 'PROFILE_TITLE');
+    assert.equal(bookmarks.subtitle, 'PROFILE_SUBTITLE');
+    assert.equal(bookmarks.isHome, true);
 
-    assert.ok(typeof pages.home === 'string' && pages.home.length > 0);
-    assert.ok(pages.home.includes('HOME_PAGE_TITLE'));
-    assert.ok(pages.home.includes('HOME_PAGE_SUBTITLE'));
-    assert.ok(pages.home.includes('data-editable="page-title"'));
-    assert.ok(pages.home.includes('data-editable="page-subtitle"'));
-    assert.ok(pages.home.includes('<p class="subtitle"'));
-    assert.ok(!pages.home.includes('PROFILE_TITLE'));
+    assert.equal(home.title, 'HOME_PAGE_TITLE');
+    assert.equal(home.subtitle, 'HOME_PAGE_SUBTITLE');
+    assert.equal(home.isHome, false);
 
-    assert.ok(typeof pages.projects === 'string' && pages.projects.length > 0);
-    assert.ok(pages.projects.includes('项目页标题'));
-    assert.ok(pages.projects.includes('项目页副标题'));
-    assert.ok(pages.projects.includes('<p class="subtitle"'));
+    assert.equal(projects.title, '项目页标题');
+    assert.equal(projects.subtitle, '项目页副标题');
+    assert.equal(projects.isHome, false);
   } finally {
     process.chdir(originalCwd);
   }

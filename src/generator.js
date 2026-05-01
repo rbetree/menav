@@ -1,14 +1,31 @@
-// 生成端薄入口：保持对外导出稳定，内部实现位于 src/generator/main.js
-const impl = require('./generator/main');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+
+const { loadConfig } = require('./generator/config');
+const { preparePageData } = require('./generator/html/page-data');
+const { prepareSiteRenderData, preparePages, prepareNavigationData } = require('./lib/render-data');
 const { wrapAsyncError } = require('./generator/utils/errors');
 
-module.exports = impl;
+function main() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const buildScript = path.join(repoRoot, 'scripts', 'build.js');
+  const result = spawnSync(process.execPath, [buildScript], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+  });
+
+  process.exitCode = result && Number.isFinite(result.status) ? result.status : 1;
+}
+
+module.exports = {
+  main,
+  loadConfig,
+  prepareNavigationData,
+  preparePageData,
+  preparePages,
+  prepareSiteRenderData,
+};
 
 if (require.main === module) {
-  if (typeof impl.main === 'function') {
-    wrapAsyncError(impl.main)();
-  } else {
-    console.error('generator main() 未导出，无法直接执行。');
-    process.exitCode = 1;
-  }
+  wrapAsyncError(main)();
 }

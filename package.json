@@ -3,6 +3,9 @@
   "version": "1.3.0",
   "description": "A personal navigation website",
   "main": "src/generator.js",
+  "engines": {
+    "node": ">=22.12"
+  },
   "homepage": "https://rbetree.github.io/menav",
   "scripts": {
     "generate": "node src/generator.js",
@@ -29,16 +32,19 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "handlebars": "^4.7.8",
     "js-yaml": "^4.1.1",
     "markdown-it": "^14.1.0",
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^22.19.17",
+    "astro": "^6.2.1",
     "esbuild": "^0.27.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1",
     "serve": "^14.2.5"
   },
   "overrides": {
@@ -46,7 +52,7 @@
   },
   "lint-staged": {
     "**/*.js": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown",
-    "**/*.{yml,yaml,md,css}": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown",
+    "**/*.{astro,yml,yaml,md,css}": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown",
     "**/!(package-lock).json": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown"
   }
 }

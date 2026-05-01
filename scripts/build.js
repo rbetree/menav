@@ -1,14 +1,9 @@
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { runBuildPipeline } = require('./lib/build-pipeline');
 
 const log = createLogger('build');
-
-function runNode(scriptPath) {
-  const result = spawnSync(process.execPath, [scriptPath], { stdio: 'inherit' });
-  return result && Number.isFinite(result.status) ? result.status : 1;
-}
 
 async function main() {
   const elapsedMs = startTimer();
@@ -16,30 +11,8 @@ async function main() {
 
   const repoRoot = path.resolve(__dirname, '..');
 
-  const cleanExit = runNode(path.join(repoRoot, 'scripts', 'clean.js'));
-  if (cleanExit !== 0) {
-    log.error('clean 失败', { exit: cleanExit });
-    process.exitCode = cleanExit;
-    return;
-  }
-
-  // best-effort：同步失败不阻断 build
-  const syncProjectsExit = runNode(path.join(repoRoot, 'scripts', 'sync-projects.js'));
-  if (syncProjectsExit !== 0)
-    log.warn('sync-projects 异常退出，已继续（best-effort）', { exit: syncProjectsExit });
-
-  const syncHeatmapExit = runNode(path.join(repoRoot, 'scripts', 'sync-heatmap.js'));
-  if (syncHeatmapExit !== 0)
-    log.warn('sync-heatmap 异常退出，已继续（best-effort）', { exit: syncHeatmapExit });
-
-  const syncArticlesExit = runNode(path.join(repoRoot, 'scripts', 'sync-articles.js'));
-  if (syncArticlesExit !== 0)
-    log.warn('sync-articles 异常退出，已继续（best-effort）', { exit: syncArticlesExit });
-
-  const generatorExit = runNode(path.join(repoRoot, 'src', 'generator.js'));
-  if (generatorExit !== 0) {
-    log.error('generate 失败', { exit: generatorExit });
-    process.exitCode = generatorExit;
+  if (!runBuildPipeline({ log, repoRoot, sync: true })) {
+    process.exitCode = 1;
     return;
   }
 

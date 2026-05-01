@@ -1,0 +1,247 @@
+---
+const { page = {} } = Astro.props;
+---
+
+<div class="dashboard-grid">
+  <div class="dashboard-intro">
+    <div class="dashboard-welcome">
+      <h1 class="welcome-title">{page.title}</h1>
+      <p class="welcome-subtitle">{page.subtitle}</p>
+    </div>
+
+    <div class="dashboard-clock-card">
+      <div class="clock-header">
+        <div class="clock-meta">
+          <div class="clock-greeting" id="dashboard-greeting">Hello</div>
+          <div class="clock-date" id="dashboard-date">Mon, Jan 01</div>
+        </div>
+        <div class="clock-week" id="dashboard-week">Week 1</div>
+      </div>
+
+      <div class="clock-main">
+        <div class="clock-time" id="dashboard-clock">00:00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-stats">
+    <div class="dashboard-panel">
+      <div class="panel-sidebar">
+        <div class="panel-static-icon">
+          <span class="fas fa-bars"></span>
+        </div>
+        <button
+          class="panel-icon-btn add-btn"
+          title="Add Todo"
+          onclick="window.menavTodoApp.toggleInput()"
+        >
+          <span class="fas fa-plus"></span>
+        </button>
+      </div>
+
+      <div class="panel-content-wrapper">
+        <div class="panel-content custom-scrollbar" id="todo-list"></div>
+
+        <div
+          class="todo-input-container"
+          id="todo-input-container"
+          style="display: none; padding: var(--spacing-md);"
+        >
+          <input
+            type="text"
+            class="todo-input"
+            id="todo-input-field"
+            placeholder="New task..."
+            onkeypress="window.menavTodoApp.handleInputKey(event)"
+            onblur="window.menavTodoApp.handleBlur()"
+          />
+          <button
+            class="todo-add-btn-small"
+            onmousedown="window.menavTodoApp.preventBlur(event)"
+            onclick="window.menavTodoApp.addFromInput()"
+          >
+            <span class="fas fa-arrow-right"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    }
+
+    function getGreeting(hour) {
+      if (hour < 5) return 'Good Night';
+      if (hour < 12) return 'Good Morning';
+      if (hour < 18) return 'Good Afternoon';
+      return 'Good Evening';
+    }
+
+    function updateDashboardClock() {
+      var clockEl = document.getElementById('dashboard-clock');
+      var dateEl = document.getElementById('dashboard-date');
+      var greetingEl = document.getElementById('dashboard-greeting');
+      var weekEl = document.getElementById('dashboard-week');
+      if (!clockEl || !dateEl) return;
+
+      var now = new Date();
+      clockEl.textContent = now.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      dateEl.textContent = now.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
+      if (greetingEl) greetingEl.textContent = getGreeting(now.getHours());
+      if (weekEl) weekEl.textContent = 'Week ' + getWeekNumber(now);
+    }
+
+    setInterval(updateDashboardClock, 1000);
+    updateDashboardClock();
+
+    var TODO_STORAGE_KEY = 'menav_todos_v1';
+
+    window.menavTodoApp = {
+      todos: [],
+      isIgnoreBlur: false,
+
+      init: function () {
+        this.load();
+        this.render();
+      },
+
+      load: function () {
+        try {
+          var raw = localStorage.getItem(TODO_STORAGE_KEY);
+          this.todos = raw
+            ? JSON.parse(raw)
+            : [
+                { text: 'Drink Water', done: false },
+                { text: 'Explore MeNav', done: true },
+              ];
+        } catch (e) {
+          this.todos = [];
+        }
+      },
+
+      save: function () {
+        try {
+          localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(this.todos));
+        } catch (e) {}
+      },
+
+      toggleInput: function () {
+        var container = document.getElementById('todo-input-container');
+        var field = document.getElementById('todo-input-field');
+        if (!container || !field) return;
+        if (container.style.display === 'none') {
+          container.style.display = 'flex';
+          field.focus();
+        } else {
+          container.style.display = 'none';
+        }
+      },
+
+      handleBlur: function () {
+        var self = this;
+        setTimeout(function () {
+          if (self.isIgnoreBlur) {
+            self.isIgnoreBlur = false;
+            return;
+          }
+          var container = document.getElementById('todo-input-container');
+          if (container) container.style.display = 'none';
+        }, 200);
+      },
+
+      preventBlur: function () {
+        this.isIgnoreBlur = true;
+      },
+
+      addFromInput: function () {
+        var input = document.getElementById('todo-input-field');
+        if (input && input.value.trim()) {
+          this.todos.push({ text: input.value.trim(), done: false });
+          input.value = '';
+          this.save();
+          this.render();
+          var list = document.getElementById('todo-list');
+          if (list) list.scrollTop = list.scrollHeight;
+          input.focus();
+        }
+      },
+
+      handleInputKey: function (e) {
+        if (e.key === 'Enter') this.addFromInput();
+      },
+
+      toggle: function (index) {
+        this.todos[index].done = !this.todos[index].done;
+        this.save();
+        this.render();
+      },
+
+      remove: function (index, e) {
+        if (e) e.stopPropagation();
+        this.todos.splice(index, 1);
+        this.save();
+        this.render();
+      },
+
+      render: function () {
+        var container = document.getElementById('todo-list');
+        if (!container) return;
+        if (this.todos.length === 0) {
+          container.innerHTML = '<div class="empty-todo-hint">No tasks.</div>';
+          return;
+        }
+        container.innerHTML = this.todos
+          .map(
+            function (todo, index) {
+              return (
+                '<div class="todo-item ' +
+                (todo.done ? 'done' : '') +
+                '" onclick="window.menavTodoApp.toggle(' +
+                index +
+                ')">' +
+                '<div class="todo-checkbox ' +
+                (todo.done ? 'checked' : '') +
+                '">' +
+                (todo.done ? '<span class="fas fa-check"></span>' : '') +
+                '</div>' +
+                '<div class="todo-text" title="' +
+                this.escapeHtml(todo.text) +
+                '">' +
+                this.escapeHtml(todo.text) +
+                '</div>' +
+                '<button class="todo-delete-btn" onclick="window.menavTodoApp.remove(' +
+                index +
+                ', event)" title="Delete">' +
+                '<span class="fas fa-trash-alt"></span>' +
+                '</button></div>'
+              );
+            }.bind(this)
+          )
+          .join('');
+      },
+
+      escapeHtml: function (text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      },
+    };
+
+    window.menavTodoApp.init();
+  })();
+</script>

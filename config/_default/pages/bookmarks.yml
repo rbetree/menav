@@ -4,8 +4,8 @@
 title: 书签
 subtitle: bookmarks
 
-# 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
-# 提示：bookmarks 模板页面标题区会自动显示“内容更新：YYYY-MM-DD（git|mtime）”，无需额外配置
+# 指定使用的内置页面类型（由 Astro 组件渲染）
+# 提示：bookmarks 页面标题区会自动显示“内容更新：YYYY-MM-DD（git|mtime）”，无需额外配置
 template: bookmarks
 
 categories:

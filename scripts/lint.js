@@ -1,8 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 
 const { createLogger } = require('../src/generator/utils/logger');
+const { resolveAstroCli } = require('./lib/astro-cli');
 
 const log = createLogger('lint');
 
@@ -58,11 +59,22 @@ function main() {
     }
   });
 
+  const astroCli = resolveAstroCli(projectRoot);
+  const astroResult = spawnSync(process.execPath, [astroCli, 'check'], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
+  const astroExit = astroResult && Number.isFinite(astroResult.status) ? astroResult.status : 1;
+  if (astroExit !== 0) {
+    hasError = true;
+    log.error('Astro 检查失败', { exit: astroExit });
+  }
+
   if (hasError) {
     log.error('语法检查未通过', { files: jsFiles.length });
     process.exitCode = 1;
   } else {
-    log.ok('语法检查通过', { files: jsFiles.length });
+    log.ok('语法检查通过', { files: jsFiles.length, astro: true });
   }
 }
 

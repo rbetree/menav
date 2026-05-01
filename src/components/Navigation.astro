@@ -1,0 +1,48 @@
+---
+const { navigation = [] } = Astro.props;
+---
+
+<div data-container="nav-items">
+  {
+    navigation.map((item) => (
+      <div class="nav-item-wrapper">
+        <a
+          href={`?page=${item.id}`}
+          class:list={['nav-item', item.isActive && 'active', item.active && 'active']}
+          data-page={item.id}
+          data-type="nav-item"
+          data-id={item.id}
+          data-name={item.name}
+          data-icon={item.icon}
+        >
+          <div class="icon-container">
+            <i class={item.icon} />
+          </div>
+          <span class="nav-text" data-editable="nav-item-name">
+            {item.name}
+          </span>
+        </a>
+        {Array.isArray(item.submenu) && item.submenu.length > 0 && (
+          <div class="submenu">
+            <div class="submenu-header">{item.name}</div>
+            {item.submenu.map((submenuItem) => {
+              const categoryId = submenuItem.slug || submenuItem.name;
+              return (
+                <a
+                  href={`?page=${item.id}#${categoryId}`}
+                  class="submenu-item"
+                  data-page={item.id}
+                  data-category={submenuItem.name}
+                  data-category-id={categoryId}
+                >
+                  <i class={submenuItem.icon} />
+                  <span>{submenuItem.name}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    ))
+  }
+</div>

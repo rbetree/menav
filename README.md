@@ -43,17 +43,20 @@
 
 ## 技术栈
 
+- Astro（静态页面构建）
 - HTML5 + CSS3
 - JavaScript (原生)
-- Handlebars 模板引擎
+- YAML 模块化配置
 - Google Favicon API + Font Awesome 图标
+
+运行环境要求：Node.js `22.12+`，包管理器继续使用 npm。
 
 ## 项目结构
 
 ```text
 menav/
-├── src/        # 生成器、书签处理、前端脚本（入口：src/generator.js）
-├── templates/  # Handlebars 模板（layouts/pages/components）
+├── src/        # Astro 页面/组件、数据准备、书签处理、前端脚本
+├── scripts/    # 构建、开发、同步、检查脚本
 ├── config/     # 模块化配置
 ├── assets/     # 静态资源
 ├── bookmarks/  # 书签导入相关
@@ -66,9 +69,7 @@ menav/
 - 更新说明2025/12/27（兼容性移除 / 迁移指南）：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
 - 配置系统（完全替换策略、目录结构、示例）：[`config/README.md`](config/README.md)
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
-- 模板系统（组件、回退、数据流）：[`templates/README.md`](templates/README.md)
 - 源码结构（各脚本职责）：[`src/README.md`](src/README.md)
-- Handlebars helpers（模板辅助函数）：[`src/helpers/README.md`](src/helpers/README.md)
 - 静态资源（样式/图片等）：[`assets/README.md`](assets/README.md)
 
 ## 快速开始
@@ -93,6 +94,8 @@ cd menav
 # 安装依赖
 npm install
 ```
+
+请确保本机 Node.js 版本为 `22.12+`。
 
 （本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
 
@@ -122,6 +125,8 @@ npm install
 # 启动开发服务器
 npm run dev
 ```
+
+开发服务器默认从 `http://localhost:5173` 启动；若默认端口被占用，会自动尝试后续端口。需要固定端口时可设置 `PORT=5174 npm run dev` 或 `MENAV_PORT=5174 npm run dev`，显式端口被占用会直接报错。
 
 ```bash
 # 离线启动开发服务器（不刷新联网缓存）

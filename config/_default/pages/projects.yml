@@ -3,15 +3,15 @@
 title: 项目 # 页面标题
 subtitle: 项目展示 # 页面副标题
 
-# 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
+# 指定使用的内置页面类型（由 Astro 组件渲染）
 template: projects
 
 # 页面分类与站点列表
 #
-# projects 模板采用“代码仓库风”卡片（repo 风格）。
+# projects 页面采用“代码仓库风”卡片（repo 风格）。
 # 统计信息（language/stars/forks）为自动获取数据：
 # - 运行 `npm run sync-projects` 会联网抓取 GitHub 仓库信息，并写入 dev/ 缓存（仓库默认 gitignore）
-# - `npm run build` 默认不联网；缓存缺失时卡片仅展示标题与描述
+# - `npm run build` 会 best-effort 刷新缓存；缓存缺失时卡片仅展示标题与描述
 categories:
   - name: 个人项目
     icon: fas fa-code # 分类图标（Font Awesome）

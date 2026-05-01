@@ -46,7 +46,7 @@ module.exports = function addElement(type, parentId, data) {
         templateName = templateFromLegacy;
       }
 
-      // projects 模板使用代码仓库风格卡片（与生成端 templates/components/site-card.hbs 保持一致）
+      // projects 页面使用代码仓库风格卡片（与 Astro SiteCard 组件保持一致）
       if (templateName === 'projects') siteCardStyle = 'repo';
     } catch (e) {
       siteCardStyle = '';

@@ -1,0 +1,276 @@
+---
+import Navigation from '../components/Navigation.astro';
+import PageContent from '../components/PageContent.astro';
+import SocialLinks from '../components/SocialLinks.astro';
+
+const {
+  config,
+  pages = [],
+  navigationData = [],
+  fontLinks = '',
+  fontCss = '',
+  currentYear,
+  configJSON = '{}',
+} = Astro.props;
+
+const site = config.site || {};
+const themeMode = site.theme?.mode || 'dark';
+const favicon = site.favicon || 'menav.svg';
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme-mode={themeMode}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="menav-version" content={config._meta?.version} />
+    <title data-editable="site-title">{site.title}</title>
+    <meta name="description" content={site.description} data-editable="site-description" />
+    <meta name="author" content={site.author} data-editable="site-author" />
+    <link rel="icon" href={`./${favicon}`} type="image/x-icon" />
+    <link rel="shortcut icon" href={`./${favicon}`} type="image/x-icon" />
+    <Fragment set:html={fontLinks} />
+    <style set:html={fontCss}></style>
+    <script is:inline>
+      (function () {
+        var savedTheme = localStorage.getItem('theme');
+        var defaultThemeMode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
+        defaultThemeMode = String(defaultThemeMode).trim().toLowerCase();
+        var shouldUseLight = false;
+
+        if (savedTheme === 'light') {
+          shouldUseLight = true;
+        } else if (savedTheme === 'dark') {
+          shouldUseLight = false;
+        } else if (defaultThemeMode === 'light') {
+          shouldUseLight = true;
+        } else if (defaultThemeMode === 'system') {
+          try {
+            shouldUseLight =
+              window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+          } catch (e) {
+            shouldUseLight = false;
+          }
+        }
+
+        if (shouldUseLight) {
+          document.documentElement.classList.add('theme-preload');
+        }
+
+        var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        var isMobile = window.innerWidth <= 768;
+        if (sidebarCollapsed && !isMobile) {
+          document.documentElement.classList.add('sidebar-collapsed-preload');
+        }
+
+        document.documentElement.classList.add('preload');
+      })();
+    </script>
+    <link rel="stylesheet" href="./assets/style.css" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      />
+    </noscript>
+  </head>
+  <body class="loading">
+    <div class="layout">
+      <div class="mobile-buttons">
+        <button class="menu-toggle" aria-label="切换菜单">
+          <i class="fas fa-bars"></i>
+        </button>
+        <button class="search-toggle" aria-label="切换搜索">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+
+      <div class="overlay"></div>
+
+      <nav class="sidebar">
+        <div class="logo">
+          <div class="logo-brand">
+            {
+              site.favicon && (
+                <img
+                  class="logo-image"
+                  src={`./${site.favicon}`}
+                  alt={`${site.title} logo`}
+                  width="26"
+                  height="26"
+                />
+              )
+            }
+            <h1 data-editable="logo-text">{site.logo_text}</h1>
+          </div>
+          <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
+            <i class="fas fa-chevron-left toggle-icon"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <div class="nav-section">
+            <Navigation navigation={navigationData} />
+          </div>
+          <div class="sidebar-submenu-panel" aria-label="页面分类" data-container="sidebar-submenu">
+          </div>
+        </div>
+
+        <div class="sidebar-social" data-container="social-links">
+          <SocialLinks social={config.social || []} />
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="copyright">
+            <p>
+              © {currentYear}
+              <a href="https://github.com/rbetree/menav" target="_blank" rel="noopener">MeNav</a>
+            </p>
+            <p>
+              by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a>
+            </p>
+          </div>
+        </div>
+      </nav>
+
+      <main class="content">
+        <div class="search-container">
+          <div class="search-box">
+            <button
+              class="search-engine-button search-engine-toggle"
+              type="button"
+              title="选择搜索引擎"
+              aria-label="选择搜索引擎"
+              aria-haspopup="menu"
+              aria-controls="search-engine-dropdown"
+              aria-expanded="false"
+            >
+              <i class="search-engine-icon search-engine-icon-svg" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" focusable="false">
+                  <path
+                    fill="#616161"
+                    d="M29.171,32.001L32,29.172l12.001,12l-2.828,2.828L29.171,32.001z"></path>
+                  <path
+                    fill="#616161"
+                    d="M36,20c0,8.837-7.163,16-16,16S4,28.837,4,20S11.163,4,20,4S36,11.163,36,20"
+                  ></path>
+                  <path
+                    fill="#37474f"
+                    d="M32.476,35.307l2.828-2.828l8.693,8.693L41.17,44L32.476,35.307z"></path>
+                  <path
+                    fill="#64b5f6"
+                    d="M7,20c0-7.18,5.82-13,13-13s13,5.82,13,13s-5.82,13-13,13S7,27.18,7,20"></path>
+                </svg>
+              </i>
+              <span class="search-engine-label">本地</span>
+            </button>
+
+            <input
+              type="text"
+              id="search"
+              placeholder="Search"
+              aria-label="搜索"
+              aria-keyshortcuts="Control+K Meta+K"
+            />
+            <span class="search-shortcut-hint" aria-hidden="true">Ctrl+K</span>
+
+            <div
+              class="search-engine-dropdown"
+              id="search-engine-dropdown"
+              role="menu"
+              aria-label="搜索引擎列表"
+            >
+              <button
+                class="search-engine-option"
+                type="button"
+                role="menuitem"
+                data-engine="local"
+                title="本地搜索"
+              >
+                <i class="search-engine-option-svg" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" focusable="false">
+                    <path
+                      fill="#616161"
+                      d="M29.171,32.001L32,29.172l12.001,12l-2.828,2.828L29.171,32.001z"></path>
+                    <path
+                      fill="#616161"
+                      d="M36,20c0,8.837-7.163,16-16,16S4,28.837,4,20S11.163,4,20,4S36,11.163,36,20"
+                    ></path>
+                    <path
+                      fill="#37474f"
+                      d="M32.476,35.307l2.828-2.828l8.693,8.693L41.17,44L32.476,35.307z"></path>
+                    <path
+                      fill="#64b5f6"
+                      d="M7,20c0-7.18,5.82-13,13-13s13,5.82,13,13s-5.82,13-13,13S7,27.18,7,20"
+                    ></path>
+                  </svg>
+                </i>
+                <span class="search-engine-option-label">本地搜索</span>
+              </button>
+              <button
+                class="search-engine-option"
+                type="button"
+                role="menuitem"
+                data-engine="google"
+                title="Google搜索"
+              >
+                <span class="search-engine-option-label">Google</span>
+              </button>
+              <button
+                class="search-engine-option"
+                type="button"
+                role="menuitem"
+                data-engine="bing"
+                title="Bing搜索"
+              >
+                <span class="search-engine-option-label">Bing</span>
+              </button>
+              <button
+                class="search-engine-option"
+                type="button"
+                role="menuitem"
+                data-engine="duckduckgo"
+                title="DuckDuckGo搜索"
+              >
+                <span class="search-engine-option-label">DuckDuckGo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {
+          pages.map((entry) => (
+            <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
+              <PageContent page={entry.data} templateName={entry.templateName} root={config} />
+            </div>
+          ))
+        }
+      </main>
+
+      <button class="category-toggle" id="category-toggle" aria-label="展开/收起分类">
+        <i class="fas fa-angle-double-down"></i>
+      </button>
+
+      <button class="theme-toggle" aria-label="切换主题">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+
+    <script
+      is:inline
+      id="menav-config-data"
+      type="application/json"
+      style="display: none;"
+      set:html={configJSON}
+    />
+    <script is:inline src="./pinyin-match.js"></script>
+    <script is:inline src="./script.js"></script>
+  </body>
+</html>

@@ -1,6 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const { getSubmenuForNavItem, assignCategorySlugs } = require('../config');
+const {
+  getSubmenuForNavItem,
+  assignCategorySlugs,
+  resolveTemplateNameForPage,
+} = require('../config');
 const {
   tryLoadArticlesFeedCache,
   buildArticlesCategoriesByPageCategories,
@@ -41,22 +43,7 @@ function prepareNavigationData(pageId, config) {
 }
 
 function resolveTemplateName(pageId, data) {
-  const explicitTemplate = typeof data.template === 'string' ? data.template.trim() : '';
-  let templateName = explicitTemplate || pageId;
-
-  if (!explicitTemplate) {
-    const inferredTemplatePath = path.join(
-      process.cwd(),
-      'templates',
-      'pages',
-      `${templateName}.hbs`
-    );
-    if (!fs.existsSync(inferredTemplatePath)) {
-      templateName = 'page';
-    }
-  }
-
-  return templateName;
+  return resolveTemplateNameForPage(pageId, { [pageId]: data });
 }
 
 function applyProjectsData(data, pageId, config) {

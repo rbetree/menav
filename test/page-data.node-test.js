@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, generateAllPagesHTML } = require('../src/generator.js');
+const { preparePageData } = require('../src/generator.js');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -16,10 +16,8 @@ function withRepoRoot(fn) {
   }
 }
 
-test('friends/articles：应恢复分类展示（扩展仍以 data-* 结构为准）', () => {
+test('friends/articles：应保留分类展示数据结构', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -70,40 +68,21 @@ test('friends/articles：应恢复分类展示（扩展仍以 data-* 结构为�
       },
     };
 
-    const pages = generateAllPagesHTML(config);
+    const friends = preparePageData('friends', config);
+    const articles = preparePageData('articles', config);
 
-    assert.ok(typeof pages.friends === 'string' && pages.friends.length > 0);
-    assert.ok(pages.friends.includes('page-template-friends'));
-    assert.ok(pages.friends.includes('sites-grid'));
-    assert.ok(
-      pages.friends.includes('class="site-card'),
-      'friends 应使用普通 site-card 样式（图标在左，标题在右）'
-    );
-    assert.ok(
-      !pages.friends.includes('site-card-friend'),
-      'friends 不应使用 site-card-friend 变体样式'
-    );
-    assert.ok(pages.friends.includes('category-header'), 'friends 应输出分类标题结构');
+    assert.equal(friends.templateName, 'page');
+    assert.equal(friends.data.categories[0].name, '技术博主');
+    assert.equal(friends.data.categories[0].sites[0].name, 'Example');
 
-    assert.ok(typeof pages.articles === 'string' && pages.articles.length > 0);
-    assert.ok(pages.articles.includes('page-template-articles'));
-    assert.ok(pages.articles.includes('sites-grid'));
-    assert.ok(
-      pages.articles.includes('class="site-card'),
-      'articles 应使用普通 site-card 样式（图标在左，标题在右）'
-    );
-    assert.ok(
-      !pages.articles.includes('site-card-article'),
-      'articles 不应使用 site-card-article 变体样式'
-    );
-    assert.ok(pages.articles.includes('category-header'), 'articles 应输出分类标题结构');
+    assert.equal(articles.templateName, 'articles');
+    assert.equal(articles.data.categories[0].name, '最新文章');
+    assert.equal(articles.data.categories[0].sites[0].name, 'Article A');
   });
 });
 
 test('friends/articles：页面配置使用顶层 sites 时应自动映射为分类容器', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -137,40 +116,18 @@ test('friends/articles：页面配置使用顶层 sites 时应自动映射为分
       },
     };
 
-    const pages = generateAllPagesHTML(config);
+    const friends = preparePageData('friends', config).data;
+    const articles = preparePageData('articles', config).data;
 
-    assert.ok(typeof pages.friends === 'string' && pages.friends.length > 0);
-    assert.ok(pages.friends.includes('page-template-friends'));
-    assert.ok(pages.friends.includes('sites-grid'));
-    assert.ok(
-      pages.friends.includes('class="site-card'),
-      'friends 应使用普通 site-card 样式（图标在左，标题在右）'
-    );
-    assert.ok(
-      !pages.friends.includes('site-card-friend'),
-      'friends 不应使用 site-card-friend 变体样式'
-    );
-    assert.ok(pages.friends.includes('category-header'), 'friends 应输出分类标题结构');
-
-    assert.ok(typeof pages.articles === 'string' && pages.articles.length > 0);
-    assert.ok(pages.articles.includes('page-template-articles'));
-    assert.ok(pages.articles.includes('sites-grid'));
-    assert.ok(
-      pages.articles.includes('class="site-card'),
-      'articles 应使用普通 site-card 样式（图标在左，标题在右）'
-    );
-    assert.ok(
-      !pages.articles.includes('site-card-article'),
-      'articles 不应使用 site-card-article 变体样式'
-    );
-    assert.ok(pages.articles.includes('category-header'), 'articles 应输出分类标题结构');
+    assert.equal(friends.categories[0].name, '全部友链');
+    assert.equal(friends.categories[0].sites[0].name, 'Example');
+    assert.equal(articles.categories[0].name, '全部来源');
+    assert.equal(articles.categories[0].sites[0].name, 'Article A');
   });
 });
 
-test('缺少 friends 页面配置时：仍应渲染页面（标题回退为导航名称）', () => {
+test('缺少 friends 页面配置时：仍应准备页面数据（标题回退为导航名称）', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -180,23 +137,18 @@ test('缺少 friends 页面配置时：仍应渲染页面（标题回退为导�
         { id: 'friends', name: '朋友', icon: 'fas fa-users' },
       ],
       home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
-      // 刻意不提供 friends 配置
     };
 
-    const pages = generateAllPagesHTML(config);
-    const html = pages.friends;
+    const page = preparePageData('friends', config);
 
-    assert.ok(typeof html === 'string' && html.length > 0);
-    assert.ok(html.includes('page-template-friends'));
-    assert.ok(html.includes('data-editable="page-title"'));
-    assert.ok(html.includes('朋友'));
+    assert.equal(page.templateName, 'page');
+    assert.equal(page.data.title, '朋友');
+    assert.deepEqual(page.data.categories, []);
   });
 });
 
-test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', () => {
+test('bookmarks：标题区应准备内容更新时间元数据', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -209,22 +161,16 @@ test('bookmarks：标题区应显示内容更新时间（日期 + 来源）', ()
       bookmarks: { title: '书签', subtitle: '书签页', template: 'bookmarks', categories: [] },
     };
 
-    const pages = generateAllPagesHTML(config);
-    const html = pages.bookmarks;
+    const page = preparePageData('bookmarks', config).data;
 
-    assert.ok(typeof html === 'string' && html.length > 0);
-    assert.ok(html.includes('page-updated-inline'));
-    assert.ok(html.includes('update:'), '应显示 update: 前缀');
-    assert.ok(html.includes('from:'), '应显示 from: 前缀');
-    assert.ok(/update:\s*\d{4}-\d{2}-\d{2}/.test(html), '应显示 YYYY-MM-DD 日期');
-    assert.ok(/from:\s*(git|mtime)/.test(html), '应显示来源（git|mtime）');
+    assert.ok(page.pageMeta, '应包含 pageMeta');
+    assert.match(page.pageMeta.updatedAt, /^\d{4}-\d{2}-\d{2}/);
+    assert.match(page.pageMeta.updatedAtSource, /^(git|mtime)$/);
   });
 });
 
-test('projects：应输出代码仓库风格卡片（site-card-repo）', () => {
+test('projects：应准备代码仓库风格卡片数据', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -251,27 +197,22 @@ test('projects：应输出代码仓库风格卡片（site-card-repo）', () => {
       },
     };
 
-    const pages = generateAllPagesHTML(config);
-    const html = pages.projects;
+    const page = preparePageData('projects', config);
 
-    assert.ok(typeof html === 'string' && html.length > 0);
-    assert.ok(html.includes('page-template-projects'), 'projects 应包含模板容器 class');
-    assert.ok(html.includes('sites-grid'), 'projects 应包含网格容器（sites-grid）');
-    assert.ok(html.includes('site-card-repo'), 'projects 应包含代码仓库风格卡片类');
+    assert.equal(page.templateName, 'projects');
+    assert.equal(page.data.siteCardStyle, 'repo');
+    assert.equal(page.data.categories[0].sites[0].name, 'Proj');
   });
 });
 
-test('articles Phase 2：存在 RSS 缓存时渲染文章条目，并隐藏扩展写回结构', () => {
+test('articles Phase 2：存在 RSS 缓存时准备文章条目与扩展影子结构数据', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const previousCacheDir = process.env.RSS_CACHE_DIR;
     const tmpCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-rss-cache-'));
     process.env.RSS_CACHE_DIR = tmpCacheDir;
 
-    const cachePath = path.join(tmpCacheDir, 'articles.feed-cache.json');
     fs.writeFileSync(
-      cachePath,
+      path.join(tmpCacheDir, 'articles.feed-cache.json'),
       JSON.stringify(
         {
           version: '1.0',
@@ -326,24 +267,14 @@ test('articles Phase 2：存在 RSS 缓存时渲染文章条目，并隐藏扩�
         },
       };
 
-      const pages = generateAllPagesHTML(config);
-      const html = pages.articles;
+      const page = preparePageData('articles', config).data;
 
-      assert.ok(typeof html === 'string' && html.length > 0);
-      assert.ok(
-        html.includes('data-type="article"'),
-        '文章条目卡片应为 data-type="article"（只读）'
-      );
-      assert.ok(html.includes('site-card-meta'), '文章条目应展示日期/来源元信息');
-      assert.ok(html.includes('Example Blog'));
-      assert.ok(html.includes('2025-12-25'));
-      assert.match(
-        html,
-        /<section class="category category-level-1 category-readonly">[\s\S]*?来源[\s\S]*?Article A[\s\S]*?<\/section>/,
-        '文章条目应按页面配置分类聚合展示'
-      );
-      assert.ok(html.includes('data-extension-shadow="true"'), '应保留隐藏的扩展写回结构');
-      assert.ok(html.includes('data-search-exclude="true"'), '扩展影子结构应排除搜索索引');
+      assert.equal(page.articlesItems[0].name, 'Article A');
+      assert.equal(page.articlesItems[0].source, 'Example Blog');
+      assert.equal(page.articlesItems[0].publishedAt, '2025-12-25T12:00:00.000Z');
+      assert.equal(page.articlesCategories[0].name, '来源');
+      assert.equal(page.articlesCategories[0].items[0].name, 'Article A');
+      assert.equal(page.categories[0].sites[0].name, 'Source A');
     } finally {
       try {
         fs.rmSync(tmpCacheDir, { recursive: true, force: true });

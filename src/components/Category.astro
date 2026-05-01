@@ -1,0 +1,79 @@
+---
+import Category from './Category.astro';
+import Group from './Group.astro';
+import SiteCard from './SiteCard.astro';
+
+const { category = {}, level = 1, root = {}, siteCardStyle = '' } = Astro.props;
+const categoryLevel = category.level || level || 1;
+const headingLevel = Math.min(categoryLevel + 1, 6);
+const HeadingTag = `h${headingLevel}`;
+const id = category.slug || category.name;
+const hasSubcategories = Array.isArray(category.subcategories) && category.subcategories.length > 0;
+const hasGroups = Array.isArray(category.groups) && category.groups.length > 0;
+const hasSites = Array.isArray(category.sites) && category.sites.length > 0;
+const isToggleable = hasSubcategories || hasGroups || hasSites;
+---
+
+<section
+  class:list={['category', `category-level-${categoryLevel}`]}
+  id={id}
+  data-type="category"
+  data-id={id}
+  data-name={category.name}
+  data-icon={category.icon}
+  data-level={categoryLevel}
+  data-container="categories"
+>
+  <div class="category-header" data-toggle={isToggleable ? 'category' : undefined}>
+    <HeadingTag data-editable="category-name">
+      <i class={category.icon}></i>
+      {category.name}
+      {
+        isToggleable && (
+          <span class="toggle-icon">
+            <i class="fas fa-chevron-down" />
+          </span>
+        )
+      }
+    </HeadingTag>
+  </div>
+
+  <div class="category-content">
+    {
+      hasSubcategories && (
+        <div class="subcategories-container" data-container="subcategories">
+          {category.subcategories.map((subCategory) => (
+            <Category
+              category={subCategory}
+              level={categoryLevel + 1}
+              root={root}
+              siteCardStyle={siteCardStyle}
+            />
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasGroups && (
+        <div class="groups-container" data-container="groups">
+          {category.groups.map((group) => (
+            <Group group={group} root={root} siteCardStyle={siteCardStyle} />
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasSites && (
+        <div class="sites-grid" data-container="sites">
+          {category.sites.map((site) => (
+            <SiteCard site={site} root={root} style={siteCardStyle} />
+          ))}
+        </div>
+      )
+    }
+
+    {!hasSubcategories && !hasGroups && !hasSites && <p class="empty-content">暂无内容</p>}
+  </div>
+</section>

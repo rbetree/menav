@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, generateAllPagesHTML } = require('../src/generator.js');
+const { preparePageData } = require('../src/generator.js');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -16,8 +16,6 @@ function withRepoRoot(fn) {
 
 test('P1-2：分类 slug 应稳定且可去重', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -35,14 +33,9 @@ test('P1-2：分类 slug 应稳定且可去重', () => {
       },
     };
 
-    const pages = generateAllPagesHTML(config);
-    assert.ok(typeof pages.home === 'string' && pages.home.length > 0);
+    const { data } = preparePageData('home', config);
+    const slugs = data.categories.map((category) => category.slug);
 
-    assert.ok(pages.home.includes('id="重复-分类"'), '首个重复分类应生成稳定 slug');
-    assert.ok(pages.home.includes('id="重复-分类-2"'), '重复分类应通过后缀去重');
-    assert.ok(pages.home.includes('id="含-空格-特殊-字符"'), '空格/特殊字符应被规范化为可用 slug');
-
-    assert.ok(pages.home.includes('data-id="重复-分类"'));
-    assert.ok(pages.home.includes('data-id="重复-分类-2"'));
+    assert.deepEqual(slugs, ['重复-分类', '重复-分类-2', '含-空格-特殊-字符']);
   });
 });
