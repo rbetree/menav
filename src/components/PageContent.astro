@@ -5,9 +5,53 @@ import HomeDashboard from './HomeDashboard.astro';
 import PageHeader from './PageHeader.astro';
 import SiteCard from './SiteCard.astro';
 
+interface SiteItem {
+  [key: string]: unknown;
+}
+
+interface CategoryItem {
+  name?: string;
+  icon?: string;
+  items?: SiteItem[];
+  [key: string]: unknown;
+}
+
+interface NavigationItem {
+  id?: string;
+  name?: string;
+  icon?: string;
+  [key: string]: unknown;
+}
+
+interface PageData {
+  pageId?: string;
+  isHome?: boolean;
+  categories?: CategoryItem[];
+  navigation?: NavigationItem[];
+  siteCardStyle?: string;
+  contentFile?: string;
+  contentHtml?: string;
+  projectsMeta?: {
+    heatmap?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  articlesItems?: SiteItem[];
+  articlesCategories?: CategoryItem[];
+  [key: string]: unknown;
+}
+
+interface Props {
+  page?: PageData;
+  templateName?: string;
+  root?: Record<string, unknown>;
+}
+
 const { page = {}, templateName = 'page', root = {} } = Astro.props;
 const categories = Array.isArray(page.categories) ? page.categories : [];
 const siteCardStyle = page.siteCardStyle || '';
+const navigation = Array.isArray(page.navigation) ? page.navigation : [];
+const articlesItems = Array.isArray(page.articlesItems) ? page.articlesItems : [];
+const articlesCategories = Array.isArray(page.articlesCategories) ? page.articlesCategories : [];
 ---
 
 {
@@ -21,7 +65,7 @@ const siteCardStyle = page.siteCardStyle || '';
           </p>
         </div>
       </div>
-      {(page.navigation || []).map((item) => (
+      {navigation.map((item) => (
         <section
           class="category search-section"
           data-section={item.id}
@@ -59,10 +103,10 @@ const siteCardStyle = page.siteCardStyle || '';
   ) : templateName === 'articles' ? (
     <div class="page-template page-template-articles">
       <PageHeader page={page} />
-      {Array.isArray(page.articlesItems) && page.articlesItems.length > 0 ? (
+      {articlesItems.length > 0 ? (
         <>
-          {Array.isArray(page.articlesCategories) && page.articlesCategories.length > 0 ? (
-            page.articlesCategories.map((category) => (
+          {articlesCategories.length > 0 ? (
+            articlesCategories.map((category) => (
               <section class="category category-level-1 category-readonly">
                 <div class="category-header" data-toggle="category">
                   <h2>
@@ -99,7 +143,7 @@ const siteCardStyle = page.siteCardStyle || '';
               </div>
               <div class="category-content">
                 <div class="sites-grid">
-                  {page.articlesItems.map((item) => (
+                  {articlesItems.map((item) => (
                     <SiteCard site={item} type="article" root={root} style={siteCardStyle} />
                   ))}
                 </div>

@@ -2,6 +2,26 @@
 import Group from './Group.astro';
 import SiteCard from './SiteCard.astro';
 
+interface SiteItem {
+  [key: string]: unknown;
+}
+
+interface GroupItem {
+  name?: string;
+  icon?: string;
+  level?: number;
+  subgroups?: GroupItem[];
+  sites?: SiteItem[];
+  [key: string]: unknown;
+}
+
+interface Props {
+  group?: GroupItem;
+  level?: number;
+  root?: Record<string, unknown>;
+  siteCardStyle?: string;
+}
+
 const { group = {}, level = 3, root = {}, siteCardStyle = '' } = Astro.props;
 const groupLevel = group.level || level || 3;
 const headingLevel = Math.min(groupLevel + 1, 6);
