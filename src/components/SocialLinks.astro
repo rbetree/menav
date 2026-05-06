@@ -1,10 +1,5 @@
 ---
-interface SocialItem {
-  name?: string;
-  url?: string;
-  icon?: string;
-  [key: string]: unknown;
-}
+import type { SocialItem } from '../types/site';
 
 interface Props {
   social?: SocialItem[];

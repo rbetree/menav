@@ -1,20 +1,5 @@
 ---
-interface NavigationSubmenuItem {
-  name?: string;
-  icon?: string;
-  slug?: string;
-  [key: string]: unknown;
-}
-
-interface NavigationItem {
-  id?: string;
-  name?: string;
-  icon?: string;
-  isActive?: boolean;
-  active?: boolean;
-  submenu?: NavigationSubmenuItem[];
-  [key: string]: unknown;
-}
+import type { NavigationItem } from '../types/config';
 
 interface Props {
   navigation?: NavigationItem[];

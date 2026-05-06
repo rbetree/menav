@@ -247,10 +247,10 @@ config YAML
 
 ### Phase 1：TypeScript 基础设施
 
-状态：in-progress
+状态：done
 开始提交：cbd32af
-完成提交：待完成
-剩余风险：待确认
+完成提交：本提交（提交后见 git log）
+剩余风险：`npm run check` 已在 Node.js 22.22.2 下通过，但 Astro 检查仍会输出既有 CommonJS 转 ESM 提示；业务实现、runtime 和旧 `src/generator` 迁移仍在后续阶段处理，Phase 1 仅完成共享类型与检查链路接入。
 
 目标：先接入 TS 编译与检查能力，不立刻全仓改名。
 
@@ -600,9 +600,9 @@ src/runtime/
 
 ## 当前下一步
 
-Phase 0 已完成并在独立提交中收口。当前下一步是启动 Phase 1，且必须
+Phase 1 已完成并在独立提交中收口。当前下一步是启动 Phase 2，且必须
 继续保持阶段隔离：
 
-1. 增加 `tsconfig.json`。
-2. 增加 `src/types/*`。
-3. 将 Astro 组件内已有局部类型抽到共享类型。
+1. 将 `src/generator/utils/*` 迁入 `src/lib/*` 并改为 TypeScript。
+2. 将新代码引用切到 `src/lib/*`，旧路径仅保留 Phase 6 删除的临时 re-export。
+3. 运行 `npm test` 与 `npm run check`，确认工具迁移行为不变。
