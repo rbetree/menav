@@ -20,3 +20,42 @@ test('Astro 默认布局：应输出 data-theme-mode，支持 dark/light/system 
   assert.ok(content.includes('data-theme-mode={themeMode}'));
   assert.ok(content.includes("site.theme?.mode || 'dark'"));
 });
+
+test('侧边栏样式：收起时不应在页面按钮下方显示目录子菜单', () => {
+  const repoRoot = path.resolve(__dirname, '..');
+  const sidebarStylePath = path.join(repoRoot, 'assets', 'styles', '_sidebar.css');
+  const content = fs.readFileSync(sidebarStylePath, 'utf8');
+
+  assert.ok(
+    content.includes('.sidebar.collapsed .nav-item-wrapper > .submenu'),
+    'assets/styles/_sidebar.css 应在收起态隐藏 nav-item-wrapper 下的 submenu'
+  );
+  assert.match(
+    content,
+    /\.sidebar\.collapsed \.nav-item-wrapper > \.submenu\s*\{[^}]*display:\s*none;/m,
+    '收起态的 submenu 应明确设置为 display: none'
+  );
+});
+
+test('侧边栏目录面板：应默认隐藏，并通过独立状态类延后淡入', () => {
+  const repoRoot = path.resolve(__dirname, '..');
+  const sidebarStylePath = path.join(repoRoot, 'assets', 'styles', '_sidebar.css');
+  const uiPath = path.join(repoRoot, 'src', 'runtime', 'app', 'ui.js');
+  const styleContent = fs.readFileSync(sidebarStylePath, 'utf8');
+  const uiContent = fs.readFileSync(uiPath, 'utf8');
+
+  assert.match(
+    styleContent,
+    /\.sidebar-submenu-panel\s*\{[\s\S]*opacity:\s*0;[\s\S]*visibility:\s*hidden;/m,
+    '目录面板默认应处于隐藏状态'
+  );
+  assert.match(
+    styleContent,
+    /\.sidebar\.submenu-panel-visible \.sidebar-submenu-panel:not\(:empty\)\s*\{[\s\S]*opacity:\s*1;[\s\S]*visibility:\s*visible;/m,
+    '目录面板应通过 submenu-panel-visible 状态类显现'
+  );
+  assert.ok(
+    uiContent.includes('submenu-panel-visible'),
+    'src/runtime/app/ui.js 应控制 submenu-panel-visible 状态类'
+  );
+});

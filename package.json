@@ -33,19 +33,19 @@
   "license": "AGPL-3.0-only",
   "dependencies": {
     "js-yaml": "^4.1.1",
-    "markdown-it": "^14.1.0",
+    "markdown-it": "^14.1.1",
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^22.19.17",
     "astro": "^6.2.1",
-    "esbuild": "^0.27.2",
+    "esbuild": "^0.28.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.4.2",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
-    "serve": "^14.2.5"
+    "serve": "^14.2.6"
   },
   "overrides": {
     "brace-expansion": "1.1.12"
