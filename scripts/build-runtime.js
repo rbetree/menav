@@ -23,7 +23,7 @@ async function main() {
 
   const projectRoot = path.resolve(__dirname, '..');
   const entry = path.join(projectRoot, 'src', 'runtime', 'index.js');
-  const outFile = path.join(projectRoot, 'dist', 'script.js');
+  const outFile = path.join(projectRoot, 'public', 'script.js');
 
   if (!fs.existsSync(entry)) {
     log.error('运行时入口不存在', { path: path.relative(projectRoot, entry) });
@@ -52,14 +52,14 @@ async function main() {
     const ms = elapsedMs();
     const outputs =
       result && result.metafile && result.metafile.outputs ? result.metafile.outputs : null;
-    const outKey = outputs ? Object.keys(outputs).find((k) => k.endsWith('dist/script.js')) : '';
+    const outKey = outputs ? Object.keys(outputs).find((k) => k.endsWith('public/script.js')) : '';
     const bytes = outKey && outputs && outputs[outKey] ? outputs[outKey].bytes : 0;
 
     const meta = { ms };
     if (bytes) meta.bytes = bytes;
-    log.ok('输出 dist/script.js', meta);
+    log.ok('输出 public/script.js', meta);
   } catch (error) {
-    log.error('构建 dist/script.js 失败', {
+    log.error('构建 public/script.js 失败', {
       message: error && error.message ? error.message : String(error),
     });
     if (isVerbose() && error && error.stack) {

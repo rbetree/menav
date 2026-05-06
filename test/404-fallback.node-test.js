@@ -1,15 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
-const { generate404Html } = require('../src/generator.js');
-
-test('P1-5：404.html 回跳应将 /<id> 转为 ?page=<id>（并支持仓库前缀）', () => {
-  const html = generate404Html({ site: { title: 'Test Site' } });
+test('404：Astro 默认 404 不再执行 /<id> 到 ?page=<id> 的自动回跳', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', '404.astro'), 'utf8');
 
   assert.ok(typeof html === 'string' && html.length > 0);
-  assert.ok(html.includes('?page='), '应包含 ?page= 形态');
-  assert.ok(html.includes('encodeURIComponent(pageId)'), '应对 pageId 做 URL 编码');
-  assert.ok(html.includes('segments.length === 1'), '应支持用户站点 /<id>');
-  assert.ok(html.includes('segments.length === 2'), '应支持仓库站点 /<repo>/<id>');
-  assert.ok(html.includes('l.replace(target)'), '应使用 location.replace 执行回跳');
+  assert.ok(html.includes('页面未找到'));
+  assert.ok(html.includes('返回首页'));
+  assert.ok(!html.includes('?page='), '不应再保留旧路径自动回跳逻辑');
+  assert.ok(!html.includes('location.replace'), '不应通过脚本重写 404 路径');
 });

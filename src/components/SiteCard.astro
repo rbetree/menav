@@ -1,0 +1,115 @@
+---
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import CardIcon from './CardIcon.astro';
+
+const require = createRequire(import.meta.url);
+const { extractDomain, formatDate, getSafeUrl } = require(
+  path.join(process.cwd(), 'src', 'lib', 'view-utils.js')
+);
+
+const { site = {}, style = '', type = '', root = {} } = Astro.props;
+
+const cardType = type || site.type || 'site';
+const cardStyle = style || site.style || '';
+const name = site.name || '未命名站点';
+const url = site.url || '#';
+const icon = site.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
+const description = site.description || extractDomain(url);
+const safeHref = getSafeUrl(url, root);
+const faviconUrl = site.faviconUrl || '';
+const forceIconMode = site.forceIconMode || '';
+const tooltip = `${name} - ${description || extractDomain(url)}`;
+const useExternal = site.external;
+const shouldOpenExternal = Boolean(useExternal);
+---
+
+{
+  url && (
+    <a
+      href={safeHref}
+      class:list={['site-card', cardStyle && `site-card-${cardStyle}`]}
+      target={shouldOpenExternal ? '_blank' : undefined}
+      rel={shouldOpenExternal ? 'noopener' : undefined}
+      data-type={cardType}
+      data-name={name}
+      data-url={url}
+      data-icon={icon}
+      data-favicon-url={faviconUrl || undefined}
+      data-force-icon-mode={forceIconMode || undefined}
+      data-description={description}
+      data-tooltip={tooltip}
+      data-published-at={site.publishedAt || undefined}
+      data-source={site.source || undefined}
+    >
+      {cardType === 'article' ? (
+        <>
+          <div class="article-card-header">
+            <CardIcon site={site} root={root} name={name} url={url} icon={icon} />
+            <div class="article-card-title">
+              <h3>{name}</h3>
+            </div>
+          </div>
+          <div class="article-card-body">
+            {(site.publishedAt || site.source) && (
+              <div class="site-card-meta">
+                {site.publishedAt && (
+                  <span class="site-card-meta-date">
+                    {formatDate(site.publishedAt, 'YYYY-MM-DD')}
+                  </span>
+                )}
+                {site.publishedAt && site.source && <span class="site-card-meta-sep">·</span>}
+                {site.source && <span class="site-card-meta-source">{site.source}</span>}
+              </div>
+            )}
+            <p>{description}</p>
+          </div>
+        </>
+      ) : cardStyle === 'repo' ? (
+        <>
+          <div class="repo-header">
+            <i class:list={[icon, 'repo-icon']} aria-hidden="true" />
+            <div class="repo-title">{name}</div>
+          </div>
+          <div class="repo-desc">{description}</div>
+          {(site.language || site.stars || site.forks || site.issues) && (
+            <div class="repo-stats">
+              {site.language && (
+                <div class="stat-item">
+                  <span
+                    class="lang-dot"
+                    style={`background-color: ${site.languageColor || '#909296'};`}
+                  />
+                  {site.language}
+                </div>
+              )}
+              {site.stars && (
+                <div class="stat-item">
+                  <i class="far fa-star" aria-hidden="true" /> {site.stars}
+                </div>
+              )}
+              {site.forks && (
+                <div class="stat-item">
+                  <i class="fas fa-code-branch" aria-hidden="true" /> {site.forks}
+                </div>
+              )}
+              {site.issues && (
+                <div class="stat-item">
+                  <i class="fas fa-exclamation-circle" aria-hidden="true" /> {site.issues}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <CardIcon site={site} root={root} name={name} url={url} icon={icon} />
+          <div class="site-card-content">
+            <h3>{name}</h3>
+            <p>{description}</p>
+          </div>
+        </>
+      )}
+    </a>
+  )
+}

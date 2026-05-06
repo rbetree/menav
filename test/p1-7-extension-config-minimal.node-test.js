@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, loadConfig, generateHTML } = require('../src/generator.js');
+const { loadConfig, prepareSiteRenderData } = require('../src/generator.js');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -16,14 +16,9 @@ function withRepoRoot(fn) {
 
 test('P1-7：页面内不应注入整站 configJSON，应仅保留扩展元信息与最小运行时参数', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
     const config = loadConfig();
-    const html = generateHTML(config);
-
-    const match = html.match(/<script id="menav-config-data"[^>]*>([\s\S]*?)<\/script>/m);
-    assert.ok(match, '应输出 menav-config-data 脚本块');
-
-    const raw = String(match[1] || '').trim();
+    const renderData = prepareSiteRenderData(config);
+    const raw = String(renderData.configJSON || '').trim();
     assert.ok(raw.length > 0, 'menav-config-data 内容不应为空');
 
     const parsed = JSON.parse(raw);

@@ -1,17 +1,12 @@
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
-const { startServer } = require('./serve-dist');
+const { runBuildPipeline } = require('./lib/build-pipeline');
+const { resolveServerOptionsFromEnv, startServer } = require('./serve-dist');
 
 const log = createLogger('dev:offline');
 let serverRef = null;
 let shuttingDown = false;
-
-function runNode(scriptPath) {
-  const result = spawnSync(process.execPath, [scriptPath], { stdio: 'inherit' });
-  return result && Number.isFinite(result.status) ? result.status : 1;
-}
 
 function closeServer(server, exitCode) {
   if (!server) {
@@ -40,21 +35,18 @@ async function main() {
   log.info('开始', { version: process.env.npm_package_version });
 
   const repoRoot = path.resolve(__dirname, '..');
-  const generatorPath = path.join(repoRoot, 'src', 'generator.js');
 
-  const exitCode = runNode(generatorPath);
-  if (exitCode !== 0) {
-    log.error('生成失败', { exit: exitCode });
-    process.exitCode = exitCode;
+  if (!runBuildPipeline({ log, repoRoot, sync: false })) {
+    process.exitCode = 1;
     return;
   }
 
-  const portRaw = process.env.PORT || process.env.MENAV_PORT || '5173';
-  const port = Number.parseInt(portRaw, 10) || 5173;
+  const serverOptions = resolveServerOptionsFromEnv();
   const { server, port: actualPort } = await startServer({
     rootDir: path.join(repoRoot, 'dist'),
-    host: process.env.HOST || '0.0.0.0',
-    port,
+    host: serverOptions.host,
+    port: serverOptions.port,
+    strictPort: serverOptions.strictPort,
   });
   serverRef = server;
 

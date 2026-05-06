@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, generateAllPagesHTML } = require('../src/generator.js');
+const { preparePageData } = require('../src/generator.js');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -18,8 +18,6 @@ function withRepoRoot(fn) {
 
 test('content：构建期渲染 markdown 文件，并对链接做 scheme 安全降级', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-content-page-'));
     const mdPath = path.join(tmpDir, 'about.md');
     fs.writeFileSync(
@@ -61,12 +59,11 @@ test('content：构建期渲染 markdown 文件，并对链接做 scheme 安全�
         },
       };
 
-      const pages = generateAllPagesHTML(config);
-      const html = pages.about;
+      const { data, templateName } = preparePageData('about', config);
+      const html = data.contentHtml;
 
+      assert.equal(templateName, 'content');
       assert.ok(typeof html === 'string' && html.length > 0);
-      assert.ok(html.includes('page-template-about'));
-      assert.ok(html.includes('page-template-content'));
       assert.ok(html.includes('<h1>About</h1>'));
       assert.ok(html.includes('A normal link'));
       assert.ok(html.includes('href="https://example.com"'));

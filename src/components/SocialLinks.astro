@@ -1,0 +1,25 @@
+---
+const { social = [] } = Astro.props;
+---
+
+{
+  social.map((item) => (
+    <a
+      href={item.url}
+      class="social-icon"
+      target="_blank"
+      rel="noopener"
+      title={item.name}
+      aria-label={item.name}
+      data-type="social-link"
+      data-name={item.name}
+      data-url={item.url}
+      data-icon={item.icon}
+    >
+      <i class={item.icon} aria-hidden="true" />
+      <span class="nav-text visually-hidden" data-editable="social-link-name">
+        {item.name}
+      </span>
+    </a>
+  ))
+}

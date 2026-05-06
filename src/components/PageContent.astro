@@ -1,0 +1,134 @@
+---
+import Category from './Category.astro';
+import GitHubHeatmap from './GitHubHeatmap.astro';
+import HomeDashboard from './HomeDashboard.astro';
+import PageHeader from './PageHeader.astro';
+import SiteCard from './SiteCard.astro';
+
+const { page = {}, templateName = 'page', root = {} } = Astro.props;
+const categories = Array.isArray(page.categories) ? page.categories : [];
+const siteCardStyle = page.siteCardStyle || '';
+---
+
+{
+  templateName === 'search-results' ? (
+    <>
+      <div class="welcome-section">
+        <div class="welcome-section-main">
+          <h2 data-editable="page-title">搜索结果</h2>
+          <p class="subtitle" data-editable="page-subtitle">
+            在所有页面中找到的匹配项
+          </p>
+        </div>
+      </div>
+      {(page.navigation || []).map((item) => (
+        <section
+          class="category search-section"
+          data-section={item.id}
+          data-type="category"
+          data-name={item.name}
+          data-icon={item.icon}
+          style="display: none;"
+        >
+          <h2 data-editable="category-name">
+            <i class={item.icon} /> {item.name}匹配项
+          </h2>
+          <div class="sites-grid" data-container="sites" />
+        </section>
+      ))}
+    </>
+  ) : templateName === 'content' ? (
+    <div class:list={['page-template', `page-template-${page.pageId}`, 'page-template-content']}>
+      <PageHeader page={page} />
+      <div class="category content-category">
+        <article
+          class="content-page"
+          data-content-file={page.contentFile}
+          set:html={page.contentHtml || ''}
+        />
+      </div>
+    </div>
+  ) : templateName === 'projects' ? (
+    <div class="page-template page-template-projects">
+      <PageHeader page={page} />
+      {page.projectsMeta?.heatmap && <GitHubHeatmap heatmap={page.projectsMeta.heatmap} />}
+      {categories.map((category) => (
+        <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+      ))}
+    </div>
+  ) : templateName === 'articles' ? (
+    <div class="page-template page-template-articles">
+      <PageHeader page={page} />
+      {Array.isArray(page.articlesItems) && page.articlesItems.length > 0 ? (
+        <>
+          {Array.isArray(page.articlesCategories) && page.articlesCategories.length > 0 ? (
+            page.articlesCategories.map((category) => (
+              <section class="category category-level-1 category-readonly">
+                <div class="category-header" data-toggle="category">
+                  <h2>
+                    <i class={category.icon || 'fas fa-rss'} />
+                    {category.name}
+                    <span class="toggle-icon">
+                      <i class="fas fa-chevron-down" />
+                    </span>
+                  </h2>
+                </div>
+                <div class="category-content">
+                  {Array.isArray(category.items) && category.items.length > 0 ? (
+                    <div class="sites-grid">
+                      {category.items.map((item) => (
+                        <SiteCard site={item} type="article" root={root} style={siteCardStyle} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p class="empty-content">暂无文章</p>
+                  )}
+                </div>
+              </section>
+            ))
+          ) : (
+            <section class="category category-level-1 category-readonly">
+              <div class="category-header" data-toggle="category">
+                <h2>
+                  <i class="fas fa-rss" />
+                  最新文章
+                  <span class="toggle-icon">
+                    <i class="fas fa-chevron-down" />
+                  </span>
+                </h2>
+              </div>
+              <div class="category-content">
+                <div class="sites-grid">
+                  {page.articlesItems.map((item) => (
+                    <SiteCard site={item} type="article" root={root} style={siteCardStyle} />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+          <div
+            class="menav-extension-shadow"
+            data-extension-shadow="true"
+            data-search-exclude="true"
+            aria-hidden="true"
+          >
+            {categories.map((category) => (
+              <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+            ))}
+          </div>
+        </>
+      ) : (
+        categories.map((category) => (
+          <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+        ))
+      )}
+    </div>
+  ) : (
+    <div class:list={['page-template', `page-template-${page.pageId}`]}>
+      {page.isHome ? <HomeDashboard page={page} /> : <PageHeader page={page} />}
+      {categories.map((category) => (
+        <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+      ))}
+    </div>
+  )
+}

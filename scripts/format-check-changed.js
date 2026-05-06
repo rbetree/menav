@@ -150,9 +150,9 @@ function shouldCheckFile(filePath) {
   if (normalized === 'package-lock.json') return false;
 
   // 这些文件历史上未统一为 Prettier 风格；避免为了启用检查产生巨量格式化 diff
-  if (normalized === 'src/generator/main.js' || normalized === 'src/runtime/index.js') return false;
+  if (normalized === 'src/runtime/index.js') return false;
 
-  // 与现有 npm scripts 的检查范围对齐：不检查 docs/ 与 templates/
+  // 与现有 npm scripts 的检查范围对齐：不检查 docs/
   const allowedRoots = ['src/', 'scripts/', 'test/', '.github/', 'config/'];
   const isRootFile = !normalized.includes('/');
   const hasAllowedRoot = allowedRoots.some((prefix) => normalized.startsWith(prefix));
@@ -163,7 +163,7 @@ function shouldCheckFile(filePath) {
   if (!isAllowedPath) return false;
 
   const ext = path.extname(normalized).toLowerCase();
-  return ['.js', '.json', '.md', '.yml', '.yaml'].includes(ext);
+  return ['.astro', '.js', '.json', '.md', '.yml', '.yaml'].includes(ext);
 }
 
 function resolvePrettierBin(repoRoot) {

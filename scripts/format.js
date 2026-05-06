@@ -12,9 +12,11 @@ const log = createLogger(scope);
 
 const PATTERNS = [
   'src/**/*.js',
+  'src/**/*.astro',
   'scripts/**/*.js',
   'test/**/*.js',
   '.github/**/*.yml',
+  'astro.config.mjs',
   '*.{md,json}',
   'config/**/*.md',
   'config/**/*.yml',

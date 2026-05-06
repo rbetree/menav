@@ -46,11 +46,11 @@
 
 ### 1.3 `pages/<id>.yml -> template`（页面模板选择）
 
-用途：指定页面使用的模板（对应 `templates/pages/<template>.hbs`，不含扩展名）。
+用途：指定页面使用的内置页面类型（由 Astro 组件渲染）。
 
 行为规则：
 
-- 若 `template` 缺省：优先尝试同名模板（`templates/pages/<pageId>.hbs`），不存在则回退到通用 `page` 模板。
+- 若 `template` 缺省：优先使用与页面 ID 同名的内置页面类型（如 `bookmarks/projects/articles/content`），不存在则回退到通用 `page` 页面。
 - `bookmarks/projects/articles` 等特殊页建议显式配置 `template`，以减少误解。
 
 ---
@@ -107,7 +107,7 @@
 ## 3. 与更新记录的对应关系（快速索引）
 
 - 首页判定规则：`site.yml -> navigation` 第一项
-- 模板体系：`pages/<id>.yml -> template`（缺省回退 `page`）
+- 页面类型：`pages/<id>.yml -> template`（缺省回退 `page`）
 - bookmarks 更新时间：构建期注入（不需要新增配置字段）
 - articles RSS：`site.rss.*` + `npm run sync-articles`
 - projects 元信息/热力图：`site.github.*` + `npm run sync-projects`

@@ -1,5 +1,5 @@
 /**
- * Handlebars通用工具类助手函数
+ * 通用工具函数
  * 提供数组处理、字符串处理等实用功能
  */
 
@@ -33,7 +33,7 @@ function slice(array, start, end) {
  */
 function concat() {
   const args = Array.from(arguments);
-  const options = args.pop(); // 最后一个参数是Handlebars的options对象
+  args.pop();
 
   // 过滤掉非数组参数
   const validArrays = args.filter((arg) => Array.isArray(arg));
@@ -128,7 +128,7 @@ function range(start, end, step = 1) {
  */
 function pick() {
   const args = Array.from(arguments);
-  const options = args.pop(); // 最后一个参数是Handlebars的options对象
+  args.pop();
 
   if (args.length < 1) {
     return {};
@@ -197,7 +197,7 @@ function add(a, b) {
 /**
  * 根据 icons.region 配置生成 favicon URL
  * @param {string} url 站点 URL
- * @param {Object} options Handlebars options 对象
+ * @param {Object} options 兼容旧调用形态的配置对象
  * @returns {string} favicon URL
  * @example {{faviconV2Url url}}
  */
@@ -219,7 +219,7 @@ function faviconV2Url(url, options) {
 /**
  * 根据 icons.region 配置生成 favicon 回退 URL
  * @param {string} url 站点 URL
- * @param {Object} options Handlebars options 对象
+ * @param {Object} options 兼容旧调用形态的配置对象
  * @returns {string} favicon 回退 URL
  * @example {{faviconFallbackUrl url}}
  */
@@ -243,7 +243,7 @@ function faviconFallbackUrl(url, options) {
  * - 默认允许：http/https/mailto/tel + 相对链接（# / ./ ../ ?）
  * - 允许通过 site.security.allowedSchemes 扩展白名单（例如 obsidian/vscode）
  * @param {string} url 输入 URL
- * @param {Object} options Handlebars options 对象
+ * @param {Object} options 兼容旧调用形态的配置对象
  * @returns {string} 安全的 URL（不安全时返回 #）
  * @example <a href="{{safeUrl url}}">...</a>
  */

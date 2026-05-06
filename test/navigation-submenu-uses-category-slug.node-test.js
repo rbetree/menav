@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { loadHandlebarsTemplates, generateHTML } = require('../src/generator.js');
+const { prepareSiteRenderData } = require('../src/generator.js');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -16,8 +16,6 @@ function withRepoRoot(fn) {
 
 test('P1-2：子菜单锚点应使用分类 slug（href + data-category-id）', () => {
   withRepoRoot(() => {
-    loadHandlebarsTemplates();
-
     const config = {
       site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
       profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -34,12 +32,12 @@ test('P1-2：子菜单锚点应使用分类 slug（href + data-category-id）', 
       },
     };
 
-    const html = generateHTML(config);
+    const renderData = prepareSiteRenderData(config);
+    const navItem = renderData.navigationData[0];
 
-    assert.ok(html.includes('class="submenu-item"'), '应输出子菜单项');
-    assert.ok(html.includes('href="?page=home#重复-分类"'), '子菜单 href 应支持 ?page=<id>#<slug>');
-    assert.ok(html.includes('data-category-id="重复-分类"'), '子菜单应携带 data-category-id');
-    assert.ok(html.includes('class="nav-item'), '应输出导航项');
-    assert.ok(html.includes('href="?page=home"'), '导航项 href 应支持 ?page=<id> 深链接');
+    assert.equal(navItem.id, 'home');
+    assert.ok(Array.isArray(navItem.submenu), '应准备子菜单项');
+    assert.equal(navItem.submenu[0].slug, '重复-分类');
+    assert.equal(navItem.submenu[1].slug, '重复-分类-2');
   });
 });

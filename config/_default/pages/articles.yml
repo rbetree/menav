@@ -3,7 +3,7 @@
 title: 技术文章 # 页面标题
 subtitle: RSS 聚合文章列表 # 页面副标题
 
-# 指定使用的模板文件名，现有页面模板可见 templates/pages（不含 .hbs）
+# 指定使用的内置页面类型（由 Astro 组件渲染）
 template: articles
 
 # 当存在 RSS 缓存时，页面将优先渲染“文章条目卡片”（只读）。

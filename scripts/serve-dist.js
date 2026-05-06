@@ -11,6 +11,16 @@ function parseInteger(value, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function resolveServerOptionsFromEnv(defaultPort = 5173) {
+  const rawPort = process.env.PORT || process.env.MENAV_PORT || '';
+
+  return {
+    host: process.env.HOST || '0.0.0.0',
+    port: parseInteger(rawPort || defaultPort, defaultPort),
+    strictPort: rawPort !== '',
+  };
+}
+
 function parseArgs(argv) {
   const args = Array.isArray(argv) ? argv.slice() : [];
 
@@ -133,8 +143,32 @@ function buildHandler(rootDir) {
   };
 }
 
-function startServer(options = {}) {
-  const { rootDir, host, port } = options;
+function listenServer(server, port, host) {
+  return new Promise((resolve, reject) => {
+    const onError = (error) => {
+      server.off('listening', onListening);
+      reject(error);
+    };
+
+    const onListening = () => {
+      server.off('error', onError);
+      const addr = server.address();
+      const actualPort = addr && typeof addr === 'object' ? addr.port : port;
+      resolve({ server, port: actualPort, host });
+    };
+
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(port, host);
+  });
+}
+
+function isAddressInUse(error) {
+  return error && error.code === 'EADDRINUSE';
+}
+
+async function startServer(options = {}) {
+  const { rootDir, host, port, strictPort = true, maxPortAttempts = strictPort ? 1 : 20 } = options;
   const normalizedRoot = path.resolve(rootDir);
 
   if (!fs.existsSync(normalizedRoot)) {
@@ -142,31 +176,50 @@ function startServer(options = {}) {
   }
 
   const handler = buildHandler(normalizedRoot);
-  const server = http.createServer(handler);
+  const attempts = Math.max(1, parseInteger(maxPortAttempts, 1));
+  const initialPort = parseInteger(port, 5173);
 
-  return new Promise((resolve, reject) => {
-    server.on('error', reject);
-    server.listen(port, host, () => {
-      const addr = server.address();
-      const actualPort = addr && typeof addr === 'object' ? addr.port : port;
-      resolve({ server, port: actualPort, host });
-    });
-  });
+  for (let offset = 0; offset < attempts; offset += 1) {
+    const candidatePort = initialPort + offset;
+    const server = http.createServer(handler);
+
+    try {
+      return await listenServer(server, candidatePort, host);
+    } catch (error) {
+      if (!strictPort && isAddressInUse(error) && offset < attempts - 1) {
+        log.warn('端口已占用，尝试下一个端口', {
+          port: candidatePort,
+          next: candidatePort + 1,
+        });
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error(`无法启动静态服务：端口 ${initialPort}-${initialPort + attempts - 1} 均不可用`);
 }
 
 async function main() {
   const repoRoot = path.resolve(__dirname, '..');
   const defaultRoot = path.join(repoRoot, 'dist');
   const args = parseArgs(process.argv.slice(2));
+  const envOptions = resolveServerOptionsFromEnv();
 
-  const port =
-    args.port ?? parseInteger(process.env.PORT || process.env.MENAV_PORT || '5173', 5173);
-  const host = args.host || process.env.HOST || '0.0.0.0';
+  const port = args.port ?? envOptions.port;
+  const host = args.host || envOptions.host;
+  const strictPort = args.port !== null || envOptions.strictPort;
   const rootDir = args.root ? path.resolve(repoRoot, args.root) : defaultRoot;
 
-  log.info('启动静态服务', { root: path.relative(repoRoot, rootDir) || '.', host, port });
+  log.info('启动静态服务', {
+    root: path.relative(repoRoot, rootDir) || '.',
+    host,
+    port,
+    autoPort: !strictPort,
+  });
 
-  const { server, port: actualPort } = await startServer({ rootDir, host, port });
+  const { server, port: actualPort } = await startServer({ rootDir, host, port, strictPort });
 
   log.ok('就绪', { url: `http://localhost:${actualPort}` });
 
@@ -208,5 +261,6 @@ if (require.main === module) {
 }
 
 module.exports = {
+  resolveServerOptionsFromEnv,
   startServer,
 };

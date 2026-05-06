@@ -4,6 +4,13 @@ npm-debug.log*
 
 # 构建输出
 dist/
+.astro/
+public/assets/
+public/pinyin-match.js
+public/script.js
+public/menav-config.json
+public/menav.svg
+public/favicon.ico
 
 # IDE/编辑器配置
 .vscode/

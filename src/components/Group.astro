@@ -1,0 +1,58 @@
+---
+import Group from './Group.astro';
+import SiteCard from './SiteCard.astro';
+
+const { group = {}, level = 3, root = {}, siteCardStyle = '' } = Astro.props;
+const groupLevel = group.level || level || 3;
+const headingLevel = Math.min(groupLevel + 1, 6);
+const HeadingTag = `h${headingLevel}`;
+const hasSubgroups = Array.isArray(group.subgroups) && group.subgroups.length > 0;
+const hasSites = Array.isArray(group.sites) && group.sites.length > 0;
+const isToggleable = hasSubgroups || hasSites;
+---
+
+<div
+  class:list={['group', `group-level-${groupLevel}`]}
+  data-type="group"
+  data-name={group.name}
+  data-icon={group.icon}
+  data-level={groupLevel}
+>
+  <div class="group-header" data-toggle={isToggleable ? 'group' : undefined}>
+    <HeadingTag data-editable="group-name">
+      <i class={group.icon}></i>
+      {group.name}
+      {
+        isToggleable && (
+          <span class="toggle-icon">
+            <i class="fas fa-chevron-down" />
+          </span>
+        )
+      }
+    </HeadingTag>
+  </div>
+
+  <div class="group-content">
+    {
+      hasSubgroups && (
+        <div class="subgroups-container" data-container="subgroups">
+          {group.subgroups.map((subgroup) => (
+            <Group group={subgroup} level={4} root={root} siteCardStyle={siteCardStyle} />
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasSites && (
+        <div class="sites-grid" data-container="sites">
+          {group.sites.map((site) => (
+            <SiteCard site={site} root={root} style={siteCardStyle} />
+          ))}
+        </div>
+      )
+    }
+
+    {!hasSubgroups && !hasSites && <p class="empty-content">暂无网站</p>}
+  </div>
+</div>

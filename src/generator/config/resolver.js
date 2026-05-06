@@ -1,8 +1,14 @@
-const fs = require('node:fs');
-const path = require('node:path');
 const { assignCategorySlugs } = require('./slugs');
 
 const MENAV_EXTENSION_CONFIG_FILE = 'menav-config.json';
+const BUILTIN_PAGE_TEMPLATES = new Set([
+  'articles',
+  'bookmarks',
+  'content',
+  'page',
+  'projects',
+  'search-results',
+]);
 
 function getSubmenuForNavItem(navItem, config) {
   if (!navItem || !navItem.id || !config) {
@@ -28,10 +34,9 @@ function resolveTemplateNameForPage(pageId, config) {
 
   const pageConfig = config && config[pageId] ? config[pageId] : null;
   const explicit = pageConfig && pageConfig.template ? String(pageConfig.template).trim() : '';
-  if (explicit) return explicit;
+  if (explicit) return BUILTIN_PAGE_TEMPLATES.has(explicit) ? explicit : 'page';
 
-  const candidatePath = path.join(process.cwd(), 'templates', 'pages', `${pageId}.hbs`);
-  if (fs.existsSync(candidatePath)) return pageId;
+  if (BUILTIN_PAGE_TEMPLATES.has(pageId)) return pageId;
 
   return 'page';
 }

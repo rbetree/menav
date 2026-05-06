@@ -1,17 +1,12 @@
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
-const { startServer } = require('./serve-dist');
+const { runBuildPipeline } = require('./lib/build-pipeline');
+const { resolveServerOptionsFromEnv, startServer } = require('./serve-dist');
 
 const log = createLogger('dev');
 let serverRef = null;
 let shuttingDown = false;
-
-function runNode(scriptPath) {
-  const result = spawnSync(process.execPath, [scriptPath], { stdio: 'inherit' });
-  return result && Number.isFinite(result.status) ? result.status : 1;
-}
 
 function closeServer(server, exitCode) {
   if (!server) {
@@ -41,32 +36,17 @@ async function main() {
 
   const repoRoot = path.resolve(__dirname, '..');
 
-  // best-effort：同步失败不阻断 dev
-  const syncProjectsExit = runNode(path.join(repoRoot, 'scripts', 'sync-projects.js'));
-  if (syncProjectsExit !== 0)
-    log.warn('sync-projects 异常退出，已继续（best-effort）', { exit: syncProjectsExit });
-
-  const syncHeatmapExit = runNode(path.join(repoRoot, 'scripts', 'sync-heatmap.js'));
-  if (syncHeatmapExit !== 0)
-    log.warn('sync-heatmap 异常退出，已继续（best-effort）', { exit: syncHeatmapExit });
-
-  const syncArticlesExit = runNode(path.join(repoRoot, 'scripts', 'sync-articles.js'));
-  if (syncArticlesExit !== 0)
-    log.warn('sync-articles 异常退出，已继续（best-effort）', { exit: syncArticlesExit });
-
-  const generatorExit = runNode(path.join(repoRoot, 'src', 'generator.js'));
-  if (generatorExit !== 0) {
-    log.error('生成失败', { exit: generatorExit });
-    process.exitCode = generatorExit;
+  if (!runBuildPipeline({ log, repoRoot, sync: true })) {
+    process.exitCode = 1;
     return;
   }
 
-  const portRaw = process.env.PORT || process.env.MENAV_PORT || '5173';
-  const port = Number.parseInt(portRaw, 10) || 5173;
+  const serverOptions = resolveServerOptionsFromEnv();
   const { server, port: actualPort } = await startServer({
     rootDir: path.join(repoRoot, 'dist'),
-    host: process.env.HOST || '0.0.0.0',
-    port,
+    host: serverOptions.host,
+    port: serverOptions.port,
+    strictPort: serverOptions.strictPort,
   });
   serverRef = server;
 
