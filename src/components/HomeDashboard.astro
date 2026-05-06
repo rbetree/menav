@@ -47,19 +47,8 @@ const { page = {} } = Astro.props;
           id="todo-input-container"
           style="display: none; padding: var(--spacing-md);"
         >
-          <input
-            type="text"
-            class="todo-input"
-            id="todo-input-field"
-            placeholder="New task..."
-            onkeypress="window.menavTodoApp.handleInputKey(event)"
-            onblur="window.menavTodoApp.handleBlur()"
-          />
-          <button
-            class="todo-add-btn-small"
-            onmousedown="window.menavTodoApp.preventBlur(event)"
-            onclick="window.menavTodoApp.addFromInput()"
-          >
+          <input type="text" class="todo-input" id="todo-input-field" placeholder="New task..." />
+          <button class="todo-add-btn-small" type="button">
             <span class="fas fa-arrow-right"></span>
           </button>
         </div>
@@ -117,7 +106,21 @@ const { page = {} } = Astro.props;
 
       init: function () {
         this.load();
+        this.bindInputEvents();
         this.render();
+      },
+
+      bindInputEvents: function () {
+        var field = document.getElementById('todo-input-field');
+        var button = document.querySelector('.todo-add-btn-small');
+        if (field) {
+          field.addEventListener('keydown', this.handleInputKey.bind(this));
+          field.addEventListener('blur', this.handleBlur.bind(this));
+        }
+        if (button) {
+          button.addEventListener('mousedown', this.preventBlur.bind(this));
+          button.addEventListener('click', this.addFromInput.bind(this));
+        }
       },
 
       load: function () {

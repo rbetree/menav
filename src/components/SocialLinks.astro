@@ -1,4 +1,15 @@
 ---
+interface SocialItem {
+  name?: string;
+  url?: string;
+  icon?: string;
+  [key: string]: unknown;
+}
+
+interface Props {
+  social?: SocialItem[];
+}
+
 const { social = [] } = Astro.props;
 ---
 

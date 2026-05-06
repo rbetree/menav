@@ -3,6 +3,47 @@ import Navigation from '../components/Navigation.astro';
 import PageContent from '../components/PageContent.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 
+interface PageEntry {
+  id: string;
+  isActive?: boolean;
+  templateName?: string;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface SiteConfig {
+  title?: string;
+  description?: string;
+  author?: string;
+  favicon?: string;
+  logo_text?: string;
+  theme?: {
+    mode?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+interface LayoutConfig {
+  site?: SiteConfig;
+  social?: Record<string, unknown>[];
+  _meta?: {
+    version?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+interface Props {
+  config: LayoutConfig;
+  pages?: PageEntry[];
+  navigationData?: Record<string, unknown>[];
+  fontLinks?: string;
+  fontCss?: string;
+  currentYear?: number;
+  configJSON?: string;
+}
+
 const {
   config,
   pages = [],
@@ -16,6 +57,9 @@ const {
 const site = config.site || {};
 const themeMode = site.theme?.mode || 'dark';
 const favicon = site.favicon || 'menav.svg';
+const fontAwesomeCssUrl =
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
+const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="style" onload="this.onload=null;this.rel='stylesheet'" />`;
 ---
 
 <!doctype html>
@@ -68,17 +112,9 @@ const favicon = site.favicon || 'menav.svg';
     </script>
     <link rel="stylesheet" href="./assets/style.css" />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <link
-      rel="preload"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-      as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
-    />
+    <Fragment set:html={fontAwesomePreload} />
     <noscript>
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-      />
+      <link rel="stylesheet" href={fontAwesomeCssUrl} />
     </noscript>
   </head>
   <body class="loading">

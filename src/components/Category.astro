@@ -3,6 +3,37 @@ import Category from './Category.astro';
 import Group from './Group.astro';
 import SiteCard from './SiteCard.astro';
 
+interface SiteItem {
+  [key: string]: unknown;
+}
+
+interface GroupItem {
+  name?: string;
+  icon?: string;
+  level?: number;
+  subgroups?: GroupItem[];
+  sites?: SiteItem[];
+  [key: string]: unknown;
+}
+
+interface CategoryItem {
+  name?: string;
+  icon?: string;
+  slug?: string;
+  level?: number;
+  subcategories?: CategoryItem[];
+  groups?: GroupItem[];
+  sites?: SiteItem[];
+  [key: string]: unknown;
+}
+
+interface Props {
+  category?: CategoryItem;
+  level?: number;
+  root?: Record<string, unknown>;
+  siteCardStyle?: string;
+}
+
 const { category = {}, level = 1, root = {}, siteCardStyle = '' } = Astro.props;
 const categoryLevel = category.level || level || 1;
 const headingLevel = Math.min(categoryLevel + 1, 6);
