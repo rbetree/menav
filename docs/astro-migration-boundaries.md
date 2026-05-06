@@ -247,7 +247,10 @@ config YAML
 
 ### Phase 1：TypeScript 基础设施
 
-状态：pending
+状态：in-progress
+开始提交：cbd32af
+完成提交：待完成
+剩余风险：待确认
 
 目标：先接入 TS 编译与检查能力，不立刻全仓改名。
 

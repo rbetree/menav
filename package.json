@@ -21,7 +21,7 @@
     "format": "node ./scripts/format.js --write",
     "format:check": "node ./scripts/format.js --check",
     "format:check:changed": "node ./scripts/format-check-changed.js",
-    "check": "node ./scripts/check.js",
+    "check": "node ./scripts/check.js && tsc --noEmit",
     "prepare": "husky"
   },
   "keywords": [
