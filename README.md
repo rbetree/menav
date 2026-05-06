@@ -66,6 +66,7 @@ menav/
 ## 文档导航
 
 - 历史更新记录（README 不再维护）：[`CHANGELOG.md`](CHANGELOG.md)
+- Astro 现代化迁移计划：[`docs/astro-migration-boundaries.md`](docs/astro-migration-boundaries.md)
 - 更新说明2025/12/27（兼容性移除 / 迁移指南）：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
 - 配置系统（完全替换策略、目录结构、示例）：[`config/README.md`](config/README.md)
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
@@ -91,11 +92,13 @@ cd menav
 2. 安装依赖
 
 ```bash
-# 安装依赖
+nvm use
 npm install
 ```
 
-请确保本机 Node.js 版本为 `22.12+`。
+请确保本机 Node.js 版本为 `22.12+`；仓库提供 `.nvmrc` 固定主版本为
+`22`，使用 nvm 时先运行 `nvm use`。Windows 和 WSL/Linux 环境不要共用
+`node_modules`，请在各自环境中分别安装依赖。
 
 （本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
 

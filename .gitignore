@@ -27,7 +27,8 @@ Thumbs.db
 
 
 # 个人笔记
-docs/
+docs/local/
+docs/*.local.md
 
 # 测试相关文件
 dev/
