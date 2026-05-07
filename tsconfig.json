@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
+    "moduleDetection": "force",
     "noEmit": true,
     "baseUrl": ".",
     "paths": {

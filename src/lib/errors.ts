@@ -99,13 +99,16 @@ function wrapAsyncError<TArgs extends unknown[], TResult>(
     try {
       return await fn(...args);
     } catch (error) {
-      if (
+      const knownError =
         error instanceof ConfigError ||
         error instanceof TemplateError ||
         error instanceof BuildError ||
         error instanceof FileError
-      ) {
-        return handleError(error);
+          ? error
+          : null;
+
+      if (knownError) {
+        return handleError(knownError);
       }
 
       const unknownError = error instanceof Error ? error : new Error(String(error));

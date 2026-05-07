@@ -2,7 +2,7 @@ const {
   getSubmenuForNavItem,
   assignCategorySlugs,
   resolveTemplateNameForPage,
-} = require('../config');
+} = require('../../lib/config/index.ts');
 const {
   tryLoadArticlesFeedCache,
   buildArticlesCategoriesByPageCategories,

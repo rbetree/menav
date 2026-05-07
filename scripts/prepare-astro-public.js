@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/generator/config');
+const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/lib/config/index.ts');
 const { collectSitesRecursively } = require('../src/lib/site-data/sites.ts');
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 

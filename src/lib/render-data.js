@@ -1,4 +1,4 @@
-const { loadConfig, getSubmenuForNavItem } = require('../generator/config');
+const { loadConfig, getSubmenuForNavItem } = require('./config/index.ts');
 const { generateFontLinks, generateFontCss } = require('../generator/html/fonts');
 const { preparePageData } = require('../generator/html/page-data');
 
