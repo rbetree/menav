@@ -1,4 +1,8 @@
-function menavExtractDomain(url) {
+import type { MenavConfig } from './types';
+
+const { SELECTORS, qs, byId } = require('./dom/selectors.ts') as typeof import('./dom/selectors');
+
+function menavExtractDomain(url: unknown): string {
   if (!url) return '';
 
   try {
@@ -18,9 +22,9 @@ function menavExtractDomain(url) {
 }
 
 // URL 安全策略：默认仅允许 http/https（可加 mailto/tel）与相对链接；其他 scheme 降级为 '#'
-function menavGetAllowedUrlSchemes() {
+function menavGetAllowedUrlSchemes(): string[] {
   try {
-    const cfg =
+    const cfg: MenavConfig | null =
       window.MeNav && typeof window.MeNav.getConfig === 'function'
         ? window.MeNav.getConfig()
         : null;
@@ -46,7 +50,7 @@ function menavGetAllowedUrlSchemes() {
   return ['http', 'https', 'mailto', 'tel'];
 }
 
-function menavIsRelativeUrl(url) {
+function menavIsRelativeUrl(url: unknown): boolean {
   const s = String(url || '').trim();
   return (
     s.startsWith('#') ||
@@ -57,7 +61,7 @@ function menavIsRelativeUrl(url) {
   );
 }
 
-function menavSanitizeUrl(rawUrl, contextLabel) {
+function menavSanitizeUrl(rawUrl: unknown, contextLabel: string): string {
   if (rawUrl === undefined || rawUrl === null) return '#';
   const url = String(rawUrl).trim();
   if (!url) return '#';
@@ -86,7 +90,7 @@ function menavSanitizeUrl(rawUrl, contextLabel) {
 }
 
 // class token 清洗：仅允许字母/数字/下划线/中划线与空格分隔，避免属性/事件注入
-function menavSanitizeClassList(rawClassList, contextLabel) {
+function menavSanitizeClassList(rawClassList: unknown, contextLabel: string): string {
   const input = String(rawClassList || '').trim();
   if (!input) return '';
 
@@ -105,9 +109,9 @@ function menavSanitizeClassList(rawClassList, contextLabel) {
 }
 
 // 版本号统一来源：优先读取 meta[menav-version]，回退到 menav-config-data.version
-function menavDetectVersion() {
+function menavDetectVersion(): string {
   try {
-    const meta = document.querySelector('meta[name="menav-version"]');
+    const meta = qs(SELECTORS.metaVersion);
     const v = meta ? String(meta.getAttribute('content') || '').trim() : '';
     if (v) return v;
   } catch (e) {
@@ -115,7 +119,7 @@ function menavDetectVersion() {
   }
 
   try {
-    const configData = document.getElementById('menav-config-data');
+    const configData = byId(SELECTORS.configData);
     const raw = configData ? String(configData.textContent || '').trim() : '';
     if (!raw) return '1.0.0';
     const parsed = JSON.parse(raw);
@@ -127,12 +131,20 @@ function menavDetectVersion() {
 }
 
 // 修复移动端 `100vh` 视口高度问题：用实际可视高度驱动布局，避免侧边栏/内容区底部被浏览器 UI 遮挡
-function menavUpdateAppHeight() {
+function menavUpdateAppHeight(): void {
   const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
 }
 
 module.exports = {
+  menavExtractDomain,
+  menavSanitizeUrl,
+  menavSanitizeClassList,
+  menavDetectVersion,
+  menavUpdateAppHeight,
+};
+
+export {
   menavExtractDomain,
   menavSanitizeUrl,
   menavSanitizeClassList,

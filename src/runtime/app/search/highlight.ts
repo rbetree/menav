@@ -1,17 +1,20 @@
-module.exports = function highlightSearchTerm(card, searchTerm) {
+const { SELECTORS, qs } = require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+
+module.exports = function highlightSearchTerm(card: HTMLElement | null, searchTerm: string): void {
   if (!card || !searchTerm) return;
 
-  const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapeRegExp = (string: string): string => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   try {
     // 兼容 projects repo 卡片：title/desc 不一定是 h3/p
-    const titleElement = card.querySelector('h3') || card.querySelector('.repo-title');
-    const descriptionElement = card.querySelector('p') || card.querySelector('.repo-desc');
+    const titleElement = qs(SELECTORS.siteTitle, card) || qs(SELECTORS.repoTitle, card);
+    const descriptionElement =
+      qs(SELECTORS.siteDescription, card) || qs(SELECTORS.repoDescription, card);
 
     const hasPinyinMatch =
       typeof PinyinMatch !== 'undefined' && PinyinMatch && typeof PinyinMatch.match === 'function';
 
-    const applyRangeHighlight = (element, start, end) => {
+    const applyRangeHighlight = (element: HTMLElement, start: number, end: number): void => {
       const text = element.textContent || '';
       const safeStart = Math.max(0, Math.min(text.length, start));
       const safeEnd = Math.max(safeStart, Math.min(text.length - 1, end));
@@ -32,7 +35,7 @@ module.exports = function highlightSearchTerm(card, searchTerm) {
       element.appendChild(fragment);
     };
 
-    const highlightInElement = (element) => {
+    const highlightInElement = (element: HTMLElement | null): void => {
       if (!element) return;
 
       const rawText = element.textContent || '';
@@ -43,7 +46,7 @@ module.exports = function highlightSearchTerm(card, searchTerm) {
         const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
-        let match;
+        let match: RegExpExecArray | null;
 
         while ((match = regex.exec(rawText)) !== null) {
           if (match.index > lastIndex) {
@@ -78,7 +81,7 @@ module.exports = function highlightSearchTerm(card, searchTerm) {
         const arr = PinyinMatch.match(rawText, searchTerm);
         if (Array.isArray(arr) && arr.length >= 2) {
           const [start, end] = arr;
-          applyRangeHighlight(element, start, end);
+          applyRangeHighlight(element, Number(start), Number(end));
         }
       }
     };

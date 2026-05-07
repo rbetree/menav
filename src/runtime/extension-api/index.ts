@@ -1,13 +1,16 @@
-const { menavDetectVersion } = require('../shared');
+import type { MeNavApi, RuntimeEvents } from '../types';
 
-const createMenavEvents = require('./events');
-const getConfig = require('./getConfig');
-const updateElement = require('./updateElement');
-const addElement = require('./addElement');
-const removeElement = require('./removeElement');
-const getAllElements = require('./getAllElements');
+const { menavDetectVersion } = require('../shared.ts') as typeof import('../shared');
+const { qs, dataTypeAttrSelector } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
 
-function getDefaultElementId(element) {
+const createMenavEvents = require('./events.ts') as () => RuntimeEvents;
+const getConfig = require('./get-config.ts');
+const updateElement = require('./update-element.ts');
+const addElement = require('./add-element.ts');
+const removeElement = require('./remove-element.ts');
+const getAllElements = require('./get-all-elements.ts');
+
+function getDefaultElementId(element: HTMLElement): string | null {
   const type = element.getAttribute('data-type');
   if (type === 'nav-item') {
     return element.getAttribute('data-id');
@@ -19,8 +22,8 @@ function getDefaultElementId(element) {
   }
 }
 
-function findDefaultElement(type, id) {
-  let selector;
+function findDefaultElement(type: string, id: string): HTMLElement | null {
+  let selector: string;
   if (type === 'nav-item') {
     selector = `[data-type="${type}"][data-id="${id}"]`;
   } else if (type === 'social-link') {
@@ -28,22 +31,22 @@ function findDefaultElement(type, id) {
   } else if (type === 'site') {
     // 站点：优先用 data-url（更稳定），回退 data-id/data-name
     return (
-      document.querySelector(`[data-type="${type}"][data-url="${id}"]`) ||
-      document.querySelector(`[data-type="${type}"][data-id="${id}"]`) ||
-      document.querySelector(`[data-type="${type}"][data-name="${id}"]`)
+      qs(dataTypeAttrSelector(type, 'data-url', id)) ||
+      qs(dataTypeAttrSelector(type, 'data-id', id)) ||
+      qs(dataTypeAttrSelector(type, 'data-name', id))
     );
   } else {
     // 其他：优先 data-id（例如分类 slug），回退 data-name（兼容旧扩展/旧页面）
     return (
-      document.querySelector(`[data-type="${type}"][data-id="${id}"]`) ||
-      document.querySelector(`[data-type="${type}"][data-name="${id}"]`)
+      qs(dataTypeAttrSelector(type, 'data-id', id)) ||
+      qs(dataTypeAttrSelector(type, 'data-name', id))
     );
   }
-  return document.querySelector(selector);
+  return qs(selector);
 }
 
 // 全局 MeNav 对象 - 用于浏览器扩展
-const existing = window.MeNav && typeof window.MeNav === 'object' ? window.MeNav : {};
+const existing: MeNavApi = window.MeNav && typeof window.MeNav === 'object' ? window.MeNav : {};
 const events =
   existing.events && typeof existing.events === 'object' ? existing.events : createMenavEvents();
 

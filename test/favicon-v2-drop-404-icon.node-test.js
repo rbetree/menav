@@ -23,10 +23,10 @@ test('faviconV2：应追加 drop_404_icon=true 以避免返回占位图', () => 
 
 test('运行时新增站点：faviconV2 URL 也应包含 drop_404_icon=true', () => {
   const repoRoot = path.resolve(__dirname, '..');
-  const runtimePath = path.join(repoRoot, 'src', 'runtime', 'menav', 'addElement.js');
+  const runtimePath = path.join(repoRoot, 'src', 'runtime', 'extension-api', 'add-element.ts');
   const content = fs.readFileSync(runtimePath, 'utf8');
   assert.ok(
     content.includes('drop_404_icon=true'),
-    'src/runtime/menav/addElement.js 应追加 drop_404_icon=true'
+    'src/runtime/extension-api/add-element.ts 应追加 drop_404_icon=true'
   );
 });

@@ -1,4 +1,6 @@
-module.exports = function initUi(state, dom) {
+import type { RuntimeDom, RuntimeState, RuntimeUiApi } from '../types';
+
+module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeUiApi {
   const {
     searchInput,
     searchBox,
@@ -13,31 +15,60 @@ module.exports = function initUi(state, dom) {
     themeIcon,
   } = dom;
 
+  if (
+    !searchInput ||
+    !menuToggle ||
+    !searchToggle ||
+    !sidebar ||
+    !searchContainer ||
+    !overlay ||
+    !content ||
+    !themeToggle ||
+    !themeIcon
+  ) {
+    return {
+      isMobile: () => window.innerWidth <= 768,
+      closeAllPanels: () => {},
+      initTheme: () => {},
+      initSidebarState: () => {},
+    };
+  }
+
+  const searchInputElement = searchInput;
+  const menuToggleElement = menuToggle;
+  const searchToggleElement = searchToggle;
+  const sidebarElement = sidebar;
+  const searchContainerElement = searchContainer;
+  const overlayElement = overlay;
+  const contentElement = content;
+  const themeToggleElement = themeToggle;
+  const themeIconElement = themeIcon;
+
   const SUBMENU_PANEL_VISIBLE_CLASS = 'submenu-panel-visible';
   const SIDEBAR_LAYOUT_TRANSITION_MS = 300;
-  let submenuPanelRevealTimer = null;
+  let submenuPanelRevealTimer: number | null = null;
 
   // 移除预加载类，允许 CSS 过渡效果
   document.documentElement.classList.remove('preload');
 
-  let systemThemeMql = null;
-  let systemThemeListener = null;
+  let systemThemeMql: MediaQueryList | null = null;
+  let systemThemeListener: ((event: MediaQueryListEvent) => void) | null = null;
 
-  function setTheme(isLight) {
+  function setTheme(isLight: boolean): void {
     const nextIsLight = Boolean(isLight);
     state.isLightTheme = nextIsLight;
     document.body.classList.toggle('light-theme', nextIsLight);
 
     if (nextIsLight) {
-      themeIcon.classList.remove('fa-moon');
-      themeIcon.classList.add('fa-sun');
+      themeIconElement.classList.remove('fa-moon');
+      themeIconElement.classList.add('fa-sun');
     } else {
-      themeIcon.classList.remove('fa-sun');
-      themeIcon.classList.add('fa-moon');
+      themeIconElement.classList.remove('fa-sun');
+      themeIconElement.classList.add('fa-moon');
     }
   }
 
-  function stopSystemThemeFollow() {
+  function stopSystemThemeFollow(): void {
     if (systemThemeMql && systemThemeListener) {
       if (typeof systemThemeMql.removeEventListener === 'function') {
         systemThemeMql.removeEventListener('change', systemThemeListener);
@@ -49,7 +80,7 @@ module.exports = function initUi(state, dom) {
     systemThemeListener = null;
   }
 
-  function startSystemThemeFollow() {
+  function startSystemThemeFollow(): void {
     stopSystemThemeFollow();
 
     try {
@@ -75,7 +106,7 @@ module.exports = function initUi(state, dom) {
     }
   }
 
-  function getThemeMode() {
+  function getThemeMode(): string {
     const raw = document.documentElement.getAttribute('data-theme-mode');
     return raw ? String(raw).trim().toLowerCase() : 'dark';
   }
@@ -91,8 +122,8 @@ module.exports = function initUi(state, dom) {
   // 应用从 localStorage 读取的侧边栏状态（预加载阶段已写入 class）
   if (document.documentElement.classList.contains('sidebar-collapsed-preload')) {
     document.documentElement.classList.remove('sidebar-collapsed-preload');
-    sidebar.classList.add('collapsed');
-    content.classList.add('expanded');
+    sidebarElement.classList.add('collapsed');
+    contentElement.classList.add('expanded');
     state.isSidebarCollapsed = true;
   }
 
@@ -100,38 +131,38 @@ module.exports = function initUi(state, dom) {
   document.body.classList.remove('loading');
   document.body.classList.add('loaded');
 
-  function isMobile() {
+  function isMobile(): boolean {
     return window.innerWidth <= 768;
   }
 
-  function clearSubmenuPanelRevealTimer() {
+  function clearSubmenuPanelRevealTimer(): void {
     if (submenuPanelRevealTimer) {
       window.clearTimeout(submenuPanelRevealTimer);
       submenuPanelRevealTimer = null;
     }
   }
 
-  function hideSubmenuPanelImmediately() {
+  function hideSubmenuPanelImmediately(): void {
     clearSubmenuPanelRevealTimer();
-    sidebar.classList.remove(SUBMENU_PANEL_VISIBLE_CLASS);
+    sidebarElement.classList.remove(SUBMENU_PANEL_VISIBLE_CLASS);
   }
 
-  function showSubmenuPanelImmediately() {
+  function showSubmenuPanelImmediately(): void {
     clearSubmenuPanelRevealTimer();
-    sidebar.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
+    sidebarElement.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
   }
 
-  function revealSubmenuPanelAfterSidebarTransition() {
+  function revealSubmenuPanelAfterSidebarTransition(): void {
     clearSubmenuPanelRevealTimer();
     submenuPanelRevealTimer = window.setTimeout(() => {
-      if (!state.isSidebarCollapsed && !sidebar.classList.contains('collapsed')) {
-        sidebar.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
+      if (!state.isSidebarCollapsed && !sidebarElement.classList.contains('collapsed')) {
+        sidebarElement.classList.add(SUBMENU_PANEL_VISIBLE_CLASS);
       }
     }, SIDEBAR_LAYOUT_TRANSITION_MS);
   }
 
   // 侧边栏折叠功能
-  function toggleSidebarCollapse() {
+  function toggleSidebarCollapse(): void {
     // 仅在交互时启用布局相关动画，避免首屏闪烁
     document.documentElement.classList.add('with-anim');
 
@@ -144,8 +175,8 @@ module.exports = function initUi(state, dom) {
 
     // 使用 requestAnimationFrame 确保平滑过渡
     requestAnimationFrame(() => {
-      sidebar.classList.toggle('collapsed', state.isSidebarCollapsed);
-      content.classList.toggle('expanded', state.isSidebarCollapsed);
+      sidebarElement.classList.toggle('collapsed', state.isSidebarCollapsed);
+      contentElement.classList.toggle('expanded', state.isSidebarCollapsed);
 
       // 保存折叠状态到 localStorage
       localStorage.setItem('sidebarCollapsed', state.isSidebarCollapsed ? 'true' : 'false');
@@ -158,7 +189,7 @@ module.exports = function initUi(state, dom) {
   }
 
   // 初始化侧边栏折叠状态 - 已在页面加载前处理，此处仅完成图标状态初始化等次要任务
-  function initSidebarState() {
+  function initSidebarState(): void {
     // 从 localStorage 获取侧边栏状态
     const savedState = localStorage.getItem('sidebarCollapsed');
 
@@ -173,7 +204,7 @@ module.exports = function initUi(state, dom) {
   }
 
   // 主题切换功能
-  function toggleTheme() {
+  function toggleTheme(): void {
     setTheme(!state.isLightTheme);
 
     // 用户手动切换后：写入 localStorage，并停止 system 跟随
@@ -182,7 +213,7 @@ module.exports = function initUi(state, dom) {
   }
 
   // 初始化主题 - 已在页面加载前处理，此处仅完成图标状态初始化等次要任务
-  function initTheme() {
+  function initTheme(): void {
     // 从 localStorage 获取主题偏好
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -224,19 +255,19 @@ module.exports = function initUi(state, dom) {
   }
 
   // 移动端菜单切换
-  function toggleSidebar() {
+  function toggleSidebar(): void {
     state.isSidebarOpen = !state.isSidebarOpen;
-    sidebar.classList.toggle('active', state.isSidebarOpen);
-    overlay.classList.toggle('active', state.isSidebarOpen);
+    sidebarElement.classList.toggle('active', state.isSidebarOpen);
+    overlayElement.classList.toggle('active', state.isSidebarOpen);
   }
 
   // 移动端：搜索框常驻显示（CSS 控制），无需“搜索面板”开关；点击仅聚焦输入框
-  function toggleSearch() {
-    searchInput && searchInput.focus();
+  function toggleSearch(): void {
+    searchInputElement.focus();
   }
 
   // 关闭所有移动端面板
-  function closeAllPanels() {
+  function closeAllPanels(): void {
     if (state.isSidebarOpen) {
       toggleSidebar();
     }
@@ -248,37 +279,37 @@ module.exports = function initUi(state, dom) {
   }
 
   // 主题切换按钮点击事件
-  themeToggle.addEventListener('click', toggleTheme);
+  themeToggleElement.addEventListener('click', toggleTheme);
 
   // 移动端事件监听
-  menuToggle.addEventListener('click', toggleSidebar);
-  searchToggle.addEventListener('click', toggleSearch);
-  overlay.addEventListener('click', closeAllPanels);
+  menuToggleElement.addEventListener('click', toggleSidebar);
+  searchToggleElement.addEventListener('click', toggleSearch);
+  overlayElement.addEventListener('click', closeAllPanels);
 
   // 全局快捷键：Ctrl/Cmd + K 聚焦搜索
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
     const key = (e.key || '').toLowerCase();
     if (key !== 'k') return;
     if ((!e.ctrlKey && !e.metaKey) || e.altKey) return;
 
-    const target = e.target;
+    const target = e.target as HTMLElement | null;
     const isTypingTarget =
       target &&
       (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
-    if (isTypingTarget && target !== searchInput) return;
+    if (isTypingTarget && target !== searchInputElement) return;
 
     e.preventDefault();
 
-    searchInput && searchInput.focus();
+    searchInputElement.focus();
   });
 
   // 窗口大小改变时处理
   window.addEventListener('resize', () => {
     if (!isMobile()) {
-      sidebar.classList.remove('active');
-      searchContainer.classList.remove('active');
-      overlay.classList.remove('active');
+      sidebarElement.classList.remove('active');
+      searchContainerElement.classList.remove('active');
+      overlayElement.classList.remove('active');
       state.isSidebarOpen = false;
       if (state.isSidebarCollapsed) {
         hideSubmenuPanelImmediately();
@@ -287,8 +318,8 @@ module.exports = function initUi(state, dom) {
       }
     } else {
       // 在移动设备下，重置侧边栏折叠状态
-      sidebar.classList.remove('collapsed');
-      content.classList.remove('expanded');
+      sidebarElement.classList.remove('collapsed');
+      contentElement.classList.remove('expanded');
       showSubmenuPanelImmediately();
     }
   });

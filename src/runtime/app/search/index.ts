@@ -1,7 +1,10 @@
-const searchEngines = require('./searchEngines');
-const highlightSearchTerm = require('./search/highlight');
+import type { RuntimeDom, RuntimeSearchApi, RuntimeSearchEngines, RuntimeSearchIndexItem, RuntimeState } from '../../types';
 
-module.exports = function initSearch(state, dom) {
+const searchEngines = require('./search-engines.ts') as RuntimeSearchEngines;
+const highlightSearchTerm = require('./highlight.ts') as (card: HTMLElement, searchTerm: string) => void;
+const { SELECTORS, qs, qsa } = require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+
+module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   const {
     searchInput,
     searchBox,
@@ -14,6 +17,19 @@ module.exports = function initSearch(state, dom) {
     searchEngineOptions,
   } = dom;
 
+  if (!searchInput || !searchBox || !searchResultsPage) {
+    return {
+      initSearchIndex: () => {},
+      initSearchEngine: () => {},
+      resetSearch: () => {},
+      performSearch: () => {},
+    };
+  }
+
+  const searchInputElement = searchInput;
+  const searchBoxElement = searchBox;
+  const searchResultsPageElement = searchResultsPage;
+
   if (!state.searchIndex) {
     state.searchIndex = { initialized: false, items: [] };
   }
@@ -25,7 +41,7 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 初始化搜索索引
-  function initSearchIndex() {
+  function initSearchIndex(): void {
     if (state.searchIndex.initialized) return;
 
     state.searchIndex.items = [];
@@ -33,15 +49,15 @@ module.exports = function initSearch(state, dom) {
     try {
       // 为每个页面创建索引
       if (!state.pages) {
-        state.pages = document.querySelectorAll('.page');
+        state.pages = qsa(SELECTORS.page);
       }
 
-      state.pages.forEach((page) => {
+      state.pages.forEach((page: HTMLElement) => {
         if (page.id === 'search-results') return;
 
         const pageId = page.id;
 
-        page.querySelectorAll('.site-card').forEach((card) => {
+        qsa(SELECTORS.siteCard, page).forEach((card: HTMLElement) => {
           try {
             // 排除“扩展写回影子结构”等不应参与搜索的卡片
             if (card.closest('[data-search-exclude="true"]')) return;
@@ -62,7 +78,7 @@ module.exports = function initSearch(state, dom) {
 
             const title = String(titleText || '').toLowerCase();
             const description = String(descriptionText || '').toLowerCase();
-            const url = card.href || card.getAttribute('href') || '#';
+            const url = (card as HTMLAnchorElement).href || card.getAttribute('href') || '#';
             const icon =
               card.querySelector('i.icon-fallback')?.className ||
               card.querySelector('i')?.className ||
@@ -93,7 +109,7 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 搜索功能
-  function performSearch(searchTerm) {
+  function performSearch(searchTerm: string): void {
     // 确保搜索索引已初始化
     if (!state.searchIndex.initialized) {
       initSearchIndex();
@@ -113,23 +129,23 @@ module.exports = function initSearch(state, dom) {
 
     try {
       // 使用搜索索引进行搜索
-      const searchResults = new Map();
+      const searchResults = new Map<string, HTMLElement[]>();
       let hasResults = false;
 
       // 使用更高效的搜索算法
-      const matchedItems = state.searchIndex.items.filter((item) => {
+      const matchedItems = state.searchIndex.items.filter((item: RuntimeSearchIndexItem) => {
         return (
           item.searchText.includes(searchTerm) || PinyinMatch.match(item.searchText, searchTerm)
         );
       });
 
       // 按页面分组结果
-      matchedItems.forEach((item) => {
+      matchedItems.forEach((item: RuntimeSearchIndexItem) => {
         if (!searchResults.has(item.pageId)) {
           searchResults.set(item.pageId, []);
         }
         // 克隆元素以避免修改原始 DOM
-        searchResults.get(item.pageId).push(item.element.cloneNode(true));
+        searchResults.get(item.pageId)?.push(item.element.cloneNode(true) as HTMLElement);
         hasResults = true;
       });
 
@@ -137,7 +153,7 @@ module.exports = function initSearch(state, dom) {
       requestAnimationFrame(() => {
         try {
           // 清空并隐藏所有搜索区域
-          searchSections.forEach((section) => {
+          searchSections.forEach((section: HTMLElement) => {
             try {
               const grid = section.querySelector('.sites-grid');
               if (grid) {
@@ -150,15 +166,15 @@ module.exports = function initSearch(state, dom) {
           });
 
           // 使用 DocumentFragment 批量添加 DOM 元素，减少重排
-          searchResults.forEach((matches, pageId) => {
-            const section = searchResultsPage.querySelector(`[data-section="${pageId}"]`);
+          searchResults.forEach((matches: HTMLElement[], pageId: string) => {
+            const section = searchResultsPageElement.querySelector<HTMLElement>(`[data-section="${pageId}"]`);
             if (section) {
               try {
                 const grid = section.querySelector('.sites-grid');
                 if (grid) {
                   const fragment = document.createDocumentFragment();
 
-                  matches.forEach((card) => {
+                  matches.forEach((card: HTMLElement) => {
                     // 高亮匹配文本
                     highlightSearchTerm(card, searchTerm);
                     fragment.appendChild(card);
@@ -174,7 +190,7 @@ module.exports = function initSearch(state, dom) {
           });
 
           // 更新搜索结果页面状态
-          const subtitle = searchResultsPage.querySelector('.subtitle');
+          const subtitle = searchResultsPageElement.querySelector('.subtitle');
           if (subtitle) {
             subtitle.textContent = hasResults
               ? `在所有页面中找到 ${matchedItems.length} 个匹配项`
@@ -184,15 +200,15 @@ module.exports = function initSearch(state, dom) {
           // 显示搜索结果页面
           if (state.currentPageId !== 'search-results') {
             state.currentPageId = 'search-results';
-            if (!state.pages) state.pages = document.querySelectorAll('.page');
-            state.pages.forEach((page) => {
+            if (!state.pages) state.pages = qsa(SELECTORS.page);
+            state.pages.forEach((page: HTMLElement) => {
               page.classList.toggle('active', page.id === 'search-results');
             });
           }
 
           // 更新搜索状态样式
-          searchBox.classList.toggle('has-results', hasResults);
-          searchBox.classList.toggle('no-results', !hasResults);
+          searchBoxElement.classList.toggle('has-results', hasResults);
+          searchBoxElement.classList.toggle('no-results', !hasResults);
         } catch (uiError) {
           console.error('Error updating search UI');
         }
@@ -203,7 +219,7 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 重置搜索状态
-  function resetSearch() {
+  function resetSearch(): void {
     if (!state.isSearchActive) return;
 
     state.isSearchActive = false;
@@ -212,7 +228,7 @@ module.exports = function initSearch(state, dom) {
       requestAnimationFrame(() => {
         try {
           // 清空搜索结果
-          searchSections.forEach((section) => {
+          searchSections.forEach((section: HTMLElement) => {
             try {
               const grid = section.querySelector('.sites-grid');
               if (grid) {
@@ -227,25 +243,25 @@ module.exports = function initSearch(state, dom) {
           });
 
           // 移除搜索状态样式
-          searchBox.classList.remove('has-results', 'no-results');
+          searchBoxElement.classList.remove('has-results', 'no-results');
 
           // 恢复到当前激活的页面
-          const currentActiveNav = document.querySelector('.nav-item.active');
+          const currentActiveNav = qs(SELECTORS.navItemActive);
           if (currentActiveNav) {
             const targetPageId = currentActiveNav.getAttribute('data-page');
 
             if (targetPageId && state.currentPageId !== targetPageId) {
               state.currentPageId = targetPageId;
-              if (!state.pages) state.pages = document.querySelectorAll('.page');
-              state.pages.forEach((page) => {
+              if (!state.pages) state.pages = qsa(SELECTORS.page);
+              state.pages.forEach((page: HTMLElement) => {
                 page.classList.toggle('active', page.id === targetPageId);
               });
             }
           } else {
             // 如果没有激活的导航项，默认显示首页
             state.currentPageId = state.homePageId;
-            if (!state.pages) state.pages = document.querySelectorAll('.page');
-            state.pages.forEach((page) => {
+            if (!state.pages) state.pages = qsa(SELECTORS.page);
+            state.pages.forEach((page: HTMLElement) => {
               page.classList.toggle('active', page.id === state.homePageId);
             });
           }
@@ -259,12 +275,12 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 搜索输入事件（使用防抖）
-  const debounce = (fn, delay) => {
-    let timer = null;
-    return (...args) => {
+  const debounce = (fn: (value: string) => void, delay: number): ((value: string) => void) => {
+    let timer: number | null = null;
+    return (value: string) => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        fn.apply(this, args);
+      timer = window.setTimeout(() => {
+        fn(value);
         timer = null;
       }, delay);
     };
@@ -272,10 +288,10 @@ module.exports = function initSearch(state, dom) {
 
   const debouncedSearch = debounce(performSearch, 300);
 
-  searchInput.addEventListener('input', (e) => {
+  searchInputElement.addEventListener('input', (e: Event) => {
     // 只有在选择了本地搜索时，才在输入时实时显示本地搜索结果
     if (state.currentSearchEngine === 'local') {
-      debouncedSearch(e.target.value);
+      debouncedSearch((e.target as HTMLInputElement).value);
     } else {
       // 对于非本地搜索，重置之前的本地搜索结果（如果有）
       if (state.isSearchActive) {
@@ -285,9 +301,9 @@ module.exports = function initSearch(state, dom) {
   });
 
   // 更新搜索引擎 UI 显示
-  function updateSearchEngineUI() {
+  function updateSearchEngineUI(): void {
     // 移除所有选项的激活状态
-    searchEngineOptions.forEach((option) => {
+    searchEngineOptions.forEach((option: HTMLElement) => {
       option.classList.remove('active');
 
       // 如果是当前选中的搜索引擎，添加激活状态
@@ -319,7 +335,7 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 初始化搜索引擎设置
-  function initSearchEngine() {
+  function initSearchEngine(): void {
     // 从本地存储获取上次选择的搜索引擎
     const savedEngine = localStorage.getItem('searchEngine');
     if (savedEngine && searchEngines[savedEngine]) {
@@ -335,7 +351,7 @@ module.exports = function initSearch(state, dom) {
       const next = !searchEngineDropdown.classList.contains('active');
       searchEngineDropdown.classList.toggle('active', next);
       if (searchBox) {
-        searchBox.classList.toggle('dropdown-open', next);
+        searchBoxElement.classList.toggle('dropdown-open', next);
       }
       if (searchEngineToggle) {
         searchEngineToggle.setAttribute('aria-expanded', String(next));
@@ -343,13 +359,13 @@ module.exports = function initSearch(state, dom) {
     };
 
     if (searchEngineToggle) {
-      searchEngineToggle.addEventListener('click', (e) => {
+      searchEngineToggle.addEventListener('click', (e: MouseEvent) => {
         e.stopPropagation();
         toggleEngineDropdown();
       });
 
       // 键盘可访问性：Enter/Space 触发
-      searchEngineToggle.addEventListener('keydown', (e) => {
+      searchEngineToggle.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           e.stopPropagation();
@@ -359,13 +375,13 @@ module.exports = function initSearch(state, dom) {
     }
 
     // 点击搜索引擎选项
-    searchEngineOptions.forEach((option) => {
+    searchEngineOptions.forEach((option: HTMLElement) => {
       // 初始化激活状态
       if (option.getAttribute('data-engine') === state.currentSearchEngine) {
         option.classList.add('active');
       }
 
-      option.addEventListener('click', (e) => {
+      option.addEventListener('click', (e: MouseEvent) => {
         e.stopPropagation();
 
         // 获取选中的搜索引擎
@@ -389,7 +405,7 @@ module.exports = function initSearch(state, dom) {
             searchEngineDropdown.classList.remove('active');
           }
           if (searchBox) {
-            searchBox.classList.remove('dropdown-open');
+            searchBoxElement.classList.remove('dropdown-open');
           }
         }
       });
@@ -400,13 +416,13 @@ module.exports = function initSearch(state, dom) {
       if (!searchEngineDropdown) return;
       searchEngineDropdown.classList.remove('active');
       if (searchBox) {
-        searchBox.classList.remove('dropdown-open');
+        searchBoxElement.classList.remove('dropdown-open');
       }
     });
   }
 
   // 执行搜索（根据选择的搜索引擎）
-  function executeSearch(searchTerm) {
+  function executeSearch(searchTerm: string): void {
     if (!searchTerm.trim()) return;
 
     // 根据当前搜索引擎执行搜索
@@ -424,17 +440,17 @@ module.exports = function initSearch(state, dom) {
   }
 
   // 搜索框事件处理
-  searchInput.addEventListener('keyup', (e) => {
+  searchInputElement.addEventListener('keyup', (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
-      searchInput.value = '';
+      searchInputElement.value = '';
       resetSearch();
     } else if (e.key === 'Enter') {
-      executeSearch(searchInput.value);
+      executeSearch(searchInputElement.value);
     }
   });
 
   // 阻止搜索框的回车默认行为
-  searchInput.addEventListener('keydown', (e) => {
+  searchInputElement.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
     }

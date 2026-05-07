@@ -1,14 +1,43 @@
-const { menavExtractDomain, menavSanitizeClassList, menavSanitizeUrl } = require('../shared');
+import type { MenavConfig, MenavConfigData, MeNavApi } from '../types';
+
+const { menavExtractDomain, menavSanitizeClassList, menavSanitizeUrl } = require('../shared.ts') as typeof import('../shared');
+const { SELECTORS, qs, dataTypeAttrSelector } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+
+type ExtensionElementData = Record<string, unknown> & {
+  name?: unknown;
+  url?: unknown;
+  icon?: unknown;
+  description?: unknown;
+  faviconUrl?: unknown;
+  forceIconMode?: unknown;
+  language?: unknown;
+  languageColor?: unknown;
+  stars?: unknown;
+  forks?: unknown;
+  issues?: unknown;
+};
+
+type LegacyPageConfig = { template?: unknown };
+
+function valueText(value: unknown, fallback = ''): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  return text || fallback;
+}
 
 // 添加新元素
-module.exports = function addElement(type, parentId, data) {
+module.exports = function addElement(
+  this: MeNavApi,
+  type: string,
+  parentId: string,
+  data: ExtensionElementData
+): Element | string | null {
   if (type === 'site') {
     // 查找父级分类
-    const parent = document.querySelector(`[data-type="category"][data-name="${parentId}"]`);
+    const parent = qs(dataTypeAttrSelector('category', 'data-name', parentId));
     if (!parent) return null;
 
     // 添加站点卡片到分类
-    const sitesContainer = parent.querySelector('[data-container="sites"]');
+    const sitesContainer = qs(SELECTORS.sitesContainer, parent);
     if (!sitesContainer) return null;
 
     // 站点卡片样式：根据“页面模板”决定（friends/articles/projects 等）
@@ -16,7 +45,7 @@ module.exports = function addElement(type, parentId, data) {
     try {
       const pageEl = parent.closest('.page');
       const pageId = pageEl && pageEl.id ? String(pageEl.id).trim() : '';
-      const cfg =
+      const cfg: MenavConfig | null =
         window.MeNav && typeof window.MeNav.getConfig === 'function'
           ? window.MeNav.getConfig()
           : null;
@@ -34,7 +63,10 @@ module.exports = function addElement(type, parentId, data) {
           : '';
 
       // 兼容旧版：cfg.data[pageId].template
-      const legacyPageConfig = cfg && cfg.data && pageId ? cfg.data[pageId] : null;
+      const legacyPageConfig =
+        cfg && cfg.data && pageId && typeof cfg.data[pageId] === 'object'
+          ? (cfg.data[pageId] as LegacyPageConfig)
+          : null;
       const templateFromLegacy =
         legacyPageConfig && legacyPageConfig.template
           ? String(legacyPageConfig.template).trim()
@@ -56,10 +88,10 @@ module.exports = function addElement(type, parentId, data) {
     const newSite = document.createElement('a');
     newSite.className = siteCardStyle ? `site-card site-card-${siteCardStyle}` : 'site-card';
 
-    const siteName = data.name || '未命名站点';
-    const siteUrl = data.url || '#';
-    const siteIcon = data.icon || 'fas fa-link';
-    const siteDescription = data.description || (data.url ? menavExtractDomain(data.url) : '');
+    const siteName = valueText(data.name, '未命名站点');
+    const siteUrl = valueText(data.url, '#');
+    const siteIcon = valueText(data.icon, 'fas fa-link');
+    const siteDescription = valueText(data.description, data.url ? menavExtractDomain(data.url) : '');
     const siteFaviconUrl = data && data.faviconUrl ? String(data.faviconUrl).trim() : '';
     const siteForceIconModeRaw =
       data && data.forceIconMode ? String(data.forceIconMode).trim() : '';
@@ -127,7 +159,7 @@ module.exports = function addElement(type, parentId, data) {
 
           const langDot = document.createElement('span');
           langDot.className = 'lang-dot';
-          langDot.style.backgroundColor = data.languageColor || '#909296';
+          langDot.style.backgroundColor = valueText(data.languageColor, '#909296');
 
           languageItem.appendChild(langDot);
           languageItem.appendChild(document.createTextNode(String(data.language)));
@@ -196,9 +228,9 @@ module.exports = function addElement(type, parentId, data) {
 
       // favicon 模式：优先加载 faviconUrl；否则按 url 生成
       try {
-        const cfg =
+        const cfg: MenavConfigData | null =
           window.MeNav && typeof window.MeNav.getConfig === 'function'
-            ? window.MeNav.getConfig()
+            ? window.MeNav.getConfig()?.data || null
             : null;
         const iconsMode =
           cfg && cfg.icons && cfg.icons.mode ? String(cfg.icons.mode).trim() : 'favicon';
@@ -239,7 +271,7 @@ module.exports = function addElement(type, parentId, data) {
             const urlToUse = String(data.url || '').trim();
             if (urlToUse) {
               // 根据 icons.region 配置决定优先使用哪个域名
-              const urls = [];
+              const urls: string[] = [];
               // drop_404_icon=true：缺失 favicon 时返回空 404，避免占位图导致 onerror 不触发，从而可靠走回退逻辑
               const comUrl = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(
                 urlToUse
@@ -304,7 +336,7 @@ module.exports = function addElement(type, parentId, data) {
     }
 
     // 触发元素添加事件
-    this.events.emit('elementAdded', {
+    this.events?.emit('elementAdded', {
       id: siteName,
       type: 'site',
       parentId: parentId,
@@ -314,14 +346,15 @@ module.exports = function addElement(type, parentId, data) {
     return siteName;
   } else if (type === 'category') {
     // 查找父级页面容器
-    const parent = document.querySelector(`[data-page="${parentId}"]`);
+    const parent = qs(`[data-page="${parentId}"]`);
     if (!parent) return null;
 
     // 创建新的分类
     const newCategory = document.createElement('section');
     newCategory.className = 'category';
     newCategory.setAttribute('data-type', 'category');
-    newCategory.setAttribute('data-name', data.name || '未命名分类');
+    const categoryName = valueText(data.name, '未命名分类');
+    newCategory.setAttribute('data-name', categoryName);
     if (data.icon) {
       newCategory.setAttribute(
         'data-icon',
@@ -336,11 +369,11 @@ module.exports = function addElement(type, parentId, data) {
     const titleEl = document.createElement('h2');
     const iconEl = document.createElement('i');
     iconEl.className = menavSanitizeClassList(
-      data.icon || 'fas fa-folder',
+      valueText(data.icon, 'fas fa-folder'),
       'addElement(category).icon'
     );
     titleEl.appendChild(iconEl);
-    titleEl.appendChild(document.createTextNode(' ' + String(data.name || '未命名分类')));
+    titleEl.appendChild(document.createTextNode(' ' + categoryName));
 
     const sitesGrid = document.createElement('div');
     sitesGrid.className = 'sites-grid';
@@ -357,13 +390,13 @@ module.exports = function addElement(type, parentId, data) {
     parent.appendChild(newCategory);
 
     // 触发元素添加事件
-    this.events.emit('elementAdded', {
-      id: data.name,
+    this.events?.emit('elementAdded', {
+      id: categoryName,
       type: 'category',
       data: data,
     });
 
-    return data.name;
+    return categoryName;
   }
 
   return null;

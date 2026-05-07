@@ -1,8 +1,19 @@
-const { menavSanitizeClassList, menavSanitizeUrl } = require('../shared');
+import type { MeNavApi } from '../types';
+
+const { menavSanitizeClassList, menavSanitizeUrl } = require('../shared.ts') as typeof import('../shared');
+
+function valueText(value: unknown): string {
+  return value === null || value === undefined ? '' : String(value);
+}
 
 // 更新 DOM 元素
-module.exports = function updateElement(type, id, newData) {
-  const element = this._findElement(type, id);
+module.exports = function updateElement(
+  this: MeNavApi,
+  type: string,
+  id: string,
+  newData: Record<string, unknown>
+): boolean {
+  const element = this._findElement ? this._findElement(type, id) : null;
   if (!element) return false;
 
   if (type === 'site') {
@@ -14,12 +25,16 @@ module.exports = function updateElement(type, id, newData) {
       element.setAttribute('data-url', String(newData.url).trim());
     }
     if (newData.name) {
-      element.querySelector('h3').textContent = newData.name;
-      element.setAttribute('data-name', newData.name);
+      const name = valueText(newData.name);
+      const titleElement = element.querySelector('h3');
+      if (titleElement) titleElement.textContent = name;
+      element.setAttribute('data-name', name);
     }
     if (newData.description) {
-      element.querySelector('p').textContent = newData.description;
-      element.setAttribute('data-description', newData.description);
+      const description = valueText(newData.description);
+      const descriptionElement = element.querySelector('p');
+      if (descriptionElement) descriptionElement.textContent = description;
+      element.setAttribute('data-description', description);
     }
     if (newData.icon) {
       const iconElement =
@@ -49,10 +64,10 @@ module.exports = function updateElement(type, id, newData) {
         menavSanitizeClassList(newData.icon, 'updateElement(site).data-icon')
       );
     }
-    if (newData.title) element.title = newData.title;
+    if (newData.title) element.title = valueText(newData.title);
 
     // 触发元素更新事件
-    this.events.emit('elementUpdated', {
+    this.events?.emit('elementUpdated', {
       id: id,
       type: 'site',
       data: newData,
@@ -78,7 +93,7 @@ module.exports = function updateElement(type, id, newData) {
         titleElement.appendChild(nextIconEl);
         titleElement.appendChild(document.createTextNode(' ' + String(newData.name)));
       }
-      element.setAttribute('data-name', newData.name);
+      element.setAttribute('data-name', valueText(newData.name));
     }
     if (newData.icon) {
       element.setAttribute(
@@ -88,7 +103,7 @@ module.exports = function updateElement(type, id, newData) {
     }
 
     // 触发元素更新事件
-    this.events.emit('elementUpdated', {
+    this.events?.emit('elementUpdated', {
       id: id,
       type: 'category',
       data: newData,
@@ -100,9 +115,9 @@ module.exports = function updateElement(type, id, newData) {
     if (newData.name) {
       const textElement = element.querySelector('.nav-text');
       if (textElement) {
-        textElement.textContent = newData.name;
+        textElement.textContent = valueText(newData.name);
       }
-      element.setAttribute('data-name', newData.name);
+      element.setAttribute('data-name', valueText(newData.name));
     }
     if (newData.icon) {
       const iconElement = element.querySelector('i');
@@ -119,7 +134,7 @@ module.exports = function updateElement(type, id, newData) {
     }
 
     // 触发元素更新事件
-    this.events.emit('elementUpdated', {
+    this.events?.emit('elementUpdated', {
       id: id,
       type: 'nav-item',
       data: newData,
@@ -137,9 +152,9 @@ module.exports = function updateElement(type, id, newData) {
     if (newData.name) {
       const textElement = element.querySelector('.nav-text');
       if (textElement) {
-        textElement.textContent = newData.name;
+        textElement.textContent = valueText(newData.name);
       }
-      element.setAttribute('data-name', newData.name);
+      element.setAttribute('data-name', valueText(newData.name));
     }
     if (newData.icon) {
       const iconElement = element.querySelector('i');
@@ -156,7 +171,7 @@ module.exports = function updateElement(type, id, newData) {
     }
 
     // 触发元素更新事件
-    this.events.emit('elementUpdated', {
+    this.events?.emit('elementUpdated', {
       id: id,
       type: 'social-link',
       data: newData,

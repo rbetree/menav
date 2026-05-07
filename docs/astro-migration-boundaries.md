@@ -443,7 +443,10 @@ config YAML
 
 ### Phase 7：Runtime TypeScript 化与模块边界整理
 
-状态：pending
+状态：done
+开始提交：de5ee23
+完成提交：本提交（提交后见 git log）
+剩余风险：runtime 已迁移为 TypeScript 模块并补充扩展 facade/selector 边界测试；bundle 体积从 Phase 6 约 42028 bytes 增至 44802 bytes（+2774 bytes），主要来自 TS 模块边界和类型化后保留的 facade 结构。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示，runtime 中 Safari 兼容用 `MediaQueryList.addListener/removeListener` 仍有弃用提示。
 
 目标：浏览器端仍保持轻量 vanilla runtime，但实现迁为 TypeScript。
 

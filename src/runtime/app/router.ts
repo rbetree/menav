@@ -1,10 +1,22 @@
-const nested = require('../nested');
+import type { MenavConfig, RuntimeDom, RuntimeRouterApi, RuntimeRoutingApi, RuntimeState } from '../types';
 
-module.exports = function initRouting(state, dom, api) {
+const nested = require('./nested.ts') as { initializeNestedCategories: () => void };
+const { SELECTORS, byId, qs, qsa } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+
+type UrlStatePatch = { pageId?: string; hash?: string | null };
+type UrlStateOptions = { replace?: boolean };
+type ScrollCategoryOptions = { categoryId?: string | null; categoryName?: string | null };
+type SubmenuEntry = { wrapper: HTMLElement; submenu: HTMLElement };
+
+module.exports = function initRouting(
+  state: RuntimeState,
+  dom: RuntimeDom,
+  api: RuntimeRouterApi
+): RuntimeRoutingApi {
   const { ui, search } = api;
   const { searchInput, content, sidebar } = dom;
 
-  function showPage(pageId, skipSearchReset = false) {
+  function showPage(pageId: string, skipSearchReset = false): void {
     if (state.currentPageId === pageId && !skipSearchReset && !state.isInitialLoad) return;
 
     state.currentPageId = pageId;
@@ -12,10 +24,10 @@ module.exports = function initRouting(state, dom, api) {
     // 使用 RAF 确保动画流畅
     requestAnimationFrame(() => {
       if (!state.pages) {
-        state.pages = document.querySelectorAll('.page');
+        state.pages = qsa(SELECTORS.page);
       }
 
-      state.pages.forEach((page) => {
+      state.pages.forEach((page: HTMLElement) => {
         const shouldBeActive = page.id === pageId;
         if (shouldBeActive !== page.classList.contains('active')) {
           page.classList.toggle('active', shouldBeActive);
@@ -44,11 +56,11 @@ module.exports = function initRouting(state, dom, api) {
     });
 
     // 重置滚动位置并更新进度条
-    content.scrollTop = 0;
+    if (content) content.scrollTop = 0;
 
     // 只有在非搜索状态下才重置搜索
     if (!skipSearchReset) {
-      searchInput.value = '';
+      if (searchInput) searchInput.value = '';
       search.resetSearch();
     }
   }
@@ -56,25 +68,25 @@ module.exports = function initRouting(state, dom, api) {
   // 初始化（在 window load 时执行）
   window.addEventListener('load', () => {
     // 获取可能在 HTML 生成后才存在的 DOM 元素
-    const categories = document.querySelectorAll('.category');
-    const navItems = document.querySelectorAll('.nav-item');
-    const navItemWrappers = document.querySelectorAll('.nav-item-wrapper');
-    const submenuItems = document.querySelectorAll('.submenu-item');
-    state.pages = document.querySelectorAll('.page');
+    const categories = qsa(SELECTORS.category);
+    const navItems = qsa(SELECTORS.navItem);
+    const navItemWrappers = qsa(SELECTORS.navItemWrapper);
+    const submenuItems = qsa(SELECTORS.submenuItem);
+    state.pages = qsa(SELECTORS.page);
 
     // 方案 A：用 ?page=<id> 作为页面深链接（兼容 GitHub Pages 静态托管）
-    const normalizeText = (value) =>
+    const normalizeText = (value: unknown): string =>
       String(value === null || value === undefined ? '' : value).trim();
 
     // 侧边栏子菜单面板：将“当前页面的分类列表”放到独立区域滚动，避免挤压“页面列表”
-    const submenuPanel = document.querySelector('.sidebar-submenu-panel');
-    const submenuByPageId = new Map();
+    const submenuPanel = qs(SELECTORS.submenuPanel);
+    const submenuByPageId = new Map<string, SubmenuEntry>();
     let submenuPanelPageId = '';
 
-    navItemWrappers.forEach((wrapper) => {
-      const nav = wrapper.querySelector('.nav-item');
+    navItemWrappers.forEach((wrapper: HTMLElement) => {
+      const nav = wrapper.querySelector('.nav-item') as HTMLElement | null;
       const pageId = nav ? normalizeText(nav.getAttribute('data-page')) : '';
-      const submenu = wrapper.querySelector('.submenu');
+      const submenu = wrapper.querySelector('.submenu') as HTMLElement | null;
       if (!pageId || !submenu) return;
       submenuByPageId.set(pageId, { wrapper, submenu });
     });
@@ -96,7 +108,7 @@ module.exports = function initRouting(state, dom, api) {
       submenuPanelPageId = '';
     };
 
-    const renderSubmenuPanelForPage = (pageId) => {
+    const renderSubmenuPanelForPage = (pageId: unknown): void => {
       if (!submenuPanel) return;
 
       const id = normalizeText(pageId);
@@ -135,7 +147,7 @@ module.exports = function initRouting(state, dom, api) {
     // 监听侧边栏折叠状态变化：折叠时归还子菜单；展开时渲染当前页子菜单
     if (sidebar && typeof MutationObserver === 'function') {
       const observer = new MutationObserver(() => {
-        const activeNav = document.querySelector('.nav-item.active');
+        const activeNav = qs(SELECTORS.navItemActive);
         const activePageId = activeNav ? normalizeText(activeNav.getAttribute('data-page')) : '';
         renderSubmenuPanelForPage(activePageId);
       });
@@ -143,10 +155,10 @@ module.exports = function initRouting(state, dom, api) {
       observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
     }
 
-    const isValidPageId = (pageId) => {
+    const isValidPageId = (pageId: unknown): boolean => {
       const id = normalizeText(pageId);
       if (!id) return false;
-      const el = document.getElementById(id);
+      const el = byId(id);
       return Boolean(el && el.classList && el.classList.contains('page'));
     };
 
@@ -169,7 +181,7 @@ module.exports = function initRouting(state, dom, api) {
       }
     };
 
-    const setUrlState = (next, options = {}) => {
+    const setUrlState = (next: UrlStatePatch, options: UrlStateOptions = {}): void => {
       const { replace = true } = options;
       try {
         const url = new URL(window.location.href);
@@ -196,18 +208,18 @@ module.exports = function initRouting(state, dom, api) {
       }
     };
 
-    const setActiveNavByPageId = (pageId) => {
+    const setActiveNavByPageId = (pageId: unknown): void => {
       const id = normalizeText(pageId);
-      let activeItem = null;
+      let activeItem: HTMLElement | null = null;
 
-      navItems.forEach((nav) => {
+      navItems.forEach((nav: HTMLElement) => {
         const isActive = nav.getAttribute('data-page') === id;
         nav.classList.toggle('active', isActive);
         if (isActive) activeItem = nav;
       });
 
       // 同步子菜单展开状态：只展开当前激活项
-      navItemWrappers.forEach((wrapper) => {
+      navItemWrappers.forEach((wrapper: HTMLElement) => {
         const nav = wrapper.querySelector('.nav-item');
         if (!nav) return;
         const pageId = normalizeText(nav.getAttribute('data-page'));
@@ -219,7 +231,7 @@ module.exports = function initRouting(state, dom, api) {
       renderSubmenuPanelForPage(id);
     };
 
-    const escapeSelector = (value) => {
+    const escapeSelector = (value: unknown): string => {
       if (value === null || value === undefined) return '';
       const text = String(value);
       if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(text);
@@ -227,7 +239,7 @@ module.exports = function initRouting(state, dom, api) {
       return text.replace(/[^a-zA-Z0-9_\u00A0-\uFFFF-]/g, '\\$&');
     };
 
-    const escapeAttrValue = (value) => {
+    const escapeAttrValue = (value: unknown): string => {
       if (value === null || value === undefined) return '';
       return String(value).replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
     };
@@ -242,17 +254,17 @@ module.exports = function initRouting(state, dom, api) {
       }
     };
 
-    const scrollToCategoryInPage = (pageId, options = {}) => {
+    const scrollToCategoryInPage = (pageId: unknown, options: ScrollCategoryOptions = {}): boolean => {
       const id = normalizeText(pageId);
       if (!id) return false;
 
-      const targetPage = document.getElementById(id);
+      const targetPage = byId(id);
       if (!targetPage) return false;
 
       const categoryId = normalizeText(options.categoryId);
       const categoryName = normalizeText(options.categoryName);
 
-      let targetCategory = null;
+      let targetCategory: HTMLElement | null = null;
 
       // 优先使用 slug/data-id 精准定位（解决重复命名始终命中第一个的问题）
       if (categoryId) {
@@ -266,9 +278,10 @@ module.exports = function initRouting(state, dom, api) {
 
       // 回退：旧逻辑按文本包含匹配（兼容旧页面/旧数据）
       if (!targetCategory && categoryName) {
-        targetCategory = Array.from(targetPage.querySelectorAll('.category h2')).find((heading) =>
-          heading.textContent.trim().includes(categoryName)
-        );
+        targetCategory =
+          Array.from(qsa(SELECTORS.categoryHeading, targetPage)).find((heading: HTMLElement) =>
+            heading.textContent.trim().includes(categoryName)
+          ) || null;
       }
 
       if (!targetCategory) return false;
@@ -276,7 +289,7 @@ module.exports = function initRouting(state, dom, api) {
       // 优化的滚动实现：滚动到使目标分类位于视口 1/4 处（更靠近顶部位置）
       try {
         // 直接获取所需元素和属性，减少重复查询
-        const contentElement = document.querySelector('.content');
+        const contentElement = qs(SELECTORS.content);
 
         if (contentElement && contentElement.scrollHeight > contentElement.clientHeight) {
           // 获取目标元素相对于内容区域的位置
@@ -319,10 +332,11 @@ module.exports = function initRouting(state, dom, api) {
 
     // 初始化 MeNav 对象版本信息
     try {
-      const config = window.MeNav.getConfig();
-      if (config && config.version) {
-        window.MeNav.version = config.version;
-        console.log('MeNav API initialized with version:', config.version);
+      const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
+      const version = config && config.version ? String(config.version) : '';
+      if (version && window.MeNav) {
+        window.MeNav.version = version;
+        console.log('MeNav API initialized with version:', version);
       }
     } catch (error) {
       console.error('Error initializing MeNav API:', error);
@@ -358,15 +372,15 @@ module.exports = function initRouting(state, dom, api) {
     }
 
     // 添加载入动画
-    categories.forEach((category, index) => {
+    categories.forEach((category: HTMLElement, index: number) => {
       setTimeout(() => {
         category.style.opacity = '1';
       }, index * 100);
     });
 
     // 导航项点击效果
-    navItems.forEach((item) => {
-      item.addEventListener('click', (e) => {
+    navItems.forEach((item: HTMLElement) => {
+      item.addEventListener('click', (e: MouseEvent) => {
         if (item.getAttribute('target') === '_blank') return;
 
         e.preventDefault();
@@ -403,8 +417,8 @@ module.exports = function initRouting(state, dom, api) {
     });
 
     // 子菜单项点击效果
-    submenuItems.forEach((item) => {
-      item.addEventListener('click', (e) => {
+    submenuItems.forEach((item: HTMLElement) => {
+      item.addEventListener('click', (e: MouseEvent) => {
         e.preventDefault();
 
         // 获取页面 ID 和分类名称
@@ -414,7 +428,7 @@ module.exports = function initRouting(state, dom, api) {
 
         if (pageId) {
           // 清除所有子菜单项的激活状态
-          submenuItems.forEach((subItem) => {
+          submenuItems.forEach((subItem: HTMLElement) => {
             subItem.classList.remove('active');
           });
 
@@ -453,10 +467,10 @@ module.exports = function initRouting(state, dom, api) {
     nested.initializeNestedCategories();
 
     // 初始化分类切换按钮
-    const categoryToggleBtn = document.getElementById('category-toggle');
+    const categoryToggleBtn = byId(SELECTORS.categoryToggle);
     if (categoryToggleBtn) {
       categoryToggleBtn.addEventListener('click', function () {
-        window.MeNav.toggleCategories();
+        window.MeNav?.toggleCategories?.();
       });
     } else {
       console.error('Category toggle button not found');

@@ -32,7 +32,7 @@ npm run check
 1. `scripts/build.js` 清理 `dist/` 和生成型 `public/` 资源。
 2. `sync-projects`、`sync-heatmap`、`sync-articles` 以 best-effort 方式刷新 `dev/` 缓存。
 3. `scripts/prepare-astro-public.js` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl` 和 `menav-config.json`。
-4. `scripts/build-runtime.js` 将 `src/runtime/index.js` 打包为 `public/script.js`。
+4. `scripts/build-runtime.js` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
 5. `scripts/run-astro-build.js` 执行 Astro build，产物输出到 `dist/`。
 
 `npm run generate` 通过 `scripts/generate.js` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  let cleanupTooltip = null;
+  let cleanupTooltip: (() => void) | null = null;
 
   function enableTooltip() {
     if (cleanupTooltip) return;
@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltip.className = 'custom-tooltip';
     document.body.appendChild(tooltip);
 
-    let activeElement = null;
+    let activeElement: HTMLElement | null = null;
 
-    function updateTooltipPosition() {
+    function updateTooltipPosition(): void {
       if (!activeElement) return;
 
       const rect = activeElement.getBoundingClientRect();
@@ -50,8 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Show tooltip on hover
-    function onMouseOver(e) {
-      const target = e.target.closest('[data-tooltip]');
+    function onMouseOver(e: MouseEvent): void {
+      const eventTarget = e.target as Element | null;
+      const target = eventTarget ? eventTarget.closest('[data-tooltip]') as HTMLElement | null : null;
       if (!target) return;
 
       const tooltipText = target.getAttribute('data-tooltip');
@@ -65,12 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Hide tooltip on mouse out
-    function onMouseOut(e) {
-      const target = e.target.closest('[data-tooltip]');
+    function onMouseOut(e: MouseEvent): void {
+      const eventTarget = e.target as Element | null;
+      const target = eventTarget ? eventTarget.closest('[data-tooltip]') as HTMLElement | null : null;
       if (!target || target !== activeElement) return;
 
       // Check if we really left the element (not just went to a child)
-      if (target.contains(e.relatedTarget)) return;
+      if (e.relatedTarget instanceof Node && target.contains(e.relatedTarget)) return;
 
       activeElement = null;
       tooltip.classList.remove('visible');
@@ -89,13 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function disableTooltip() {
+  function disableTooltip(): void {
     if (!cleanupTooltip) return;
     cleanupTooltip();
     cleanupTooltip = null;
   }
 
-  function syncTooltipEnabled() {
+  function syncTooltipEnabled(): void {
     if (hoverMedia.matches) {
       enableTooltip();
     } else {

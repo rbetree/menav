@@ -1,4 +1,6 @@
-module.exports = {
+import type { RuntimeSearchEngines } from '../../types';
+
+const searchEngines: RuntimeSearchEngines = {
   local: {
     name: '本地搜索',
     iconSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" focusable="false"><path fill="#616161" d="M29.171,32.001L32,29.172l12.001,12l-2.828,2.828L29.171,32.001z"></path><path fill="#616161" d="M36,20c0,8.837-7.163,16-16,16S4,28.837,4,20S11.163,4,20,4S36,11.163,36,20"></path><path fill="#37474f" d="M32.476,35.307l2.828-2.828l8.693,8.693L41.17,44L32.476,35.307z"></path><path fill="#64b5f6" d="M7,20c0-7.18,5.82-13,13-13s13,5.82,13,13s-5.82,13-13,13S7,27.18,7,20"></path></svg>`,
@@ -22,3 +24,5 @@ module.exports = {
     url: 'https://duckduckgo.com/?q=',
   },
 };
+
+module.exports = searchEngines;

@@ -22,7 +22,7 @@ async function main() {
   }
 
   const projectRoot = path.resolve(__dirname, '..');
-  const entry = path.join(projectRoot, 'src', 'runtime', 'index.js');
+  const entry = path.join(projectRoot, 'src', 'runtime', 'index.ts');
   const outFile = path.join(projectRoot, 'public', 'script.js');
 
   if (!fs.existsSync(entry)) {
