@@ -1,10 +1,5 @@
 ---
-import { createRequire } from 'node:module';
-import path from 'node:path';
-
-const require = createRequire(import.meta.url);
-const viewUtils = require(path.join(process.cwd(), 'src', 'lib', 'view-utils.js'));
-const { formatDate } = viewUtils;
+import { formatDate } from '../lib/view-data/view-utils.ts';
 const { page } = Astro.props;
 const pageId = page?.pageId || '';
 const homePageId = page?.homePageId || '';

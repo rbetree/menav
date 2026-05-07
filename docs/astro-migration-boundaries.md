@@ -379,7 +379,10 @@ config YAML
 
 ### Phase 5：迁移 cache/content/view-data 到 `src/lib`
 
-状态：pending
+状态：done
+开始提交：d2c44d6
+完成提交：本提交（提交后见 git log）
+剩余风险：`src/generator/cache/*`、`src/generator/html/*`、`src/lib/render-data.js` 和 `src/lib/view-utils.js` 仅作为 Phase 6 删除的临时 re-export；`src/generator.js` 仍保留 CLI 与兼容导出到 Phase 6。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示。
 
 目标：把 Astro 消费的数据准备层从旧 generator 命名中移出。
 

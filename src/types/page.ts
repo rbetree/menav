@@ -13,7 +13,7 @@ export type CategoryItem = SchemaCategoryItem;
 
 export interface PageData {
   pageId?: string;
-  homePageId?: string;
+  homePageId?: string | null;
   currentPage?: string;
   isHome?: boolean;
   title?: string;

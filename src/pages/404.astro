@@ -1,11 +1,7 @@
 ---
-import { createRequire } from 'node:module';
-import path from 'node:path';
+import { prepareSiteRenderData } from '../lib/view-data/render-data.ts';
 
-const require = createRequire(import.meta.url);
-const configLib = require(path.join(process.cwd(), 'src', 'generator', 'config'));
-const { loadConfig } = configLib;
-const config = loadConfig();
+const { config } = prepareSiteRenderData();
 const title = config?.site?.title || 'MeNav';
 ---
 

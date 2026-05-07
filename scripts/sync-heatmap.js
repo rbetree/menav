@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { loadConfig } = require('../src/generator.js');
+const { loadConfig } = require('../src/lib/config/index.ts');
 const { extractYearlyContributionsInnerHtml } = require('../src/lib/github/contributions.ts');
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 

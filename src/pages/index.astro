@@ -1,11 +1,7 @@
 ---
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import DefaultLayout from '../layouts/DefaultLayout.astro';
+import { prepareSiteRenderData } from '../lib/view-data/render-data.ts';
 
-const require = createRequire(import.meta.url);
-const renderDataLib = require(path.join(process.cwd(), 'src', 'lib', 'render-data.js'));
-const { prepareSiteRenderData } = renderDataLib;
 const renderData = prepareSiteRenderData();
 ---
 

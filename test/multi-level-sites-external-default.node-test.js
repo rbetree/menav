@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { loadConfig } = require('../src/generator.js');
+const { loadConfig } = require('../src/lib/config/index.ts');
 
 function withTempCwd(callback) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-multilevel-external-test-'));

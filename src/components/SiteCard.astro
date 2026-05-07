@@ -1,12 +1,6 @@
 ---
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import CardIcon from './CardIcon.astro';
-
-const require = createRequire(import.meta.url);
-const { extractDomain, formatDate, getSafeUrl } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-utils.js')
-);
+import { extractDomain, formatDate, getSafeUrl } from '../lib/view-data/view-utils.ts';
 
 const { site = {}, style = '', type = '', root = {} } = Astro.props;
 

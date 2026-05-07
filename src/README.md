@@ -11,8 +11,8 @@ Astro 现代化迁移按 [`docs/astro-migration-boundaries.md`](../docs/astro-mi
 - `src/pages`：Astro 页面入口，当前包含 `index.astro` 和默认 404。
 - `src/layouts`：页面外壳，负责侧边栏、搜索框、全局脚本和扩展配置注入。
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
-- `src/lib`：Astro 渲染所需的数据准备和视图工具适配层。
-- `src/generator`：构建期配置、缓存、Markdown、安全链接、字体、页面数据准备等可复用工具。
+- `src/lib`：构建期核心能力，包含配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
+- `src/generator`：旧兼容入口，Phase 6 前仅保留对 `src/lib` 的临时转发，不再承载业务规则。
 - `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和 `window.MeNav`。
 - `src/bookmark-processor.js`：浏览器书签导入与用户配置初始化。
 
