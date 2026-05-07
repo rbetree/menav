@@ -1,5 +1,15 @@
-/** @param {unknown} value */
-function parseBooleanEnv(value) {
+type LogMeta = Record<string, unknown>;
+type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'OK';
+type LogMethod = (message: string, meta?: LogMeta) => void;
+
+interface Logger {
+  info: LogMethod;
+  warn: LogMethod;
+  error: LogMethod;
+  ok: LogMethod;
+}
+
+function parseBooleanEnv(value: unknown): boolean {
   if (value === undefined || value === null || value === '') return false;
   const normalized = String(value).trim().toLowerCase();
   return (
@@ -11,11 +21,11 @@ function parseBooleanEnv(value) {
   );
 }
 
-function isVerbose() {
+function isVerbose(): boolean {
   return parseBooleanEnv(process.env.MENAV_VERBOSE) || parseBooleanEnv(process.env.DEBUG);
 }
 
-function isColorEnabled() {
+function isColorEnabled(): boolean {
   if (process.env.NO_COLOR) return false;
   if (parseBooleanEnv(process.env.FORCE_COLOR)) return true;
   return Boolean(
@@ -23,14 +33,12 @@ function isColorEnabled() {
   );
 }
 
-/** @param {string} text @param {number} [ansiCode] */
-function colorize(text, ansiCode) {
+function colorize(text: string, ansiCode?: number): string {
   if (!ansiCode || !isColorEnabled()) return text;
   return `\x1b[${ansiCode}m${text}\x1b[0m`;
 }
 
-/** @param {Record<string, unknown> | null | undefined} meta */
-function formatMeta(meta) {
+function formatMeta(meta?: LogMeta | null): string {
   if (!meta || typeof meta !== 'object') return '';
   const entries = Object.entries(meta)
     .filter(([, value]) => value !== undefined && value !== null && value !== '')
@@ -40,8 +48,7 @@ function formatMeta(meta) {
   return ` (${entries.join(', ')})`;
 }
 
-/** @param {string} level */
-function formatPrefix(level) {
+function formatPrefix(level: LogLevel): string {
   const base = `[${level}]`;
   if (level === 'ERROR') return colorize(base, 31);
   if (level === 'WARN') return colorize(base, 33);
@@ -49,13 +56,7 @@ function formatPrefix(level) {
   return base;
 }
 
-/**
- * @param {string} level
- * @param {string} scope
- * @param {string} message
- * @param {Record<string, unknown>} [meta]
- */
-function writeLine(level, scope, message, meta) {
+function writeLine(level: LogLevel, scope: string, message: string, meta?: LogMeta): void {
   const prefix = formatPrefix(level);
   const scopePart = scope ? ` ${scope}:` : '';
   const line = `${prefix}${scopePart} ${message}${formatMeta(meta)}`;
@@ -69,18 +70,17 @@ function writeLine(level, scope, message, meta) {
   }
 }
 
-/** @param {string} [scope] */
-function createLogger(scope) {
+function createLogger(scope?: string): Logger {
   const normalized = scope ? String(scope) : '';
   return {
-    info: (message, meta) => writeLine('INFO', normalized, message, meta),
-    warn: (message, meta) => writeLine('WARN', normalized, message, meta),
-    error: (message, meta) => writeLine('ERROR', normalized, message, meta),
-    ok: (message, meta) => writeLine('OK', normalized, message, meta),
+    info: (message: string, meta?: LogMeta) => writeLine('INFO', normalized, message, meta),
+    warn: (message: string, meta?: LogMeta) => writeLine('WARN', normalized, message, meta),
+    error: (message: string, meta?: LogMeta) => writeLine('ERROR', normalized, message, meta),
+    ok: (message: string, meta?: LogMeta) => writeLine('OK', normalized, message, meta),
   };
 }
 
-function startTimer() {
+function startTimer(): () => number {
   const startedAt = process.hrtime.bigint();
   return () => Number((process.hrtime.bigint() - startedAt) / 1_000_000n);
 }

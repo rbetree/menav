@@ -1,5 +1,4 @@
-/** @param {string} html */
-function extractYearlyContributionsInnerHtml(html) {
+function extractYearlyContributionsInnerHtml(html: string): string | null {
   const source = String(html || '');
   if (!source) return null;
 

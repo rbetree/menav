@@ -1,5 +1,11 @@
-/** @param {unknown} input */
-function normalizeUrlKey(input) {
+type SiteNode = {
+  subcategories?: unknown[];
+  groups?: unknown[];
+  subgroups?: unknown[];
+  sites?: unknown[];
+};
+
+function normalizeUrlKey(input: unknown): string {
   if (!input) return '';
 
   try {
@@ -13,24 +19,25 @@ function normalizeUrlKey(input) {
   }
 }
 
-/** @param {unknown} node @param {unknown[]} output */
-function collectSitesRecursively(node, output) {
+function collectSitesRecursively(node: unknown, output: unknown[]): void {
   if (!node || typeof node !== 'object') return;
 
-  if (Array.isArray(node.subcategories)) {
-    node.subcategories.forEach((child) => collectSitesRecursively(child, output));
+  const typedNode = node as SiteNode;
+
+  if (Array.isArray(typedNode.subcategories)) {
+    typedNode.subcategories.forEach((child: unknown) => collectSitesRecursively(child, output));
   }
 
-  if (Array.isArray(node.groups)) {
-    node.groups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(typedNode.groups)) {
+    typedNode.groups.forEach((child: unknown) => collectSitesRecursively(child, output));
   }
 
-  if (Array.isArray(node.subgroups)) {
-    node.subgroups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(typedNode.subgroups)) {
+    typedNode.subgroups.forEach((child: unknown) => collectSitesRecursively(child, output));
   }
 
-  if (Array.isArray(node.sites)) {
-    node.sites.forEach((site) => {
+  if (Array.isArray(typedNode.sites)) {
+    typedNode.sites.forEach((site: unknown) => {
       if (site && typeof site === 'object') output.push(site);
     });
   }

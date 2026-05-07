@@ -1,6 +1,18 @@
+type ErrorSuggestion = string;
+type ErrorContext = Record<string, unknown>;
+type MaybeString = string | null;
+
+type ErrorWithMetadata = Error & {
+  filePath?: MaybeString;
+  templatePath?: MaybeString;
+  context?: ErrorContext;
+  suggestions?: ErrorSuggestion[];
+};
+
 class ConfigError extends Error {
-  /** @param {string} message @param {string[]} [suggestions] */
-  constructor(message, suggestions = []) {
+  suggestions: ErrorSuggestion[];
+
+  constructor(message: string, suggestions: ErrorSuggestion[] = []) {
     super(message);
     this.name = 'ConfigError';
     this.suggestions = suggestions;
@@ -8,8 +20,9 @@ class ConfigError extends Error {
 }
 
 class TemplateError extends Error {
-  /** @param {string} message @param {string | null} [templatePath] */
-  constructor(message, templatePath = null) {
+  templatePath: MaybeString;
+
+  constructor(message: string, templatePath: MaybeString = null) {
     super(message);
     this.name = 'TemplateError';
     this.templatePath = templatePath;
@@ -17,8 +30,9 @@ class TemplateError extends Error {
 }
 
 class BuildError extends Error {
-  /** @param {string} message @param {Record<string, unknown>} [context] */
-  constructor(message, context = {}) {
+  context: ErrorContext;
+
+  constructor(message: string, context: ErrorContext = {}) {
     super(message);
     this.name = 'BuildError';
     this.context = context;
@@ -26,8 +40,10 @@ class BuildError extends Error {
 }
 
 class FileError extends Error {
-  /** @param {string} message @param {string | null} [filePath] @param {string[]} [suggestions] */
-  constructor(message, filePath = null, suggestions = []) {
+  filePath: MaybeString;
+  suggestions: ErrorSuggestion[];
+
+  constructor(message: string, filePath: MaybeString = null, suggestions: ErrorSuggestion[] = []) {
     super(message);
     this.name = 'FileError';
     this.filePath = filePath;
@@ -35,19 +51,13 @@ class FileError extends Error {
   }
 }
 
-/**
- * @param {Error & {
- *   filePath?: string | null,
- *   templatePath?: string | null,
- *   context?: Record<string, unknown>,
- *   suggestions?: string[]
- * }} error
- * @param {number} [exitCode]
- */
-function handleError(error, exitCode = 1) {
-  const { formatPrefix, isVerbose } = require('./logging/logger.ts');
+function handleError(error: ErrorWithMetadata, exitCode = 1): never {
+  const logger = require('./logging/logger.ts') as {
+    formatPrefix: (level: 'INFO' | 'WARN' | 'ERROR' | 'OK') => string;
+    isVerbose: () => boolean;
+  };
 
-  console.error(`\n${formatPrefix('ERROR')} ${error.name}: ${error.message}`);
+  console.error(`\n${logger.formatPrefix('ERROR')} ${error.name}: ${error.message}`);
 
   if (error.filePath || error.templatePath) {
     const location = error.filePath || error.templatePath;
@@ -63,7 +73,7 @@ function handleError(error, exitCode = 1) {
 
   if (error.suggestions && error.suggestions.length > 0) {
     console.error('建议:');
-    error.suggestions.forEach((suggestion, index) => {
+    error.suggestions.forEach((suggestion: string, index: number) => {
       console.error(`  ${index + 1}) ${suggestion}`);
     });
   }
@@ -71,7 +81,7 @@ function handleError(error, exitCode = 1) {
   if (process.env.DEBUG) {
     console.error('\n堆栈:');
     console.error(error.stack || String(error));
-  } else if (isVerbose() && error.stack) {
+  } else if (logger.isVerbose() && error.stack) {
     console.error('\n堆栈:');
     console.error(error.stack);
   } else {
@@ -82,13 +92,10 @@ function handleError(error, exitCode = 1) {
   process.exit(exitCode);
 }
 
-/**
- * @template {unknown[]} TArgs
- * @template TResult
- * @param {(...args: TArgs) => Promise<TResult> | TResult} fn
- */
-function wrapAsyncError(fn) {
-  return async (...args) => {
+function wrapAsyncError<TArgs extends unknown[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult> | TResult
+): (...args: TArgs) => Promise<TResult> {
+  return async (...args: TArgs): Promise<TResult> => {
     try {
       return await fn(...args);
     } catch (error) {
@@ -98,11 +105,11 @@ function wrapAsyncError(fn) {
         error instanceof BuildError ||
         error instanceof FileError
       ) {
-        handleError(error);
+        return handleError(error);
       }
 
       const unknownError = error instanceof Error ? error : new Error(String(error));
-      handleError(
+      return handleError(
         new BuildError(unknownError.message || '未知错误', {
           原始错误类型: unknownError.name || 'Error',
         })

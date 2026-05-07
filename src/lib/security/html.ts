@@ -1,5 +1,4 @@
-/** @param {unknown} unsafe */
-function escapeHtml(unsafe) {
+function escapeHtml(unsafe: unknown): string {
   if (unsafe === undefined || unsafe === null) {
     return '';
   }

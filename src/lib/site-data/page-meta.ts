@@ -2,8 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-/** @param {string} pageId */
-function resolvePageConfigFilePath(pageId) {
+function resolvePageConfigFilePath(pageId: string): string | null {
   if (!pageId) return null;
 
   const candidates = [
@@ -24,8 +23,7 @@ function resolvePageConfigFilePath(pageId) {
   return null;
 }
 
-/** @param {string | null} filePath */
-function tryGetGitLastCommitIso(filePath) {
+function tryGetGitLastCommitIso(filePath: string | null): string | null {
   if (!filePath) return null;
 
   try {
@@ -46,8 +44,7 @@ function tryGetGitLastCommitIso(filePath) {
   }
 }
 
-/** @param {string | null} filePath */
-function tryGetFileMtimeIso(filePath) {
+function tryGetFileMtimeIso(filePath: string | null): string | null {
   if (!filePath) return null;
 
   try {
@@ -60,8 +57,9 @@ function tryGetFileMtimeIso(filePath) {
   }
 }
 
-/** @param {string} pageId */
-function getPageConfigUpdatedAtMeta(pageId) {
+function getPageConfigUpdatedAtMeta(
+  pageId: string
+): { updatedAt: string; updatedAtSource: 'git' | 'mtime' } | null {
   const filePath = resolvePageConfigFilePath(pageId);
   if (!filePath) return null;
 
