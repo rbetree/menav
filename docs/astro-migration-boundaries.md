@@ -492,7 +492,10 @@ src/runtime/
 
 ### Phase 8：搜索索引从 DOM 扫描迁为构建期数据
 
-状态：pending
+状态：done
+开始提交：2ab042f
+完成提交：本提交（提交后见 git log）
+剩余风险：runtime 仍保留 DOM 扫描作为 `search-index.json` 读取失败时的一个版本兼容回退；后续 minor 版本应删除该回退路径。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`public/script.js` 为 48065 bytes，较 Phase 7 记录的 44802 bytes 增加 3263 bytes，主要来自搜索索引 fetch、schema 校验、数据卡片渲染和 DOM 回退。`public/search-index.json` / `dist/search-index.json` 为 61556 bytes，包含 112 条索引，抽样确认不包含 `navigation`、`configJSON`、`extensionConfig`。
 
 目标：减少 runtime 对完整 DOM 的依赖，为未来多页面路由预留基础。
 
@@ -618,9 +621,9 @@ src/runtime/
 
 ## 当前下一步
 
-Phase 2 已启动，当前必须按阶段隔离完成以下事项：
+Phase 9 可开始执行，当前必须按阶段隔离完成以下事项：
 
-1. 将 `src/generator/utils/*` 迁入 `src/lib/*` 并改为 TypeScript。
-2. 将新代码引用切到 `src/lib/*`，旧路径仅保留 Phase 6 删除的临时 re-export。
-3. 运行 `npm test` 与 `npm run check`，确认工具迁移行为不变。
-4. 完成后更新本文中的 Phase 2 状态、提交信息与剩余风险，再进入 Phase 3。
+1. 读取 Phase 9 范围，确认单页路由当前行为和相关测试。
+2. 将 `?page=<id>`、hash 分类跳转、active page、前进后退统一收敛到 `src/runtime/app/router.ts`。
+3. 构建期输出页面注册表，并补路由行为测试。
+4. 运行完整质量门禁，更新 Phase 9 状态、提交信息与剩余风险后再进入 Phase 10。

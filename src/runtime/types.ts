@@ -1,3 +1,5 @@
+import type { SearchIndexItem } from '../types/search';
+
 export type RuntimeElement = HTMLElement & {
   dataset: DOMStringMap;
   parentElement: HTMLElement | null;
@@ -5,14 +7,8 @@ export type RuntimeElement = HTMLElement & {
 
 export type RuntimeElementList<T extends Element = HTMLElement> = T[];
 
-export type RuntimeSearchIndexItem = {
-  pageId: string;
-  title: string;
-  description: string;
-  url: string;
-  icon: string;
-  element: HTMLElement;
-  searchText: string;
+export type RuntimeSearchIndexItem = SearchIndexItem & {
+  element?: HTMLElement;
 };
 
 export type RuntimeState = {
@@ -27,6 +23,8 @@ export type RuntimeState = {
   isSearchActive: boolean;
   searchIndex: {
     initialized: boolean;
+    loading?: boolean;
+    source?: 'build' | 'dom';
     items: RuntimeSearchIndexItem[];
   };
 };
@@ -138,7 +136,11 @@ export type MeNavApi = {
   version?: string;
   getConfig?: (options?: { clone?: boolean }) => MenavConfig | null;
   getAllElements?: (type: string) => Array<{ id: string | null; type: string; element: Element }>;
-  addElement?: (type: string, parentId: string, data: Record<string, unknown>) => Element | boolean | null;
+  addElement?: (
+    type: string,
+    parentId: string,
+    data: Record<string, unknown>
+  ) => Element | boolean | null;
   updateElement?: (type: string, id: string, newData: Record<string, unknown>) => boolean;
   removeElement?: (type: string, id: string) => boolean;
   events?: RuntimeEvents;

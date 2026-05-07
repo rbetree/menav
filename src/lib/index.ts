@@ -14,6 +14,7 @@ const github = require('./github/contributions.ts') as Record<string, unknown>;
 const logger = require('./logging/logger.ts') as Record<string, unknown>;
 const securityHtml = require('./security/html.ts') as Record<string, unknown>;
 const pageMeta = require('./site-data/page-meta.ts') as Record<string, unknown>;
+const searchIndex = require('./search-index/index.ts') as Record<string, unknown>;
 const sites = require('./site-data/sites.ts') as Record<string, unknown>;
 
 const {
@@ -49,15 +50,18 @@ const { fetchGithubContributionsHtml } = github;
 const { createLogger, formatMeta, formatPrefix, isVerbose, startTimer } = logger;
 const { escapeHtml } = securityHtml;
 const { getPageConfigUpdatedAtMeta, resolvePageConfigFilePath } = pageMeta;
+const { MENAV_SEARCH_INDEX_FILE, SEARCH_INDEX_SCHEMA_VERSION, buildSearchIndex } = searchIndex;
 const { collectSitesRecursively, normalizeUrlKey } = sites;
 
 export {
   MENAV_EXTENSION_CONFIG_FILE,
+  MENAV_SEARCH_INDEX_FILE,
   assignCategorySlugs,
   applyRepoMetaToCategories,
   buildArticlesCategoriesByPageCategories,
   buildExtensionConfig,
   buildProjectsMeta,
+  buildSearchIndex,
   BuildError,
   collectSitesRecursively,
   ConfigError,
@@ -88,6 +92,7 @@ export {
   resolvePageConfigFilePath,
   resolveTemplateNameForPage,
   sanitizeLinkHref,
+  SEARCH_INDEX_SCHEMA_VERSION,
   startTimer,
   TemplateError,
   tryLoadArticlesFeedCache,

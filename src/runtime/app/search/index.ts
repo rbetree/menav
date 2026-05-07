@@ -1,8 +1,136 @@
-import type { RuntimeDom, RuntimeSearchApi, RuntimeSearchEngines, RuntimeSearchIndexItem, RuntimeState } from '../../types';
+import type {
+  RuntimeDom,
+  RuntimeSearchApi,
+  RuntimeSearchEngines,
+  RuntimeSearchIndexItem,
+  RuntimeState,
+} from '../../types';
+import type { SearchIndexPayload } from '../../../types/search';
 
 const searchEngines = require('./search-engines.ts') as RuntimeSearchEngines;
-const highlightSearchTerm = require('./highlight.ts') as (card: HTMLElement, searchTerm: string) => void;
-const { SELECTORS, qs, qsa } = require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+const highlightSearchTerm = require('./highlight.ts') as (
+  card: HTMLElement,
+  searchTerm: string
+) => void;
+const { SELECTORS, qs, qsa } =
+  require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+
+const SEARCH_INDEX_SCHEMA_VERSION = 1;
+const SEARCH_INDEX_URL = './search-index.json';
+
+function normalizeText(value: unknown): string {
+  return String(value === null || value === undefined ? '' : value).trim();
+}
+
+function createElement<K extends keyof HTMLElementTagNameMap>(
+  tagName: K,
+  className?: string,
+  text?: string
+): HTMLElementTagNameMap[K] {
+  const el = document.createElement(tagName);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function normalizeIndexItem(raw: unknown): RuntimeSearchIndexItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const item = raw as Record<string, unknown>;
+  const pageId = normalizeText(item.pageId);
+  const title = normalizeText(item.title);
+  const url = normalizeText(item.url) || '#';
+  if (!pageId || !title) return null;
+
+  const description = normalizeText(item.description);
+  const searchText = normalizeText(item.searchText || `${title} ${description}`).toLowerCase();
+  const type = normalizeText(item.type) === 'article' ? 'article' : 'site';
+  const categoryPath = Array.isArray(item.categoryPath)
+    ? item.categoryPath.map((part) => normalizeText(part)).filter(Boolean)
+    : undefined;
+
+  return {
+    pageId,
+    title,
+    description,
+    url,
+    icon: normalizeText(item.icon) || 'fas fa-link',
+    type,
+    style: normalizeText(item.style),
+    categoryId: normalizeText(item.categoryId),
+    categoryName: normalizeText(item.categoryName),
+    categoryPath,
+    publishedAt: normalizeText(item.publishedAt),
+    source: normalizeText(item.source),
+    external: typeof item.external === 'boolean' ? item.external : undefined,
+    searchText,
+  };
+}
+
+function createCardFromIndexItem(item: RuntimeSearchIndexItem): HTMLElement {
+  const card = createElement('a');
+  const isRepo = item.style === 'repo';
+  const isArticle = item.type === 'article';
+
+  card.href = item.url || '#';
+  card.className = ['site-card', isRepo ? 'site-card-repo' : ''].filter(Boolean).join(' ');
+  card.dataset.type = isArticle ? 'article' : 'site';
+  card.dataset.name = item.title;
+  card.dataset.url = item.url || '#';
+  card.dataset.icon = item.icon || '';
+  card.dataset.description = item.description || '';
+  card.dataset.tooltip = `${item.title} - ${item.description || item.url || ''}`;
+  if (item.publishedAt) card.dataset.publishedAt = item.publishedAt;
+  if (item.source) card.dataset.source = item.source;
+  if (item.external) {
+    card.target = '_blank';
+    card.rel = 'noopener';
+  }
+
+  if (isArticle) {
+    const header = createElement('div', 'article-card-header');
+    const iconWrap = createElement('div', 'site-card-icon');
+    iconWrap.setAttribute('aria-hidden', 'true');
+    iconWrap.appendChild(createElement('i', `${item.icon || 'fas fa-pen'} site-icon`));
+    const titleWrap = createElement('div', 'article-card-title');
+    titleWrap.appendChild(createElement('h3', '', item.title));
+    header.append(iconWrap, titleWrap);
+
+    const body = createElement('div', 'article-card-body');
+    if (item.publishedAt || item.source) {
+      const meta = createElement('div', 'site-card-meta');
+      if (item.publishedAt)
+        meta.appendChild(
+          createElement('span', 'site-card-meta-date', item.publishedAt.slice(0, 10))
+        );
+      if (item.publishedAt && item.source)
+        meta.appendChild(createElement('span', 'site-card-meta-sep', '·'));
+      if (item.source)
+        meta.appendChild(createElement('span', 'site-card-meta-source', item.source));
+      body.appendChild(meta);
+    }
+    body.appendChild(createElement('p', '', item.description));
+    card.append(header, body);
+    return card;
+  }
+
+  if (isRepo) {
+    const header = createElement('div', 'repo-header');
+    header.appendChild(createElement('i', `${item.icon || 'fas fa-code'} repo-icon`));
+    header.appendChild(createElement('div', 'repo-title', item.title));
+    card.appendChild(header);
+    card.appendChild(createElement('div', 'repo-desc', item.description));
+    return card;
+  }
+
+  const iconWrap = createElement('div', 'site-card-icon');
+  iconWrap.setAttribute('aria-hidden', 'true');
+  iconWrap.appendChild(createElement('i', `${item.icon || 'fas fa-link'} site-icon`));
+  const content = createElement('div', 'site-card-content');
+  content.appendChild(createElement('h3', '', item.title));
+  content.appendChild(createElement('p', '', item.description));
+  card.append(iconWrap, content);
+  return card;
+}
 
 module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   const {
@@ -40,10 +168,7 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
     state.isSearchActive = false;
   }
 
-  // 初始化搜索索引
-  function initSearchIndex(): void {
-    if (state.searchIndex.initialized) return;
-
+  function buildDomSearchIndex(): void {
     state.searchIndex.items = [];
 
     try {
@@ -76,8 +201,8 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
               card.querySelector('.repo-desc')?.textContent ||
               dataDescription;
 
-            const title = String(titleText || '').toLowerCase();
-            const description = String(descriptionText || '').toLowerCase();
+            const title = normalizeText(titleText);
+            const description = normalizeText(descriptionText);
             const url = (card as HTMLAnchorElement).href || card.getAttribute('href') || '#';
             const icon =
               card.querySelector('i.icon-fallback')?.className ||
@@ -91,9 +216,10 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
               description,
               url,
               icon,
+              type: 'site',
               element: card,
               // 预先计算搜索文本，提高搜索效率
-              searchText: (title + ' ' + description).toLowerCase(),
+              searchText: `${title} ${description}`.toLowerCase(),
             });
           } catch (cardError) {
             console.error('Error processing card:', cardError);
@@ -102,10 +228,49 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
       });
 
       state.searchIndex.initialized = true;
+      state.searchIndex.loading = false;
+      state.searchIndex.source = 'dom';
     } catch (error) {
       console.error('Error initializing search index:', error);
       state.searchIndex.initialized = true; // 防止反复尝试初始化
+      state.searchIndex.loading = false;
+      state.searchIndex.source = 'dom';
     }
+  }
+
+  async function loadBuildSearchIndex(): Promise<void> {
+    if (state.searchIndex.initialized || state.searchIndex.loading) return;
+
+    state.searchIndex.loading = true;
+
+    try {
+      const response = await fetch(SEARCH_INDEX_URL, { cache: 'no-cache' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const payload = (await response.json()) as SearchIndexPayload;
+      if (payload.schemaVersion !== SEARCH_INDEX_SCHEMA_VERSION || !Array.isArray(payload.items)) {
+        throw new Error('search index schema mismatch');
+      }
+
+      const items = payload.items
+        .map((item) => normalizeIndexItem(item))
+        .filter((item: RuntimeSearchIndexItem | null): item is RuntimeSearchIndexItem =>
+          Boolean(item)
+        );
+
+      state.searchIndex.items = items;
+      state.searchIndex.initialized = true;
+      state.searchIndex.loading = false;
+      state.searchIndex.source = 'build';
+    } catch (error) {
+      if (!state.searchIndex.initialized) buildDomSearchIndex();
+    }
+  }
+
+  // 初始化搜索索引：优先使用构建期索引，失败时回退到 DOM 扫描。
+  function initSearchIndex(): void {
+    if (state.searchIndex.initialized || state.searchIndex.loading) return;
+    void loadBuildSearchIndex();
   }
 
   // 搜索功能
@@ -113,6 +278,7 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
     // 确保搜索索引已初始化
     if (!state.searchIndex.initialized) {
       initSearchIndex();
+      if (!state.searchIndex.initialized) buildDomSearchIndex();
     }
 
     searchTerm = searchTerm.toLowerCase().trim();
@@ -134,9 +300,13 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
 
       // 使用更高效的搜索算法
       const matchedItems = state.searchIndex.items.filter((item: RuntimeSearchIndexItem) => {
-        return (
-          item.searchText.includes(searchTerm) || PinyinMatch.match(item.searchText, searchTerm)
-        );
+        const text = item.searchText || `${item.title} ${item.description}`.toLowerCase();
+        const hasPinyinMatch =
+          typeof PinyinMatch !== 'undefined' &&
+          PinyinMatch &&
+          typeof PinyinMatch.match === 'function' &&
+          PinyinMatch.match(text, searchTerm);
+        return text.includes(searchTerm) || Boolean(hasPinyinMatch);
       });
 
       // 按页面分组结果
@@ -144,8 +314,11 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
         if (!searchResults.has(item.pageId)) {
           searchResults.set(item.pageId, []);
         }
-        // 克隆元素以避免修改原始 DOM
-        searchResults.get(item.pageId)?.push(item.element.cloneNode(true) as HTMLElement);
+        // 克隆元素以避免修改原始 DOM；构建期索引用数据动态生成结果卡片。
+        const card = item.element
+          ? (item.element.cloneNode(true) as HTMLElement)
+          : createCardFromIndexItem(item);
+        searchResults.get(item.pageId)?.push(card);
         hasResults = true;
       });
 
@@ -167,7 +340,9 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
 
           // 使用 DocumentFragment 批量添加 DOM 元素，减少重排
           searchResults.forEach((matches: HTMLElement[], pageId: string) => {
-            const section = searchResultsPageElement.querySelector<HTMLElement>(`[data-section="${pageId}"]`);
+            const section = searchResultsPageElement.querySelector<HTMLElement>(
+              `[data-section="${pageId}"]`
+            );
             if (section) {
               try {
                 const grid = section.querySelector('.sites-grid');

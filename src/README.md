@@ -31,7 +31,7 @@ npm run check
 
 1. `scripts/build.js` 清理 `dist/` 和生成型 `public/` 资源。
 2. `sync-projects`、`sync-heatmap`、`sync-articles` 以 best-effort 方式刷新 `dev/` 缓存。
-3. `scripts/prepare-astro-public.js` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl` 和 `menav-config.json`。
+3. `scripts/prepare-astro-public.js` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl`、`menav-config.json` 和 `search-index.json`。
 4. `scripts/build-runtime.js` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
 5. `scripts/run-astro-build.js` 执行 Astro build，产物输出到 `dist/`。
 
@@ -48,7 +48,7 @@ Astro 组件修改时必须保持以下契约稳定：
 - 页面中保留 `#menav-config-data`，独立配置文件保留 `menav-config.json`。
 - 运行时保留 `window.MeNav` API。
 - 导航、分类、站点、社交链接保留关键 `data-*`：`data-type`、`data-id`、`data-name`、`data-url`、`data-icon`、`data-container` 等。
-- `pinyin-match.js` 继续作为全局脚本加载，搜索逻辑继续使用全局 `PinyinMatch`。
+- `pinyin-match.js` 继续作为全局脚本加载，搜索逻辑优先读取 `search-index.json`，并继续使用全局 `PinyinMatch`。
 
 ## 开发原则
 
