@@ -279,7 +279,10 @@ config YAML
 
 ### Phase 2：迁移 `src/generator/utils` 到 `src/lib` 并 TypeScript 化
 
-状态：pending
+状态：done
+开始提交：b67bece
+完成提交：本提交（提交后见 git log）
+剩余风险：旧 `src/generator/utils/*` re-export 兼容层仍保留到 Phase 6；`src/generator.js`、`src/generator/config/*` 和其他旧 generator 入口尚未迁移，按后续阶段继续清理。
 
 目标：先迁最底层纯工具，建立 `src/lib` 方向。
 
@@ -600,9 +603,9 @@ src/runtime/
 
 ## 当前下一步
 
-Phase 1 已完成并在独立提交中收口。当前下一步是启动 Phase 2，且必须
-继续保持阶段隔离：
+Phase 2 已启动，当前必须按阶段隔离完成以下事项：
 
 1. 将 `src/generator/utils/*` 迁入 `src/lib/*` 并改为 TypeScript。
 2. 将新代码引用切到 `src/lib/*`，旧路径仅保留 Phase 6 删除的临时 re-export。
 3. 运行 `npm test` 与 `npm run check`，确认工具迁移行为不变。
+4. 完成后更新本文中的 Phase 2 状态、提交信息与剩余风险，再进入 Phase 3。

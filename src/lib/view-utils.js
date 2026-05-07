@@ -1,4 +1,4 @@
-const { escapeHtml } = require('../generator/utils/html');
+const { escapeHtml } = require('../lib/security/html.ts');
 const { extractDomain, formatDate } = require('../helpers/formatters');
 const { faviconV2Url, faviconFallbackUrl, safeUrl } = require('../helpers/utils');
 

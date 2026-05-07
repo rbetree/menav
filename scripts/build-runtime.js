@@ -1,7 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('bundle');
 

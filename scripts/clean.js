@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { createLogger } = require('../src/generator/utils/logger');
+const { createLogger } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('clean');
 

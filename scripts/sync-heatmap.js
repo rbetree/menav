@@ -3,10 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { loadConfig } = require('../src/generator.js');
-const {
-  extractYearlyContributionsInnerHtml,
-} = require('../src/generator/utils/githubContributions');
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { extractYearlyContributionsInnerHtml } = require('../src/lib/github/contributions.ts');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:heatmap');
 

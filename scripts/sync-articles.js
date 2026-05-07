@@ -6,7 +6,7 @@ const net = require('node:net');
 const Parser = require('rss-parser');
 
 const { loadConfig } = require('../src/generator.js');
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:articles');
 

@@ -1,16 +1,3 @@
-// HTML 转义函数，防止 XSS 攻击
-function escapeHtml(unsafe) {
-  if (unsafe === undefined || unsafe === null) {
-    return '';
-  }
-  return String(unsafe)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+// Phase 6 删除：兼容旧导入路径，转发到 src/lib/security/html.ts
 
-module.exports = {
-  escapeHtml,
-};
+module.exports = require('../../lib/security/html.ts');

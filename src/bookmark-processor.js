@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const { FileError, wrapAsyncError } = require('./generator/utils/errors');
-const { createLogger, isVerbose, startTimer } = require('./generator/utils/logger');
+const { FileError, wrapAsyncError } = require('./lib/errors.ts');
+const { createLogger, isVerbose, startTimer } = require('./lib/logging/logger.ts');
 
 const log = createLogger('import-bookmarks');
 

@@ -4,7 +4,7 @@ const { spawnSync } = require('node:child_process');
 const { loadConfig } = require('./generator/config');
 const { preparePageData } = require('./generator/html/page-data');
 const { prepareSiteRenderData, preparePages, prepareNavigationData } = require('./lib/render-data');
-const { wrapAsyncError } = require('./generator/utils/errors');
+const { wrapAsyncError } = require('./lib/errors.ts');
 
 function main() {
   const repoRoot = path.resolve(__dirname, '..');

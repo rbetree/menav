@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/generator/config');
-const { collectSitesRecursively } = require('../src/generator/utils/sites');
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { collectSitesRecursively } = require('../src/lib/site-data/sites.ts');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('astro-public');
 

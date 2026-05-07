@@ -1,7 +1,7 @@
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const lifecycleEvent = process.env.npm_lifecycle_event
   ? String(process.env.npm_lifecycle_event)

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { loadConfig } = require('../src/generator.js');
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:projects');
 
