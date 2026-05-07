@@ -349,7 +349,10 @@ config YAML
 
 ### Phase 4：YAML Schema 化
 
-状态：pending
+状态：done
+开始提交：be9f6fb
+完成提交：本提交（提交后见 git log）
+剩余风险：新增 `zod` 作为配置层 schema 依赖，版本 4.4.3、MIT 许可证；仅用于 Node 构建期配置校验，不进入浏览器 runtime bundle。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示。
 
 目标：YAML 仍是用户入口，但内部必须 schema 校验和类型化。
 

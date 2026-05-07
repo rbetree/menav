@@ -1,4 +1,5 @@
 import type { NavigationItem } from './config';
+import type { CategoryItem as SchemaCategoryItem } from '../lib/config/schema/page';
 import type { SiteItem } from './site';
 
 export interface PageMeta {
@@ -7,26 +8,8 @@ export interface PageMeta {
   [key: string]: unknown;
 }
 
-export interface GroupItem {
-  name?: string;
-  icon?: string;
-  level?: number;
-  subgroups?: GroupItem[];
-  sites?: SiteItem[];
-  [key: string]: unknown;
-}
-
-export interface CategoryItem {
-  name?: string;
-  icon?: string;
-  slug?: string;
-  level?: number;
-  items?: SiteItem[];
-  subcategories?: CategoryItem[];
-  groups?: GroupItem[];
-  sites?: SiteItem[];
-  [key: string]: unknown;
-}
+export type GroupItem = SchemaCategoryItem;
+export type CategoryItem = SchemaCategoryItem;
 
 export interface PageData {
   pageId?: string;
@@ -58,4 +41,4 @@ export interface PageEntry {
   [key: string]: unknown;
 }
 
-export type PageStatus = "draft" | "published";
+export type PageStatus = 'draft' | 'published';

@@ -1,9 +1,54 @@
 const { createLogger } = require('../logging/logger.ts');
+import type { z as ZodNamespace } from 'zod';
+import type { PageConfigSchema } from './schema/page';
+import type {
+  FontsSchema,
+  GithubSchema,
+  IconsSchema,
+  NavigationItemSchema,
+  ProfileSchema,
+  RssSchema,
+  SecuritySchema,
+  SocialItemSchema,
+  ThemeSchema,
+} from './schema/shared';
+import type { SiteConfigSchema } from './schema/site';
+
+const { pageConfigSchema } = require('./schema/page.ts') as { pageConfigSchema: PageConfigSchema };
+const {
+  fontsSchema,
+  githubSchema,
+  iconsSchema,
+  navigationItemSchema,
+  profileSchema,
+  rssSchema,
+  securitySchema,
+  socialItemSchema,
+  themeSchema,
+} = require('./schema/shared.ts') as {
+  fontsSchema: FontsSchema;
+  githubSchema: GithubSchema;
+  iconsSchema: IconsSchema;
+  navigationItemSchema: NavigationItemSchema;
+  profileSchema: ProfileSchema;
+  rssSchema: RssSchema;
+  securitySchema: SecuritySchema;
+  socialItemSchema: SocialItemSchema;
+  themeSchema: ThemeSchema;
+};
+const { siteConfigSchema } = require('./schema/site.ts') as { siteConfigSchema: SiteConfigSchema };
 
 type AnyRecord = Record<string, unknown>;
 type ValidationIssue = {
   path: string;
   message: string;
+};
+type ZodIssueLike = {
+  path: PropertyKey[];
+  message: string;
+};
+type SchemaLike = {
+  safeParse: (value: unknown) => { success: true } | { success: false; error: { issues: ZodIssueLike[] } };
 };
 
 const TOP_LEVEL_NON_PAGE_KEYS = new Set([
@@ -23,117 +68,53 @@ const TOP_LEVEL_NON_PAGE_KEYS = new Set([
   'site',
   'social',
   'socialLinks',
+  'theme',
+  'security',
 ]);
 
 function isRecord(value: unknown): value is AnyRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function addTypeIssue(
-  issues: ValidationIssue[],
-  path: string,
-  value: unknown,
-  expected: string
-): void {
-  if (value === undefined || value === null) return;
-  issues.push({ path, message: `期望为 ${expected}` });
-}
-
-function validateOptionalString(
-  issues: ValidationIssue[],
-  path: string,
-  value: unknown
-): void {
-  if (value !== undefined && value !== null && typeof value !== 'string') {
-    addTypeIssue(issues, path, value, '字符串');
-  }
-}
-
-function validateOptionalBoolean(
-  issues: ValidationIssue[],
-  path: string,
-  value: unknown
-): void {
-  if (value !== undefined && value !== null && typeof value !== 'boolean') {
-    addTypeIssue(issues, path, value, '布尔值');
-  }
-}
-
-function validateSiteItem(issues: ValidationIssue[], path: string, value: unknown): void {
-  if (!isRecord(value)) {
-    issues.push({ path, message: '站点必须是对象' });
-    return;
-  }
-
-  validateOptionalString(issues, `${path}.name`, value.name);
-  validateOptionalString(issues, `${path}.url`, value.url);
-  validateOptionalString(issues, `${path}.description`, value.description);
-  validateOptionalString(issues, `${path}.icon`, value.icon);
-  validateOptionalString(issues, `${path}.faviconUrl`, value.faviconUrl);
-  validateOptionalBoolean(issues, `${path}.external`, value.external);
-}
-
-function validateSiteArray(issues: ValidationIssue[], path: string, value: unknown): void {
-  if (value === undefined || value === null) return;
-  if (!Array.isArray(value)) {
-    issues.push({ path, message: '期望为数组' });
-    return;
-  }
-
-  value.forEach((siteItem: unknown, index: number) => {
-    validateSiteItem(issues, `${path}[${index}]`, siteItem);
-  });
-}
-
-function validateCategoryNode(issues: ValidationIssue[], path: string, value: unknown): void {
-  if (!isRecord(value)) {
-    issues.push({ path, message: '分类必须是对象' });
-    return;
-  }
-
-  validateOptionalString(issues, `${path}.name`, value.name);
-  validateOptionalString(issues, `${path}.icon`, value.icon);
-  validateOptionalString(issues, `${path}.slug`, value.slug);
-  validateSiteArray(issues, `${path}.sites`, value.sites);
-
-  ['subcategories', 'groups', 'subgroups'].forEach((childKey: string) => {
-    const childValue = value[childKey];
-    if (childValue === undefined || childValue === null) return;
-
-    if (!Array.isArray(childValue)) {
-      issues.push({ path: `${path}.${childKey}`, message: '期望为数组' });
-      return;
+function appendPath(basePath: string, segments: PropertyKey[]): string {
+  return segments.reduce((current: string, segment: PropertyKey) => {
+    if (typeof segment === 'number') {
+      return `${current}[${segment}]`;
     }
 
-    childValue.forEach((child: unknown, index: number) => {
-      validateCategoryNode(issues, `${path}.${childKey}[${index}]`, child);
+    const key = String(segment);
+    return current ? `${current}.${key}` : key;
+  }, basePath);
+}
+
+function normalizeSchemaMessage(message: string): string {
+  if (message.startsWith('Invalid input: expected object')) return '期望为对象';
+  if (message.startsWith('Invalid input: expected array')) return '期望为数组';
+  if (message.startsWith('Invalid input: expected string')) return '期望为字符串';
+  if (message.startsWith('Invalid input: expected number')) return '期望为数字';
+  if (message.startsWith('Invalid input: expected boolean')) return '期望为布尔值';
+  return message;
+}
+
+function collectSchemaIssues(
+  issues: ValidationIssue[],
+  schema: SchemaLike,
+  value: unknown,
+  basePath: string
+): void {
+  const result = schema.safeParse(value);
+  if (result.success) return;
+
+  result.error.issues.forEach((issue: ZodIssueLike) => {
+    issues.push({
+      path: appendPath(basePath, issue.path),
+      message: normalizeSchemaMessage(issue.message),
     });
   });
 }
 
-function validateCategories(issues: ValidationIssue[], path: string, value: unknown): void {
-  if (value === undefined || value === null) return;
-  if (!Array.isArray(value)) {
-    issues.push({ path, message: '期望为数组' });
-    return;
-  }
-
-  value.forEach((category: unknown, index: number) => {
-    validateCategoryNode(issues, `${path}[${index}]`, category);
-  });
-}
-
-function validatePageConfig(issues: ValidationIssue[], path: string, value: unknown): void {
-  if (!isRecord(value)) {
-    issues.push({ path, message: '页面配置必须是对象' });
-    return;
-  }
-
-  validateOptionalString(issues, `${path}.title`, value.title);
-  validateOptionalString(issues, `${path}.subtitle`, value.subtitle);
-  validateOptionalString(issues, `${path}.template`, value.template);
-  validateCategories(issues, `${path}.categories`, value.categories);
-  validateSiteArray(issues, `${path}.sites`, value.sites);
+function getPageValidationEntries(config: AnyRecord): [string, unknown][] {
+  return Object.entries(config).filter(([key]) => !TOP_LEVEL_NON_PAGE_KEYS.has(key));
 }
 
 function getConfigValidationErrors(config: unknown): ValidationIssue[] {
@@ -143,34 +124,30 @@ function getConfigValidationErrors(config: unknown): ValidationIssue[] {
     return [{ path: '$', message: '配置必须是对象' }];
   }
 
-  if (!isRecord(config.site)) {
-    issues.push({ path: 'site', message: '期望为对象' });
+  collectSchemaIssues(issues, siteConfigSchema, config.site, 'site');
+  collectSchemaIssues(issues, zArray(navigationItemSchema, 'navigation 必须是数组'), config.navigation, 'navigation');
+
+  if (config.fonts !== undefined) collectSchemaIssues(issues, fontsSchema, config.fonts, 'fonts');
+  if (config.profile !== undefined) collectSchemaIssues(issues, profileSchema, config.profile, 'profile');
+  if (config.icons !== undefined) collectSchemaIssues(issues, iconsSchema, config.icons, 'icons');
+  if (config.theme !== undefined) collectSchemaIssues(issues, themeSchema, config.theme, 'theme');
+  if (config.security !== undefined) collectSchemaIssues(issues, securitySchema, config.security, 'security');
+  if (config.rss !== undefined) collectSchemaIssues(issues, rssSchema, config.rss, 'rss');
+  if (config.github !== undefined) collectSchemaIssues(issues, githubSchema, config.github, 'github');
+  if (config.social !== undefined) {
+    collectSchemaIssues(issues, zArray(socialItemSchema, 'social 必须是数组'), config.social, 'social');
   }
 
-  if (!Array.isArray(config.navigation)) {
-    issues.push({ path: 'navigation', message: '期望为数组' });
-  } else {
-    config.navigation.forEach((navItem: unknown, index: number) => {
-      const navPath = `navigation[${index}]`;
-      if (!isRecord(navItem)) {
-        issues.push({ path: navPath, message: '导航项必须是对象' });
-        return;
-      }
-
-      validateOptionalString(issues, `${navPath}.id`, navItem.id);
-      validateOptionalString(issues, `${navPath}.name`, navItem.name);
-      validateOptionalString(issues, `${navPath}.icon`, navItem.icon);
-    });
-  }
-
-  Object.entries(config).forEach(([key, value]) => {
-    if (TOP_LEVEL_NON_PAGE_KEYS.has(key)) return;
-    if (!isRecord(value)) return;
-    if (!('categories' in value) && !('sites' in value) && !('template' in value)) return;
-    validatePageConfig(issues, `pages.${key}`, value);
+  getPageValidationEntries(config).forEach(([key, value]) => {
+    collectSchemaIssues(issues, pageConfigSchema, value, `pages.${key}`);
   });
 
   return issues;
+}
+
+function zArray<T extends ZodNamespace.ZodTypeAny>(schema: T, message: string) {
+  const { z } = require('zod') as typeof import('zod');
+  return z.array(schema, { error: message });
 }
 
 function validateConfig(config: unknown): boolean {

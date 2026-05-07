@@ -83,10 +83,13 @@ function loadModularConfig(dirPath: string): AnyRecord | null {
   };
 
   const siteConfigPath = path.join(dirPath, 'site.yml');
-  const siteConfig = safeLoadYamlConfig(siteConfigPath) as AnyRecord | null;
-  if (isRecord(siteConfig)) {
+  const hasSiteConfig = fs.existsSync(siteConfigPath);
+  const siteConfig = safeLoadYamlConfig(siteConfigPath) as unknown | null;
+  if (hasSiteConfig) {
     config.site = siteConfig;
+  }
 
+  if (isRecord(siteConfig)) {
     if (siteConfig.fonts) config.fonts = siteConfig.fonts;
     if (siteConfig.profile) config.profile = siteConfig.profile;
     if (siteConfig.social) config.social = siteConfig.social;

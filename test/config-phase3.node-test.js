@@ -27,8 +27,8 @@ test('Phase 3：配置校验错误应包含页面字段路径', () => {
   assert.deepEqual(
     issues.map((issue) => `${issue.path}: ${issue.message}`),
     [
-      'pages.bookmarks.categories[0].sites[0].url: 期望为 字符串',
-      'pages.bookmarks.categories[0].sites[0].external: 期望为 布尔值',
+      'pages.bookmarks.categories[0].sites[0].url: url 必须是字符串',
+      'pages.bookmarks.categories[0].sites[0].external: external 必须是布尔值',
     ]
   );
 });

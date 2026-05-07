@@ -34,7 +34,8 @@
   "dependencies": {
     "js-yaml": "^4.1.1",
     "markdown-it": "^14.1.1",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

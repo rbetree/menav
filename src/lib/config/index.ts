@@ -12,7 +12,9 @@ const {
 const { assignCategorySlugs } = require('./slugs.ts');
 const { ConfigError } = require('../errors.ts');
 
-type ConfigRecord = Record<string, unknown>;
+import type { RenderConfig } from './schema/site';
+
+type ConfigRecord = RenderConfig & Record<string, unknown>;
 
 function loadConfig(): ConfigRecord {
   const configDir = resolveConfigDirectory();

@@ -1,38 +1,26 @@
-import type { SiteConfig, SocialItem } from './site';
+import type { RenderConfig } from '../lib/config/schema/site';
+import type {
+  NavigationItem as SchemaNavigationItem,
+  NavigationSubmenuItem as SchemaNavigationSubmenuItem,
+} from '../lib/config/schema/shared';
 
-export interface NavigationItem {
-  id?: string;
-  name?: string;
-  icon?: string;
-  isActive?: boolean;
-  active?: boolean;
-  submenu?: NavigationSubmenuItem[];
-  [key: string]: unknown;
-}
+export type NavigationItem = SchemaNavigationItem;
+export type NavigationSubmenuItem = SchemaNavigationSubmenuItem;
 
-export interface NavigationSubmenuItem {
-  name?: string;
-  icon?: string;
-  slug?: string;
-  [key: string]: unknown;
-}
-
-export interface AppConfig {
-  site?: SiteConfig;
-  social?: SocialItem[];
-  navigation?: NavigationItem[];
-  homePageId?: string;
-  profile?: {
-    title?: string;
-    subtitle?: string;
-    [key: string]: unknown;
-  };
+export type AppConfig = RenderConfig & {
+  homePageId?: string | null;
+  configJSON?: string;
+  extensionConfig?: Record<string, unknown>;
+  extensionConfigUrl?: string;
+  navigationData?: NavigationItem[];
+  socialLinks?: unknown[];
   _meta?: {
     version?: string;
+    generated_at?: Date;
+    generator?: string;
     [key: string]: unknown;
   };
-  [key: string]: unknown;
-}
+};
 
 export type LayoutConfig = AppConfig;
 

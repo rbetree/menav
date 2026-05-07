@@ -64,8 +64,7 @@ function loadPageConfigFiles(pagesPath: string): LoadedPageConfig[] {
         config: safeLoadYamlConfig(filePath),
         filePath,
       };
-    })
-    .filter((entry: LoadedPageConfig) => Boolean(entry.config));
+    });
 }
 
 module.exports = {
