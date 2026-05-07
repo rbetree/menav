@@ -11,8 +11,8 @@ Astro 现代化迁移按 [`docs/astro-migration-boundaries.md`](../docs/astro-mi
 - `src/pages`：Astro 页面入口，当前包含 `index.astro` 和默认 404。
 - `src/layouts`：页面外壳，负责侧边栏、搜索框、全局脚本和扩展配置注入。
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
-- `src/lib`：构建期核心能力，包含配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
-- `src/generator`：旧兼容入口，Phase 6 前仅保留对 `src/lib` 的临时转发，不再承载业务规则。
+- `src/lib`：构建期核心能力，包含正式库入口、配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
+- `src/generator.js`：旧顶层兼容入口，仅保留弃用提示和对正式入口的转发；新代码不要直接依赖。
 - `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和 `window.MeNav`。
 - `src/bookmark-processor.js`：浏览器书签导入与用户配置初始化。
 
@@ -34,6 +34,8 @@ npm run check
 3. `scripts/prepare-astro-public.js` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl` 和 `menav-config.json`。
 4. `scripts/build-runtime.js` 将 `src/runtime/index.js` 打包为 `public/script.js`。
 5. `scripts/run-astro-build.js` 执行 Astro build，产物输出到 `dist/`。
+
+`npm run generate` 通过 `scripts/generate.js` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。
 
 `npm run dev:offline` 会跳过联网同步，仅准备静态资源、打包运行时并构建 Astro 页面后启动本地静态服务。
 

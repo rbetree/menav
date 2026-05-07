@@ -2,13 +2,13 @@
   "name": "menav",
   "version": "1.4.0",
   "description": "A personal navigation website",
-  "main": "src/generator.js",
+  "main": "src/lib/index.ts",
   "engines": {
     "node": ">=22.12"
   },
   "homepage": "https://rbetree.github.io/menav",
   "scripts": {
-    "generate": "node src/generator.js",
+    "generate": "node ./scripts/generate.js",
     "dev": "node ./scripts/dev.js",
     "dev:offline": "node ./scripts/dev-offline.js",
     "clean": "node ./scripts/clean.js",

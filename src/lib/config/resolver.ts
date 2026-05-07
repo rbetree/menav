@@ -109,7 +109,10 @@ function loadModularConfig(dirPath: string): AnyRecord | null {
   return config;
 }
 
-function getSubmenuForNavItem(navItem: NavigationItemLike | null, config: AnyRecord | null): unknown[] | null {
+function getSubmenuForNavItem(
+  navItem: NavigationItemLike | null,
+  config: AnyRecord | null
+): unknown[] | null {
   if (!navItem || !navItem.id || !config) {
     return null;
   }
@@ -131,7 +134,8 @@ function makeJsonSafeForHtmlScript(jsonString: unknown): string {
 function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | null): string {
   if (!pageId) return 'page';
 
-  const pageConfig = config && config[String(pageId)] ? (config[String(pageId)] as PageConfigLike) : null;
+  const pageConfig =
+    config && config[String(pageId)] ? (config[String(pageId)] as PageConfigLike) : null;
   const explicit = pageConfig && pageConfig.template ? String(pageConfig.template).trim() : '';
   if (explicit) return BUILTIN_PAGE_TEMPLATES.has(explicit) ? explicit : 'page';
 
@@ -159,7 +163,8 @@ function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
 
   const site = renderData && isRecord(renderData.site) ? renderData.site : null;
   const security = site && isRecord(site.security) ? site.security : null;
-  const allowedSchemes = security && Array.isArray(security.allowedSchemes) ? security.allowedSchemes : null;
+  const allowedSchemes =
+    security && Array.isArray(security.allowedSchemes) ? security.allowedSchemes : null;
 
   return {
     version,
@@ -179,7 +184,7 @@ function prepareRenderData(config: AnyRecord): AnyRecord {
   renderData._meta = {
     generated_at: new Date(),
     version: process.env.npm_package_version || '1.0.0',
-    generator: 'MeNav',
+    generatedBy: 'MeNav',
   };
 
   if (!Array.isArray(renderData.navigation)) {

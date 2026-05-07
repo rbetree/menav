@@ -17,7 +17,7 @@ export type AppConfig = RenderConfig & {
   _meta?: {
     version?: string;
     generated_at?: Date;
-    generator?: string;
+    generatedBy?: string;
     [key: string]: unknown;
   };
 };

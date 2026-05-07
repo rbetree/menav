@@ -282,7 +282,7 @@ config YAML
 状态：done
 开始提交：b67bece
 完成提交：5644659
-剩余风险：旧 `src/generator/utils/*` re-export 兼容层仍保留到 Phase 6；`src/generator.js`、`src/generator/config/*` 和其他旧 generator 入口尚未迁移，按后续阶段继续清理。
+剩余风险：旧 `src/generator/utils/*` re-export 已在 Phase 6 删除；仅 `src/generator.js` 顶层兼容入口按计划保留到后续 minor 版本。
 
 目标：先迁最底层纯工具，建立 `src/lib` 方向。
 
@@ -318,7 +318,7 @@ config YAML
 状态：done
 开始提交：5644659
 完成提交：本提交（提交后见 git log）
-剩余风险：`src/generator/config/*` 仅作为 Phase 6 删除的临时 re-export；配置层仍未完成 Phase 4 的 YAML schema 化，当前 validator 只提供基础结构和字段路径错误。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` 仍输出既有 CommonJS 转 ESM 提示。
+剩余风险：`src/generator/config/*` re-export 已在 Phase 6 删除；配置层 YAML schema 化已由 Phase 4 完成。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` 仍输出既有 CommonJS 转 ESM 提示。
 
 目标：配置读取、解析、默认值、校验分层，并迁为 TypeScript。
 
@@ -382,7 +382,7 @@ config YAML
 状态：done
 开始提交：d2c44d6
 完成提交：本提交（提交后见 git log）
-剩余风险：`src/generator/cache/*`、`src/generator/html/*`、`src/lib/render-data.js` 和 `src/lib/view-utils.js` 仅作为 Phase 6 删除的临时 re-export；`src/generator.js` 仍保留 CLI 与兼容导出到 Phase 6。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示。
+剩余风险：`src/generator/cache/*`、`src/generator/html/*` re-export 已在 Phase 6 删除；`src/lib/render-data.js` 和 `src/lib/view-utils.js` 仍作为旧 lib 路径兼容层保留到后续清理。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示。
 
 目标：把 Astro 消费的数据准备层从旧 generator 命名中移出。
 
@@ -416,7 +416,10 @@ config YAML
 
 ### Phase 6：`src/generator.js` 退场
 
-状态：pending
+状态：done
+开始提交：d094473
+完成提交：本提交（提交后见 git log）
+剩余风险：`src/generator.js` 顶层兼容入口按计划保留一个后续 minor 版本并输出弃用提示；深层 `src/generator/*` re-export 已删除。验证：Node.js 22.22.2 下 `npm run format:check`、`npm run lint`、`npm test`、`npm run generate`、`npm run build`、`npm run check` 均通过；`npm run lint` / `npm run check` 仍输出既有 CommonJS 转 ESM 提示。
 
 目标：旧生成器入口从主架构中退出。
 

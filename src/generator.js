@@ -1,19 +1,16 @@
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const { loadConfig } = require('./lib/config/index.ts');
-const { preparePageData } = require('./lib/view-data/page-data.ts');
-const {
-  prepareSiteRenderData,
-  preparePages,
-  prepareNavigationData,
-} = require('./lib/view-data/render-data.ts');
+const lib = require('./lib/index.ts');
 const { wrapAsyncError } = require('./lib/errors.ts');
 
 function main() {
   const repoRoot = path.resolve(__dirname, '..');
-  const buildScript = path.join(repoRoot, 'scripts', 'build.js');
-  const result = spawnSync(process.execPath, [buildScript], {
+  const generateScript = path.join(repoRoot, 'scripts', 'generate.js');
+
+  console.warn('[WARN] src/generator.js 已弃用，请改用 scripts/generate.js 或 src/lib/index.ts');
+
+  const result = spawnSync(process.execPath, [generateScript], {
     cwd: repoRoot,
     stdio: 'inherit',
   });
@@ -22,12 +19,8 @@ function main() {
 }
 
 module.exports = {
+  ...lib,
   main,
-  loadConfig,
-  prepareNavigationData,
-  preparePageData,
-  preparePages,
-  prepareSiteRenderData,
 };
 
 if (require.main === module) {
