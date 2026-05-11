@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@types/node": "^22.19.17",
+    "@types/node": "^25.6.2",
     "astro": "^6.3.1",
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
