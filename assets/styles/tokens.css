@@ -1,0 +1,81 @@
+/* ============================================
+   Design Tokens
+   ============================================
+
+   本文件只放不随主题语义变化的基础设计 token。
+   颜色语义和明暗主题覆盖放在 themes.css。
+   ============================================ */
+
+:root {
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 60px;
+  --app-height: 100vh;
+
+  /* 字体 token 由配置注入时覆盖；这里保留运行时兜底。 */
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-body);
+  --font-weight-body: normal;
+
+  /* Spacing System */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  --page-max-width: 1300px;
+
+  /* Radius System */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Motion System */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-slow: 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Derived surface tokens */
+  --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
+  --surface-frosted-hover: rgba(var(--card-bg-rgb), 0.75);
+  --surface-subtle: rgba(var(--card-bg-rgb), 0.35);
+  --surface-muted: rgba(var(--card-bg-rgb), 0.25);
+  --surface-muted-hover: rgba(var(--card-bg-rgb), 0.22);
+  --surface-soft: rgba(var(--card-bg-rgb), 0.3);
+  --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
+  --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
+
+  /* Derived interaction tokens */
+  --accent-border-strong: rgba(var(--accent-rgb), 0.55);
+  --accent-ring-subtle: rgba(var(--accent-rgb), 0.28);
+  --accent-glow-subtle: rgba(var(--accent-rgb), 0.18);
+  --accent-glow-soft: rgba(var(--accent-rgb), 0.2);
+  --accent-glow-medium: rgba(var(--accent-rgb), 0.35);
+  --accent-glow-strong: rgba(var(--accent-rgb), 0.4);
+
+  --brand-secondary-rgb: 168, 85, 247;
+  --brand-secondary-glow-soft: rgba(var(--brand-secondary-rgb), 0.2);
+  --brand-secondary-glow-strong: rgba(var(--brand-secondary-rgb), 0.4);
+
+  /* Semantic utility tokens */
+  --overlay-backdrop: rgba(0, 0, 0, 0.5);
+  --overlay-backdrop-strong: rgba(0, 0, 0, 0.6);
+  --neutral-code-bg: rgba(127, 127, 127, 0.15);
+  --neutral-code-block-bg: rgba(127, 127, 127, 0.08);
+  --neutral-table-alt-bg: rgba(127, 127, 127, 0.04);
+  --hierarchy-hover-bg: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  --repo-stat-divider: rgba(255, 255, 255, 0.06);
+  --dashboard-light-card-shadow: rgba(0, 0, 0, 0.08);
+  --dashboard-light-block-shadow: rgba(255, 255, 255, 0.15);
+  --dashboard-dark-block-shadow: rgba(0, 0, 0, 0.2);
+  --tooltip-fallback-bg: rgba(47, 48, 53, 0.95);
+}

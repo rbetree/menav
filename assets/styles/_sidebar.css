@@ -359,7 +359,7 @@
 
 /* 激活状态 */
 .submenu-item.active {
-  background-color: rgba(var(--accent-rgb), 0.15);
+  background-color: var(--highlight-bg);
   color: var(--accent-color);
   font-weight: 500;
 }

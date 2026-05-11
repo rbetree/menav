@@ -117,7 +117,7 @@
   padding: 0.2em 0.4em;
   margin: 0;
   border-radius: var(--radius-sm);
-  background-color: rgba(127, 127, 127, 0.15);
+  background-color: var(--neutral-code-bg);
   color: var(--text-bright);
 }
 
@@ -128,7 +128,7 @@
   font-size: 85%;
   line-height: 1.45;
   /* 代码块背景需要与内容卡片区分开：避免与 card-bg 过于接近 */
-  background-color: rgba(127, 127, 127, 0.08);
+  background-color: var(--neutral-code-block-bg);
   border-radius: var(--radius-md);
   margin-top: 0;
   margin-bottom: 16px;
@@ -172,7 +172,7 @@
 
 .content-page table th {
   font-weight: 600;
-  background-color: rgba(var(--card-bg-rgb), 0.3);
+  background-color: var(--surface-soft);
 }
 
 .content-page table tr {
@@ -181,7 +181,7 @@
 }
 
 .content-page table tr:nth-child(2n) {
-  background-color: rgba(127, 127, 127, 0.04);
+  background-color: var(--neutral-table-alt-bg);
 }
 
 .content-page img {

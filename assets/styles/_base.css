@@ -23,7 +23,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-lg);
-  background: rgba(var(--card-bg-rgb), 0.65);
+  background: var(--surface-frosted);
   border: 1px solid var(--border-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -40,7 +40,7 @@
 
 .theme-toggle:hover {
   transform: translateY(-2px);
-  background: rgba(var(--card-bg-rgb), 0.75);
+  background: var(--surface-frosted-hover);
   box-shadow: 0 6px 20px var(--shadow-color);
   color: var(--accent-color);
 }
@@ -224,7 +224,7 @@ body.loaded .layout {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-backdrop);
   opacity: 0;
   visibility: hidden;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

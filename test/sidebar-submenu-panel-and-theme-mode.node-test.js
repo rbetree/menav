@@ -21,6 +21,42 @@ test('Astro 默认布局：应输出 data-theme-mode，支持 dark/light/system 
   assert.ok(content.includes("site.theme?.mode || 'dark'"));
 });
 
+test('Phase 10 样式：入口应使用 token/theme/base/layout/component/utilities 分层', () => {
+  const repoRoot = path.resolve(__dirname, '..');
+  const stylePath = path.join(repoRoot, 'assets', 'style.css');
+  const styleContent = fs.readFileSync(stylePath, 'utf8');
+  const expectedImports = [
+    "@import './styles/tokens.css';",
+    "@import './styles/themes.css';",
+    "@import './styles/base.css';",
+    "@import './styles/layout.css';",
+    "@import './styles/components.css';",
+    "@import './styles/utilities.css';",
+  ];
+
+  assert.deepEqual(
+    expectedImports.map((entry) => styleContent.indexOf(entry) >= 0),
+    expectedImports.map(() => true),
+    'assets/style.css 应导入完整分层入口'
+  );
+  assert.deepEqual(
+    expectedImports,
+    expectedImports.toSorted((a, b) => styleContent.indexOf(a) - styleContent.indexOf(b)),
+    '分层入口导入顺序应保持 tokens -> themes -> base -> layout -> components -> utilities'
+  );
+
+  for (const name of [
+    'tokens.css',
+    'themes.css',
+    'base.css',
+    'layout.css',
+    'components.css',
+    'utilities.css',
+  ]) {
+    assert.ok(fs.existsSync(path.join(repoRoot, 'assets', 'styles', name)), `${name} 应存在`);
+  }
+});
+
 test('侧边栏样式：收起时不应在页面按钮下方显示目录子菜单', () => {
   const repoRoot = path.resolve(__dirname, '..');
   const sidebarStylePath = path.join(repoRoot, 'assets', 'styles', '_sidebar.css');

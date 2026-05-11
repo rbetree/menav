@@ -85,12 +85,12 @@
 
 .category-header[data-toggle='category']:hover {
   transform: translateY(-2px);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  background: var(--hierarchy-hover-bg);
 }
 
 .group-header[data-toggle='group']:hover {
   transform: translateY(-2px);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  background: var(--hierarchy-hover-bg);
 }
 
 .category-header[data-toggle='category']:active {
@@ -501,11 +501,11 @@
   /* 外层已复用一级分类卡片（.category），这里仅保留热力图内部布局/色阶 */
   --gh-text: var(--text-color);
   --gh-text-muted: var(--text-muted);
-  --gh-level-0: rgba(255, 255, 255, 0.08);
-  --gh-level-1: rgba(55, 178, 77, 0.35);
-  --gh-level-2: rgba(55, 178, 77, 0.55);
-  --gh-level-3: rgba(55, 178, 77, 0.75);
-  --gh-level-4: rgba(55, 178, 77, 0.95);
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
   --gh-radius: 3px;
 
   margin: 0 auto 1.2rem auto;
@@ -519,11 +519,11 @@
 html.theme-preload .page-template-projects .gh-heatmap-category,
 body.light-theme .page-template-projects .gh-heatmap-category {
   /* 浅色主题下，空格子需要比背景更明显一点 */
-  --gh-level-0: #d8dee4;
-  --gh-level-1: #9be9a8;
-  --gh-level-2: #40c463;
-  --gh-level-3: #30a14e;
-  --gh-level-4: #216e39;
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
 }
 
 /* 标题中的用户名（@xxx）更弱化一点，像副标题 */
@@ -938,7 +938,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
   align-items: center;
   gap: 16px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--repo-stat-divider);
   font-size: 0.8rem;
   color: var(--nav-item-color);
   opacity: 0.85;
@@ -1113,7 +1113,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-md);
-  background: rgba(var(--card-bg-rgb), 0.35);
+  background: var(--surface-subtle);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -1267,9 +1267,9 @@ body.light-theme .page-template-projects .gh-heatmap-category {
 
 .custom-tooltip {
   position: fixed;
-  background: rgba(47, 48, 53, 0.95);
+  background: var(--tooltip-fallback-bg);
   /* Fallback dark */
-  background: rgba(var(--card-bg-rgb), 0.95);
+  background: var(--surface-tooltip);
   color: var(--text-bright);
   padding: 0.5rem 0.8rem;
   border-radius: var(--radius-md);

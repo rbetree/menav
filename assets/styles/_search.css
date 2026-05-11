@@ -23,7 +23,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-lg);
-  background: rgba(var(--card-bg-rgb), 0.65);
+  background: var(--surface-frosted);
   border: 1px solid var(--border-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -40,7 +40,7 @@
 
 .category-toggle:hover {
   transform: translateY(-2px);
-  background: rgba(var(--card-bg-rgb), 0.75);
+  background: var(--surface-frosted-hover);
   box-shadow: 0 6px 20px var(--shadow-color);
   color: var(--accent-color);
 }
@@ -63,7 +63,7 @@
   align-items: stretch;
   --search-status-right: 0.9rem;
   --search-hint-right: 1.6rem;
-  background: rgba(var(--card-bg-rgb), 0.65);
+  background: var(--surface-frosted);
   border: 1px solid var(--border-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -76,10 +76,10 @@
 }
 
 .search-box:focus-within {
-  border-color: rgba(var(--accent-rgb), 0.55);
+  border-color: var(--accent-border-strong);
   box-shadow:
-    0 0 0 1px rgba(var(--accent-rgb), 0.28),
-    0 0 18px rgba(var(--accent-rgb), 0.18),
+    0 0 0 1px var(--accent-ring-subtle),
+    0 0 18px var(--accent-glow-subtle),
     0 6px 24px var(--shadow-color);
 }
 
@@ -127,7 +127,7 @@
 
 .search-box input:focus {
   outline: none;
-  background-color: rgba(var(--card-bg-rgb), 0.25);
+  background-color: var(--surface-muted);
   box-shadow: none;
 }
 
@@ -145,7 +145,7 @@
   padding: 0.1rem 0.4rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: rgba(var(--card-bg-rgb), 0.25);
+  background: var(--surface-muted);
   font-size: 0.78rem;
   line-height: 1.2;
   color: var(--text-muted);
@@ -180,7 +180,7 @@
 }
 
 .search-engine-button:hover {
-  background: rgba(var(--card-bg-rgb), 0.25);
+  background: var(--surface-muted);
 }
 
 .search-engine-button:focus-visible {
@@ -224,7 +224,7 @@
 }
 
 .search-box.dropdown-open .search-engine-button {
-  background: rgba(var(--card-bg-rgb), 0.25);
+  background: var(--surface-muted);
 }
 
 /* 搜索引擎下拉菜单 */
@@ -232,7 +232,7 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  background: rgba(var(--card-bg-rgb), 0.9);
+  background: var(--surface-dropdown);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-md);
@@ -269,7 +269,7 @@
 }
 
 .search-engine-option:hover {
-  background: rgba(var(--card-bg-rgb), 0.22);
+  background: var(--surface-muted-hover);
 }
 
 .search-engine-option:focus-visible {
