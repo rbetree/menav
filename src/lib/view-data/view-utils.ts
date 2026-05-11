@@ -6,22 +6,138 @@ const path = require('node:path') as typeof import('node:path');
 const { escapeHtml } = require(path.join(process.cwd(), 'src', 'lib', 'security', 'html.ts')) as {
   escapeHtml: (unsafe: unknown) => string;
 };
-const { extractDomain, formatDate } = require(
-  path.join(process.cwd(), 'src', 'helpers', 'formatters.js')
-) as {
-  extractDomain: (url: unknown) => string;
-  formatDate: (date: unknown, format?: string) => string;
+
+type ViewRoot = Record<string, unknown> & {
+  icons?: { region?: unknown };
+  site?: {
+    security?: {
+      allowedSchemes?: unknown;
+    };
+  };
 };
-const { faviconV2Url, faviconFallbackUrl, safeUrl } = require(
-  path.join(process.cwd(), 'src', 'helpers', 'utils.js')
-) as {
-  faviconV2Url: (url: unknown, options: { data: { root: Record<string, unknown> } }) => string;
-  faviconFallbackUrl: (
-    url: unknown,
-    options: { data: { root: Record<string, unknown> } }
-  ) => string;
-  safeUrl: (url: unknown, options: { data: { root: Record<string, unknown> } }) => string;
-};
+
+function normalizeRoot(root: Record<string, unknown> | null | undefined): ViewRoot {
+  return root && typeof root === 'object' ? (root as ViewRoot) : {};
+}
+
+function extractDomain(url: unknown): string {
+  if (!url) return '';
+
+  try {
+    let domain = String(url).replace(/^[a-zA-Z]+:\/\//, '');
+    domain = domain.split('/')[0].split('?')[0].split('#')[0];
+    domain = domain.split(':')[0];
+    return domain;
+  } catch (error) {
+    return String(url);
+  }
+}
+
+function formatDate(date: unknown, format = 'YYYY-MM-DD'): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '';
+
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const day = dateObj.getDate();
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const seconds = dateObj.getSeconds();
+
+  return format
+    .replace('YYYY', String(year))
+    .replace('MM', String(month).padStart(2, '0'))
+    .replace('DD', String(day).padStart(2, '0'))
+    .replace('HH', String(hours).padStart(2, '0'))
+    .replace('mm', String(minutes).padStart(2, '0'))
+    .replace('ss', String(seconds).padStart(2, '0'));
+}
+
+function getIconRegion(root: Record<string, unknown> | null | undefined): string {
+  const normalizedRoot = normalizeRoot(root);
+  return normalizedRoot.icons?.region === 'cn' ? 'cn' : 'com';
+}
+
+function buildFaviconV2Url(url: unknown, domain: string): string {
+  if (!url) return '';
+
+  try {
+    const encodedUrl = encodeURIComponent(String(url));
+    return `https://${domain}/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodedUrl}&size=32&drop_404_icon=true`;
+  } catch (error) {
+    return '';
+  }
+}
+
+function getFaviconV2Url(url: unknown, root: Record<string, unknown> | null | undefined): string {
+  const region = getIconRegion(root);
+  const domain = region === 'cn' ? 't3.gstatic.cn' : 't3.gstatic.com';
+  return buildFaviconV2Url(url, domain);
+}
+
+function getFaviconFallbackUrl(
+  url: unknown,
+  root: Record<string, unknown> | null | undefined
+): string {
+  const region = getIconRegion(root);
+  const domain = region === 'cn' ? 't3.gstatic.com' : 't3.gstatic.cn';
+  return buildFaviconV2Url(url, domain);
+}
+
+function getAllowedSchemes(root: Record<string, unknown> | null | undefined): string[] {
+  const normalizedRoot = normalizeRoot(root);
+  const allowedFromConfig = normalizedRoot.site?.security?.allowedSchemes;
+
+  if (Array.isArray(allowedFromConfig) && allowedFromConfig.length > 0) {
+    return allowedFromConfig
+      .map((scheme) =>
+        String(scheme || '')
+          .trim()
+          .toLowerCase()
+          .replace(/:$/, '')
+      )
+      .filter(Boolean);
+  }
+
+  return ['http', 'https', 'mailto', 'tel'];
+}
+
+function isRelativeUrl(url: string): boolean {
+  return (
+    url.startsWith('#') ||
+    url.startsWith('/') ||
+    url.startsWith('./') ||
+    url.startsWith('../') ||
+    url.startsWith('?')
+  );
+}
+
+function getSafeUrl(url: unknown, root: Record<string, unknown> | null | undefined): string {
+  const raw = String(url || '').trim();
+  if (!raw) return '#';
+
+  if (isRelativeUrl(raw)) return raw;
+
+  if (raw.startsWith('//')) {
+    console.warn(`[WARN] 已拦截不安全 URL（协议相对形式）：${raw}`);
+    return '#';
+  }
+
+  try {
+    const parsed = new URL(raw);
+    const scheme = String(parsed.protocol || '')
+      .toLowerCase()
+      .replace(/:$/, '');
+    if (getAllowedSchemes(root).includes(scheme)) return raw;
+    console.warn(`[WARN] 已拦截不安全 URL scheme：${raw}`);
+    return '#';
+  } catch (error) {
+    console.warn(`[WARN] 已拦截无法解析的 URL：${raw}`);
+    return '#';
+  }
+}
 
 function attrs(attributes: Record<string, unknown>): string {
   return Object.entries(attributes)
@@ -31,21 +147,6 @@ function attrs(attributes: Record<string, unknown>): string {
       return `${escapeHtml(name)}="${escapeHtml(value)}"`;
     })
     .join(' ');
-}
-
-function getSafeUrl(url: unknown, root: Record<string, unknown> | null | undefined): string {
-  return safeUrl(url, { data: { root: root || {} } });
-}
-
-function getFaviconV2Url(url: unknown, root: Record<string, unknown> | null | undefined): string {
-  return faviconV2Url(url, { data: { root: root || {} } });
-}
-
-function getFaviconFallbackUrl(
-  url: unknown,
-  root: Record<string, unknown> | null | undefined
-): string {
-  return faviconFallbackUrl(url, { data: { root: root || {} } });
 }
 
 function isHttpUrl(url: unknown): boolean {

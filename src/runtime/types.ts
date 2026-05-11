@@ -1,3 +1,4 @@
+import type { PageRegistryItem } from '../types/page';
 import type { SearchIndexItem } from '../types/search';
 
 export type RuntimeElement = HTMLElement & {
@@ -7,9 +8,7 @@ export type RuntimeElement = HTMLElement & {
 
 export type RuntimeElementList<T extends Element = HTMLElement> = T[];
 
-export type RuntimeSearchIndexItem = SearchIndexItem & {
-  element?: HTMLElement;
-};
+export type RuntimeSearchIndexItem = SearchIndexItem;
 
 export type RuntimeState = {
   homePageId: string;
@@ -24,7 +23,8 @@ export type RuntimeState = {
   searchIndex: {
     initialized: boolean;
     loading?: boolean;
-    source?: 'build' | 'dom';
+    source?: 'build';
+    error?: string;
     items: RuntimeSearchIndexItem[];
   };
 };
@@ -95,7 +95,7 @@ export type MenavIconConfig = {
 export type MenavConfigData = Record<string, unknown> & {
   homePageId?: unknown;
   navigation?: Array<{ id?: unknown }>;
-  pageRegistry?: Array<{ id?: unknown; name?: unknown; template?: unknown; active?: unknown }>;
+  pageRegistry?: PageRegistryItem[];
   pageTemplates?: Record<string, unknown>;
   site?: {
     security?: {

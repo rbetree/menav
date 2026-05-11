@@ -1,4 +1,11 @@
-import type { MenavConfig, RuntimeDom, RuntimeRouterApi, RuntimeRoutingApi, RuntimeState } from '../types';
+import type { PageRegistryItem } from '../../types/page';
+import type {
+  MenavConfig,
+  RuntimeDom,
+  RuntimeRouterApi,
+  RuntimeRoutingApi,
+  RuntimeState,
+} from '../types';
 
 const nested = require('./nested.ts') as { initializeNestedCategories: () => void };
 const { buildRoutePath, parseRouteFromHref } =
@@ -10,7 +17,6 @@ type UrlStatePatch = { pageId?: string; hash?: string | null };
 type UrlStateOptions = { replace?: boolean };
 type ScrollCategoryOptions = { categoryId?: string | null; categoryName?: string | null };
 type SubmenuEntry = { wrapper: HTMLElement; submenu: HTMLElement };
-type RuntimePageRegistryItem = { id: string; name?: string; template?: string; active?: boolean };
 
 module.exports = function initRouting(
   state: RuntimeState,
@@ -82,7 +88,7 @@ module.exports = function initRouting(
     const normalizeText = (value: unknown): string =>
       String(value === null || value === undefined ? '' : value).trim();
 
-    const pageRegistry: RuntimePageRegistryItem[] = (() => {
+    const pageRegistry: PageRegistryItem[] = (() => {
       try {
         const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
         const registry =
@@ -90,18 +96,18 @@ module.exports = function initRouting(
             ? config.data.pageRegistry
             : [];
         return registry
-          .map((entry): RuntimePageRegistryItem | null => {
+          .map((entry): PageRegistryItem | null => {
             if (!entry || typeof entry !== 'object') return null;
             const id = normalizeText(entry.id);
             if (!id) return null;
             return {
               id,
-              name: normalizeText(entry.name),
-              template: normalizeText(entry.template),
+              name: normalizeText(entry.name) || id,
+              template: normalizeText(entry.template) || 'page',
               active: Boolean(entry.active),
             };
           })
-          .filter((entry): entry is RuntimePageRegistryItem => Boolean(entry));
+          .filter((entry): entry is PageRegistryItem => Boolean(entry));
       } catch (error) {
         return [];
       }
@@ -460,7 +466,6 @@ module.exports = function initRouting(
     } else {
       console.error('Category toggle button not found');
     }
-
   });
 
   return { showPage };

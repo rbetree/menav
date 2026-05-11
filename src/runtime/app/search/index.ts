@@ -168,76 +168,6 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
     state.isSearchActive = false;
   }
 
-  function buildDomSearchIndex(): void {
-    state.searchIndex.items = [];
-
-    try {
-      // 为每个页面创建索引
-      if (!state.pages) {
-        state.pages = qsa(SELECTORS.page);
-      }
-
-      state.pages.forEach((page: HTMLElement) => {
-        if (page.id === 'search-results') return;
-
-        const pageId = page.id;
-
-        qsa(SELECTORS.siteCard, page).forEach((card: HTMLElement) => {
-          try {
-            // 排除“扩展写回影子结构”等不应参与搜索的卡片
-            if (card.closest('[data-search-exclude="true"]')) return;
-
-            // 兼容不同页面/卡片样式：优先取可见文本，其次回退到 data-*（确保 projects repo 卡片也能被搜索）
-            const dataTitle = card.dataset?.name || card.getAttribute('data-name') || '';
-            const dataDescription =
-              card.dataset?.description || card.getAttribute('data-description') || '';
-
-            const titleText =
-              card.querySelector('h3')?.textContent ||
-              card.querySelector('.repo-title')?.textContent ||
-              dataTitle;
-            const descriptionText =
-              card.querySelector('p')?.textContent ||
-              card.querySelector('.repo-desc')?.textContent ||
-              dataDescription;
-
-            const title = normalizeText(titleText);
-            const description = normalizeText(descriptionText);
-            const url = (card as HTMLAnchorElement).href || card.getAttribute('href') || '#';
-            const icon =
-              card.querySelector('i.icon-fallback')?.className ||
-              card.querySelector('i')?.className ||
-              '';
-
-            // 将卡片信息添加到索引中
-            state.searchIndex.items.push({
-              pageId,
-              title,
-              description,
-              url,
-              icon,
-              type: 'site',
-              element: card,
-              // 预先计算搜索文本，提高搜索效率
-              searchText: `${title} ${description}`.toLowerCase(),
-            });
-          } catch (cardError) {
-            console.error('Error processing card:', cardError);
-          }
-        });
-      });
-
-      state.searchIndex.initialized = true;
-      state.searchIndex.loading = false;
-      state.searchIndex.source = 'dom';
-    } catch (error) {
-      console.error('Error initializing search index:', error);
-      state.searchIndex.initialized = true; // 防止反复尝试初始化
-      state.searchIndex.loading = false;
-      state.searchIndex.source = 'dom';
-    }
-  }
-
   async function loadBuildSearchIndex(): Promise<void> {
     if (state.searchIndex.initialized || state.searchIndex.loading) return;
 
@@ -259,15 +189,21 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
         );
 
       state.searchIndex.items = items;
+      state.searchIndex.error = undefined;
       state.searchIndex.initialized = true;
       state.searchIndex.loading = false;
       state.searchIndex.source = 'build';
     } catch (error) {
-      if (!state.searchIndex.initialized) buildDomSearchIndex();
+      console.error('Error loading search index:', error);
+      state.searchIndex.items = [];
+      state.searchIndex.initialized = true;
+      state.searchIndex.loading = false;
+      state.searchIndex.source = 'build';
+      state.searchIndex.error = error instanceof Error ? error.message : String(error);
     }
   }
 
-  // 初始化搜索索引：优先使用构建期索引，失败时回退到 DOM 扫描。
+  // 初始化搜索索引：只使用构建期 search-index.json，不再从页面卡片生成索引。
   function initSearchIndex(): void {
     if (state.searchIndex.initialized || state.searchIndex.loading) return;
     void loadBuildSearchIndex();
@@ -275,10 +211,9 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
 
   // 搜索功能
   function performSearch(searchTerm: string): void {
-    // 确保搜索索引已初始化
+    // 确保搜索索引已初始化。异步加载尚未完成时先显示空结果，不做 DOM 扫描回退。
     if (!state.searchIndex.initialized) {
       initSearchIndex();
-      if (!state.searchIndex.initialized) buildDomSearchIndex();
     }
 
     searchTerm = searchTerm.toLowerCase().trim();
@@ -314,10 +249,8 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
         if (!searchResults.has(item.pageId)) {
           searchResults.set(item.pageId, []);
         }
-        // 克隆元素以避免修改原始 DOM；构建期索引用数据动态生成结果卡片。
-        const card = item.element
-          ? (item.element.cloneNode(true) as HTMLElement)
-          : createCardFromIndexItem(item);
+        // 构建期索引用数据动态生成结果卡片，不再依赖原页面 DOM 克隆。
+        const card = createCardFromIndexItem(item);
         searchResults.get(item.pageId)?.push(card);
         hasResults = true;
       });
@@ -367,9 +300,14 @@ module.exports = function initSearch(state: RuntimeState, dom: RuntimeDom): Runt
           // 更新搜索结果页面状态
           const subtitle = searchResultsPageElement.querySelector('.subtitle');
           if (subtitle) {
+            const emptyMessage = state.searchIndex.loading
+              ? '搜索索引加载中，请稍后再试'
+              : state.searchIndex.error
+                ? '搜索索引加载失败，请重新运行构建或刷新页面'
+                : '未找到匹配的结果';
             subtitle.textContent = hasResults
               ? `在所有页面中找到 ${matchedItems.length} 个匹配项`
-              : '未找到匹配的结果';
+              : emptyMessage;
           }
 
           // 显示搜索结果页面

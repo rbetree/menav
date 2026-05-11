@@ -1,3 +1,4 @@
+import type { PageRegistryItem } from '../../types/page';
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -10,12 +11,6 @@ type AnyRecord = Record<string, unknown>;
 type NavigationItemLike = AnyRecord & {
   id?: unknown;
   submenu?: unknown;
-};
-type PageRegistryItem = {
-  id: string;
-  name: string;
-  template: string;
-  active: boolean;
 };
 type PageConfigLike = AnyRecord & {
   categories?: unknown;

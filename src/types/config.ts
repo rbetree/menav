@@ -1,3 +1,4 @@
+import type { PageRegistryItem } from './page';
 import type { RenderConfig } from '../lib/config/schema/site';
 import type {
   NavigationItem as SchemaNavigationItem,
@@ -6,13 +7,6 @@ import type {
 
 export type NavigationItem = SchemaNavigationItem;
 export type NavigationSubmenuItem = SchemaNavigationSubmenuItem;
-
-export type PageRegistryItem = {
-  id: string;
-  name: string;
-  template: string;
-  active: boolean;
-};
 
 export type AppConfig = RenderConfig & {
   homePageId?: string | null;

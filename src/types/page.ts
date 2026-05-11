@@ -33,6 +33,13 @@ export interface PageData {
   [key: string]: unknown;
 }
 
+export interface PageRegistryItem {
+  id: string;
+  name: string;
+  template: string;
+  active: boolean;
+}
+
 export interface PageEntry {
   id: string;
   isActive?: boolean;

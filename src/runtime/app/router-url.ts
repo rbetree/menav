@@ -1,6 +1,6 @@
-type PageRegistryEntry = {
-  id?: unknown;
-};
+import type { PageRegistryItem } from '../../types/page';
+
+type PageRegistryEntry = Pick<PageRegistryItem, 'id'>;
 
 type RouteParseOptions = {
   pageRegistry?: PageRegistryEntry[] | null;
