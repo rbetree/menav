@@ -1,4 +1,11 @@
-import type { MenavConfig, RuntimeDom, RuntimeRoutingApi, RuntimeSearchApi, RuntimeState, RuntimeUiApi } from '../types';
+import type {
+  MenavConfig,
+  RuntimeDom,
+  RuntimeRoutingApi,
+  RuntimeSearchApi,
+  RuntimeState,
+  RuntimeUiApi,
+} from '../types';
 
 const initUi = require('./ui.ts') as (state: RuntimeState, dom: RuntimeDom) => RuntimeUiApi;
 const initSearch = require('./search/index.ts') as (state: RuntimeState, dom: RuntimeDom) => RuntimeSearchApi;
@@ -42,6 +49,27 @@ function detectHomePageId(): string {
   if (firstPage && firstPage.id) return firstPage.id;
 
   return 'home';
+}
+
+function initializeMenavVersion(): void {
+  try {
+    const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
+    const version = config && config.version ? String(config.version) : '';
+    if (version && window.MeNav) {
+      window.MeNav.version = version;
+      console.log('MeNav API initialized with version:', version);
+    }
+  } catch (error) {
+    console.error('Error initializing MeNav API:', error);
+  }
+}
+
+function initializeSearchIndex(search: RuntimeSearchApi): void {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => search.initSearchIndex());
+  } else {
+    setTimeout(search.initSearchIndex, 1000);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -119,5 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const ui = initUi(state, dom);
   const search = initSearch(state, dom);
 
+  ui.initTheme();
+  ui.initSidebarState();
+  search.initSearchEngine();
+  initializeMenavVersion();
+
   initRouting(state, dom, { ui, search });
+
+  initializeSearchIndex(search);
 });

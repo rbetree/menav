@@ -7,12 +7,20 @@ import type {
 export type NavigationItem = SchemaNavigationItem;
 export type NavigationSubmenuItem = SchemaNavigationSubmenuItem;
 
+export type PageRegistryItem = {
+  id: string;
+  name: string;
+  template: string;
+  active: boolean;
+};
+
 export type AppConfig = RenderConfig & {
   homePageId?: string | null;
   configJSON?: string;
   extensionConfig?: Record<string, unknown>;
   extensionConfigUrl?: string;
   navigationData?: NavigationItem[];
+  pageRegistry?: PageRegistryItem[];
   socialLinks?: unknown[];
   _meta?: {
     version?: string;

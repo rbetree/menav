@@ -44,7 +44,7 @@ npm run check
 Astro 组件修改时必须保持以下契约稳定：
 
 - 页面仍为单页模型：所有导航页面在 `index.html` 中对应一个 `.page#<id>` 容器。
-- 运行时导航仍使用 `?page=<id>` 和 `?page=<id>#<categorySlug>`。
+- 运行时导航仍使用 `/?page=<id>` 和 `/?page=<id>#<categorySlug>`；未知路径不做旧式自动回跳。
 - 页面中保留 `#menav-config-data`，独立配置文件保留 `menav-config.json`。
 - 运行时保留 `window.MeNav` API。
 - 导航、分类、站点、社交链接保留关键 `data-*`：`data-type`、`data-id`、`data-name`、`data-url`、`data-icon`、`data-container` 等。

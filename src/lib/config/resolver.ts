@@ -11,6 +11,12 @@ type NavigationItemLike = AnyRecord & {
   id?: unknown;
   submenu?: unknown;
 };
+type PageRegistryItem = {
+  id: string;
+  name: string;
+  template: string;
+  active: boolean;
+};
 type PageConfigLike = AnyRecord & {
   categories?: unknown;
   template?: unknown;
@@ -152,12 +158,20 @@ function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
       : process.env.npm_package_version || '1.0.0';
 
   const pageTemplates: Record<string, string> = {};
+  const pageRegistry: PageRegistryItem[] = [];
   if (renderData && Array.isArray(renderData.navigation)) {
-    renderData.navigation.forEach((navItem: unknown) => {
+    renderData.navigation.forEach((navItem: unknown, index: number) => {
       if (!isRecord(navItem)) return;
       const pageId = navItem.id ? String(navItem.id).trim() : '';
       if (!pageId) return;
-      pageTemplates[pageId] = resolveTemplateNameForPage(pageId, renderData);
+      const template = resolveTemplateNameForPage(pageId, renderData);
+      pageTemplates[pageId] = template;
+      pageRegistry.push({
+        id: pageId,
+        name: navItem.name ? String(navItem.name).trim() : pageId,
+        template,
+        active: index === 0,
+      });
     });
   }
 
@@ -172,6 +186,7 @@ function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
     icons: renderData && renderData.icons ? renderData.icons : undefined,
     data: {
       homePageId: renderData && renderData.homePageId ? renderData.homePageId : null,
+      pageRegistry,
       pageTemplates,
       site: allowedSchemes ? { security: { allowedSchemes } } : undefined,
     },
@@ -214,11 +229,20 @@ function prepareRenderData(config: AnyRecord): AnyRecord {
     Array.isArray(renderData.navigation) && renderData.navigation[0]
       ? (renderData.navigation[0] as NavigationItemLike).id
       : null;
+  renderData.pageRegistry = [];
 
   if (Array.isArray(renderData.navigation)) {
-    renderData.navigation.forEach((navItem: unknown) => {
+    renderData.navigation.forEach((navItem: unknown, index: number) => {
       if (!isRecord(navItem)) return;
       const pageId = navItem.id ? String(navItem.id) : '';
+      if (pageId) {
+        (renderData.pageRegistry as PageRegistryItem[]).push({
+          id: pageId,
+          name: navItem.name ? String(navItem.name).trim() : pageId,
+          template: resolveTemplateNameForPage(pageId, renderData),
+          active: index === 0,
+        });
+      }
       const pageConfig = pageId ? (renderData[pageId] as PageConfigLike | undefined) : undefined;
       if (pageConfig && Array.isArray(pageConfig.categories)) {
         assignCategorySlugs(pageConfig.categories, new Map());

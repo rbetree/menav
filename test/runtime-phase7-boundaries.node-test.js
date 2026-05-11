@@ -66,6 +66,22 @@ test('Phase 7 runtime：window.MeNav facade 应由 extension-api 统一组装', 
   }
 });
 
+test('Phase 9 runtime：启动初始化应留在 app/index.ts，router 只处理路由', () => {
+  const appIndex = read('src/runtime/app/index.ts');
+  const router = read('src/runtime/app/router.ts');
+
+  for (const token of [
+    'ui.initTheme()',
+    'ui.initSidebarState()',
+    'search.initSearchEngine()',
+    'search.initSearchIndex()',
+    'window.MeNav.version = version',
+  ]) {
+    assert.ok(appIndex.includes(token), `app/index.ts 应保留 ${token}`);
+    assert.ok(!router.includes(token), `router.ts 不应保留 ${token}`);
+  }
+});
+
 test('Phase 7 runtime：全局 DOM selector 应集中到 dom/selectors.ts', () => {
   const selectorPattern = /document\.querySelector|querySelectorAll|getElementById/g;
   const matches = collectRuntimeTsFiles().flatMap((relativePath) => {

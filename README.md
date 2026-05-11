@@ -131,6 +131,8 @@ npm run dev
 
 开发服务器默认从 `http://localhost:5173` 启动；若默认端口被占用，会自动尝试后续端口。需要固定端口时可设置 `PORT=5174 npm run dev` 或 `MENAV_PORT=5174 npm run dev`，显式端口被占用会直接报错。
 
+页面深链接统一使用 `/?page=<页面ID>`，分类定位使用 `/?page=<页面ID>#<分类slug>`。未知路径不会自动回跳，静态部署时请分享上述查询参数形式的 URL。
+
 ```bash
 # 离线启动开发服务器（不刷新联网缓存）
 npm run dev:offline

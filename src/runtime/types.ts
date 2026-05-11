@@ -95,6 +95,7 @@ export type MenavIconConfig = {
 export type MenavConfigData = Record<string, unknown> & {
   homePageId?: unknown;
   navigation?: Array<{ id?: unknown }>;
+  pageRegistry?: Array<{ id?: unknown; name?: unknown; template?: unknown; active?: unknown }>;
   pageTemplates?: Record<string, unknown>;
   site?: {
     security?: {

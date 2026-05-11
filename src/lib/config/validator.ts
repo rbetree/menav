@@ -48,7 +48,9 @@ type ZodIssueLike = {
   message: string;
 };
 type SchemaLike = {
-  safeParse: (value: unknown) => { success: true } | { success: false; error: { issues: ZodIssueLike[] } };
+  safeParse: (
+    value: unknown
+  ) => { success: true } | { success: false; error: { issues: ZodIssueLike[] } };
 };
 
 const TOP_LEVEL_NON_PAGE_KEYS = new Set([
@@ -63,6 +65,7 @@ const TOP_LEVEL_NON_PAGE_KEYS = new Set([
   'icons',
   'navigation',
   'navigationData',
+  'pageRegistry',
   'profile',
   'rss',
   'site',
@@ -125,17 +128,30 @@ function getConfigValidationErrors(config: unknown): ValidationIssue[] {
   }
 
   collectSchemaIssues(issues, siteConfigSchema, config.site, 'site');
-  collectSchemaIssues(issues, zArray(navigationItemSchema, 'navigation 必须是数组'), config.navigation, 'navigation');
+  collectSchemaIssues(
+    issues,
+    zArray(navigationItemSchema, 'navigation 必须是数组'),
+    config.navigation,
+    'navigation'
+  );
 
   if (config.fonts !== undefined) collectSchemaIssues(issues, fontsSchema, config.fonts, 'fonts');
-  if (config.profile !== undefined) collectSchemaIssues(issues, profileSchema, config.profile, 'profile');
+  if (config.profile !== undefined)
+    collectSchemaIssues(issues, profileSchema, config.profile, 'profile');
   if (config.icons !== undefined) collectSchemaIssues(issues, iconsSchema, config.icons, 'icons');
   if (config.theme !== undefined) collectSchemaIssues(issues, themeSchema, config.theme, 'theme');
-  if (config.security !== undefined) collectSchemaIssues(issues, securitySchema, config.security, 'security');
+  if (config.security !== undefined)
+    collectSchemaIssues(issues, securitySchema, config.security, 'security');
   if (config.rss !== undefined) collectSchemaIssues(issues, rssSchema, config.rss, 'rss');
-  if (config.github !== undefined) collectSchemaIssues(issues, githubSchema, config.github, 'github');
+  if (config.github !== undefined)
+    collectSchemaIssues(issues, githubSchema, config.github, 'github');
   if (config.social !== undefined) {
-    collectSchemaIssues(issues, zArray(socialItemSchema, 'social 必须是数组'), config.social, 'social');
+    collectSchemaIssues(
+      issues,
+      zArray(socialItemSchema, 'social 必须是数组'),
+      config.social,
+      'social'
+    );
   }
 
   getPageValidationEntries(config).forEach(([key, value]) => {

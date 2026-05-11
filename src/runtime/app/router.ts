@@ -1,12 +1,16 @@
 import type { MenavConfig, RuntimeDom, RuntimeRouterApi, RuntimeRoutingApi, RuntimeState } from '../types';
 
 const nested = require('./nested.ts') as { initializeNestedCategories: () => void };
-const { SELECTORS, byId, qs, qsa } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+const { buildRoutePath, parseRouteFromHref } =
+  require('./router-url.ts') as typeof import('./router-url');
+const { SELECTORS, byId, qs, qsa } =
+  require('../dom/selectors.ts') as typeof import('../dom/selectors');
 
 type UrlStatePatch = { pageId?: string; hash?: string | null };
 type UrlStateOptions = { replace?: boolean };
 type ScrollCategoryOptions = { categoryId?: string | null; categoryName?: string | null };
 type SubmenuEntry = { wrapper: HTMLElement; submenu: HTMLElement };
+type RuntimePageRegistryItem = { id: string; name?: string; template?: string; active?: boolean };
 
 module.exports = function initRouting(
   state: RuntimeState,
@@ -77,6 +81,32 @@ module.exports = function initRouting(
     // 方案 A：用 ?page=<id> 作为页面深链接（兼容 GitHub Pages 静态托管）
     const normalizeText = (value: unknown): string =>
       String(value === null || value === undefined ? '' : value).trim();
+
+    const pageRegistry: RuntimePageRegistryItem[] = (() => {
+      try {
+        const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
+        const registry =
+          config && config.data && Array.isArray(config.data.pageRegistry)
+            ? config.data.pageRegistry
+            : [];
+        return registry
+          .map((entry): RuntimePageRegistryItem | null => {
+            if (!entry || typeof entry !== 'object') return null;
+            const id = normalizeText(entry.id);
+            if (!id) return null;
+            return {
+              id,
+              name: normalizeText(entry.name),
+              template: normalizeText(entry.template),
+              active: Boolean(entry.active),
+            };
+          })
+          .filter((entry): entry is RuntimePageRegistryItem => Boolean(entry));
+      } catch (error) {
+        return [];
+      }
+    })();
+    const pageRegistryIds = new Set(pageRegistry.map((entry) => entry.id));
 
     // 侧边栏子菜单面板：将“当前页面的分类列表”放到独立区域滚动，避免挤压“页面列表”
     const submenuPanel = qs(SELECTORS.submenuPanel);
@@ -158,49 +188,24 @@ module.exports = function initRouting(
     const isValidPageId = (pageId: unknown): boolean => {
       const id = normalizeText(pageId);
       if (!id) return false;
+      if (pageRegistryIds.size > 0 && !pageRegistryIds.has(id)) return false;
       const el = byId(id);
       return Boolean(el && el.classList && el.classList.contains('page'));
     };
 
-    const getRawPageIdFromUrl = () => {
-      try {
-        const url = new URL(window.location.href);
-        return normalizeText(url.searchParams.get('page'));
-      } catch (error) {
-        return '';
-      }
-    };
-
-    const getPageIdFromUrl = () => {
-      try {
-        const url = new URL(window.location.href);
-        const pageId = normalizeText(url.searchParams.get('page'));
-        return isValidPageId(pageId) ? pageId : '';
-      } catch (error) {
-        return '';
-      }
-    };
+    const getRouteFromLocation = () =>
+      parseRouteFromHref(window.location.href, {
+        pageRegistry,
+        homePageId: state.homePageId,
+        fallbackPageId: 'home',
+      });
 
     const setUrlState = (next: UrlStatePatch, options: UrlStateOptions = {}): void => {
       const { replace = true } = options;
       try {
-        const url = new URL(window.location.href);
-
-        if (next && typeof next.pageId === 'string') {
-          const pageId = normalizeText(next.pageId);
-          if (pageId) {
-            url.searchParams.set('page', pageId);
-          } else {
-            url.searchParams.delete('page');
-          }
-        }
-
-        if (next && Object.prototype.hasOwnProperty.call(next, 'hash')) {
-          const hash = normalizeText(next.hash);
-          url.hash = hash ? `#${hash}` : '';
-        }
-
-        const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+        const nextUrl = buildRoutePath(window.location.href, next);
+        const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        if (nextUrl === currentUrl) return;
         const fn = replace ? history.replaceState : history.pushState;
         fn.call(history, null, '', nextUrl);
       } catch (error) {
@@ -244,17 +249,10 @@ module.exports = function initRouting(
       return String(value).replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
     };
 
-    const getHashFromUrl = () => {
-      const rawHash = window.location.hash ? String(window.location.hash).slice(1) : '';
-      if (!rawHash) return '';
-      try {
-        return decodeURIComponent(rawHash).trim();
-      } catch (error) {
-        return rawHash.trim();
-      }
-    };
-
-    const scrollToCategoryInPage = (pageId: unknown, options: ScrollCategoryOptions = {}): boolean => {
+    const scrollToCategoryInPage = (
+      pageId: unknown,
+      options: ScrollCategoryOptions = {}
+    ): boolean => {
       const id = normalizeText(pageId);
       if (!id) return false;
 
@@ -321,55 +319,38 @@ module.exports = function initRouting(
       return true;
     };
 
-    // 初始化主题
-    ui.initTheme();
+    const applyRouteFromLocation = (options: { replaceInvalid?: boolean } = {}): void => {
+      const route = getRouteFromLocation();
+      const pageId = isValidPageId(route.pageId)
+        ? route.pageId
+        : isValidPageId(state.homePageId)
+          ? state.homePageId
+          : 'home';
 
-    // 初始化侧边栏状态
-    ui.initSidebarState();
+      setActiveNavByPageId(pageId);
+      showPage(pageId);
 
-    // 初始化搜索引擎选择
-    search.initSearchEngine();
-
-    // 初始化 MeNav 对象版本信息
-    try {
-      const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
-      const version = config && config.version ? String(config.version) : '';
-      if (version && window.MeNav) {
-        window.MeNav.version = version;
-        console.log('MeNav API initialized with version:', version);
+      // 缺少 page 参数或输入不存在的 page id 时，统一规范化为推荐 URL：/?page=<id>
+      if (options.replaceInvalid && (!route.rawPageId || route.shouldReplaceUrl)) {
+        setUrlState({ pageId, hash: route.hash || null }, { replace: true });
       }
-    } catch (error) {
-      console.error('Error initializing MeNav API:', error);
-    }
+
+      // 深链接：支持 ?page=<id>#<categorySlug>
+      if (route.hash) {
+        setTimeout(() => {
+          const found = scrollToCategoryInPage(pageId, {
+            categoryId: route.hash,
+            categoryName: route.hash,
+          });
+
+          // hash 存在但未命中时，不做强制修正，避免误伤其他用途的 hash
+          if (!found) return;
+        }, 50);
+      }
+    };
 
     // 立即执行初始化，不再使用 requestAnimationFrame 延迟
-    // 支持 ?page=<id> 直接打开对应页面；无效时回退到首页
-    const rawPageIdFromUrl = getRawPageIdFromUrl();
-    const validatedPageIdFromUrl = getPageIdFromUrl();
-    const initialPageId =
-      validatedPageIdFromUrl || (isValidPageId(state.homePageId) ? state.homePageId : 'home');
-
-    setActiveNavByPageId(initialPageId);
-    showPage(initialPageId);
-
-    // 当输入了不存在的 page id 时，自动纠正 URL，避免“内容回退但地址栏仍错误”
-    if (rawPageIdFromUrl && !validatedPageIdFromUrl) {
-      setUrlState({ pageId: initialPageId }, { replace: true });
-    }
-
-    // 初始深链接：支持 ?page=<id>#<categorySlug>
-    const initialHash = getHashFromUrl();
-    if (initialHash) {
-      setTimeout(() => {
-        const found = scrollToCategoryInPage(initialPageId, {
-          categoryId: initialHash,
-          categoryName: initialHash,
-        });
-
-        // hash 存在但未命中时，不做强制修正，避免误伤其他用途的 hash
-        if (!found) return;
-      }, 50);
-    }
+    applyRouteFromLocation({ replaceInvalid: true });
 
     // 添加载入动画
     categories.forEach((category: HTMLElement, index: number) => {
@@ -406,7 +387,7 @@ module.exports = function initRouting(
 
         // 切换页面时同步 URL（清空旧 hash，避免跨页残留）
         if (normalizeText(prevPageId) !== normalizeText(pageId)) {
-          setUrlState({ pageId, hash: '' }, { replace: true });
+          setUrlState({ pageId, hash: '' }, { replace: false });
         }
 
         // 在移动端视图下点击导航项后自动收起侧边栏
@@ -441,7 +422,7 @@ module.exports = function initRouting(
           // 显示对应页面
           showPage(pageId);
           // 先同步 page 参数并清空旧 hash，避免跨页残留；后续若找到分类再写入新的 hash
-          setUrlState({ pageId, hash: '' }, { replace: true });
+          setUrlState({ pageId, hash: '' }, { replace: false });
 
           // 等待页面切换完成后滚动到对应分类
           setTimeout(() => {
@@ -463,6 +444,10 @@ module.exports = function initRouting(
       });
     });
 
+    window.addEventListener('popstate', () => {
+      applyRouteFromLocation();
+    });
+
     // 初始化嵌套分类功能
     nested.initializeNestedCategories();
 
@@ -476,12 +461,6 @@ module.exports = function initRouting(
       console.error('Category toggle button not found');
     }
 
-    // 初始化搜索索引（使用 requestIdleCallback 或 setTimeout 延迟初始化，避免影响页面加载）
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => search.initSearchIndex());
-    } else {
-      setTimeout(search.initSearchIndex, 1000);
-    }
   });
 
   return { showPage };
