@@ -121,6 +121,7 @@ npm install
 
 - **注意**：`npm run dev`命令不会自动处理书签文件，必须先手动运行上述命令
 - `npm run dev` 默认会刷新 `articles/projects` 的联网缓存（若你希望离线启动，请使用 `npm run dev:offline`）
+- `npm run dev:astro` 使用 Astro dev server，适合组件开发；启动前会准备 `public/` 资源并监听配置、资源和 runtime 变更
 
 5. 构建
 
@@ -136,6 +137,11 @@ npm run dev
 ```bash
 # 离线启动开发服务器（不刷新联网缓存）
 npm run dev:offline
+```
+
+```bash
+# Astro 快速开发模式（组件热更新，仍会校验配置并打包 runtime）
+npm run dev:astro
 ```
 
 ```bash

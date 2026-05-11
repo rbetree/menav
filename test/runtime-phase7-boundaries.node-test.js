@@ -24,12 +24,17 @@ function collectRuntimeTsFiles(dir = path.join(repoRoot, 'src', 'runtime')) {
 
 test('Phase 7 runtime：入口应迁移为 TypeScript 并由 esbuild 打包', () => {
   const buildRuntime = read('scripts/build-runtime.js');
+  const runtimeBundle = read('scripts/lib/runtime-bundle.js');
 
   assert.ok(exists('src/runtime/index.ts'), 'src/runtime/index.ts 应作为运行时入口存在');
   assert.ok(!exists('src/runtime/index.js'), '旧 src/runtime/index.js 应删除');
   assert.ok(
-    buildRuntime.includes("'src', 'runtime', 'index.ts'"),
-    'scripts/build-runtime.js 应以 src/runtime/index.ts 作为入口'
+    buildRuntime.includes("require('./lib/runtime-bundle')"),
+    'scripts/build-runtime.js 应复用 runtime bundle 配置'
+  );
+  assert.ok(
+    runtimeBundle.includes("'src', 'runtime', 'index.ts'"),
+    'runtime bundle 配置应以 src/runtime/index.ts 作为入口'
   );
 });
 

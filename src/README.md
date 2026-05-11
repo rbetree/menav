@@ -23,6 +23,7 @@ Astro 现代化迁移按 [`docs/astro-migration-boundaries.md`](../docs/astro-mi
 ```bash
 npm run dev
 npm run dev:offline
+npm run dev:astro
 npm run build
 npm run check
 ```
@@ -38,6 +39,8 @@ npm run check
 `npm run generate` 通过 `scripts/generate.js` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。
 
 `npm run dev:offline` 会跳过联网同步，仅准备静态资源、打包运行时并构建 Astro 页面后启动本地静态服务。
+
+`npm run dev:astro` 会先运行 `scripts/prepare-astro-public.js` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
 
 ## 扩展契约
 

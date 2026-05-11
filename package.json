@@ -22,7 +22,8 @@
     "format:check": "node ./scripts/format.js --check",
     "format:check:changed": "node ./scripts/format-check-changed.js",
     "check": "node ./scripts/check.js && tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:astro": "node ./scripts/dev-astro.js"
   },
   "keywords": [
     "navigation",
