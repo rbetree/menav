@@ -28,6 +28,7 @@ Thumbs.db
 
 
 # 个人笔记
+docs/
 docs/local/
 docs/*.local.md
 
