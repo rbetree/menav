@@ -36,7 +36,13 @@
 assets/
 ├── style.css              # 入口文件（@import 聚合）
 └── styles/
-    ├── _variables.css     # CSS 变量、主题色
+    ├── tokens.css         # 尺寸、间距、圆角、动效和派生 token
+    ├── themes.css         # 深色默认主题与 Notion 风格浅色主题
+    ├── base.css           # 基础层聚合入口
+    ├── layout.css         # 布局层聚合入口
+    ├── components.css     # 组件层聚合入口
+    ├── utilities.css      # 工具/兜底层聚合入口
+    ├── _variables.css     # 旧变量入口兼容层（转发 tokens/themes）
     ├── _base.css          # 全局重置、滚动条
     ├── _animations.css    # @keyframes 动画
     ├── _layout.css        # 页面容器布局
@@ -53,7 +59,13 @@ assets/
 
 | 模块 | 职责 |
 |------|------|
-| `_variables.css` | CSS 变量、深色/浅色主题、间距/圆角系统 |
+| `tokens.css` | 尺寸、字体、间距、圆角、动效、半透明面与派生交互 token |
+| `themes.css` | 默认深色主题、Notion 风格浅色主题、主题色阶覆盖 |
+| `base.css` | 基础层聚合入口，导入 `_base.css` 与 `_animations.css` |
+| `layout.css` | 布局层聚合入口，导入 `_layout.css` |
+| `components.css` | 组件层聚合入口，导入侧边栏、搜索、卡片、表单、内容、仪表盘样式 |
+| `utilities.css` | 工具/兜底层聚合入口，导入 `_main.css` |
+| `_variables.css` | 旧变量入口兼容层，新代码不要继续扩展该文件 |
 | `_base.css` | 全局重置、滚动条、遮罩层、主题切换按钮 |
 | `_animations.css` | 所有 `@keyframes` 定义 |
 | `_layout.css` | 页面容器、欢迎区域、模板布局 |
@@ -87,7 +99,7 @@ assets/
 1. **找到合适的模块**：根据功能选择对应的 `_*.css` 文件
 2. **遵循命名规范**：使用 BEM 风格或现有选择器模式
 3. **添加响应式支持**：在同一模块内添加 `@media` 查询
-4. **变量优先**：优先使用 `_variables.css` 中定义的变量
+4. **Token 优先**：颜色、间距、圆角、阴影必须优先使用 `tokens.css` / `themes.css` 中定义的变量
 
 ### 图片优化
 

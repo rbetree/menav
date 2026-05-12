@@ -2,30 +2,7 @@
 import Category from './Category.astro';
 import Group from './Group.astro';
 import SiteCard from './SiteCard.astro';
-
-interface SiteItem {
-  [key: string]: unknown;
-}
-
-interface GroupItem {
-  name?: string;
-  icon?: string;
-  level?: number;
-  subgroups?: GroupItem[];
-  sites?: SiteItem[];
-  [key: string]: unknown;
-}
-
-interface CategoryItem {
-  name?: string;
-  icon?: string;
-  slug?: string;
-  level?: number;
-  subcategories?: CategoryItem[];
-  groups?: GroupItem[];
-  sites?: SiteItem[];
-  [key: string]: unknown;
-}
+import type { CategoryItem } from '../types/page';
 
 interface Props {
   category?: CategoryItem;
@@ -39,9 +16,12 @@ const categoryLevel = category.level || level || 1;
 const headingLevel = Math.min(categoryLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
 const id = category.slug || category.name;
-const hasSubcategories = Array.isArray(category.subcategories) && category.subcategories.length > 0;
-const hasGroups = Array.isArray(category.groups) && category.groups.length > 0;
-const hasSites = Array.isArray(category.sites) && category.sites.length > 0;
+const subcategories = Array.isArray(category.subcategories) ? category.subcategories : [];
+const groups = Array.isArray(category.groups) ? category.groups : [];
+const sites = Array.isArray(category.sites) ? category.sites : [];
+const hasSubcategories = subcategories.length > 0;
+const hasGroups = groups.length > 0;
+const hasSites = sites.length > 0;
 const isToggleable = hasSubcategories || hasGroups || hasSites;
 ---
 
@@ -73,7 +53,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
     {
       hasSubcategories && (
         <div class="subcategories-container" data-container="subcategories">
-          {category.subcategories.map((subCategory) => (
+          {subcategories.map((subCategory) => (
             <Category
               category={subCategory}
               level={categoryLevel + 1}
@@ -88,7 +68,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
     {
       hasGroups && (
         <div class="groups-container" data-container="groups">
-          {category.groups.map((group) => (
+          {groups.map((group) => (
             <Group group={group} root={root} siteCardStyle={siteCardStyle} />
           ))}
         </div>
@@ -98,7 +78,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
     {
       hasSites && (
         <div class="sites-grid" data-container="sites">
-          {category.sites.map((site) => (
+          {sites.map((site) => (
             <SiteCard site={site} root={root} style={siteCardStyle} />
           ))}
         </div>

@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { preparePageData } = require('../src/generator.js');
+const { preparePageData } = require('../src/lib/view-data/page-data.ts');
 
 test('首页（navigation 第一项）应使用 profile 覆盖 title/subtitle 数据', () => {
   const originalCwd = process.cwd();

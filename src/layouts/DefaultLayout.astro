@@ -2,42 +2,13 @@
 import Navigation from '../components/Navigation.astro';
 import PageContent from '../components/PageContent.astro';
 import SocialLinks from '../components/SocialLinks.astro';
-
-interface PageEntry {
-  id: string;
-  isActive?: boolean;
-  templateName?: string;
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-interface SiteConfig {
-  title?: string;
-  description?: string;
-  author?: string;
-  favicon?: string;
-  logo_text?: string;
-  theme?: {
-    mode?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-interface LayoutConfig {
-  site?: SiteConfig;
-  social?: Record<string, unknown>[];
-  _meta?: {
-    version?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
+import type { LayoutConfig, NavigationItem } from '../types/config';
+import type { PageEntry } from '../types/page';
 
 interface Props {
   config: LayoutConfig;
   pages?: PageEntry[];
-  navigationData?: Record<string, unknown>[];
+  navigationData?: NavigationItem[];
   fontLinks?: string;
   fontCss?: string;
   currentYear?: number;

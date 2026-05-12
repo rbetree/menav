@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 const { runBuildPipeline } = require('./lib/build-pipeline');
 
 const log = createLogger('build');

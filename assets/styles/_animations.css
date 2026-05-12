@@ -4,13 +4,13 @@
 
 @keyframes glow {
   from {
-    filter: drop-shadow(0 0 2px rgba(118, 148, 185, 0.2))
-      drop-shadow(0 0 4px rgba(168, 85, 247, 0.2));
+    filter: drop-shadow(0 0 2px var(--accent-glow-soft))
+      drop-shadow(0 0 4px var(--brand-secondary-glow-soft));
   }
 
   to {
-    filter: drop-shadow(0 0 4px rgba(118, 148, 185, 0.4))
-      drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+    filter: drop-shadow(0 0 4px var(--accent-glow-strong))
+      drop-shadow(0 0 8px var(--brand-secondary-glow-strong));
   }
 }
 

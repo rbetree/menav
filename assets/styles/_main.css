@@ -60,12 +60,12 @@
 
 .category-header[data-toggle='category']:hover {
   transform: translateY(-2px);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  background: var(--hierarchy-hover-bg);
 }
 
 .group-header[data-toggle='group']:hover {
   transform: translateY(-2px);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  background: var(--hierarchy-hover-bg);
 }
 
 .category-header[data-toggle='category']:active {
@@ -466,11 +466,11 @@
   /* 外层已复用一级分类卡片（.category），这里仅保留热力图内部布局/色阶 */
   --gh-text: var(--text-color);
   --gh-text-muted: var(--text-muted);
-  --gh-level-0: rgba(255, 255, 255, 0.08);
-  --gh-level-1: rgba(55, 178, 77, 0.35);
-  --gh-level-2: rgba(55, 178, 77, 0.55);
-  --gh-level-3: rgba(55, 178, 77, 0.75);
-  --gh-level-4: rgba(55, 178, 77, 0.95);
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
   --gh-radius: 3px;
 
   margin: 0 auto 1.2rem auto;
@@ -484,11 +484,11 @@
 html.theme-preload .page-template-projects .gh-heatmap-category,
 body.light-theme .page-template-projects .gh-heatmap-category {
   /* 浅色主题下，空格子需要比背景更明显一点 */
-  --gh-level-0: #d8dee4;
-  --gh-level-1: #9be9a8;
-  --gh-level-2: #40c463;
-  --gh-level-3: #30a14e;
-  --gh-level-4: #216e39;
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
 }
 
 /* 标题中的用户名（@xxx）更弱化一点，像副标题 */
@@ -813,7 +813,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
   .menu-toggle {
     width: var(--mobile-top-button-size);
     height: var(--mobile-top-button-size);
-    background: rgba(var(--card-bg-rgb), 0.65);
+    background: var(--surface-frosted);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     backdrop-filter: blur(12px);
@@ -826,7 +826,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
   .category-toggle {
     width: var(--mobile-top-button-size);
     height: var(--mobile-top-button-size);
-    background: rgba(var(--card-bg-rgb), 0.65);
+    background: var(--surface-frosted);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     backdrop-filter: blur(12px);
@@ -839,7 +839,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
   .theme-toggle:hover,
   .category-toggle:hover {
     transform: translateY(-2px);
-    background: rgba(var(--card-bg-rgb), 0.75);
+    background: var(--surface-frosted-hover);
     box-shadow: 0 6px 20px var(--shadow-color);
     color: var(--accent-color);
   }
@@ -1373,7 +1373,7 @@ body.light-theme .page-template-projects .gh-heatmap-category {
 }
 
 .social-icon:focus-visible {
-  outline: 2px solid rgba(118, 148, 185, 0.35);
+  outline: 2px solid var(--accent-glow-medium);
   outline-offset: 2px;
 }
 

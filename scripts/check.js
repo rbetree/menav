@@ -1,7 +1,7 @@
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('check');
 
@@ -34,6 +34,20 @@ async function main() {
   if (buildExit !== 0) {
     log.error('build 失败', { exit: buildExit });
     process.exitCode = buildExit;
+    return;
+  }
+
+  const browserTestExit = runNode(path.join(repoRoot, 'scripts', 'test-browser.js'));
+  if (browserTestExit !== 0) {
+    log.error('browser contract 失败', { exit: browserTestExit });
+    process.exitCode = browserTestExit;
+    return;
+  }
+
+  const finalAuditExit = runNode(path.join(repoRoot, 'scripts', 'audit-final.js'));
+  if (finalAuditExit !== 0) {
+    log.error('final audit 失败', { exit: finalAuditExit });
+    process.exitCode = finalAuditExit;
     return;
   }
 

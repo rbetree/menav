@@ -1,9 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/generator/config');
-const { collectSitesRecursively } = require('../src/generator/utils/sites');
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/lib/config/index.ts');
+const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
+const { buildSearchIndex, MENAV_SEARCH_INDEX_FILE } = require('../src/lib/search-index/index.ts');
+const { collectSitesRecursively } = require('../src/lib/site-data/sites.ts');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('astro-public');
 
@@ -168,6 +170,14 @@ function main() {
     log.warn('写入扩展配置文件失败', {
       message: error && error.message ? error.message : String(error),
     });
+  }
+
+  try {
+    const renderData = prepareSiteRenderData(config);
+    const searchIndex = buildSearchIndex(renderData.pages, renderData.config);
+    fs.writeFileSync(path.join('public', MENAV_SEARCH_INDEX_FILE), JSON.stringify(searchIndex));
+  } catch (error) {
+    throw new Error(`写入搜索索引失败：${error && error.message ? error.message : String(error)}`);
   }
 
   copyLocalFaviconUrls(config);

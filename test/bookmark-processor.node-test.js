@@ -56,7 +56,7 @@ test('parseBookmarks：解析书签栏、根目录书签与图标映射', () => 
 });
 
 test('page-data：subgroups（第4层）应保留给 Astro 页面渲染', () => {
-  const { preparePageData } = require('../src/generator.js');
+  const { preparePageData } = require('../src/lib/view-data/page-data.ts');
   const config = {
     site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
     profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },

@@ -1,11 +1,5 @@
 ---
-import { createRequire } from 'node:module';
-import path from 'node:path';
-
-const require = createRequire(import.meta.url);
-const { getFaviconFallbackUrl, getFaviconV2Url, isHttpUrl } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-utils.js')
-);
+import { getFaviconFallbackUrl, getFaviconV2Url, isHttpUrl } from '../lib/view-data/view-utils.ts';
 
 const { site = {}, root = {}, name = '', url = '', icon = 'fas fa-link' } = Astro.props;
 const faviconUrl = site.faviconUrl || '';

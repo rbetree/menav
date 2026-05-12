@@ -1,33 +1,19 @@
 /* ============================================
-   Menav Style System - Modular Entry Point
+   Menav Style System - Layered Entry Point
    ============================================
-   
-   模块化 CSS 架构：
-   - 本文件作为入口，通过 @import 聚合所有模块
-   - esbuild bundle 模式会在构建时自动合并
-   - 模块导入顺序很重要！变量必须第一个导入
-   
+
+   分层 CSS 架构：
+   - tokens.css：尺寸、间距、圆角、动效和派生 token
+   - themes.css：默认深色主题与 Notion 风格浅色主题
+   - base.css：全局基础样式与动画
+   - layout.css：页面与模板布局
+   - components.css：侧边栏、搜索、卡片、表单、内容、仪表盘组件
+   - utilities.css：响应式、热力图和待后续拆分的兜底样式
    ============================================ */
 
-/* 1. 基础层：变量和全局样式必须最先加载 */
-@import './styles/_variables.css';
-@import './styles/_base.css';
-@import './styles/_animations.css';
-
-/* 2. 布局层 */
-@import './styles/_layout.css';
-@import './styles/_sidebar.css';
-
-/* 3. 组件层 */
-@import './styles/_search.css';
-@import './styles/_cards.css';
-@import './styles/_modal.css';
-
-/* 4. 页面层 */
-@import './styles/_content.css';
-@import './styles/_dashboard.css';
-
-/* 5. 兜底样式（包含分类层级、GitHub热力图、响应式等）
-   注意：此文件包含所有未独立拆分的样式，部分选择器可能与上方模块重复
-   esbuild 会按导入顺序合并，后导入的样式优先级更高 */
-@import './styles/_main.css';
+@import './styles/tokens.css';
+@import './styles/themes.css';
+@import './styles/base.css';
+@import './styles/layout.css';
+@import './styles/components.css';
+@import './styles/utilities.css';

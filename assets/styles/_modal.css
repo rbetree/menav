@@ -7,7 +7,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--overlay-backdrop-strong);
   display: none;
   justify-content: center;
   align-items: center;
@@ -101,7 +101,7 @@
   outline: none;
   background-color: var(--secondary-bg);
   border-color: var(--accent-color);
-  box-shadow: 0 2px 8px rgba(118, 148, 185, 0.15);
+  box-shadow: 0 2px 8px var(--accent-glow-subtle);
 }
 
 .form-group input::placeholder {
@@ -136,7 +136,7 @@
 .btn-primary:hover {
   background-color: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(118, 148, 185, 0.2);
+  box-shadow: 0 4px 12px var(--accent-glow-soft);
 }
 
 .btn-secondary {

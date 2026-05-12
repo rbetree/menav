@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { prepareSiteRenderData } = require('../src/generator.js');
+const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();

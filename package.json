@@ -2,13 +2,13 @@
   "name": "menav",
   "version": "1.4.0",
   "description": "A personal navigation website",
-  "main": "src/generator.js",
+  "main": "src/lib/index.ts",
   "engines": {
     "node": ">=22.12"
   },
   "homepage": "https://rbetree.github.io/menav",
   "scripts": {
-    "generate": "node src/generator.js",
+    "generate": "node ./scripts/generate.js",
     "dev": "node ./scripts/dev.js",
     "dev:offline": "node ./scripts/dev-offline.js",
     "clean": "node ./scripts/clean.js",
@@ -21,8 +21,10 @@
     "format": "node ./scripts/format.js --write",
     "format:check": "node ./scripts/format.js --check",
     "format:check:changed": "node ./scripts/format-check-changed.js",
-    "check": "node ./scripts/check.js",
-    "prepare": "husky"
+    "check": "node ./scripts/check.js && tsc --noEmit",
+    "prepare": "husky",
+    "dev:astro": "node ./scripts/dev-astro.js",
+    "test:browser": "node ./scripts/test-browser.js"
   },
   "keywords": [
     "navigation",
@@ -34,7 +36,8 @@
   "dependencies": {
     "js-yaml": "^4.1.1",
     "markdown-it": "^14.1.1",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
@@ -43,6 +46,7 @@
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
     "serve": "^14.2.6"

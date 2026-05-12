@@ -1,0 +1,32 @@
+const path = require('node:path');
+
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+const { runBuildPipeline } = require('./lib/build-pipeline');
+
+const log = createLogger('generate');
+
+async function main() {
+  const elapsedMs = startTimer();
+  log.info('开始', { version: process.env.npm_package_version });
+
+  const repoRoot = path.resolve(__dirname, '..');
+
+  if (!runBuildPipeline({ log, repoRoot, sync: true })) {
+    process.exitCode = 1;
+    return;
+  }
+
+  log.ok('完成', { ms: elapsedMs(), dist: 'dist/' });
+}
+
+if (require.main === module) {
+  main().catch((error) => {
+    log.error('生成失败', { message: error && error.message ? error.message : String(error) });
+    if (isVerbose() && error && error.stack) console.error(error.stack);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  main,
+};

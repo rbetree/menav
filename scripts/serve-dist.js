@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const { createLogger, isVerbose } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('serve');
 

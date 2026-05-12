@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { loadConfig, prepareSiteRenderData } = require('../src/generator.js');
+const { loadConfig } = require('../src/lib/config/index.ts');
+const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -35,6 +36,13 @@ test('P1-7：页面内不应注入整站 configJSON，应仅保留扩展元信�
     assert.ok(
       parsed.data.pageTemplates && typeof parsed.data.pageTemplates === 'object',
       '应包含 pageTemplates'
+    );
+    assert.ok(Array.isArray(parsed.data.pageRegistry), '应包含页面注册表');
+    assert.ok(parsed.data.pageRegistry.length > 0, '页面注册表不应为空');
+    assert.deepEqual(
+      Object.keys(parsed.data.pageRegistry[0]).sort(),
+      ['active', 'id', 'name', 'template'],
+      '页面注册表只应包含路由需要的最小字段'
     );
 
     // 不应再把 pages/<id>.yml 的完整结构（categories/sites 等）注入到页面中

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
 
-const { createLogger } = require('../src/generator/utils/logger');
+const { createLogger } = require('../src/lib/logging/logger.ts');
 const { resolveAstroCli } = require('./lib/astro-cli');
 
 const log = createLogger('lint');

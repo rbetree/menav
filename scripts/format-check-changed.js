@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const { createLogger, isVerbose, startTimer } = require('../src/generator/utils/logger');
+const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('format:check:changed');
 

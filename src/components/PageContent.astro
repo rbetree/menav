@@ -4,41 +4,7 @@ import GitHubHeatmap from './GitHubHeatmap.astro';
 import HomeDashboard from './HomeDashboard.astro';
 import PageHeader from './PageHeader.astro';
 import SiteCard from './SiteCard.astro';
-
-interface SiteItem {
-  [key: string]: unknown;
-}
-
-interface CategoryItem {
-  name?: string;
-  icon?: string;
-  items?: SiteItem[];
-  [key: string]: unknown;
-}
-
-interface NavigationItem {
-  id?: string;
-  name?: string;
-  icon?: string;
-  [key: string]: unknown;
-}
-
-interface PageData {
-  pageId?: string;
-  isHome?: boolean;
-  categories?: CategoryItem[];
-  navigation?: NavigationItem[];
-  siteCardStyle?: string;
-  contentFile?: string;
-  contentHtml?: string;
-  projectsMeta?: {
-    heatmap?: Record<string, unknown>;
-    [key: string]: unknown;
-  };
-  articlesItems?: SiteItem[];
-  articlesCategories?: CategoryItem[];
-  [key: string]: unknown;
-}
+import type { PageData } from '../types/page';
 
 interface Props {
   page?: PageData;

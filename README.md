@@ -66,6 +66,7 @@ menav/
 ## 文档导航
 
 - 历史更新记录（README 不再维护）：[`CHANGELOG.md`](CHANGELOG.md)
+- Astro 现代化迁移计划：[`docs/astro-migration-boundaries.md`](docs/astro-migration-boundaries.md)
 - 更新说明2025/12/27（兼容性移除 / 迁移指南）：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
 - 配置系统（完全替换策略、目录结构、示例）：[`config/README.md`](config/README.md)
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
@@ -91,11 +92,13 @@ cd menav
 2. 安装依赖
 
 ```bash
-# 安装依赖
+nvm use
 npm install
 ```
 
-请确保本机 Node.js 版本为 `22.12+`。
+请确保本机 Node.js 版本为 `22.12+`；仓库提供 `.nvmrc` 固定主版本为
+`22`，使用 nvm 时先运行 `nvm use`。Windows 和 WSL/Linux 环境不要共用
+`node_modules`，请在各自环境中分别安装依赖。
 
 （本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
 
@@ -118,6 +121,7 @@ npm install
 
 - **注意**：`npm run dev`命令不会自动处理书签文件，必须先手动运行上述命令
 - `npm run dev` 默认会刷新 `articles/projects` 的联网缓存（若你希望离线启动，请使用 `npm run dev:offline`）
+- `npm run dev:astro` 使用 Astro dev server，适合组件开发；启动前会准备 `public/` 资源并监听配置、资源和 runtime 变更
 
 5. 构建
 
@@ -128,9 +132,16 @@ npm run dev
 
 开发服务器默认从 `http://localhost:5173` 启动；若默认端口被占用，会自动尝试后续端口。需要固定端口时可设置 `PORT=5174 npm run dev` 或 `MENAV_PORT=5174 npm run dev`，显式端口被占用会直接报错。
 
+页面深链接统一使用 `/?page=<页面ID>`，分类定位使用 `/?page=<页面ID>#<分类slug>`。未知路径不会自动回跳，静态部署时请分享上述查询参数形式的 URL。
+
 ```bash
 # 离线启动开发服务器（不刷新联网缓存）
 npm run dev:offline
+```
+
+```bash
+# Astro 快速开发模式（组件热更新，仍会校验配置并打包 runtime）
+npm run dev:astro
 ```
 
 ```bash
