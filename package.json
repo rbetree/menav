@@ -23,7 +23,8 @@
     "format:check:changed": "node ./scripts/format-check-changed.js",
     "check": "node ./scripts/check.js && tsc --noEmit",
     "prepare": "husky",
-    "dev:astro": "node ./scripts/dev-astro.js"
+    "dev:astro": "node ./scripts/dev-astro.js",
+    "test:browser": "node ./scripts/test-browser.js"
   },
   "keywords": [
     "navigation",
@@ -45,6 +46,7 @@
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
     "serve": "^14.2.6"

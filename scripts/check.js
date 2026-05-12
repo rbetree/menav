@@ -37,6 +37,13 @@ async function main() {
     return;
   }
 
+  const browserTestExit = runNode(path.join(repoRoot, 'scripts', 'test-browser.js'));
+  if (browserTestExit !== 0) {
+    log.error('browser contract 失败', { exit: browserTestExit });
+    process.exitCode = browserTestExit;
+    return;
+  }
+
   log.ok('完成', { ms: elapsedMs() });
 }
 

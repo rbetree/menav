@@ -425,6 +425,8 @@ module.exports = function initRouting(
           // 激活导航项并同步子菜单展开状态
           setActiveNavByPageId(pageId);
 
+          const wasSamePage = normalizeText(state.currentPageId) === normalizeText(pageId);
+
           // 显示对应页面
           showPage(pageId);
           // 先同步 page 参数并清空旧 hash，避免跨页残留；后续若找到分类再写入新的 hash
@@ -438,7 +440,7 @@ module.exports = function initRouting(
             // 由于对子菜单 click 做了 preventDefault，这里手动同步 hash（不触发浏览器默认跳转）
             const nextHash = normalizeText(categoryId) || normalizeText(categoryName);
             if (nextHash) {
-              setUrlState({ pageId, hash: nextHash }, { replace: true });
+              setUrlState({ pageId, hash: nextHash }, { replace: !wasSamePage });
             }
           }, 25); // 延迟时间
 

@@ -135,15 +135,6 @@ function menavUpdateAppHeight(): void {
   const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
 }
-
-module.exports = {
-  menavExtractDomain,
-  menavSanitizeUrl,
-  menavSanitizeClassList,
-  menavDetectVersion,
-  menavUpdateAppHeight,
-};
-
 export {
   menavExtractDomain,
   menavSanitizeUrl,

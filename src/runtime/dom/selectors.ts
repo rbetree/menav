@@ -72,14 +72,4 @@ function dataTypeSelector(type: string): string {
 function dataTypeAttrSelector(type: string, attr: string, value: string): string {
   return `[data-type="${type}"][${attr}="${value}"]`;
 }
-
-module.exports = {
-  SELECTORS,
-  qs,
-  qsa,
-  byId,
-  dataTypeSelector,
-  dataTypeAttrSelector,
-};
-
 export { SELECTORS, qs, qsa, byId, dataTypeSelector, dataTypeAttrSelector };
