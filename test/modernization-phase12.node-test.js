@@ -37,6 +37,7 @@ test('Phase 12：业务代码不应再引用旧 generator、helpers 或 lib 兼�
   ].filter(
     (file) =>
       file !== 'test/modernization-phase12.node-test.js' &&
+      file !== 'scripts/audit-final.js' &&
       fs.statSync(path.join(repoRoot, file)).isFile()
   );
 

@@ -44,6 +44,13 @@ async function main() {
     return;
   }
 
+  const finalAuditExit = runNode(path.join(repoRoot, 'scripts', 'audit-final.js'));
+  if (finalAuditExit !== 0) {
+    log.error('final audit 失败', { exit: finalAuditExit });
+    process.exitCode = finalAuditExit;
+    return;
+  }
+
   log.ok('完成', { ms: elapsedMs() });
 }
 
