@@ -8,9 +8,10 @@ const log = createLogger('test:browser');
 function main() {
   const elapsedMs = startTimer();
   const repoRoot = path.resolve(__dirname, '..');
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
   const result = spawnSync(
     process.execPath,
-    [path.join(repoRoot, 'test', 'browser', 'contract.js')],
+    ['-r', registerScript, path.join(repoRoot, 'test', 'browser', 'contract.js')],
     {
       cwd: repoRoot,
       stdio: 'inherit',

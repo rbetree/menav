@@ -28,7 +28,8 @@ async function main() {
     return;
   }
 
-  const result = spawnSync(process.execPath, ['--test', ...files], {
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
+  const result = spawnSync(process.execPath, ['-r', registerScript, '--test', ...files], {
     cwd: repoRoot,
     stdio: 'inherit',
   });

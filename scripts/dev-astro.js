@@ -38,7 +38,8 @@ function resolveAstroDevArgs(argv) {
 
 function runNodeScript(repoRoot, scriptRelativePath) {
   const scriptPath = path.join(repoRoot, scriptRelativePath);
-  const result = spawnSync(process.execPath, [scriptPath], {
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
+  const result = spawnSync(process.execPath, ['-r', registerScript, scriptPath], {
     cwd: repoRoot,
     stdio: 'inherit',
   });
@@ -161,8 +162,9 @@ function createDebouncedPrepare(repoRoot) {
 
 function startAstroDev(repoRoot, argv) {
   const astroCli = resolveAstroCli(repoRoot);
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
   const args = ['dev', ...resolveAstroDevArgs(argv)];
-  return spawn(process.execPath, [astroCli, ...args], {
+  return spawn(process.execPath, ['-r', registerScript, astroCli, ...args], {
     cwd: repoRoot,
     stdio: 'inherit',
     env: process.env,

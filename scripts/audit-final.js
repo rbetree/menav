@@ -115,7 +115,8 @@ function ensureBuildArtifacts() {
   if (missing.length === 0) return;
 
   log.info('缺少构建产物，先执行 build', { missing: missing.join(',') });
-  const result = spawnSync(process.execPath, [path.join(repoRoot, 'scripts', 'build.js')], {
+  const registerScript = path.join(repoRoot, 'scripts', 'register-ts.cjs');
+  const result = spawnSync(process.execPath, ['-r', registerScript, path.join(repoRoot, 'scripts', 'build.js')], {
     cwd: repoRoot,
     stdio: 'inherit',
   });

@@ -2,7 +2,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 function runNode(scriptPath) {
-  const result = spawnSync(process.execPath, [scriptPath], { stdio: 'inherit' });
+  const registerScript = path.join(__dirname, '..', 'register-ts.cjs');
+  const result = spawnSync(process.execPath, ['-r', registerScript, scriptPath], { stdio: 'inherit' });
   return result && Number.isFinite(result.status) ? result.status : 1;
 }
 

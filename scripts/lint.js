@@ -60,7 +60,8 @@ function main() {
   });
 
   const astroCli = resolveAstroCli(projectRoot);
-  const astroResult = spawnSync(process.execPath, [astroCli, 'check'], {
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
+  const astroResult = spawnSync(process.execPath, ['-r', registerScript, astroCli, 'check'], {
     cwd: projectRoot,
     stdio: 'inherit',
   });

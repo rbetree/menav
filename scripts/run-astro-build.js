@@ -5,7 +5,8 @@ const { resolveAstroCli } = require('./lib/astro-cli');
 function runAstroBuild(args = []) {
   const repoRoot = path.resolve(__dirname, '..');
   const astroCli = resolveAstroCli(repoRoot);
-  const result = spawnSync(process.execPath, [astroCli, 'build', ...args], {
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
+  const result = spawnSync(process.execPath, ['-r', registerScript, astroCli, 'build', ...args], {
     cwd: repoRoot,
     stdio: 'inherit',
   });
