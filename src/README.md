@@ -4,7 +4,7 @@
 
 MeNav 现在使用 Astro 负责静态页面渲染，继续保留原有 YAML 配置、vanilla JS 运行时和浏览器扩展契约。构建目标仍是单页导航站：`dist/index.html` 内包含所有 `.page` 容器，运行时通过 `?page=<id>` 切换页面。
 
-Astro 现代化迁移按 [`docs/astro-migration-boundaries.md`](../docs/astro-migration-boundaries.md) 推进；该文档是阶段路线、源码边界和验收要求的入口。
+Astro 现代化迁移已完成；以下是重构后的核心边界：
 
 核心边界：
 
