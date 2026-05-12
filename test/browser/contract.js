@@ -18,6 +18,20 @@ async function openPage(page, baseUrl, pathAndQuery = '/') {
   await waitForMenav(page);
 }
 
+function parseRgba(input) {
+  const match = String(input).match(
+    /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/i
+  );
+  if (!match) return null;
+
+  return {
+    r: Number(match[1]),
+    g: Number(match[2]),
+    b: Number(match[3]),
+    a: match[4] == null ? 1 : Number(match[4]),
+  };
+}
+
 async function waitForRouteState(page, expected) {
   await page.waitForFunction(
     ({ pageId, hash }) => {
@@ -220,7 +234,14 @@ async function runDomThemeSearchContract(page, baseUrl) {
     const search = document.querySelector('#search');
 
     themeButton?.click();
-    const bodyHasLight = document.body.classList.contains('light-theme');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    const htmlHasLight = document.documentElement.classList.contains('light-theme');
+    const surfaceFrosted = getComputedStyle(document.documentElement)
+      .getPropertyValue('--surface-frosted')
+      .trim();
+    const searchBoxBg = document.querySelector('.search-box')
+      ? getComputedStyle(document.querySelector('.search-box')).backgroundColor
+      : '';
 
     if (search) {
       search.value = site?.getAttribute('data-name') || 'example';
@@ -250,7 +271,9 @@ async function runDomThemeSearchContract(page, baseUrl) {
         name: social?.getAttribute('data-name') || '',
         url: social?.getAttribute('data-url') || '',
       },
-      bodyHasLight,
+      htmlHasLight,
+      surfaceFrosted,
+      searchBoxBg,
       storedTheme: localStorage.getItem('theme') || '',
       searchPageActive:
         document.querySelector('#search-results')?.classList.contains('active') || false,
@@ -274,7 +297,12 @@ async function runDomThemeSearchContract(page, baseUrl) {
   assert.equal(domState.socialAttrs.type, 'social-link');
   assert.ok(domState.socialAttrs.name);
   assert.ok(domState.socialAttrs.url);
-  assert.equal(domState.bodyHasLight, true);
+  assert.equal(domState.htmlHasLight, true);
+  assert.match(domState.surfaceFrosted, /240, 240, 235/);
+  const searchBoxBg = parseRgba(domState.searchBoxBg);
+  assert.ok(searchBoxBg, '搜索框背景色应为 rgba 格式');
+  assert.ok(searchBoxBg.r >= 235 && searchBoxBg.g >= 235 && searchBoxBg.b >= 230);
+  assert.ok(searchBoxBg.a >= 0.6 && searchBoxBg.a <= 0.75);
   assert.equal(domState.storedTheme, 'light');
   assert.equal(domState.searchPageActive, true);
   assert.equal(domState.searchHasState, true);

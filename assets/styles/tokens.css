@@ -40,16 +40,6 @@
   --transition-slow: 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   --transition-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-  /* Derived surface tokens */
-  --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
-  --surface-frosted-hover: rgba(var(--card-bg-rgb), 0.75);
-  --surface-subtle: rgba(var(--card-bg-rgb), 0.35);
-  --surface-muted: rgba(var(--card-bg-rgb), 0.25);
-  --surface-muted-hover: rgba(var(--card-bg-rgb), 0.22);
-  --surface-soft: rgba(var(--card-bg-rgb), 0.3);
-  --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
-  --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
-
   /* Derived interaction tokens */
   --accent-border-strong: rgba(var(--accent-rgb), 0.55);
   --accent-ring-subtle: rgba(var(--accent-rgb), 0.28);
@@ -65,17 +55,8 @@
   /* Semantic utility tokens */
   --overlay-backdrop: rgba(0, 0, 0, 0.5);
   --overlay-backdrop-strong: rgba(0, 0, 0, 0.6);
-  --neutral-code-bg: rgba(127, 127, 127, 0.15);
-  --neutral-code-block-bg: rgba(127, 127, 127, 0.08);
-  --neutral-table-alt-bg: rgba(127, 127, 127, 0.04);
-  --hierarchy-hover-bg: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
-  );
-  --repo-stat-divider: rgba(255, 255, 255, 0.06);
   --dashboard-light-card-shadow: rgba(0, 0, 0, 0.08);
-  --dashboard-light-block-shadow: rgba(255, 255, 255, 0.15);
-  --dashboard-dark-block-shadow: rgba(0, 0, 0, 0.2);
+  --dashboard-block-shadow-dark: rgba(255, 255, 255, 0.15);
+  --dashboard-block-shadow-light: rgba(0, 0, 0, 0.2);
   --tooltip-fallback-bg: rgba(47, 48, 53, 0.95);
 }

@@ -57,7 +57,7 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
   function setTheme(isLight: boolean): void {
     const nextIsLight = Boolean(isLight);
     state.isLightTheme = nextIsLight;
-    document.body.classList.toggle('light-theme', nextIsLight);
+    document.documentElement.classList.toggle('light-theme', nextIsLight);
 
     if (nextIsLight) {
       themeIconElement.classList.remove('fa-moon');

@@ -109,7 +109,7 @@
   /* More padding for spatial luxury */
 }
 
-body.light-theme .dashboard-clock-card {
+html.light-theme .dashboard-clock-card {
   box-shadow: 0 8px 32px var(--dashboard-light-card-shadow);
   /* Lighter shadow for light mode */
 }
@@ -180,12 +180,12 @@ body.light-theme .dashboard-clock-card {
   height: 310px;
   /* Increased from 280px to align with clock card better */
   overflow: hidden;
-  box-shadow: 4px 4px 0px 0px var(--dashboard-light-block-shadow);
+  box-shadow: 4px 4px 0px 0px var(--dashboard-block-shadow-dark);
   transition: box-shadow 0.2s ease;
 }
 
-body.light-theme .dashboard-panel {
-  box-shadow: 4px 4px 0px 0px var(--dashboard-dark-block-shadow);
+html.light-theme .dashboard-panel {
+  box-shadow: 4px 4px 0px 0px var(--dashboard-block-shadow-light);
 }
 
 .panel-sidebar {
@@ -271,7 +271,7 @@ body.light-theme .dashboard-panel {
 .todo-checkbox.checked {
   background-color: var(--accent-color);
   border-color: var(--accent-color);
-  color: white;
+  color: var(--white-color);
 }
 
 .todo-checkbox.checked span {

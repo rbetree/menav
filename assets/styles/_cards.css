@@ -517,7 +517,7 @@
 
 /* 浅色主题：更接近 GitHub 原色阶 */
 html.theme-preload .page-template-projects .gh-heatmap-category,
-body.light-theme .page-template-projects .gh-heatmap-category {
+html.light-theme .page-template-projects .gh-heatmap-category {
   /* 浅色主题下，空格子需要比背景更明显一点 */
   --gh-level-0: var(--gh-level-0-token);
   --gh-level-1: var(--gh-level-1-token);
