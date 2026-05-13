@@ -1,13 +1,49 @@
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
-function ensureDir(dirPath) {
+type RuntimeLogger = {
+  error: (message: string, meta?: Record<string, unknown>) => void;
+  ok: (message: string, meta?: Record<string, unknown>) => void;
+};
+
+type RuntimeBundleOptions = {
+  repoRoot: string;
+  log?: RuntimeLogger;
+  startTimer?: () => () => number;
+};
+
+type RuntimeBundlePaths = {
+  entry: string;
+  outFile: string;
+};
+
+type BuildResultLike = {
+  metafile?: {
+    outputs?: Record<string, { bytes?: number }>;
+  };
+  errors?: unknown[];
+};
+
+type EsbuildLike = {
+  build: (options: Record<string, unknown>) => Promise<BuildResultLike>;
+  context: (options: Record<string, unknown>) => Promise<{
+    watch: () => Promise<void>;
+  }>;
+};
+
+type Deferred<T> = {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: unknown) => void;
+};
+
+function ensureDir(dirPath: string): void {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
 }
 
-function loadEsbuild() {
+function loadEsbuild(): EsbuildLike {
   try {
     return require('esbuild');
   } catch {
@@ -15,14 +51,14 @@ function loadEsbuild() {
   }
 }
 
-function getRuntimeBundlePaths(repoRoot) {
+function getRuntimeBundlePaths(repoRoot: string): RuntimeBundlePaths {
   return {
     entry: path.join(repoRoot, 'src', 'runtime', 'index.ts'),
     outFile: path.join(repoRoot, 'public', 'script.js'),
   };
 }
 
-function getRuntimeBuildOptions(repoRoot) {
+function getRuntimeBuildOptions(repoRoot: string): Record<string, unknown> {
   const { entry, outFile } = getRuntimeBundlePaths(repoRoot);
 
   if (!fs.existsSync(entry)) {
@@ -46,17 +82,17 @@ function getRuntimeBuildOptions(repoRoot) {
   };
 }
 
-function getOutputBytes(result) {
+function getOutputBytes(result: BuildResultLike): number {
   const outputs =
     result && result.metafile && result.metafile.outputs ? result.metafile.outputs : null;
   const outKey = outputs
     ? Object.keys(outputs).find((key) => key.endsWith('public/script.js'))
     : '';
-  return outKey && outputs && outputs[outKey] ? outputs[outKey].bytes : 0;
+  return outKey && outputs && outputs[outKey] ? outputs[outKey].bytes || 0 : 0;
 }
 
-function createDeferred() {
-  const deferred = {};
+function createDeferred<T>(): Deferred<T> {
+  const deferred = {} as Deferred<T>;
   deferred.promise = new Promise((resolve, reject) => {
     deferred.resolve = resolve;
     deferred.reject = reject;
@@ -64,12 +100,12 @@ function createDeferred() {
   return deferred;
 }
 
-async function buildRuntimeBundle(options = {}) {
+async function buildRuntimeBundle(options: RuntimeBundleOptions): Promise<BuildResultLike> {
   const { repoRoot, log, startTimer } = options;
   const esbuild = loadEsbuild();
   const elapsedMs = typeof startTimer === 'function' ? startTimer() : null;
   const result = await esbuild.build(getRuntimeBuildOptions(repoRoot));
-  const meta = {};
+  const meta: Record<string, unknown> = {};
 
   if (elapsedMs) meta.ms = elapsedMs();
   const bytes = getOutputBytes(result);
@@ -79,19 +115,22 @@ async function buildRuntimeBundle(options = {}) {
   return result;
 }
 
-async function watchRuntimeBundle(options = {}) {
+async function watchRuntimeBundle(options: RuntimeBundleOptions): Promise<unknown> {
   const { repoRoot, log } = options;
   const esbuild = loadEsbuild();
   let startedAt = Date.now();
   let firstBuild = true;
-  const initialBuild = createDeferred();
+  const initialBuild = createDeferred<void>();
 
   const context = await esbuild.context({
     ...getRuntimeBuildOptions(repoRoot),
     plugins: [
       {
         name: 'menav-runtime-watch-log',
-        setup(build) {
+        setup(build: {
+          onStart: (callback: () => void) => void;
+          onEnd: (callback: (result: BuildResultLike) => void) => void;
+        }) {
           build.onStart(() => {
             startedAt = Date.now();
           });
@@ -104,7 +143,7 @@ async function watchRuntimeBundle(options = {}) {
             }
 
             const bytes = getOutputBytes(result);
-            const meta = { ms: Date.now() - startedAt };
+            const meta: Record<string, unknown> = { ms: Date.now() - startedAt };
             if (bytes) meta.bytes = bytes;
             if (log) log.ok(firstBuild ? 'runtime 初始输出' : 'runtime 已重新输出', meta);
             if (firstBuild) initialBuild.resolve();

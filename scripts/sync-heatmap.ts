@@ -1,12 +1,47 @@
 /* eslint-disable no-console */
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
 const { loadConfig } = require('../src/lib/config/index.ts');
 const { extractYearlyContributionsInnerHtml } = require('../src/lib/github/contributions.ts');
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:heatmap');
+
+type ConfigLike = {
+  site?: {
+    github?: {
+      username?: unknown;
+      fetch?: Partial<HeatmapSettings['fetch']>;
+      [key: string]: unknown;
+    };
+  };
+  navigation?: Array<{ id?: unknown }>;
+  [key: string]: unknown;
+};
+
+type HeatmapSettings = {
+  enabled: boolean;
+  cacheDir: string;
+  fetch: {
+    timeoutMs: number;
+    userAgent: string;
+  };
+};
+
+type ProjectPage = {
+  pageId: string;
+  page: Record<string, unknown>;
+};
+
+type FetchTextOptions = {
+  timeoutMs: number;
+  headers: Record<string, string>;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 const DEFAULT_SETTINGS = {
   enabled: true,
@@ -17,7 +52,7 @@ const DEFAULT_SETTINGS = {
   },
 };
 
-function parseBooleanEnv(value, fallback) {
+function parseBooleanEnv(value: unknown, fallback: boolean): boolean {
   if (value === undefined || value === null || value === '') return fallback;
   const v = String(value).trim().toLowerCase();
   if (v === '1' || v === 'true' || v === 'yes' || v === 'y') return true;
@@ -25,13 +60,13 @@ function parseBooleanEnv(value, fallback) {
   return fallback;
 }
 
-function parseIntegerEnv(value, fallback) {
+function parseIntegerEnv(value: unknown, fallback: number): number {
   if (value === undefined || value === null || value === '') return fallback;
   const n = Number.parseInt(String(value), 10);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function getSettings(config) {
+function getSettings(config: ConfigLike): HeatmapSettings {
   const fromConfig =
     config && config.site && config.site.github && typeof config.site.github === 'object'
       ? config.site.github
@@ -64,25 +99,27 @@ function getSettings(config) {
   return merged;
 }
 
-function ensureDir(dirPath) {
+function ensureDir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function findProjectsPages(config) {
-  const pages = [];
+function findProjectsPages(config: ConfigLike): ProjectPage[] {
+  const pages: ProjectPage[] = [];
   const nav = Array.isArray(config.navigation) ? config.navigation : [];
   nav.forEach((item) => {
     const pageId = item && item.id ? String(item.id) : '';
     if (!pageId || !config[pageId]) return;
     const page = config[pageId];
-    const templateName = page && page.template ? String(page.template) : pageId;
+    if (!page || typeof page !== 'object') return;
+    const pageRecord = page as Record<string, unknown>;
+    const templateName = pageRecord.template ? String(pageRecord.template) : pageId;
     if (templateName !== 'projects') return;
-    pages.push({ pageId, page });
+    pages.push({ pageId, page: pageRecord });
   });
   return pages;
 }
 
-function getGithubUsernameFromConfig(config) {
+function getGithubUsernameFromConfig(config: ConfigLike): string {
   const username =
     config && config.site && config.site.github && config.site.github.username
       ? String(config.site.github.username).trim()
@@ -90,7 +127,7 @@ function getGithubUsernameFromConfig(config) {
   return username;
 }
 
-async function fetchTextWithTimeout(url, { timeoutMs, headers }) {
+async function fetchTextWithTimeout(url: string, { timeoutMs, headers }: FetchTextOptions): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -105,7 +142,7 @@ async function fetchTextWithTimeout(url, { timeoutMs, headers }) {
 
 async function main() {
   const elapsedMs = startTimer();
-  const config = loadConfig();
+  const config = loadConfig() as ConfigLike;
   const settings = getSettings(config);
 
   log.info('开始');
@@ -144,7 +181,7 @@ async function main() {
   } catch (error) {
     log.warn('获取 GitHub contributions 失败（best-effort）', {
       url,
-      message: String(error && error.message ? error.message : error),
+      message: getErrorMessage(error),
     });
     return;
   }
@@ -175,8 +212,8 @@ async function main() {
 
 main().catch((error) => {
   log.error('执行异常（best-effort，不阻断后续 build）', {
-    message: error && error.message ? error.message : String(error),
+    message: getErrorMessage(error),
   });
-  if (isVerbose() && error && error.stack) console.error(error.stack);
+  if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
   process.exitCode = 0; // best-effort：不阻断后续 build
 });

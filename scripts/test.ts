@@ -1,13 +1,13 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { ensureSupportedNodeVersion } = require('./lib/node-version');
+const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
 
 const log = createLogger('test');
 
-function collectTestFiles(repoRoot) {
+function collectTestFiles(repoRoot: string): string[] {
   const testDir = path.join(repoRoot, 'test');
   if (!fs.existsSync(testDir)) return [];
 
@@ -41,7 +41,7 @@ async function main() {
     stdio: 'inherit',
   });
 
-  const exitCode = result && Number.isFinite(result.status) ? result.status : 1;
+  const exitCode = Number.isFinite(result.status) ? Number(result.status) : 1;
   if (exitCode !== 0) {
     log.error('失败', { ms: elapsedMs(), exit: exitCode });
     process.exitCode = exitCode;
@@ -53,8 +53,8 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    log.error('执行失败', { message: error && error.message ? error.message : String(error) });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('执行失败', { message: error instanceof Error ? error.message : String(error) });
+    if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
     process.exitCode = 1;
   });
 }

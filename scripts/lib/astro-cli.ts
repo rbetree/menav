@@ -1,8 +1,12 @@
-const path = require('node:path');
+const path = require('node:path') as typeof import('node:path');
 
-function resolveAstroCli(repoRoot) {
+type AstroPackageJson = {
+  bin?: string | { astro?: string };
+};
+
+function resolveAstroCli(repoRoot: string): string {
   const astroPackagePath = require.resolve('astro/package.json', { paths: [repoRoot] });
-  const astroPackage = require(astroPackagePath);
+  const astroPackage = require(astroPackagePath) as AstroPackageJson;
   const bin = typeof astroPackage.bin === 'string' ? astroPackage.bin : astroPackage.bin?.astro;
   if (!bin) {
     throw new Error('无法解析 astro CLI 入口');

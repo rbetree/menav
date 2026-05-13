@@ -1,5 +1,5 @@
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
 const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/lib/config/index.ts');
 const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
@@ -9,16 +9,70 @@ const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logg
 
 const log = createLogger('astro-public');
 
-function ensureDir(dirPath) {
+type SiteLike = {
+  favicon?: string;
+};
+
+type SiteItemLike = {
+  faviconUrl?: unknown;
+};
+
+type PageConfigLike = {
+  sites?: SiteItemLike[];
+  categories?: unknown[];
+};
+
+type NavigationItemLike = {
+  id?: unknown;
+};
+
+type ConfigLike = {
+  site?: SiteLike;
+  navigation?: NavigationItemLike[];
+  extensionConfig?: unknown;
+  [key: string]: unknown;
+};
+
+type EsbuildLike = {
+  buildSync: (options: Record<string, unknown>) => void;
+  transformSync: (
+    source: string,
+    options: Record<string, unknown>
+  ) => {
+    code: string;
+  };
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
+
+function isPageConfig(value: unknown): value is PageConfigLike {
+  return Boolean(value && typeof value === 'object');
+}
+
+function loadEsbuild(): EsbuildLike | null {
+  try {
+    return require('esbuild') as EsbuildLike;
+  } catch {
+    return null;
+  }
+}
+
+function ensureDir(dirPath: string): void {
   if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function copyFile(srcPath, destPath) {
+function copyFile(srcPath: string, destPath: string): void {
   ensureDir(path.dirname(destPath));
   fs.copyFileSync(srcPath, destPath);
 }
 
-function copyDirRecursive(src, dest) {
+function copyDirRecursive(src: string, dest: string): void {
   if (!fs.existsSync(src)) return;
   ensureDir(dest);
 
@@ -33,11 +87,9 @@ function copyDirRecursive(src, dest) {
   });
 }
 
-function tryBundleCss(srcPath, destPath) {
-  let esbuild;
-  try {
-    esbuild = require('esbuild');
-  } catch {
+function tryBundleCss(srcPath: string, destPath: string): boolean {
+  const esbuild = loadEsbuild();
+  if (!esbuild) {
     return false;
   }
 
@@ -52,18 +104,17 @@ function tryBundleCss(srcPath, destPath) {
     return true;
   } catch (error) {
     log.warn('CSS bundle 失败，降级为复制', {
-      message: error && error.message ? error.message : String(error),
+      message: getErrorMessage(error),
     });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     return false;
   }
 }
 
-function tryMinifyStaticAsset(srcPath, destPath, loader) {
-  let esbuild;
-  try {
-    esbuild = require('esbuild');
-  } catch {
+function tryMinifyStaticAsset(srcPath: string, destPath: string, loader: string): boolean {
+  const esbuild = loadEsbuild();
+  if (!esbuild) {
     return false;
   }
 
@@ -80,17 +131,18 @@ function tryMinifyStaticAsset(srcPath, destPath, loader) {
   } catch (error) {
     log.warn('压缩静态资源失败，已降级为原文件', {
       path: srcPath,
-      message: error && error.message ? error.message : String(error),
+      message: getErrorMessage(error),
     });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     return false;
   }
 }
 
-function copyLocalFaviconUrls(config) {
+function copyLocalFaviconUrls(config: ConfigLike): void {
   const copied = new Set();
 
-  const copyLocalAsset = (rawUrl) => {
+  const copyLocalAsset = (rawUrl: unknown): void => {
     const raw = String(rawUrl || '').trim();
     if (!raw || /^https?:\/\//i.test(raw)) return;
 
@@ -117,21 +169,21 @@ function copyLocalFaviconUrls(config) {
     const pageId = navItem && navItem.id ? String(navItem.id) : '';
     if (!pageId) return;
     const pageConfig = config[pageId];
-    if (!pageConfig || typeof pageConfig !== 'object') return;
+    if (!isPageConfig(pageConfig)) return;
 
     if (Array.isArray(pageConfig.sites)) {
       pageConfig.sites.forEach((site) => site && copyLocalAsset(site.faviconUrl));
     }
 
     if (Array.isArray(pageConfig.categories)) {
-      const sites = [];
+      const sites: SiteItemLike[] = [];
       pageConfig.categories.forEach((category) => collectSitesRecursively(category, sites));
       sites.forEach((site) => site && copyLocalAsset(site.faviconUrl));
     }
   });
 }
 
-function copyFavicon(config) {
+function copyFavicon(config: ConfigLike): void {
   const favicon = config && config.site ? config.site.favicon : '';
   if (!favicon) return;
 
@@ -147,7 +199,7 @@ function copyFavicon(config) {
 
 function main() {
   const elapsedMs = startTimer();
-  const config = loadConfig();
+  const config = loadConfig() as ConfigLike;
 
   ensureDir('public');
 
@@ -168,7 +220,7 @@ function main() {
     }
   } catch (error) {
     log.warn('写入扩展配置文件失败', {
-      message: error && error.message ? error.message : String(error),
+      message: getErrorMessage(error),
     });
   }
 
@@ -177,7 +229,7 @@ function main() {
     const searchIndex = buildSearchIndex(renderData.pages, renderData.config);
     fs.writeFileSync(path.join('public', MENAV_SEARCH_INDEX_FILE), JSON.stringify(searchIndex));
   } catch (error) {
-    throw new Error(`写入搜索索引失败：${error && error.message ? error.message : String(error)}`);
+    throw new Error(`写入搜索索引失败：${getErrorMessage(error)}`);
   }
 
   copyLocalFaviconUrls(config);
@@ -190,8 +242,9 @@ if (require.main === module) {
   try {
     main();
   } catch (error) {
-    log.error('失败', { message: error && error.message ? error.message : String(error) });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('失败', { message: getErrorMessage(error) });
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     process.exitCode = 1;
   }
 }

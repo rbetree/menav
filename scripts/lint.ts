@@ -1,17 +1,17 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { execFileSync, spawnSync } = require('node:child_process');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const { execFileSync, spawnSync } = require('node:child_process') as typeof import('node:child_process');
 
 const { createLogger } = require('../src/lib/logging/logger.ts');
-const { resolveAstroCli } = require('./lib/astro-cli');
-const { ensureSupportedNodeVersion } = require('./lib/node-version');
+const { resolveAstroCli } = require('./lib/astro-cli.ts');
+const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
 
 const log = createLogger('lint');
 
-function collectJsFiles(rootDir) {
-  const files = [];
+function collectJsFiles(rootDir: string): string[] {
+  const files: string[] = [];
 
-  const walk = (currentDir) => {
+  const walk = (currentDir: string): void => {
     let entries;
     try {
       entries = fs.readdirSync(currentDir, { withFileTypes: true });
@@ -19,7 +19,7 @@ function collectJsFiles(rootDir) {
       return;
     }
 
-    entries.forEach((entry) => {
+    entries.forEach((entry: import('node:fs').Dirent) => {
       const fullPath = path.join(currentDir, entry.name);
 
       if (entry.isDirectory()) {
@@ -62,7 +62,10 @@ function main() {
       execFileSync(process.execPath, ['--check', filePath], { stdio: 'inherit' });
     } catch (error) {
       hasError = true;
-      log.error('语法检查失败', { file: relativePath, exit: error && error.status });
+      log.error('语法检查失败', {
+        file: relativePath,
+        exit: error && typeof error === 'object' && 'status' in error ? error.status : 1,
+      });
     }
   });
 
@@ -72,7 +75,7 @@ function main() {
     cwd: projectRoot,
     stdio: 'inherit',
   });
-  const astroExit = astroResult && Number.isFinite(astroResult.status) ? astroResult.status : 1;
+  const astroExit = Number.isFinite(astroResult.status) ? Number(astroResult.status) : 1;
   if (astroExit !== 0) {
     hasError = true;
     log.error('Astro 检查失败', { exit: astroExit });

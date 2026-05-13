@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 
 const { chromium } = require('playwright');
-const { startServer } = require('../../scripts/serve-dist');
+const { startServer } = require('../../scripts/serve-dist.ts');
 const { createLogger, startTimer } = require('../../src/lib/logging/logger.ts');
 
 const log = createLogger('browser-contract');

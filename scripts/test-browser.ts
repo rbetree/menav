@@ -1,8 +1,8 @@
-const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const path = require('node:path') as typeof import('node:path');
+const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
 
 const { createLogger, startTimer } = require('../src/lib/logging/logger.ts');
-const { ensureSupportedNodeVersion } = require('./lib/node-version');
+const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
 
 const log = createLogger('test:browser');
 
@@ -25,7 +25,7 @@ function main() {
     }
   );
 
-  const exitCode = result && Number.isFinite(result.status) ? result.status : 1;
+  const exitCode = Number.isFinite(result.status) ? Number(result.status) : 1;
   if (exitCode !== 0) {
     log.error('失败', { ms: elapsedMs(), exit: exitCode });
     process.exitCode = exitCode;

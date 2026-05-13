@@ -1,8 +1,86 @@
-const fs = require('fs');
-const path = require('path');
-const yaml = require('js-yaml');
-const { FileError, wrapAsyncError } = require('./lib/errors.ts');
-const { createLogger, isVerbose, startTimer } = require('./lib/logging/logger.ts');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const yaml = require('js-yaml') as {
+  load: (source: string) => unknown;
+  dump: (value: unknown, options?: Record<string, unknown>) => string;
+};
+const { FileError, wrapAsyncError } = require('./lib/errors.ts') as {
+  FileError: new (message: string, filePath?: string | null, suggestions?: string[]) => Error;
+  wrapAsyncError: <TArgs extends unknown[], TResult>(
+    fn: (...args: TArgs) => Promise<TResult> | TResult
+  ) => (...args: TArgs) => Promise<TResult>;
+};
+const { createLogger, isVerbose, startTimer } = require('./lib/logging/logger.ts') as {
+  createLogger: (scope?: string) => {
+    info: (message: string, meta?: Record<string, unknown>) => void;
+    warn: (message: string, meta?: Record<string, unknown>) => void;
+    error: (message: string, meta?: Record<string, unknown>) => void;
+    ok: (message: string, meta?: Record<string, unknown>) => void;
+  };
+  isVerbose: () => boolean;
+  startTimer: () => () => number;
+};
+
+type BookmarkSite = {
+  name: string;
+  url: string;
+  icon: string;
+  description: string;
+};
+
+type BookmarkCategory = {
+  name: string;
+  icon: string;
+  path: string[];
+  sites?: BookmarkSite[];
+  subcategories?: BookmarkCategory[];
+  groups?: BookmarkCategory[];
+  subgroups?: BookmarkCategory[];
+};
+
+type BookmarksData = {
+  categories: BookmarkCategory[];
+};
+
+type InitResult = {
+  initialized: boolean;
+  source: 'existing' | '_default' | 'empty';
+};
+
+type UpsertBookmarksNavResult =
+  | { updated: true; reason: 'added_navigation_block' | 'updated_navigation_block' }
+  | {
+      updated: false;
+      reason: 'site_yml_not_object' | 'already_present' | 'navigation_not_array';
+    }
+  | { updated: false; reason: 'error'; error: unknown };
+
+type NavigationUpdateResult =
+  | { updated: true; target: 'site.yml'; reason: string }
+  | { updated: false; target: 'site.yml'; reason: string; error?: unknown }
+  | { updated: false; target: null; reason: 'no_site_yml' };
+
+type Range = {
+  name: string;
+  start: number;
+  end: number;
+};
+
+type FolderRange = Range & {
+  headerEnd: number;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
+
+function getMatchIndex(match: RegExpMatchArray): number {
+  return typeof match.index === 'number' ? match.index : 0;
+}
 
 const log = createLogger('import-bookmarks');
 
@@ -22,7 +100,7 @@ const MODULAR_DEFAULT_BOOKMARKS_FILE = 'config/_default/pages/bookmarks.yml';
 const USER_SITE_YML = path.join(CONFIG_USER_DIR, 'site.yml');
 const DEFAULT_SITE_YML = path.join(CONFIG_DEFAULT_DIR, 'site.yml');
 
-function ensureUserConfigInitialized() {
+function ensureUserConfigInitialized(): InitResult {
   if (fs.existsSync(CONFIG_USER_DIR)) {
     return { initialized: false, source: 'existing' };
   }
@@ -38,7 +116,7 @@ function ensureUserConfigInitialized() {
   return { initialized: true, source: 'empty' };
 }
 
-function ensureUserSiteYmlExists() {
+function ensureUserSiteYmlExists(): boolean {
   if (fs.existsSync(USER_SITE_YML)) {
     return true;
   }
@@ -58,7 +136,7 @@ function ensureUserSiteYmlExists() {
   return false;
 }
 
-function upsertBookmarksNavInSiteYml(siteYmlPath) {
+function upsertBookmarksNavInSiteYml(siteYmlPath: string): UpsertBookmarksNavResult {
   try {
     const raw = fs.readFileSync(siteYmlPath, 'utf8');
     const loaded = yaml.load(raw);
@@ -67,9 +145,15 @@ function upsertBookmarksNavInSiteYml(siteYmlPath) {
       return { updated: false, reason: 'site_yml_not_object' };
     }
 
-    const navigation = loaded.navigation;
+    const siteConfig = loaded as { navigation?: unknown };
+    const navigation = siteConfig.navigation;
 
-    if (Array.isArray(navigation) && navigation.some((item) => item && item.id === 'bookmarks')) {
+    if (
+      Array.isArray(navigation) &&
+      navigation.some(
+        (item) => item && typeof item === 'object' && 'id' in item && item.id === 'bookmarks'
+      )
+    ) {
       return { updated: false, reason: 'already_present' };
     }
 
@@ -123,7 +207,7 @@ function upsertBookmarksNavInSiteYml(siteYmlPath) {
 }
 
 // 图标映射，根据URL关键字匹配合适的图标
-const ICON_MAPPING = {
+const ICON_MAPPING: Record<string, string> = {
   'github.com': 'fab fa-github',
   'stackoverflow.com': 'fab fa-stack-overflow',
   'youtube.com': 'fab fa-youtube',
@@ -179,7 +263,7 @@ const ICON_MAPPING = {
 };
 
 // 获取最新的书签文件
-function getLatestBookmarkFile() {
+function getLatestBookmarkFile(): string | null {
   try {
     // 确保书签目录存在
     if (!fs.existsSync(BOOKMARKS_DIR)) {
@@ -199,7 +283,7 @@ function getLatestBookmarkFile() {
     }
 
     // GitHub Actions checkout 会导致文件 mtime 大量相同；改用文件名时间戳优先排序
-    const parseFilenameTimestamp = (filename) => {
+    const parseFilenameTimestamp = (filename: string): number => {
       const base = path.basename(filename);
 
       // 格式1: selective-bookmarks-2026-01-24T07-31-00.html
@@ -246,25 +330,26 @@ function getLatestBookmarkFile() {
 
     return latestFilePath;
   } catch (error) {
-    log.error('查找书签文件时出错', { message: error && error.message ? error.message : error });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('查找书签文件时出错', { message: getErrorMessage(error) });
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     return null;
   }
 }
 
 // 解析书签HTML内容，支持2-4层级嵌套结构
-function parseBookmarks(htmlContent) {
+function parseBookmarks(htmlContent: string): BookmarksData {
   // 正则表达式匹配文件夹和书签
   const folderRegex = /<DT><H3([^>]*)>(.*?)<\/H3>/g;
   const bookmarkRegex = /<DT><A HREF="([^"]+)"[^>]*>(.*?)<\/A>/g;
 
   // 储存解析结果
-  const bookmarks = {
+  const bookmarks: BookmarksData = {
     categories: [],
   };
 
   // 提取根路径书签（书签栏容器内但不在任何子文件夹内的书签）
-  function extractRootBookmarks(htmlContent) {
+  function extractRootBookmarks(htmlContent: string): BookmarkSite[] {
     // 找到书签栏文件夹标签
     const bookmarkBarMatch = htmlContent.match(
       /<DT><H3[^>]*PERSONAL_TOOLBAR_FOLDER[^>]*>([^<]+)<\/H3>/i
@@ -272,7 +357,7 @@ function parseBookmarks(htmlContent) {
     if (!bookmarkBarMatch) {
       return [];
     }
-    const bookmarkBarStart = bookmarkBarMatch.index + bookmarkBarMatch[0].length;
+    const bookmarkBarStart = getMatchIndex(bookmarkBarMatch) + bookmarkBarMatch[0].length;
 
     // 找到书签栏后面的 <DL><p> 标签
     const remainingAfterBar = htmlContent.substring(bookmarkBarStart);
@@ -281,7 +366,7 @@ function parseBookmarks(htmlContent) {
       return [];
     }
 
-    const bookmarkBarContentStart = bookmarkBarStart + dlMatch.index + dlMatch[0].length;
+    const bookmarkBarContentStart = bookmarkBarStart + getMatchIndex(dlMatch) + dlMatch[0].length;
 
     // 找到书签栏内容的结束位置
     let depth = 1;
@@ -314,7 +399,7 @@ function parseBookmarks(htmlContent) {
     );
 
     // 现在提取书签栏内所有子文件夹的范围
-    const subfolderRanges = [];
+    const subfolderRanges: Range[] = [];
     const folderRegex = /<DT><H3[^>]*>([^<]+)<\/H3>/g;
     let folderMatch;
 
@@ -332,7 +417,7 @@ function parseBookmarks(htmlContent) {
       const folderDLMatch = afterFolder.match(/<DL><p>/i);
       if (folderDLMatch) {
         folderDepth = 1;
-        folderPos += folderDLMatch.index + folderDLMatch[0].length;
+        folderPos += getMatchIndex(folderDLMatch) + folderDLMatch[0].length;
 
         while (folderPos < bookmarkBarContent.length && folderDepth > 0) {
           const remaining = bookmarkBarContent.substring(folderPos);
@@ -363,7 +448,7 @@ function parseBookmarks(htmlContent) {
     }
 
     // 提取不在任何子文件夹范围内的书签
-    const rootSites = [];
+    const rootSites: BookmarkSite[] = [];
     const bookmarkRegex = /<DT><A HREF="([^"]+)"[^>]*>(.*?)<\/A>/g;
     let bookmarkMatch;
 
@@ -404,11 +489,15 @@ function parseBookmarks(htmlContent) {
   }
 
   // 递归解析嵌套文件夹
-  function parseNestedFolder(htmlContent, parentPath = [], level = 1) {
-    const folders = [];
+  function parseNestedFolder(
+    htmlContent: string,
+    parentPath: string[] = [],
+    level = 1
+  ): BookmarkCategory[] {
+    const folders: BookmarkCategory[] = [];
 
     // 第一步：扫描所有文件夹，记录它们的完整范围
-    const folderRanges = [];
+    const folderRanges: FolderRange[] = [];
     const scanRegex = /<DT><H3([^>]*)>(.*?)<\/H3>/g;
     let scanMatch;
 
@@ -426,7 +515,7 @@ function parseBookmarks(htmlContent) {
       const folderDLMatch = afterFolder.match(/<DL><p>/i);
       if (folderDLMatch) {
         depth = 1;
-        pos += folderDLMatch.index + folderDLMatch[0].length;
+        pos += getMatchIndex(folderDLMatch) + folderDLMatch[0].length;
 
         while (pos < htmlContent.length && depth > 0) {
           const remaining = htmlContent.substring(pos);
@@ -478,7 +567,6 @@ function parseBookmarks(htmlContent) {
       }
 
       const folderName = currentFolder.name;
-      const folderStart = currentFolder.start;
       const folderHeaderEnd = currentFolder.headerEnd;
       const folderEnd = currentFolder.end;
 
@@ -492,7 +580,7 @@ function parseBookmarks(htmlContent) {
       }
 
       // 解析文件夹内容
-      const folder = {
+      const folder: BookmarkCategory = {
         name: folderName,
         icon: 'fas fa-folder',
         path: [...parentPath, folderName],
@@ -503,7 +591,7 @@ function parseBookmarks(htmlContent) {
       const hasSubfolders = testFolderRegex.test(folderContent);
 
       // 先解析当前层级的书签
-      const currentLevelSites = parseSitesInFolder(folderContent, folderName);
+      const currentLevelSites = parseSitesInFolder(folderContent);
 
       if (hasSubfolders && level < 4) {
         // 递归解析子文件夹
@@ -543,12 +631,11 @@ function parseBookmarks(htmlContent) {
   }
 
   // 解析文件夹中的书签（仅当前层级，排除子文件夹内的书签）
-  function parseSitesInFolder(folderContent) {
-    const sites = [];
-    let siteCount = 0;
+  function parseSitesInFolder(folderContent: string): BookmarkSite[] {
+    const sites: BookmarkSite[] = [];
 
     // 首先找到所有子文件夹的范围
-    const subfolderRanges = [];
+    const subfolderRanges: Range[] = [];
     const folderRegex = /<DT><H3[^>]*>([^<]+)<\/H3>/g;
     let folderMatch;
 
@@ -567,7 +654,7 @@ function parseBookmarks(htmlContent) {
       const folderDLMatch = afterFolder.match(/<DL><p>/i);
       if (folderDLMatch) {
         folderDepth = 1;
-        folderPos += folderDLMatch.index + folderDLMatch[0].length;
+        folderPos += getMatchIndex(folderDLMatch) + folderDLMatch[0].length;
 
         while (folderPos < folderContent.length && folderDepth > 0) {
           const remaining = folderContent.substring(folderPos);
@@ -652,7 +739,7 @@ function parseBookmarks(htmlContent) {
       log.error('未找到任何书签容器');
       bookmarks.categories = [];
     } else {
-      const dlStart = firstDLMatch.index + firstDLMatch[0].length;
+      const dlStart = getMatchIndex(firstDLMatch) + firstDLMatch[0].length;
       let dlEnd = htmlContent.length;
       let depth = 1;
       let pos = dlStart;
@@ -678,7 +765,7 @@ function parseBookmarks(htmlContent) {
       bookmarks.categories = parseNestedFolder(bookmarksBarContent);
     }
   } else {
-    const bookmarkBarStart = bookmarkBarMatch.index + bookmarkBarMatch[0].length;
+    const bookmarkBarStart = getMatchIndex(bookmarkBarMatch) + bookmarkBarMatch[0].length;
 
     // 找到书签栏后面的 <DL><p> 标签
     const remainingAfterBar = htmlContent.substring(bookmarkBarStart);
@@ -687,7 +774,7 @@ function parseBookmarks(htmlContent) {
       log.error('未找到书签栏的内容容器 <DL><p>');
       bookmarks.categories = [];
     } else {
-      const bookmarkBarContentStart = bookmarkBarStart + dlMatch.index + dlMatch[0].length;
+      const bookmarkBarContentStart = bookmarkBarStart + getMatchIndex(dlMatch) + dlMatch[0].length;
 
       // 找到书签栏内容的结束位置
       let depth = 1;
@@ -745,7 +832,7 @@ function parseBookmarks(htmlContent) {
 }
 
 // 生成YAML配置
-function generateBookmarksYaml(bookmarks) {
+function generateBookmarksYaml(bookmarks: BookmarksData): string | null {
   try {
     // 创建书签页面配置
     const bookmarksPage = {
@@ -765,7 +852,7 @@ function generateBookmarksYaml(bookmarks) {
     const deterministic = process.env.MENAV_BOOKMARKS_DETERMINISTIC === '1';
     const timestampLine = deterministic
       ? ''
-      : `# 由bookmark-processor.js生成于 ${new Date().toISOString()}\n`;
+      : `# 由bookmark-processor.ts生成于 ${new Date().toISOString()}\n`;
 
     const yamlWithComment = `# 自动生成的书签配置文件
 ${timestampLine}# 若要更新，请将新的书签HTML文件放入bookmarks/目录
@@ -776,15 +863,16 @@ ${yamlString}`;
     return yamlWithComment;
   } catch (error) {
     log.error('生成 YAML 失败', {
-      message: error && error.message ? error.message : String(error),
+      message: getErrorMessage(error),
     });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     return null;
   }
 }
 
 // 更新导航以包含书签页面
-function updateNavigationWithBookmarks() {
+function updateNavigationWithBookmarks(): NavigationUpdateResult {
   // 1) 优先更新 site.yml（当前推荐方式）
   if (ensureUserSiteYmlExists()) {
     const result = upsertBookmarksNavInSiteYml(USER_SITE_YML);
@@ -881,14 +969,12 @@ async function main() {
         log.warn('site.yml 中 navigation 不是数组，无法自动更新导航', { path: USER_SITE_YML });
       } else if (navUpdateResult.reason === 'error') {
         log.warn('导航更新失败，请手动检查配置文件格式（详见错误信息）');
-        if (navUpdateResult.error) {
+        if (navUpdateResult.error !== undefined) {
           log.warn('导航更新错误详情', {
-            message: navUpdateResult.error.message
-              ? navUpdateResult.error.message
-              : String(navUpdateResult.error),
+            message: getErrorMessage(navUpdateResult.error),
           });
-          if (isVerbose() && navUpdateResult.error.stack)
-            console.error(navUpdateResult.error.stack);
+          const stack = getErrorStack(navUpdateResult.error);
+          if (isVerbose() && stack) console.error(stack);
         }
       } else {
         log.info('导航配置无需更新', { reason: navUpdateResult.reason });
@@ -897,7 +983,7 @@ async function main() {
       throw new FileError('写入文件时出错', MODULAR_OUTPUT_FILE, [
         '检查文件路径是否正确',
         '确认目录权限是否正确',
-        `错误详情: ${writeError.message}`,
+        `错误详情: ${getErrorMessage(writeError)}`,
       ]);
     }
 
@@ -911,7 +997,7 @@ async function main() {
     throw new FileError('处理书签文件时发生错误', null, [
       '检查书签 HTML 文件格式是否正确',
       '确认配置目录结构是否完整',
-      `错误详情: ${error.message}`,
+      `错误详情: ${getErrorMessage(error)}`,
     ]);
   }
 }

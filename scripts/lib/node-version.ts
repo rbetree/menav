@@ -1,7 +1,23 @@
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
-function parseVersion(version) {
+type NodeVersion = {
+  major: number;
+  minor: number;
+  patch: number;
+};
+
+type VersionLogger = {
+  error: (message: string, meta?: Record<string, unknown>) => void;
+};
+
+type EnsureSupportedNodeVersionOptions = {
+  repoRoot: string;
+  log: VersionLogger;
+  command?: string;
+};
+
+function parseVersion(version: unknown): NodeVersion | null {
   const match = String(version || '')
     .trim()
     .match(/^(\d+)\.(\d+)\.(\d+)/);
@@ -14,15 +30,21 @@ function parseVersion(version) {
   };
 }
 
-function compareVersions(left, right) {
+function compareVersions(left: NodeVersion, right: NodeVersion): number {
   if (left.major !== right.major) return left.major - right.major;
   if (left.minor !== right.minor) return left.minor - right.minor;
   return left.patch - right.patch;
 }
 
-function readRequiredNodeVersion(repoRoot) {
+function readRequiredNodeVersion(repoRoot: string): {
+  raw: string;
+  normalized: string;
+  parsed: NodeVersion;
+} {
   const packageJsonPath = path.join(repoRoot, 'package.json');
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as {
+    engines?: { node?: string };
+  };
   const enginesNode = packageJson && packageJson.engines && packageJson.engines.node;
   const match = String(enginesNode || '').match(/>=\s*(\d+(?:\.\d+){0,2})/);
 
@@ -30,6 +52,7 @@ function readRequiredNodeVersion(repoRoot) {
     throw new Error('无法从 package.json 解析 engines.node');
   }
 
+  const raw = String(enginesNode);
   const normalized = match[1].split('.');
   while (normalized.length < 3) normalized.push('0');
 
@@ -40,13 +63,13 @@ function readRequiredNodeVersion(repoRoot) {
   }
 
   return {
-    raw: enginesNode,
+    raw,
     normalized: version,
     parsed,
   };
 }
 
-function ensureSupportedNodeVersion(options) {
+function ensureSupportedNodeVersion(options: EnsureSupportedNodeVersionOptions): boolean {
   const { repoRoot, log, command = 'npm run dev' } = options;
   const currentVersion = parseVersion(process.versions.node);
   const required = readRequiredNodeVersion(repoRoot);

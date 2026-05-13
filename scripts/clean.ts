@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
 const { createLogger } = require('../src/lib/logging/logger.ts');
 
@@ -28,7 +28,7 @@ try {
 } catch (error) {
   log.error('删除 dist 目录失败', {
     path: distPath,
-    message: error && error.message ? error.message : String(error),
+    message: error instanceof Error ? error.message : String(error),
   });
   process.exitCode = 1;
 }

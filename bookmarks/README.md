@@ -103,7 +103,7 @@ MeNav 书签导入功能支持从以下浏览器导出的书签文件：
 
 ## 文件处理机制
 
-书签处理器 (`src/bookmark-processor.js`) 对书签文件进行以下处理：
+书签处理器 (`src/bookmark-processor.ts`) 对书签文件进行以下处理：
 
 1. **解析文件结构**：
    - 读取书签 HTML 文件

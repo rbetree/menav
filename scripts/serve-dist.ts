@@ -1,17 +1,53 @@
-const fs = require('node:fs');
-const http = require('node:http');
-const path = require('node:path');
+const fs = require('node:fs') as typeof import('node:fs');
+const http = require('node:http') as typeof import('node:http');
+const path = require('node:path') as typeof import('node:path');
 
 const { createLogger, isVerbose } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('serve');
 
-function parseInteger(value, fallback) {
+type ServerOptions = {
+  rootDir: string;
+  host: string;
+  port: number;
+  strictPort?: boolean;
+  maxPortAttempts?: number;
+};
+
+type StartedServer = {
+  server: import('node:http').Server;
+  port: number;
+  host: string;
+};
+
+type ParsedArgs = {
+  port: number | null;
+  host: string | null;
+  root: string | null;
+};
+
+type NodeError = Error & { code?: string };
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
+
+function parseInteger(value: unknown, fallback: number): number;
+function parseInteger(value: unknown, fallback: null): number | null;
+function parseInteger(value: unknown, fallback: number | null): number | null {
   const n = Number.parseInt(String(value), 10);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function resolveServerOptionsFromEnv(defaultPort = 5173) {
+function resolveServerOptionsFromEnv(defaultPort = 5173): {
+  host: string;
+  port: number;
+  strictPort: boolean;
+} {
   const rawPort = process.env.PORT || process.env.MENAV_PORT || '';
 
   return {
@@ -21,10 +57,10 @@ function resolveServerOptionsFromEnv(defaultPort = 5173) {
   };
 }
 
-function parseArgs(argv) {
+function parseArgs(argv: string[]): ParsedArgs {
   const args = Array.isArray(argv) ? argv.slice() : [];
 
-  const getValue = (keys) => {
+  const getValue = (keys: string[]): string | null => {
     const idx = args.findIndex((a) => keys.includes(a));
     if (idx === -1) return null;
     const next = args[idx + 1];
@@ -42,7 +78,7 @@ function parseArgs(argv) {
   };
 }
 
-function getContentType(filePath) {
+function getContentType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === '.html') return 'text/html; charset=utf-8';
   if (ext === '.js') return 'text/javascript; charset=utf-8';
@@ -60,7 +96,7 @@ function getContentType(filePath) {
   return 'application/octet-stream';
 }
 
-function sendNotFound(res, rootDir) {
+function sendNotFound(res: import('node:http').ServerResponse, rootDir: string): void {
   const fallback404 = path.join(rootDir, '404.html');
   if (fs.existsSync(fallback404)) {
     res.statusCode = 404;
@@ -74,7 +110,12 @@ function sendNotFound(res, rootDir) {
   res.end('Not Found');
 }
 
-function sendFile(req, res, filePath, rootDir) {
+function sendFile(
+  req: import('node:http').IncomingMessage,
+  res: import('node:http').ServerResponse,
+  filePath: string,
+  rootDir: string
+): void {
   try {
     const stat = fs.statSync(filePath);
     if (!stat.isFile()) return sendNotFound(res, rootDir);
@@ -92,14 +133,17 @@ function sendFile(req, res, filePath, rootDir) {
   } catch (error) {
     log.warn('读取文件失败', {
       path: filePath,
-      message: error && error.message ? error.message : String(error),
+      message: getErrorMessage(error),
     });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     sendNotFound(res, rootDir);
   }
 }
 
-function buildHandler(rootDir) {
+function buildHandler(
+  rootDir: string
+): (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) => void {
   const normalizedRoot = path.resolve(rootDir);
 
   return (req, res) => {
@@ -143,9 +187,13 @@ function buildHandler(rootDir) {
   };
 }
 
-function listenServer(server, port, host) {
+function listenServer(
+  server: import('node:http').Server,
+  port: number,
+  host: string
+): Promise<StartedServer> {
   return new Promise((resolve, reject) => {
-    const onError = (error) => {
+    const onError = (error: Error) => {
       server.off('listening', onListening);
       reject(error);
     };
@@ -163,11 +211,11 @@ function listenServer(server, port, host) {
   });
 }
 
-function isAddressInUse(error) {
-  return error && error.code === 'EADDRINUSE';
+function isAddressInUse(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && (error as NodeError).code === 'EADDRINUSE');
 }
 
-async function startServer(options = {}) {
+async function startServer(options: ServerOptions): Promise<StartedServer> {
   const { rootDir, host, port, strictPort = true, maxPortAttempts = strictPort ? 1 : 20 } = options;
   const normalizedRoot = path.resolve(rootDir);
 
@@ -224,7 +272,7 @@ async function main() {
   log.ok('就绪', { url: `http://localhost:${actualPort}` });
 
   let shuttingDown = false;
-  const shutdown = (signal) => {
+  const shutdown = (signal: NodeJS.Signals): void => {
     if (shuttingDown) return;
     shuttingDown = true;
 
@@ -254,8 +302,9 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    log.error('启动失败', { message: error && error.message ? error.message : String(error) });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('启动失败', { message: getErrorMessage(error) });
+    const stack = getErrorStack(error);
+    if (isVerbose() && stack) console.error(stack);
     process.exitCode = 1;
   });
 }

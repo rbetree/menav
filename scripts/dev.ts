@@ -1,14 +1,27 @@
-const path = require('node:path');
+const path = require('node:path') as typeof import('node:path');
+const http = require('node:http') as typeof import('node:http');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { runBuildPipeline } = require('./lib/build-pipeline');
-const { resolveServerOptionsFromEnv, startServer } = require('./serve-dist');
+const { runBuildPipeline } = require('./lib/build-pipeline.ts');
+const { resolveServerOptionsFromEnv, startServer } = require('./serve-dist.ts') as {
+  resolveServerOptionsFromEnv: () => {
+    host: string;
+    port: number;
+    strictPort: boolean;
+  };
+  startServer: (options: {
+    rootDir: string;
+    host: string;
+    port: number;
+    strictPort: boolean;
+  }) => Promise<{ server: import('node:http').Server; port: number }>;
+};
 
 const log = createLogger('dev');
-let serverRef = null;
+let serverRef: import('node:http').Server | null = null;
 let shuttingDown = false;
 
-function closeServer(server, exitCode) {
+function closeServer(server: import('node:http').Server | null, exitCode: number): void {
   if (!server) {
     process.exit(exitCode);
     return;
@@ -52,7 +65,7 @@ async function main() {
 
   log.ok('就绪', { ms: elapsedMs(), url: `http://localhost:${actualPort}` });
 
-  const shutdown = (signal) => {
+  const shutdown = (signal: NodeJS.Signals): void => {
     if (shuttingDown) return;
     shuttingDown = true;
 
@@ -71,8 +84,8 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    log.error('启动失败', { message: error && error.message ? error.message : String(error) });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('启动失败', { message: error instanceof Error ? error.message : String(error) });
+    if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
     process.exitCode = 1;
   });
 }

@@ -1,11 +1,83 @@
 /* eslint-disable no-console */
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
 
 const { loadConfig } = require('../src/lib/config/index.ts');
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:projects');
+
+type GithubConfigLike = {
+  fetch?: Partial<ProjectSettings['fetch']>;
+  colors?: Partial<ProjectSettings['colors']>;
+  [key: string]: unknown;
+};
+
+type ConfigLike = {
+  site?: {
+    github?: GithubConfigLike;
+  };
+  navigation?: Array<{ id?: unknown }>;
+  [key: string]: unknown;
+};
+
+type ProjectSettings = {
+  enabled: boolean;
+  cacheDir: string;
+  fetch: {
+    timeoutMs: number;
+    concurrency: number;
+    userAgent: string;
+  };
+  colors: {
+    url: string;
+    maxAgeMs: number;
+  };
+};
+
+type SiteLike = {
+  url?: unknown;
+};
+
+type PageLike = Record<string, unknown>;
+
+type ProjectPage = {
+  pageId: string;
+  page: PageLike;
+};
+
+type GithubRepo = {
+  owner: string;
+  repo: string;
+  canonicalUrl: string;
+};
+
+type GithubApiRepo = {
+  full_name?: unknown;
+  language?: unknown;
+  stargazers_count?: unknown;
+  forks_count?: unknown;
+};
+
+type LanguageColors = Record<string, { color?: unknown }>;
+
+type FetchJsonOptions = {
+  timeoutMs: number;
+  headers: Record<string, string>;
+};
+
+type RepoMeta = {
+  url: string;
+  fullName: string;
+  language: string;
+  languageColor: string;
+  stars: number | null;
+  forks: number | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 const DEFAULT_SETTINGS = {
   enabled: true,
@@ -21,7 +93,7 @@ const DEFAULT_SETTINGS = {
   },
 };
 
-function parseBooleanEnv(value, fallback) {
+function parseBooleanEnv(value: unknown, fallback: boolean): boolean {
   if (value === undefined || value === null || value === '') return fallback;
   const v = String(value).trim().toLowerCase();
   if (v === '1' || v === 'true' || v === 'yes' || v === 'y') return true;
@@ -29,13 +101,13 @@ function parseBooleanEnv(value, fallback) {
   return fallback;
 }
 
-function parseIntegerEnv(value, fallback) {
+function parseIntegerEnv(value: unknown, fallback: number): number {
   if (value === undefined || value === null || value === '') return fallback;
   const n = Number.parseInt(String(value), 10);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function getSettings(config) {
+function getSettings(config: ConfigLike): ProjectSettings {
   const fromConfig =
     config && config.site && config.site.github && typeof config.site.github === 'object'
       ? config.site.github
@@ -73,11 +145,11 @@ function getSettings(config) {
   return merged;
 }
 
-function ensureDir(dirPath) {
+function ensureDir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function isGithubRepoUrl(url) {
+function isGithubRepoUrl(url: unknown): GithubRepo | null {
   if (!url) return null;
   try {
     const u = new URL(String(url));
@@ -94,32 +166,35 @@ function isGithubRepoUrl(url) {
   }
 }
 
-function collectSitesRecursively(node, output) {
+function collectSitesRecursively(node: unknown, output: SiteLike[]): void {
   if (!node || typeof node !== 'object') return;
-  if (Array.isArray(node.subcategories))
-    node.subcategories.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(node.groups))
-    node.groups.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(node.subgroups))
-    node.subgroups.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(node.sites)) node.sites.forEach((site) => output.push(site));
+  const record = node as Record<string, unknown>;
+  if (Array.isArray(record.subcategories))
+    record.subcategories.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.groups))
+    record.groups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.subgroups))
+    record.subgroups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.sites)) record.sites.forEach((site) => output.push(site as SiteLike));
 }
 
-function findProjectsPages(config) {
-  const pages = [];
+function findProjectsPages(config: ConfigLike): ProjectPage[] {
+  const pages: ProjectPage[] = [];
   const nav = Array.isArray(config.navigation) ? config.navigation : [];
   nav.forEach((item) => {
     const pageId = item && item.id ? String(item.id) : '';
     if (!pageId || !config[pageId]) return;
     const page = config[pageId];
-    const templateName = page && page.template ? String(page.template) : pageId;
+    if (!page || typeof page !== 'object') return;
+    const pageRecord = page as PageLike;
+    const templateName = pageRecord.template ? String(pageRecord.template) : pageId;
     if (templateName !== 'projects') return;
-    pages.push({ pageId, page });
+    pages.push({ pageId, page: pageRecord });
   });
   return pages;
 }
 
-async function fetchJsonWithTimeout(url, { timeoutMs, headers }) {
+async function fetchJsonWithTimeout(url: string, { timeoutMs, headers }: FetchJsonOptions): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -131,15 +206,15 @@ async function fetchJsonWithTimeout(url, { timeoutMs, headers }) {
   }
 }
 
-async function loadLanguageColors(settings, cacheBaseDir) {
+async function loadLanguageColors(settings: ProjectSettings, cacheBaseDir: string): Promise<LanguageColors> {
   const cachePath = path.join(cacheBaseDir, 'github-colors.json');
 
   try {
     const stat = fs.existsSync(cachePath) ? fs.statSync(cachePath) : null;
     if (stat && stat.mtimeMs && Date.now() - stat.mtimeMs < settings.colors.maxAgeMs) {
       const raw = fs.readFileSync(cachePath, 'utf8');
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') return parsed;
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === 'object') return parsed as LanguageColors;
     }
   } catch {
     // 继续联网抓取
@@ -153,29 +228,34 @@ async function loadLanguageColors(settings, cacheBaseDir) {
     });
     if (colors && typeof colors === 'object') {
       fs.writeFileSync(cachePath, JSON.stringify(colors, null, 2), 'utf8');
-      return colors;
+      return colors as LanguageColors;
     }
   } catch (error) {
     log.warn('获取语言颜色表失败（将不输出 languageColor）', {
-      message: String(error && error.message ? error.message : error),
+      message: getErrorMessage(error),
     });
   }
 
   return {};
 }
 
-async function fetchRepoMeta(repo, settings, colors) {
+async function fetchRepoMeta(
+  repo: GithubRepo,
+  settings: ProjectSettings,
+  colors: LanguageColors
+): Promise<RepoMeta> {
   const headers = {
     'user-agent': settings.fetch.userAgent,
     accept: 'application/vnd.github+json',
   };
 
   const apiUrl = `https://api.github.com/repos/${repo.owner}/${repo.repo}`;
-  const data = await fetchJsonWithTimeout(apiUrl, { timeoutMs: settings.fetch.timeoutMs, headers });
+  const rawData = await fetchJsonWithTimeout(apiUrl, { timeoutMs: settings.fetch.timeoutMs, headers });
+  const data = rawData && typeof rawData === 'object' ? (rawData as GithubApiRepo) : {};
 
   const language = data && data.language ? String(data.language) : '';
-  const stars = data && Number.isFinite(data.stargazers_count) ? data.stargazers_count : null;
-  const forks = data && Number.isFinite(data.forks_count) ? data.forks_count : null;
+  const stars = Number.isFinite(data.stargazers_count) ? Number(data.stargazers_count) : null;
+  const forks = Number.isFinite(data.forks_count) ? Number(data.forks_count) : null;
 
   let languageColor = '';
   if (language && colors && colors[language] && colors[language].color) {
@@ -192,8 +272,12 @@ async function fetchRepoMeta(repo, settings, colors) {
   };
 }
 
-async function runPool(items, concurrency, worker) {
-  const results = [];
+async function runPool<TItem, TResult>(
+  items: TItem[],
+  concurrency: number,
+  worker: (item: TItem) => Promise<TResult | null>
+): Promise<TResult[]> {
+  const results: TResult[] = [];
   let index = 0;
 
   async function runOne() {
@@ -213,7 +297,7 @@ async function runPool(items, concurrency, worker) {
 
 async function main() {
   const elapsedMs = startTimer();
-  const config = loadConfig();
+  const config = loadConfig() as ConfigLike;
   const settings = getSettings(config);
 
   log.info('开始');
@@ -243,14 +327,14 @@ async function main() {
 
   for (const { pageId, page } of pages) {
     const categories = Array.isArray(page.categories) ? page.categories : [];
-    const sites = [];
+    const sites: SiteLike[] = [];
     categories.forEach((category) => collectSitesRecursively(category, sites));
 
     const repos = sites
       .map((site) => (site && site.url ? isGithubRepoUrl(site.url) : null))
-      .filter(Boolean);
+      .filter((repo): repo is GithubRepo => Boolean(repo));
 
-    const unique = new Map();
+    const unique = new Map<string, GithubRepo>();
     repos.forEach((r) => unique.set(r.canonicalUrl, r));
     const repoList = Array.from(unique.values());
 
@@ -271,7 +355,7 @@ async function main() {
         failed += 1;
         log.warn('拉取仓库元信息失败（best-effort）', {
           repo: repo.canonicalUrl,
-          message: String(error && error.message ? error.message : error),
+          message: getErrorMessage(error),
         });
         return null;
       }
@@ -308,8 +392,8 @@ async function main() {
 
 main().catch((error) => {
   log.error('执行异常（best-effort，不阻断后续 build）', {
-    message: error && error.message ? error.message : String(error),
+    message: getErrorMessage(error),
   });
-  if (isVerbose() && error && error.stack) console.error(error.stack);
+  if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
   process.exitCode = 0; // best-effort：不阻断后续 build
 });

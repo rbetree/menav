@@ -5,7 +5,7 @@ const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 
-const { startServer } = require('../scripts/serve-dist');
+const { startServer } = require('../scripts/serve-dist.ts');
 
 function listen(server, port) {
   return new Promise((resolve, reject) => {

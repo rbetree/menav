@@ -10,7 +10,7 @@ const {
   upsertBookmarksNavInSiteYml,
   parseBookmarks,
   generateBookmarksYaml,
-} = require('../src/bookmark-processor.js');
+} = require('../src/bookmark-processor.ts');
 
 function stripYamlComments(yamlText) {
   return yamlText

@@ -6,16 +6,21 @@ const { spawnSync } = require('node:child_process');
 
 function buildSite() {
   const repoRoot = path.resolve(__dirname, '..');
-  const result = spawnSync(process.execPath, [path.join(repoRoot, 'scripts', 'build.js')], {
-    cwd: repoRoot,
-    env: {
-      ...process.env,
-      PROJECTS_ENABLED: 'false',
-      HEATMAP_ENABLED: 'false',
-      RSS_ENABLED: 'false',
-    },
-    stdio: 'inherit',
-  });
+  const registerScript = path.join(repoRoot, 'scripts', 'register-ts.cjs');
+  const result = spawnSync(
+    process.execPath,
+    ['-r', registerScript, path.join(repoRoot, 'scripts', 'build.ts')],
+    {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        PROJECTS_ENABLED: 'false',
+        HEATMAP_ENABLED: 'false',
+        RSS_ENABLED: 'false',
+      },
+      stdio: 'inherit',
+    }
+  );
 
   const exitCode = result && Number.isFinite(result.status) ? result.status : 1;
   assert.equal(exitCode, 0);

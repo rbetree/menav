@@ -1,12 +1,12 @@
-const path = require('node:path');
-const { spawnSync } = require('node:child_process');
-const { resolveAstroCli } = require('./lib/astro-cli');
+const path = require('node:path') as typeof import('node:path');
+const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
+const { resolveAstroCli } = require('./lib/astro-cli.ts');
 const { createLogger } = require('../src/lib/logging/logger.ts');
-const { ensureSupportedNodeVersion } = require('./lib/node-version');
+const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
 
 const log = createLogger('astro:build');
 
-function runAstroBuild(args = []) {
+function runAstroBuild(args: string[] = []): number {
   const repoRoot = path.resolve(__dirname, '..');
 
   if (!ensureSupportedNodeVersion({ repoRoot, log, command: 'npm run build' })) {
@@ -19,7 +19,7 @@ function runAstroBuild(args = []) {
     cwd: repoRoot,
     stdio: 'inherit',
   });
-  return result && Number.isFinite(result.status) ? result.status : 1;
+  return Number.isFinite(result.status) ? Number(result.status) : 1;
 }
 
 if (require.main === module) {

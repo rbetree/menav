@@ -1,12 +1,41 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const { execFileSync } = require('node:child_process') as typeof import('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('format:check:changed');
 
-function runGit(args, cwd, options = {}) {
+type GitRange = {
+  base: string;
+  head: string;
+};
+
+type CommandError = Error & {
+  status?: number;
+};
+
+type GithubEvent = {
+  pull_request?: {
+    base?: { sha?: string };
+    head?: { sha?: string };
+  };
+  before?: string;
+  after?: string;
+  head_commit?: { id?: string };
+};
+
+function getCommandStatus(error: unknown): number {
+  return error && typeof error === 'object' && 'status' in error
+    ? Number((error as CommandError).status || 1)
+    : 1;
+}
+
+function runGit(
+  args: string[],
+  cwd: string,
+  options: { allowFailure?: boolean; stdio?: import('node:child_process').StdioOptions } = {}
+): string | null {
   const { allowFailure = false, stdio } = options;
   try {
     return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: stdio || 'pipe' }).trim();
@@ -16,21 +45,21 @@ function runGit(args, cwd, options = {}) {
   }
 }
 
-function tryReadGithubEvent(eventPath) {
+function tryReadGithubEvent(eventPath?: string): GithubEvent | null {
   if (!eventPath) return null;
   try {
     const raw = fs.readFileSync(eventPath, 'utf8');
-    return JSON.parse(raw);
+    return JSON.parse(raw) as GithubEvent;
   } catch {
     return null;
   }
 }
 
-function isAllZerosSha(value) {
+function isAllZerosSha(value: unknown): boolean {
   return typeof value === 'string' && /^0{40}$/.test(value);
 }
 
-function getDiffRangeFromGithubEvent(event) {
+function getDiffRangeFromGithubEvent(event: GithubEvent | null): GitRange | null {
   if (!event || typeof event !== 'object') return null;
 
   if (event.pull_request && event.pull_request.base && event.pull_request.head) {
@@ -48,18 +77,18 @@ function getDiffRangeFromGithubEvent(event) {
   return null;
 }
 
-function gitObjectExists(repoRoot, sha) {
+function gitObjectExists(repoRoot: string, sha?: string): boolean {
   if (!sha) return false;
   const result = runGit(['cat-file', '-e', `${sha}^{commit}`], repoRoot, { allowFailure: true });
   return result !== null;
 }
 
-function isShallowRepository(repoRoot) {
+function isShallowRepository(repoRoot: string): boolean {
   const result = runGit(['rev-parse', '--is-shallow-repository'], repoRoot, { allowFailure: true });
   return result === 'true';
 }
 
-function tryFetchMoreHistory(repoRoot) {
+function tryFetchMoreHistory(repoRoot: string): boolean {
   // 仅在 CI 场景兜底：actions/checkout 若是浅克隆，可能缺少 base commit，导致 diff range 失败
   try {
     if (isShallowRepository(repoRoot)) {
@@ -84,7 +113,7 @@ function tryFetchMoreHistory(repoRoot) {
   }
 }
 
-function collectHeadChangedFiles(repoRoot) {
+function collectHeadChangedFiles(repoRoot: string): string[] {
   const output = runGit(
     ['show', '--name-only', '--diff-filter=ACMR', '--pretty=format:', 'HEAD'],
     repoRoot,
@@ -99,7 +128,7 @@ function collectHeadChangedFiles(repoRoot) {
     .filter(Boolean);
 }
 
-function collectChangedFiles(repoRoot, range) {
+function collectChangedFiles(repoRoot: string, range: GitRange | null): string[] {
   if (!range) return [];
 
   const diffArgs = ['diff', '--name-only', '--diff-filter=ACMR', `${range.base}..${range.head}`];
@@ -123,8 +152,8 @@ function collectChangedFiles(repoRoot, range) {
     .filter(Boolean);
 }
 
-function collectWorkingTreeChangedFiles(repoRoot) {
-  const files = new Set();
+function collectWorkingTreeChangedFiles(repoRoot: string): string[] {
+  const files = new Set<string>();
   const unstaged = runGit(['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'], repoRoot, {
     allowFailure: true,
   });
@@ -144,7 +173,7 @@ function collectWorkingTreeChangedFiles(repoRoot) {
   return Array.from(files).sort();
 }
 
-function shouldCheckFile(filePath) {
+function shouldCheckFile(filePath: string): boolean {
   const normalized = filePath.split(path.sep).join('/');
 
   if (normalized === 'package-lock.json') return false;
@@ -166,7 +195,7 @@ function shouldCheckFile(filePath) {
   return ['.astro', '.js', '.json', '.md', '.yml', '.yaml'].includes(ext);
 }
 
-function resolvePrettierBin(repoRoot) {
+function resolvePrettierBin(repoRoot: string): string | null {
   const base = path.join(repoRoot, 'node_modules', '.bin', 'prettier');
   if (fs.existsSync(base)) return base;
   if (fs.existsSync(`${base}.cmd`)) return `${base}.cmd`;
@@ -212,9 +241,9 @@ function main() {
     log.error('未通过', {
       ms: elapsedMs(),
       files: filesToCheck.length,
-      exit: error && error.status ? error.status : 1,
+      exit: getCommandStatus(error),
     });
-    process.exitCode = error && error.status ? error.status : 1;
+    process.exitCode = getCommandStatus(error);
   }
 }
 

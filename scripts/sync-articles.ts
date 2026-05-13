@@ -1,14 +1,124 @@
 /* eslint-disable no-console */
-const fs = require('fs');
-const path = require('path');
-const dns = require('node:dns').promises;
-const net = require('node:net');
-const Parser = require('rss-parser');
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const dns = require('node:dns').promises as typeof import('node:dns').promises;
+const net = require('node:net') as typeof import('node:net');
+const Parser = require('rss-parser') as new (options?: Record<string, unknown>) => RssParserLike;
 
 const { loadConfig } = require('../src/lib/config/index.ts');
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
 const log = createLogger('sync:articles');
+
+type ConfigLike = {
+  site?: {
+    rss?: Partial<RssSettings>;
+  };
+  navigation?: Array<{ id?: unknown }>;
+  [key: string]: unknown;
+};
+
+type RssSettings = {
+  enabled: boolean;
+  cacheDir: string;
+  fetch: {
+    timeoutMs: number;
+    maxRetries: number;
+    concurrency: number;
+    totalTimeoutMs: number;
+    maxRedirects: number;
+    userAgent: string;
+    htmlMaxBytes: number;
+    feedMaxBytes: number;
+  };
+  articles: {
+    perSite: number;
+    total: number;
+    summaryMaxLength: number;
+  };
+};
+
+type SiteLike = {
+  name?: unknown;
+  url?: unknown;
+  icon?: unknown;
+};
+
+type PageConfigLike = {
+  title?: unknown;
+  template?: unknown;
+  sites?: SiteLike[];
+  categories?: unknown[];
+};
+
+type Article = {
+  title: string;
+  url: string;
+  summary: string;
+  publishedAt: string;
+  source: string;
+  sourceUrl: string;
+  icon: string;
+};
+
+type FeedItem = {
+  title?: unknown;
+  link?: unknown;
+  contentSnippet?: unknown;
+  summary?: unknown;
+  content?: unknown;
+  isoDate?: unknown;
+  pubDate?: unknown;
+};
+
+type RssParserLike = {
+  parseString: (text: string) => Promise<{ title?: string; items?: FeedItem[] }>;
+};
+
+type FetchWithRedirectsResult = {
+  url: string;
+  response: Response;
+  text: string;
+};
+
+type FetchWithRedirectsOptions = {
+  timeoutMs: number;
+  maxRedirects: number;
+  headers: Record<string, string>;
+  maxBytes: number;
+};
+
+type FeedParseResult = {
+  feedUrl: string;
+  feedTitle: string;
+  items: FeedItem[];
+};
+
+type SourceSiteResult = {
+  site: {
+    name: string;
+    url: string;
+    feedUrl: string;
+    status: 'success' | 'failed' | 'skipped';
+    error: string;
+    fetchedAt: string;
+    durationMs?: number;
+  };
+  articles: Article[];
+};
+
+type PageSelection = {
+  pageId: string;
+  pageConfig: PageConfigLike;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
 
 const DEFAULT_RSS_SETTINGS = {
   enabled: true,
@@ -30,7 +140,7 @@ const DEFAULT_RSS_SETTINGS = {
   },
 };
 
-function parseBooleanEnv(value, fallback) {
+function parseBooleanEnv(value: unknown, fallback: boolean): boolean {
   if (value === undefined || value === null || value === '') return fallback;
   const v = String(value).trim().toLowerCase();
   if (v === '1' || v === 'true' || v === 'yes' || v === 'y') return true;
@@ -38,13 +148,13 @@ function parseBooleanEnv(value, fallback) {
   return fallback;
 }
 
-function parseIntegerEnv(value, fallback) {
+function parseIntegerEnv(value: unknown, fallback: number): number {
   if (value === undefined || value === null || value === '') return fallback;
   const n = Number.parseInt(String(value), 10);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function getRssSettings(config) {
+function getRssSettings(config: ConfigLike): RssSettings {
   const fromConfig =
     config && config.site && config.site.rss && typeof config.site.rss === 'object'
       ? config.site.rss
@@ -109,7 +219,7 @@ function getRssSettings(config) {
   return merged;
 }
 
-function isHttpUrl(url) {
+function isHttpUrl(url: unknown): boolean {
   if (!url) return false;
   try {
     const u = new URL(String(url));
@@ -119,11 +229,14 @@ function isHttpUrl(url) {
   }
 }
 
-function isPrivateIp(ip) {
+function isPrivateIp(ip: unknown): boolean {
   if (!ip) return true;
+  const ipText = String(ip);
 
-  if (net.isIP(ip) === 4) {
-    const parts = ip.split('.').map((n) => Number.parseInt(n, 10));
+  if (net.isIP(ipText) === 4) {
+    const parts = ipText
+      .split('.')
+      .map((n) => Number.parseInt(n, 10));
     if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n) || n < 0 || n > 255))
       return true;
 
@@ -138,8 +251,8 @@ function isPrivateIp(ip) {
     return false;
   }
 
-  if (net.isIP(ip) === 6) {
-    const normalized = String(ip).toLowerCase();
+  if (net.isIP(ipText) === 6) {
+    const normalized = ipText.toLowerCase();
     if (normalized === '::1') return true;
     if (normalized.startsWith('fe80:')) return true; // link-local
     if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true; // ULA
@@ -149,10 +262,10 @@ function isPrivateIp(ip) {
   return true;
 }
 
-async function withTimeout(promise, timeoutMs, label) {
-  let timer;
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timer: NodeJS.Timeout | null = null;
   try {
-    const timeout = new Promise((_, reject) => {
+    const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(new Error(`${label} 超时（${timeoutMs}ms）`)), timeoutMs);
     });
     return await Promise.race([promise, timeout]);
@@ -161,7 +274,7 @@ async function withTimeout(promise, timeoutMs, label) {
   }
 }
 
-async function assertSafeToFetch(url, timeoutMs) {
+async function assertSafeToFetch(url: string, timeoutMs: number): Promise<void> {
   const u = new URL(String(url));
   if (u.protocol !== 'http:' && u.protocol !== 'https:') {
     throw new Error(`仅允许 http/https：${u.protocol}`);
@@ -204,14 +317,17 @@ async function assertSafeToFetch(url, timeoutMs) {
   if (hasPrivate) throw new Error('DNS 解析到内网/保留地址，已阻断');
 }
 
-function buildHeaders(userAgent) {
+function buildHeaders(userAgent: string): Record<string, string> {
   return {
     'user-agent': userAgent,
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   };
 }
 
-async function fetchWithRedirects(url, { timeoutMs, maxRedirects, headers, maxBytes }) {
+async function fetchWithRedirects(
+  url: string,
+  { timeoutMs, maxRedirects, headers, maxBytes }: FetchWithRedirectsOptions
+): Promise<FetchWithRedirectsResult> {
   let current = String(url);
   for (let i = 0; i <= maxRedirects; i += 1) {
     await assertSafeToFetch(current, timeoutMs);
@@ -250,7 +366,7 @@ async function fetchWithRedirects(url, { timeoutMs, maxRedirects, headers, maxBy
   throw new Error(`重定向次数超过上限（${maxRedirects}）`);
 }
 
-async function readResponseTextWithLimit(response, maxBytes) {
+async function readResponseTextWithLimit(response: Response, maxBytes: number): Promise<string> {
   if (!response.body || typeof response.body.getReader !== 'function') {
     const text = await response.text();
     if (Buffer.byteLength(text, 'utf8') > maxBytes) {
@@ -283,8 +399,8 @@ async function readResponseTextWithLimit(response, maxBytes) {
   return text;
 }
 
-function extractFeedLinksFromHtml(html, baseUrl) {
-  const candidates = [];
+function extractFeedLinksFromHtml(html: unknown, baseUrl: string): string[] {
+  const candidates: string[] = [];
   if (!html) return candidates;
 
   const linkTags = String(html).match(/<link\b[^>]*>/gi) || [];
@@ -308,13 +424,13 @@ function extractFeedLinksFromHtml(html, baseUrl) {
   }
 
   // 简单排序：优先 RSS，其次 Atom
-  const rank = (url) => (url.includes('atom') ? 2 : 1);
+  const rank = (url: string): number => (url.includes('atom') ? 2 : 1);
   return [...new Set(candidates)].sort((a, b) => rank(a) - rank(b));
 }
 
-function buildCommonFeedUrls(siteUrl) {
+function buildCommonFeedUrls(siteUrl: string): string[] {
   const common = ['/feed', '/rss.xml', '/rss', '/atom.xml', '/atom', '/feed.xml'];
-  const out = [];
+  const out: string[] = [];
   for (const p of common) {
     try {
       const u = new URL(p, siteUrl).toString();
@@ -326,7 +442,11 @@ function buildCommonFeedUrls(siteUrl) {
   return out;
 }
 
-async function discoverFeedUrl(siteUrl, settings, deadlineTs) {
+async function discoverFeedUrl(
+  siteUrl: string,
+  settings: RssSettings,
+  deadlineTs: number
+): Promise<string | null> {
   const timeRemaining = deadlineTs - Date.now();
   if (timeRemaining <= 0) throw new Error('总超时：无法继续发现 RSS');
 
@@ -352,7 +472,7 @@ async function discoverFeedUrl(siteUrl, settings, deadlineTs) {
   return null;
 }
 
-function stripHtmlToText(input) {
+function stripHtmlToText(input: unknown): string {
   const raw = String(input || '');
   const withoutTags = raw
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -372,14 +492,14 @@ function stripHtmlToText(input) {
   return decoded.replace(/\s+/g, ' ').trim();
 }
 
-function truncateText(text, maxLen) {
+function truncateText(text: unknown, maxLen: number): string {
   if (!maxLen || maxLen <= 0) return '';
   const s = String(text || '');
   if (s.length <= maxLen) return s;
   return s.slice(0, maxLen) + '...';
 }
 
-function normalizePublishedAt(item) {
+function normalizePublishedAt(item: FeedItem): string {
   const iso = item && typeof item.isoDate === 'string' ? item.isoDate : '';
   if (iso) return iso;
 
@@ -392,7 +512,11 @@ function normalizePublishedAt(item) {
   return '';
 }
 
-function normalizeArticle(item, sourceSite, settings) {
+function normalizeArticle(
+  item: FeedItem,
+  sourceSite: SiteLike,
+  settings: RssSettings
+): Article | null {
   const title = item && item.title !== undefined ? String(item.title).trim() : '';
   if (!title) return null;
 
@@ -424,7 +548,12 @@ function normalizeArticle(item, sourceSite, settings) {
   };
 }
 
-async function fetchAndParseFeed(feedUrl, settings, parser, deadlineTs) {
+async function fetchAndParseFeed(
+  feedUrl: string,
+  settings: RssSettings,
+  parser: RssParserLike,
+  deadlineTs: number
+): Promise<FeedParseResult> {
   const timeRemaining = deadlineTs - Date.now();
   if (timeRemaining <= 0) throw new Error('总超时：无法继续抓取 Feed');
 
@@ -446,7 +575,12 @@ async function fetchAndParseFeed(feedUrl, settings, parser, deadlineTs) {
   };
 }
 
-async function processSourceSite(sourceSite, settings, parser, deadlineTs) {
+async function processSourceSite(
+  sourceSite: SiteLike,
+  settings: RssSettings,
+  parser: RssParserLike,
+  deadlineTs: number
+): Promise<SourceSiteResult> {
   const url = sourceSite && sourceSite.url ? String(sourceSite.url) : '';
   if (!isHttpUrl(url)) {
     return {
@@ -462,13 +596,13 @@ async function processSourceSite(sourceSite, settings, parser, deadlineTs) {
     };
   }
 
-  let lastError = null;
+  let lastError: unknown = null;
 
-  const tryOnce = async (feedUrl) => {
+  const tryOnce = async (feedUrl: string): Promise<{ feedUrl: string; articles: Article[] }> => {
     const parsed = await fetchAndParseFeed(feedUrl, settings, parser, deadlineTs);
     const normalized = parsed.items
       .map((item) => normalizeArticle(item, sourceSite, settings))
-      .filter(Boolean)
+      .filter((item): item is Article => Boolean(item))
       .slice(0, settings.articles.perSite);
     return { feedUrl: parsed.feedUrl, articles: normalized };
   };
@@ -519,7 +653,7 @@ async function processSourceSite(sourceSite, settings, parser, deadlineTs) {
       url,
       feedUrl: '',
       status: 'failed',
-      error: lastError ? String(lastError.message || lastError) : '未知错误',
+      error: lastError ? getErrorMessage(lastError) : '未知错误',
       fetchedAt: new Date().toISOString(),
       durationMs: elapsedMs(),
     },
@@ -527,8 +661,12 @@ async function processSourceSite(sourceSite, settings, parser, deadlineTs) {
   };
 }
 
-async function mapWithConcurrency(items, concurrency, worker) {
-  const results = new Array(items.length);
+async function mapWithConcurrency<TItem, TResult>(
+  items: TItem[],
+  concurrency: number,
+  worker: (item: TItem, index: number) => Promise<TResult>
+): Promise<Array<TResult | { error: unknown }>> {
+  const results = new Array<TResult | { error: unknown }>(items.length);
   let nextIndex = 0;
 
   async function runOne() {
@@ -554,35 +692,41 @@ async function mapWithConcurrency(items, concurrency, worker) {
   return results;
 }
 
-function collectSitesRecursively(node, output) {
+function collectSitesRecursively(node: unknown, output: SiteLike[]): void {
   if (!node || typeof node !== 'object') return;
+  const record = node as Record<string, unknown>;
 
-  if (Array.isArray(node.subcategories))
-    node.subcategories.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(node.groups))
-    node.groups.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(node.subgroups))
-    node.subgroups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.subcategories))
+    record.subcategories.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.groups))
+    record.groups.forEach((child) => collectSitesRecursively(child, output));
+  if (Array.isArray(record.subgroups))
+    record.subgroups.forEach((child) => collectSitesRecursively(child, output));
 
-  if (Array.isArray(node.sites)) {
-    node.sites.forEach((site) => {
+  if (Array.isArray(record.sites)) {
+    record.sites.forEach((site) => {
       if (site && typeof site === 'object') output.push(site);
     });
   }
 }
 
-function buildFlatSitesFromCategories(categories) {
-  const out = [];
+function buildFlatSitesFromCategories(categories: unknown): SiteLike[] {
+  const out: SiteLike[] = [];
   if (!Array.isArray(categories)) return out;
   categories.forEach((category) => collectSitesRecursively(category, out));
   return out;
 }
 
-async function syncArticlesForPage(pageId, pageConfig, config, settings) {
-  const sourceSites = Array.isArray(pageConfig && pageConfig.sites)
+async function syncArticlesForPage(
+  pageId: string,
+  pageConfig: PageConfigLike,
+  _config: ConfigLike,
+  settings: RssSettings
+): Promise<{ cachePath: string; cache: { stats: { totalArticles: number; totalSites: number } } }> {
+  const sourceSites: SiteLike[] = Array.isArray(pageConfig.sites)
     ? pageConfig.sites
     : buildFlatSitesFromCategories(
-        pageConfig && Array.isArray(pageConfig.categories) ? pageConfig.categories : []
+        Array.isArray(pageConfig.categories) ? pageConfig.categories : []
       );
 
   const elapsedMs = startTimer();
@@ -597,15 +741,16 @@ async function syncArticlesForPage(pageId, pageConfig, config, settings) {
     processSourceSite(site, settings, parser, deadlineTs)
   );
 
-  const sites = [];
-  const articles = [];
-  const seen = new Set();
+  const sites: SourceSiteResult['site'][] = [];
+  const articles: Article[] = [];
+  const seen = new Set<string>();
 
   for (const r of results) {
-    if (!r || r.error) continue;
-    if (r.site) sites.push(r.site);
-    if (Array.isArray(r.articles)) {
-      for (const a of r.articles) {
+    if (!r || (typeof r === 'object' && 'error' in r)) continue;
+    const result = r as SourceSiteResult;
+    if (result.site) sites.push(result.site);
+    if (Array.isArray(result.articles)) {
+      for (const a of result.articles) {
         if (!a || !a.url) continue;
         if (seen.has(a.url)) continue;
         seen.add(a.url);
@@ -652,8 +797,8 @@ async function syncArticlesForPage(pageId, pageConfig, config, settings) {
   return { cachePath, cache };
 }
 
-function pickArticlesPages(config, onlyPageId) {
-  const pages = [];
+function pickArticlesPages(config: ConfigLike, onlyPageId: string | null): PageSelection[] {
+  const pages: PageSelection[] = [];
   const nav = Array.isArray(config.navigation) ? config.navigation : [];
 
   for (const item of nav) {
@@ -663,11 +808,12 @@ function pickArticlesPages(config, onlyPageId) {
 
     const pageConfig = config[pageId];
     if (!pageConfig || typeof pageConfig !== 'object') continue;
+    const pageRecord = pageConfig as PageConfigLike;
 
-    const templateName = pageConfig.template ? String(pageConfig.template) : pageId;
+    const templateName = pageRecord.template ? String(pageRecord.template) : pageId;
     if (templateName !== 'articles') continue;
 
-    pages.push({ pageId, pageConfig });
+    pages.push({ pageId, pageConfig: pageRecord });
   }
 
   return pages;
@@ -681,7 +827,7 @@ async function main() {
 
   log.info('开始', { page: onlyPageId || '' });
 
-  const config = loadConfig();
+  const config = loadConfig() as ConfigLike;
   const settings = getRssSettings(config);
 
   if (!settings.enabled) {
@@ -715,9 +861,10 @@ async function main() {
       failed += 1;
       log.warn('页面同步失败，已跳过（best-effort）', {
         page: pageId,
-        message: e && e.message ? e.message : String(e),
+        message: getErrorMessage(e),
       });
-      if (isVerbose() && e && e.stack) console.error(e.stack);
+      const stack = getErrorStack(e);
+      if (isVerbose() && stack) console.error(stack);
       // best-effort：不阻断其他页面/后续 build
     }
   }
@@ -728,9 +875,10 @@ async function main() {
 if (require.main === module) {
   main().catch((err) => {
     log.error('执行失败（best-effort，不阻断后续 build/deploy）', {
-      message: err && err.message ? err.message : String(err),
+      message: getErrorMessage(err),
     });
-    if (isVerbose() && err && err.stack) console.error(err.stack);
+    const stack = getErrorStack(err);
+    if (isVerbose() && stack) console.error(stack);
     // best-effort：不阻断后续 build/deploy（错误已输出到日志，便于排查）
     process.exitCode = 0;
   });

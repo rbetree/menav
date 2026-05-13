@@ -1,5 +1,5 @@
-const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const path = require('node:path') as typeof import('node:path');
+const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 
@@ -22,7 +22,7 @@ const PATTERNS = [
   'config/**/*.yml',
 ];
 
-function parseMode(argv) {
+function parseMode(argv: string[]): 'check' | 'write' {
   if (argv.includes('--check')) return 'check';
   if (argv.includes('--write')) return 'write';
   return 'check';
@@ -36,9 +36,10 @@ async function main() {
   const repoRoot = path.resolve(__dirname, '..');
   const prettierCli = path.join(repoRoot, 'node_modules', 'prettier', 'bin', 'prettier.cjs');
 
-  const args = [];
+  const args: string[] = [];
   if (mode === 'write') args.push('--write');
   else args.push('--check');
+  args.push('--no-error-on-unmatched-pattern');
 
   // Prettier 本身会根据 .prettierignore 过滤；这里不额外做 file list，保持输出简洁
   if (isVerbose()) {
@@ -50,7 +51,7 @@ async function main() {
     stdio: 'inherit',
   });
 
-  const exitCode = result && Number.isFinite(result.status) ? result.status : 1;
+  const exitCode = Number.isFinite(result.status) ? Number(result.status) : 1;
   if (exitCode !== 0) {
     log.error('失败', { ms: elapsedMs(), exit: exitCode });
     process.exitCode = exitCode;
@@ -62,8 +63,8 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    log.error('执行失败', { message: error && error.message ? error.message : String(error) });
-    if (isVerbose() && error && error.stack) console.error(error.stack);
+    log.error('执行失败', { message: error instanceof Error ? error.message : String(error) });
+    if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
     process.exitCode = 1;
   });
 }
