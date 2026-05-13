@@ -1,8 +1,18 @@
 ---
 import CardIcon from './CardIcon.astro';
 import { extractDomain, formatDate, getSafeUrl } from '../lib/view-data/view-utils.ts';
+import type { RenderContext } from '../types/render';
+import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
+import type { SiteItem } from '../types/site';
 
-const { site = {}, style = '', type = '', root = {} } = Astro.props;
+interface Props {
+  site?: SiteItem;
+  style?: string;
+  type?: string;
+  renderContext?: RenderContext;
+}
+
+const { site = {}, style = '', type = '', renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 
 const cardType = type || site.type || 'site';
 const cardStyle = style || site.style || '';
@@ -10,7 +20,7 @@ const name = site.name || '未命名站点';
 const url = site.url || '#';
 const icon = site.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
 const description = site.description || extractDomain(url);
-const safeHref = getSafeUrl(url, root);
+const safeHref = getSafeUrl(url, renderContext.allowedSchemes);
 const faviconUrl = site.faviconUrl || '';
 const forceIconMode = site.forceIconMode || '';
 const tooltip = `${name} - ${description || extractDomain(url)}`;
@@ -39,7 +49,7 @@ const shouldOpenExternal = Boolean(useExternal);
       {cardType === 'article' ? (
         <>
           <div class="article-card-header">
-            <CardIcon site={site} root={root} name={name} url={url} icon={icon} />
+            <CardIcon site={site} renderContext={renderContext} name={name} url={url} icon={icon} />
             <div class="article-card-title">
               <h3>{name}</h3>
             </div>
@@ -97,7 +107,7 @@ const shouldOpenExternal = Boolean(useExternal);
         </>
       ) : (
         <>
-          <CardIcon site={site} root={root} name={name} url={url} icon={icon} />
+          <CardIcon site={site} renderContext={renderContext} name={name} url={url} icon={icon} />
           <div class="site-card-content">
             <h3>{name}</h3>
             <p>{description}</p>

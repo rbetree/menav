@@ -1,5 +1,6 @@
 import type { AppConfig, NavigationItem } from '../../types/config';
 import type { PageEntry } from '../../types/page';
+import type { RenderContext } from '../../types/render';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
@@ -17,6 +18,11 @@ const { generateFontLinks, generateFontCss } = require(
   generateFontLinks: (config: AppConfig) => string;
   generateFontCss: (config: AppConfig) => string;
 };
+const { createRenderContext } = require(
+  path.join(process.cwd(), 'src', 'lib', 'view-data', 'render-context.ts')
+) as {
+  createRenderContext: (config: AppConfig | null | undefined) => RenderContext;
+};
 const { preparePageData } = require(
   path.join(process.cwd(), 'src', 'lib', 'view-data', 'page-data.ts')
 ) as {
@@ -30,6 +36,7 @@ type SiteRenderData = {
   config: AppConfig;
   pages: PageEntry[];
   navigationData: NavigationItem[];
+  renderContext: RenderContext;
   fontLinks: string;
   fontCss: string;
   currentYear: number;
@@ -49,6 +56,7 @@ function prepareNavigationData(config: AppConfig): NavigationItem[] {
 
 function preparePages(config: AppConfig): PageEntry[] {
   const pages: PageEntry[] = [];
+  const searchNavigationData = prepareNavigationData(config);
 
   if (config && Array.isArray(config.navigation)) {
     config.navigation.forEach((navItem, index) => {
@@ -70,13 +78,13 @@ function preparePages(config: AppConfig): PageEntry[] {
     isActive: false,
     templateName: 'search-results',
     data: {
-      ...(config || {}),
       pageId: 'search-results',
       currentPage: 'search-results',
       title: '搜索结果',
       subtitle: '在所有页面中找到的匹配项',
-      navigation: prepareNavigationData(config),
-      navigationData: prepareNavigationData(config),
+      navigation: searchNavigationData,
+      navigationData: searchNavigationData,
+      categories: [],
     },
   });
 
@@ -85,11 +93,13 @@ function preparePages(config: AppConfig): PageEntry[] {
 
 function prepareSiteRenderData(config: AppConfig = loadConfig()): SiteRenderData {
   const navigationData = prepareNavigationData(config);
+  const renderContext = createRenderContext(config);
 
   return {
     config,
     pages: preparePages(config),
     navigationData,
+    renderContext,
     fontLinks: generateFontLinks(config),
     fontCss: generateFontCss(config),
     currentYear: new Date().getFullYear(),

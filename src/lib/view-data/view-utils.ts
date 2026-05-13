@@ -1,4 +1,6 @@
 import { createRequire } from 'node:module';
+import type { IconRegion } from '../../types/render';
+import { DEFAULT_ALLOWED_SCHEMES, normalizeAllowedSchemes } from './render-context.ts';
 
 const require = createRequire(import.meta.url);
 const path = require('node:path') as typeof import('node:path');
@@ -6,19 +8,6 @@ const path = require('node:path') as typeof import('node:path');
 const { escapeHtml } = require(path.join(process.cwd(), 'src', 'lib', 'security', 'html.ts')) as {
   escapeHtml: (unsafe: unknown) => string;
 };
-
-type ViewRoot = Record<string, unknown> & {
-  icons?: { region?: unknown };
-  site?: {
-    security?: {
-      allowedSchemes?: unknown;
-    };
-  };
-};
-
-function normalizeRoot(root: Record<string, unknown> | null | undefined): ViewRoot {
-  return root && typeof root === 'object' ? (root as ViewRoot) : {};
-}
 
 function extractDomain(url: unknown): string {
   if (!url) return '';
@@ -55,11 +44,6 @@ function formatDate(date: unknown, format = 'YYYY-MM-DD'): string {
     .replace('ss', String(seconds).padStart(2, '0'));
 }
 
-function getIconRegion(root: Record<string, unknown> | null | undefined): string {
-  const normalizedRoot = normalizeRoot(root);
-  return normalizedRoot.icons?.region === 'cn' ? 'cn' : 'com';
-}
-
 function buildFaviconV2Url(url: unknown, domain: string): string {
   if (!url) return '';
 
@@ -71,37 +55,14 @@ function buildFaviconV2Url(url: unknown, domain: string): string {
   }
 }
 
-function getFaviconV2Url(url: unknown, root: Record<string, unknown> | null | undefined): string {
-  const region = getIconRegion(root);
+function getFaviconV2Url(url: unknown, region: IconRegion = 'com'): string {
   const domain = region === 'cn' ? 't3.gstatic.cn' : 't3.gstatic.com';
   return buildFaviconV2Url(url, domain);
 }
 
-function getFaviconFallbackUrl(
-  url: unknown,
-  root: Record<string, unknown> | null | undefined
-): string {
-  const region = getIconRegion(root);
+function getFaviconFallbackUrl(url: unknown, region: IconRegion = 'com'): string {
   const domain = region === 'cn' ? 't3.gstatic.com' : 't3.gstatic.cn';
   return buildFaviconV2Url(url, domain);
-}
-
-function getAllowedSchemes(root: Record<string, unknown> | null | undefined): string[] {
-  const normalizedRoot = normalizeRoot(root);
-  const allowedFromConfig = normalizedRoot.site?.security?.allowedSchemes;
-
-  if (Array.isArray(allowedFromConfig) && allowedFromConfig.length > 0) {
-    return allowedFromConfig
-      .map((scheme) =>
-        String(scheme || '')
-          .trim()
-          .toLowerCase()
-          .replace(/:$/, '')
-      )
-      .filter(Boolean);
-  }
-
-  return ['http', 'https', 'mailto', 'tel'];
 }
 
 function isRelativeUrl(url: string): boolean {
@@ -114,7 +75,7 @@ function isRelativeUrl(url: string): boolean {
   );
 }
 
-function getSafeUrl(url: unknown, root: Record<string, unknown> | null | undefined): string {
+function getSafeUrl(url: unknown, allowedSchemes: string[] = DEFAULT_ALLOWED_SCHEMES): string {
   const raw = String(url || '').trim();
   if (!raw) return '#';
 
@@ -130,7 +91,7 @@ function getSafeUrl(url: unknown, root: Record<string, unknown> | null | undefin
     const scheme = String(parsed.protocol || '')
       .toLowerCase()
       .replace(/:$/, '');
-    if (getAllowedSchemes(root).includes(scheme)) return raw;
+    if (normalizeAllowedSchemes(allowedSchemes).includes(scheme)) return raw;
     console.warn(`[WARN] 已拦截不安全 URL scheme：${raw}`);
     return '#';
   } catch (error) {

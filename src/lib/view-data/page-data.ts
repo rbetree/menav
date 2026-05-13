@@ -242,7 +242,6 @@ function applyHomePageTitles(data: PageData, pageId: string, config: AppConfig):
 
 function preparePageData(pageId: string, config: AppConfig): PageDataResult {
   const data: PageData = {
-    ...(config || {}),
     currentPage: pageId,
     pageId,
   };

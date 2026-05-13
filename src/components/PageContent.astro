@@ -5,14 +5,16 @@ import HomeDashboard from './HomeDashboard.astro';
 import PageHeader from './PageHeader.astro';
 import SiteCard from './SiteCard.astro';
 import type { PageData } from '../types/page';
+import type { RenderContext } from '../types/render';
+import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
 
 interface Props {
   page?: PageData;
   templateName?: string;
-  root?: Record<string, unknown>;
+  renderContext?: RenderContext;
 }
 
-const { page = {}, templateName = 'page', root = {} } = Astro.props;
+const { page = {}, templateName = 'page', renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 const categories = Array.isArray(page.categories) ? page.categories : [];
 const siteCardStyle = page.siteCardStyle || '';
 const navigation = Array.isArray(page.navigation) ? page.navigation : [];
@@ -63,7 +65,7 @@ const articlesCategories = Array.isArray(page.articlesCategories) ? page.article
       <PageHeader page={page} />
       {page.projectsMeta?.heatmap && <GitHubHeatmap heatmap={page.projectsMeta.heatmap} />}
       {categories.map((category) => (
-        <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+        <Category category={category} renderContext={renderContext} siteCardStyle={siteCardStyle} />
       ))}
     </div>
   ) : templateName === 'articles' ? (
@@ -87,7 +89,12 @@ const articlesCategories = Array.isArray(page.articlesCategories) ? page.article
                   {Array.isArray(category.items) && category.items.length > 0 ? (
                     <div class="sites-grid">
                       {category.items.map((item) => (
-                        <SiteCard site={item} type="article" root={root} style={siteCardStyle} />
+                        <SiteCard
+                          site={item}
+                          type="article"
+                          renderContext={renderContext}
+                          style={siteCardStyle}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -110,7 +117,12 @@ const articlesCategories = Array.isArray(page.articlesCategories) ? page.article
               <div class="category-content">
                 <div class="sites-grid">
                   {articlesItems.map((item) => (
-                    <SiteCard site={item} type="article" root={root} style={siteCardStyle} />
+                    <SiteCard
+                      site={item}
+                      type="article"
+                      renderContext={renderContext}
+                      style={siteCardStyle}
+                    />
                   ))}
                 </div>
               </div>
@@ -123,13 +135,21 @@ const articlesCategories = Array.isArray(page.articlesCategories) ? page.article
             aria-hidden="true"
           >
             {categories.map((category) => (
-              <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+              <Category
+                category={category}
+                renderContext={renderContext}
+                siteCardStyle={siteCardStyle}
+              />
             ))}
           </div>
         </>
       ) : (
         categories.map((category) => (
-          <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+          <Category
+            category={category}
+            renderContext={renderContext}
+            siteCardStyle={siteCardStyle}
+          />
         ))
       )}
     </div>
@@ -137,7 +157,7 @@ const articlesCategories = Array.isArray(page.articlesCategories) ? page.article
     <div class:list={['page-template', `page-template-${page.pageId}`]}>
       {page.isHome ? <HomeDashboard page={page} /> : <PageHeader page={page} />}
       {categories.map((category) => (
-        <Category category={category} root={root} siteCardStyle={siteCardStyle} />
+        <Category category={category} renderContext={renderContext} siteCardStyle={siteCardStyle} />
       ))}
     </div>
   )

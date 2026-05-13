@@ -3,15 +3,22 @@ import Category from './Category.astro';
 import Group from './Group.astro';
 import SiteCard from './SiteCard.astro';
 import type { CategoryItem } from '../types/page';
+import type { RenderContext } from '../types/render';
+import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
 
 interface Props {
   category?: CategoryItem;
   level?: number;
-  root?: Record<string, unknown>;
+  renderContext?: RenderContext;
   siteCardStyle?: string;
 }
 
-const { category = {}, level = 1, root = {}, siteCardStyle = '' } = Astro.props;
+const {
+  category = {},
+  level = 1,
+  renderContext = DEFAULT_RENDER_CONTEXT,
+  siteCardStyle = '',
+} = Astro.props;
 const categoryLevel = category.level || level || 1;
 const headingLevel = Math.min(categoryLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
@@ -57,7 +64,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
             <Category
               category={subCategory}
               level={categoryLevel + 1}
-              root={root}
+              renderContext={renderContext}
               siteCardStyle={siteCardStyle}
             />
           ))}
@@ -69,7 +76,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
       hasGroups && (
         <div class="groups-container" data-container="groups">
           {groups.map((group) => (
-            <Group group={group} root={root} siteCardStyle={siteCardStyle} />
+            <Group group={group} renderContext={renderContext} siteCardStyle={siteCardStyle} />
           ))}
         </div>
       )
@@ -79,7 +86,7 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
       hasSites && (
         <div class="sites-grid" data-container="sites">
           {sites.map((site) => (
-            <SiteCard site={site} root={root} style={siteCardStyle} />
+            <SiteCard site={site} renderContext={renderContext} style={siteCardStyle} />
           ))}
         </div>
       )

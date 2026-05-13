@@ -1,5 +1,5 @@
-import type { AppConfig } from '../../types/config';
 import type { CategoryItem, PageEntry } from '../../types/page';
+import type { RenderContext } from '../../types/render';
 import type {
   SearchIndexItem,
   SearchIndexPayload,
@@ -15,7 +15,12 @@ const { extractDomain, getSafeUrl } = require(
   path.join(process.cwd(), 'src', 'lib', 'view-data', 'view-utils.ts')
 ) as {
   extractDomain: (url: unknown) => string;
-  getSafeUrl: (url: unknown, root: Record<string, unknown> | null | undefined) => string;
+  getSafeUrl: (url: unknown, allowedSchemes?: string[]) => string;
+};
+const { DEFAULT_RENDER_CONTEXT } = require(
+  path.join(process.cwd(), 'src', 'lib', 'view-data', 'render-context.ts')
+) as {
+  DEFAULT_RENDER_CONTEXT: RenderContext;
 };
 
 const SEARCH_INDEX_SCHEMA_VERSION = 1;
@@ -128,7 +133,7 @@ function collectPageSources(page: PageEntry): SearchIndexSource[] {
 function createSearchIndexItem(
   pageId: string,
   source: SearchIndexSource,
-  config: AppConfig
+  renderContext: RenderContext
 ): SearchIndexItem | null {
   const site = source.site;
   const title = normalizeText(site.name);
@@ -137,7 +142,7 @@ function createSearchIndexItem(
 
   const description = normalizeText(site.description) || extractDomain(rawUrl);
   const icon = normalizeText(site.icon) || 'fas fa-link';
-  const url = getSafeUrl(rawUrl, config);
+  const url = getSafeUrl(rawUrl, renderContext.allowedSchemes);
   const type = source.type || (normalizeText(site.type) === 'article' ? 'article' : 'site');
   const style = normalizeText(source.style) || normalizeText(site.style) || '';
   const publishedAt = normalizeText(site.publishedAt);
@@ -163,12 +168,15 @@ function createSearchIndexItem(
   };
 }
 
-function buildSearchIndex(pages: PageEntry[], config: AppConfig): SearchIndexPayload {
+function buildSearchIndex(
+  pages: PageEntry[],
+  renderContext: RenderContext = DEFAULT_RENDER_CONTEXT
+): SearchIndexPayload {
   const items = pages.flatMap((page) => {
     if (!page || !page.id || page.id === 'search-results') return [];
 
     return collectPageSources(page)
-      .map((source) => createSearchIndexItem(page.id, source, config))
+      .map((source) => createSearchIndexItem(page.id, source, renderContext))
       .filter((item: SearchIndexItem | null): item is SearchIndexItem => Boolean(item));
   });
 

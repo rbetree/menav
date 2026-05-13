@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { preparePageData } = require('../src/lib/view-data/page-data.ts');
+const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -286,5 +287,56 @@ test('articles Phase 2：存在 RSS 缓存时准备文章条目与扩展影子�
         }
       }
     }
+  });
+});
+
+test('render context：站点渲染数据应只暴露组件需要的最小全局上下文', () => {
+  withRepoRoot(() => {
+    const config = {
+      site: {
+        title: 'Test Site',
+        description: '',
+        author: '',
+        favicon: '',
+        logo_text: 'Test',
+        security: { allowedSchemes: ['https:', 'mailto'] },
+      },
+      icons: { mode: 'manual', region: 'cn' },
+      profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
+      social: [],
+      navigation: [{ id: 'home', name: '首页', icon: 'fas fa-home' }],
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
+    };
+
+    const renderData = prepareSiteRenderData(config);
+
+    assert.deepEqual(renderData.renderContext, {
+      icons: { mode: 'manual', region: 'cn' },
+      allowedSchemes: ['https', 'mailto'],
+    });
+  });
+});
+
+test('search-results：页面 view data 不应携带完整站点配置', () => {
+  withRepoRoot(() => {
+    const config = {
+      site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
+      icons: { mode: 'favicon', region: 'com' },
+      profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
+      social: [{ name: 'GitHub', url: 'https://github.com', icon: 'fab fa-github' }],
+      navigation: [{ id: 'home', name: '首页', icon: 'fas fa-home' }],
+      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
+    };
+
+    const renderData = prepareSiteRenderData(config);
+    const searchPage = renderData.pages.find((page) => page.id === 'search-results');
+
+    assert.ok(searchPage, '应包含搜索结果页');
+    assert.equal(searchPage.data.site, undefined);
+    assert.equal(searchPage.data.icons, undefined);
+    assert.equal(searchPage.data.social, undefined);
+    assert.equal(searchPage.data.home, undefined);
+    assert.deepEqual(searchPage.data.categories, []);
+    assert.ok(Array.isArray(searchPage.data.navigation), '搜索结果页仍需导航数据生成分区');
   });
 });

@@ -6,15 +6,12 @@ const path = require('node:path');
 const { getFaviconV2Url, getFaviconFallbackUrl } = require('../src/lib/view-data/view-utils.ts');
 
 test('faviconV2：应追加 drop_404_icon=true 以避免返回占位图', () => {
-  const rootCom = { icons: { region: 'com' } };
-  const rootCn = { icons: { region: 'cn' } };
-
   const url = 'https://example.com';
 
-  const com = getFaviconV2Url(url, rootCom);
-  const cn = getFaviconV2Url(url, rootCn);
-  const fallbackCom = getFaviconFallbackUrl(url, rootCom);
-  const fallbackCn = getFaviconFallbackUrl(url, rootCn);
+  const com = getFaviconV2Url(url, 'com');
+  const cn = getFaviconV2Url(url, 'cn');
+  const fallbackCom = getFaviconFallbackUrl(url, 'com');
+  const fallbackCn = getFaviconFallbackUrl(url, 'cn');
 
   for (const out of [com, cn, fallbackCom, fallbackCn]) {
     assert.ok(out.includes('drop_404_icon=true'), '生成的 URL 应包含 drop_404_icon=true');

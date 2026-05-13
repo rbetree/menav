@@ -236,7 +236,7 @@ function main() {
 
   try {
     const renderData = prepareSiteRenderData(config);
-    const searchIndex = buildSearchIndex(renderData.pages, renderData.config);
+    const searchIndex = buildSearchIndex(renderData.pages, renderData.renderContext);
     fs.writeFileSync(path.join('public', MENAV_SEARCH_INDEX_FILE), JSON.stringify(searchIndex));
   } catch (error) {
     throw new Error(`写入搜索索引失败：${getErrorMessage(error)}`);

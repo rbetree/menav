@@ -4,11 +4,13 @@ import PageContent from '../components/PageContent.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import type { LayoutConfig, NavigationItem } from '../types/config';
 import type { PageEntry } from '../types/page';
+import type { RenderContext } from '../types/render';
 
 interface Props {
   config: LayoutConfig;
   pages?: PageEntry[];
   navigationData?: NavigationItem[];
+  renderContext?: RenderContext;
   fontLinks?: string;
   fontCss?: string;
   currentYear?: number;
@@ -19,6 +21,7 @@ const {
   config,
   pages = [],
   navigationData = [],
+  renderContext,
   fontLinks = '',
   fontCss = '',
   currentYear,
@@ -255,7 +258,11 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         {
           pages.map((entry) => (
             <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
-              <PageContent page={entry.data} templateName={entry.templateName} root={config} />
+              <PageContent
+                page={entry.data}
+                templateName={entry.templateName}
+                renderContext={renderContext}
+              />
             </div>
           ))
         }

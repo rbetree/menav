@@ -1,14 +1,34 @@
 ---
 import { getFaviconFallbackUrl, getFaviconV2Url, isHttpUrl } from '../lib/view-data/view-utils.ts';
+import type { RenderContext } from '../types/render';
+import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
+import type { SiteItem } from '../types/site';
 
-const { site = {}, root = {}, name = '', url = '', icon = 'fas fa-link' } = Astro.props;
+interface Props {
+  site?: SiteItem;
+  renderContext?: RenderContext;
+  name?: string;
+  url?: string;
+  icon?: string;
+}
+
+const {
+  site = {},
+  renderContext = DEFAULT_RENDER_CONTEXT,
+  name = '',
+  url = '',
+  icon = 'fas fa-link',
+} = Astro.props;
 const faviconUrl = site.faviconUrl || '';
 const forceIconMode = site.forceIconMode || '';
-const iconsMode = root?.icons?.mode || 'favicon';
+const iconsMode = renderContext.icons.mode;
 const shouldUseFavicon = forceIconMode ? forceIconMode === 'favicon' : iconsMode === 'favicon';
 const canUseGeneratedFavicon = shouldUseFavicon && isHttpUrl(url);
-const src = faviconUrl || (canUseGeneratedFavicon ? getFaviconV2Url(url, root) : '');
-const fallback = canUseGeneratedFavicon ? getFaviconFallbackUrl(url, root) : '';
+const src =
+  faviconUrl || (canUseGeneratedFavicon ? getFaviconV2Url(url, renderContext.icons.region) : '');
+const fallback = canUseGeneratedFavicon
+  ? getFaviconFallbackUrl(url, renderContext.icons.region)
+  : '';
 const onError = fallback
   ? `if (!this.dataset.faviconFallbackTried) { this.dataset.faviconFallbackTried = '1'; this.src = '${fallback}'; return; } this.classList.add('error'); this.previousElementSibling.classList.add('hidden'); this.nextElementSibling.classList.add('visible');`
   : "this.classList.add('error'); this.previousElementSibling.classList.add('hidden'); this.nextElementSibling.classList.add('visible');";
