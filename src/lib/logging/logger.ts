@@ -1,15 +1,15 @@
-type LogMeta = Record<string, unknown>;
+export type LogMeta = Record<string, unknown>;
 type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'OK';
 type LogMethod = (message: string, meta?: LogMeta) => void;
 
-interface Logger {
+export interface Logger {
   info: LogMethod;
   warn: LogMethod;
   error: LogMethod;
   ok: LogMethod;
 }
 
-function parseBooleanEnv(value: unknown): boolean {
+export function parseBooleanEnv(value: unknown): boolean {
   if (value === undefined || value === null || value === '') return false;
   const normalized = String(value).trim().toLowerCase();
   return (
@@ -21,11 +21,11 @@ function parseBooleanEnv(value: unknown): boolean {
   );
 }
 
-function isVerbose(): boolean {
+export function isVerbose(): boolean {
   return parseBooleanEnv(process.env.MENAV_VERBOSE) || parseBooleanEnv(process.env.DEBUG);
 }
 
-function isColorEnabled(): boolean {
+export function isColorEnabled(): boolean {
   if (process.env.NO_COLOR) return false;
   if (parseBooleanEnv(process.env.FORCE_COLOR)) return true;
   return Boolean(
@@ -38,7 +38,7 @@ function colorize(text: string, ansiCode?: number): string {
   return `\x1b[${ansiCode}m${text}\x1b[0m`;
 }
 
-function formatMeta(meta?: LogMeta | null): string {
+export function formatMeta(meta?: LogMeta | null): string {
   if (!meta || typeof meta !== 'object') return '';
   const entries = Object.entries(meta)
     .filter(([, value]) => value !== undefined && value !== null && value !== '')
@@ -48,7 +48,7 @@ function formatMeta(meta?: LogMeta | null): string {
   return ` (${entries.join(', ')})`;
 }
 
-function formatPrefix(level: LogLevel): string {
+export function formatPrefix(level: LogLevel): string {
   const base = `[${level}]`;
   if (level === 'ERROR') return colorize(base, 31);
   if (level === 'WARN') return colorize(base, 33);
@@ -70,7 +70,7 @@ function writeLine(level: LogLevel, scope: string, message: string, meta?: LogMe
   }
 }
 
-function createLogger(scope?: string): Logger {
+export function createLogger(scope?: string): Logger {
   const normalized = scope ? String(scope) : '';
   return {
     info: (message: string, meta?: LogMeta) => writeLine('INFO', normalized, message, meta),
@@ -80,17 +80,7 @@ function createLogger(scope?: string): Logger {
   };
 }
 
-function startTimer(): () => number {
+export function startTimer(): () => number {
   const startedAt = process.hrtime.bigint();
   return () => Number((process.hrtime.bigint() - startedAt) / 1_000_000n);
 }
-
-module.exports = {
-  createLogger,
-  formatMeta,
-  formatPrefix,
-  isColorEnabled,
-  isVerbose,
-  parseBooleanEnv,
-  startTimer,
-};

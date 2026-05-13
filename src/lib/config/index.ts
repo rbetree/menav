@@ -1,6 +1,8 @@
-const { ensureConfigDefaults } = require('./normalizer.ts');
-const { validateConfig, getConfigValidationErrors } = require('./validator.ts');
-const {
+import type { RenderConfig } from './schema/site';
+
+import { ensureConfigDefaults } from './normalizer.ts';
+import { validateConfig, getConfigValidationErrors } from './validator.ts';
+import {
   resolveConfigDirectory,
   loadModularConfig,
   prepareRenderData,
@@ -8,15 +10,13 @@ const {
   getSubmenuForNavItem,
   resolveTemplateNameForPage,
   buildExtensionConfig,
-} = require('./resolver.ts');
-const { assignCategorySlugs } = require('./slugs.ts');
-const { ConfigError } = require('../errors.ts');
-
-import type { RenderConfig } from './schema/site';
+} from './resolver.ts';
+import { assignCategorySlugs } from './slugs.ts';
+import { ConfigError } from '../errors.ts';
 
 type ConfigRecord = RenderConfig & Record<string, unknown>;
 
-function loadConfig(): ConfigRecord {
+export function loadConfig(): ConfigRecord {
   const configDir = resolveConfigDirectory();
   let config = loadModularConfig(configDir) as ConfigRecord;
 
@@ -32,9 +32,8 @@ function loadConfig(): ConfigRecord {
   return prepareRenderData(config) as ConfigRecord;
 }
 
-module.exports = {
+export {
   MENAV_EXTENSION_CONFIG_FILE,
-  loadConfig,
   resolveConfigDirectory,
   loadModularConfig,
   prepareRenderData,

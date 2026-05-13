@@ -13,7 +13,7 @@ Astro 现代化迁移已完成；以下是重构后的核心边界：
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
 - `src/lib`：构建期核心能力，包含正式库入口、配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
 - `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和 `window.MeNav`。
-- `src/bookmark-processor.js`：浏览器书签导入与用户配置初始化。
+- `src/bookmark-processor.ts`：浏览器书签导入与用户配置初始化。
 
 ## 构建流程
 
@@ -30,19 +30,19 @@ npm run test:browser
 
 流程摘要：
 
-1. `scripts/build.js` 清理 `dist/` 和生成型 `public/` 资源。
+1. `scripts/build.ts` 清理 `dist/` 和生成型 `public/` 资源。
 2. `sync-projects`、`sync-heatmap`、`sync-articles` 以 best-effort 方式刷新 `dev/` 缓存。
-3. `scripts/prepare-astro-public.js` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl`、`menav-config.json` 和 `search-index.json`。
-4. `scripts/build-runtime.js` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
-5. `scripts/run-astro-build.js` 执行 Astro build，产物输出到 `dist/`。
+3. `scripts/prepare-astro-public.ts` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl`、`menav-config.json` 和 `search-index.json`。
+4. `scripts/build-runtime.ts` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
+5. `scripts/run-astro-build.ts` 执行 Astro build，产物输出到 `dist/`。
 
-`npm run generate` 通过 `scripts/generate.js` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。
+`npm run generate` 通过 `scripts/generate.ts` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。
 
 `npm run dev:offline` 会跳过联网同步，仅准备静态资源、打包运行时并构建 Astro 页面后启动本地静态服务。
 
-`npm run dev:astro` 会先运行 `scripts/prepare-astro-public.js` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
+`npm run dev:astro` 会先运行 `scripts/prepare-astro-public.ts` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
 
-`npm run test:browser` 由 `scripts/test-browser.js` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.js` 覆盖真实浏览器中的路由、`window.MeNav`、关键 `data-*`、主题和搜索契约。`npm run check` 会在构建后自动运行该浏览器契约测试与 `scripts/audit-final.js` 最终审计。
+`npm run test:browser` 由 `scripts/test-browser.ts` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.ts` 覆盖真实浏览器中的路由、`window.MeNav`、关键 `data-*`、主题和搜索契约。`npm run check` 会在构建后自动运行该浏览器契约测试与 `scripts/audit-final.ts` 最终审计。
 
 ## 扩展契约
 

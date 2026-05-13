@@ -1,7 +1,7 @@
 import type { MenavConfig, MenavConfigData, MeNavApi } from '../types';
 
-const { menavExtractDomain, menavSanitizeClassList, menavSanitizeUrl } = require('../shared.ts') as typeof import('../shared');
-const { SELECTORS, qs, dataTypeAttrSelector } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+import { menavExtractDomain, menavSanitizeClassList, menavSanitizeUrl } from '../shared.ts';
+import { SELECTORS, qs, dataTypeAttrSelector } from '../dom/selectors.ts';
 
 type ExtensionElementData = Record<string, unknown> & {
   name?: unknown;
@@ -15,7 +15,9 @@ type ExtensionElementData = Record<string, unknown> & {
   stars?: unknown;
   forks?: unknown;
   issues?: unknown;
-};
+}
+
+export { addElement };
 
 type LegacyPageConfig = { template?: unknown };
 
@@ -25,7 +27,7 @@ function valueText(value: unknown, fallback = ''): string {
 }
 
 // 添加新元素
-module.exports = function addElement(
+function addElement(
   this: MeNavApi,
   type: string,
   parentId: string,

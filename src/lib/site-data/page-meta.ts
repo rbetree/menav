@@ -1,6 +1,6 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 function resolvePageConfigFilePath(pageId: string): string | null {
   if (!pageId) return null;
@@ -76,7 +76,7 @@ function getPageConfigUpdatedAtMeta(
   return null;
 }
 
-module.exports = {
+export {
   getPageConfigUpdatedAtMeta,
   resolvePageConfigFilePath,
   tryGetFileMtimeIso,

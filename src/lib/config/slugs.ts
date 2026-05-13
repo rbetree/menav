@@ -5,7 +5,7 @@ type CategoryWithChildren = {
   subcategories?: unknown[];
 };
 
-function makeCategorySlugBase(name: unknown): string {
+export function makeCategorySlugBase(name: unknown): string {
   const raw = typeof name === 'string' ? name : String(name ?? '');
   const trimmed = raw.trim();
   if (!trimmed) return 'category';
@@ -20,14 +20,14 @@ function makeCategorySlugBase(name: unknown): string {
   return normalized || 'category';
 }
 
-function makeUniqueSlug(base: string, usedSlugs: SlugCountMap): string {
+export function makeUniqueSlug(base: string, usedSlugs: SlugCountMap): string {
   const current = usedSlugs.get(base) || 0;
   const next = current + 1;
   usedSlugs.set(base, next);
   return next === 1 ? base : `${base}-${next}`;
 }
 
-function assignCategorySlugs(categories: unknown, usedSlugs: SlugCountMap): void {
+export function assignCategorySlugs(categories: unknown, usedSlugs: SlugCountMap): void {
   if (!Array.isArray(categories)) return;
 
   categories.forEach((category: unknown) => {
@@ -43,9 +43,3 @@ function assignCategorySlugs(categories: unknown, usedSlugs: SlugCountMap): void
     }
   });
 }
-
-module.exports = {
-  makeCategorySlugBase,
-  makeUniqueSlug,
-  assignCategorySlugs,
-};

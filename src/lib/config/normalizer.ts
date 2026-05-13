@@ -21,7 +21,7 @@ function isRecord(value: unknown): value is MutableRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function ensureConfigDefaults(config: MutableRecord | null | undefined): MutableRecord {
+export function ensureConfigDefaults(config: MutableRecord | null | undefined): MutableRecord {
   const result: MutableRecord = { ...(config || {}) };
 
   result.site = isRecord(result.site) ? result.site : {};
@@ -109,7 +109,3 @@ function ensureConfigDefaults(config: MutableRecord | null | undefined): Mutable
 
   return result;
 }
-
-module.exports = {
-  ensureConfigDefaults,
-};

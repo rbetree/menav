@@ -1,13 +1,13 @@
 import type { MeNavApi } from '../types';
 
-const { menavSanitizeClassList, menavSanitizeUrl } = require('../shared.ts') as typeof import('../shared');
+import { menavSanitizeClassList, menavSanitizeUrl } from '../shared.ts';
 
 function valueText(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
 }
 
 // 更新 DOM 元素
-module.exports = function updateElement(
+function updateElement(
   this: MeNavApi,
   type: string,
   id: string,
@@ -181,4 +181,6 @@ module.exports = function updateElement(
   }
 
   return false;
-};
+}
+
+export { updateElement };

@@ -1,4 +1,3 @@
-const { createLogger } = require('../logging/logger.ts');
 import type { z as ZodNamespace } from 'zod';
 import type { PageConfigSchema } from './schema/page';
 import type {
@@ -13,6 +12,8 @@ import type {
   ThemeSchema,
 } from './schema/shared';
 import type { SiteConfigSchema } from './schema/site';
+
+import { createLogger } from '../logging/logger.ts';
 
 const { pageConfigSchema } = require('./schema/page.ts') as { pageConfigSchema: PageConfigSchema };
 const {
@@ -120,7 +121,7 @@ function getPageValidationEntries(config: AnyRecord): [string, unknown][] {
   return Object.entries(config).filter(([key]) => !TOP_LEVEL_NON_PAGE_KEYS.has(key));
 }
 
-function getConfigValidationErrors(config: unknown): ValidationIssue[] {
+export function getConfigValidationErrors(config: unknown): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   if (!isRecord(config)) {
@@ -166,7 +167,7 @@ function zArray<T extends ZodNamespace.ZodTypeAny>(schema: T, message: string) {
   return z.array(schema, { error: message });
 }
 
-function validateConfig(config: unknown): boolean {
+export function validateConfig(config: unknown): boolean {
   const issues = getConfigValidationErrors(config);
 
   if (issues.length === 0) {
@@ -180,8 +181,3 @@ function validateConfig(config: unknown): boolean {
 
   return false;
 }
-
-module.exports = {
-  getConfigValidationErrors,
-  validateConfig,
-};

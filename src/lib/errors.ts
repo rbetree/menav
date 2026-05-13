@@ -9,7 +9,7 @@ type ErrorWithMetadata = Error & {
   suggestions?: ErrorSuggestion[];
 };
 
-class ConfigError extends Error {
+export class ConfigError extends Error {
   suggestions: ErrorSuggestion[];
 
   constructor(message: string, suggestions: ErrorSuggestion[] = []) {
@@ -19,7 +19,7 @@ class ConfigError extends Error {
   }
 }
 
-class TemplateError extends Error {
+export class TemplateError extends Error {
   templatePath: MaybeString;
 
   constructor(message: string, templatePath: MaybeString = null) {
@@ -29,7 +29,7 @@ class TemplateError extends Error {
   }
 }
 
-class BuildError extends Error {
+export class BuildError extends Error {
   context: ErrorContext;
 
   constructor(message: string, context: ErrorContext = {}) {
@@ -39,7 +39,7 @@ class BuildError extends Error {
   }
 }
 
-class FileError extends Error {
+export class FileError extends Error {
   filePath: MaybeString;
   suggestions: ErrorSuggestion[];
 
@@ -51,7 +51,7 @@ class FileError extends Error {
   }
 }
 
-function handleError(error: ErrorWithMetadata, exitCode = 1): never {
+export function handleError(error: ErrorWithMetadata, exitCode = 1): never {
   const logger = require('./logging/logger.ts') as {
     formatPrefix: (level: 'INFO' | 'WARN' | 'ERROR' | 'OK') => string;
     isVerbose: () => boolean;
@@ -92,7 +92,7 @@ function handleError(error: ErrorWithMetadata, exitCode = 1): never {
   process.exit(exitCode);
 }
 
-function wrapAsyncError<TArgs extends unknown[], TResult>(
+export function wrapAsyncError<TArgs extends unknown[], TResult>(
   fn: (...args: TArgs) => Promise<TResult> | TResult
 ): (...args: TArgs) => Promise<TResult> {
   return async (...args: TArgs): Promise<TResult> => {
@@ -120,12 +120,3 @@ function wrapAsyncError<TArgs extends unknown[], TResult>(
     }
   };
 }
-
-module.exports = {
-  ConfigError,
-  TemplateError,
-  BuildError,
-  FileError,
-  handleError,
-  wrapAsyncError,
-};

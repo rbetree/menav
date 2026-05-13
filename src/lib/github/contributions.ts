@@ -52,6 +52,4 @@ function extractYearlyContributionsInnerHtml(html: string): string | null {
   return inner.trim() ? inner : null;
 }
 
-module.exports = {
-  extractYearlyContributionsInnerHtml,
-};
+export { extractYearlyContributionsInnerHtml };
