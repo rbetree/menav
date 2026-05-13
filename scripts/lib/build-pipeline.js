@@ -1,9 +1,12 @@
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { ensureSupportedNodeVersion } = require('./node-version');
 
 function runNode(scriptPath) {
   const registerScript = path.join(__dirname, '..', 'register-ts.cjs');
-  const result = spawnSync(process.execPath, ['-r', registerScript, scriptPath], { stdio: 'inherit' });
+  const result = spawnSync(process.execPath, ['-r', registerScript, scriptPath], {
+    stdio: 'inherit',
+  });
   return result && Number.isFinite(result.status) ? result.status : 1;
 }
 
@@ -25,7 +28,16 @@ function runBestEffortStep(log, label, scriptPath) {
 }
 
 function runBuildPipeline(options) {
-  const { log, repoRoot, sync = true } = options;
+  const {
+    log,
+    repoRoot,
+    sync = true,
+    command = sync ? 'npm run dev' : 'npm run dev:offline',
+  } = options;
+
+  if (!ensureSupportedNodeVersion({ repoRoot, log, command })) {
+    return false;
+  }
 
   if (!runStep(log, 'clean', path.join(repoRoot, 'scripts', 'clean.js'))) {
     return false;

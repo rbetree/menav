@@ -3,6 +3,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+const { ensureSupportedNodeVersion } = require('./lib/node-version');
 
 const log = createLogger('test');
 
@@ -22,6 +23,12 @@ async function main() {
   log.info('开始', { version: process.env.npm_package_version });
 
   const repoRoot = path.resolve(__dirname, '..');
+
+  if (!ensureSupportedNodeVersion({ repoRoot, log, command: 'npm run test' })) {
+    process.exitCode = 1;
+    return;
+  }
+
   const files = collectTestFiles(repoRoot);
   if (files.length === 0) {
     log.ok('未发现测试文件，跳过');

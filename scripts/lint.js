@@ -4,6 +4,7 @@ const { execFileSync, spawnSync } = require('node:child_process');
 
 const { createLogger } = require('../src/lib/logging/logger.ts');
 const { resolveAstroCli } = require('./lib/astro-cli');
+const { ensureSupportedNodeVersion } = require('./lib/node-version');
 
 const log = createLogger('lint');
 
@@ -39,6 +40,12 @@ function collectJsFiles(rootDir) {
 
 function main() {
   const projectRoot = path.resolve(__dirname, '..');
+
+  if (!ensureSupportedNodeVersion({ repoRoot: projectRoot, log, command: 'npm run lint' })) {
+    process.exitCode = 1;
+    return;
+  }
+
   const targetDirs = ['src', 'scripts', 'test'].map((dir) => path.join(projectRoot, dir));
 
   const jsFiles = targetDirs.flatMap((dir) => collectJsFiles(dir)).sort();

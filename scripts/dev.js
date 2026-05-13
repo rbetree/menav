@@ -36,7 +36,7 @@ async function main() {
 
   const repoRoot = path.resolve(__dirname, '..');
 
-  if (!runBuildPipeline({ log, repoRoot, sync: true })) {
+  if (!runBuildPipeline({ log, repoRoot, sync: true, command: 'npm run dev' })) {
     process.exitCode = 1;
     return;
   }

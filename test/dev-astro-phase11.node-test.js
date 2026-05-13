@@ -12,9 +12,15 @@ function read(relativePath) {
 test('Phase 11：package.json 应提供 dev:astro 且默认 dev 保持稳定静态服务', () => {
   const pkg = JSON.parse(read('package.json'));
 
-  assert.equal(pkg.scripts['dev:astro'], 'node ./scripts/dev-astro.js');
-  assert.equal(pkg.scripts.dev, 'node ./scripts/dev.js');
-  assert.equal(pkg.scripts['dev:offline'], 'node ./scripts/dev-offline.js');
+  assert.equal(
+    pkg.scripts['dev:astro'],
+    'node -r ./scripts/register-ts.cjs ./scripts/dev-astro.js'
+  );
+  assert.equal(pkg.scripts.dev, 'node -r ./scripts/register-ts.cjs ./scripts/dev.js');
+  assert.equal(
+    pkg.scripts['dev:offline'],
+    'node -r ./scripts/register-ts.cjs ./scripts/dev-offline.js'
+  );
 });
 
 test('Phase 11：dev:astro 应准备 public 资源、监听 runtime，并启动 Astro dev', () => {

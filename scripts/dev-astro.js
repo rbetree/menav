@@ -4,6 +4,7 @@ const { spawn, spawnSync } = require('node:child_process');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 const { resolveAstroCli } = require('./lib/astro-cli');
+const { ensureSupportedNodeVersion } = require('./lib/node-version');
 const { watchRuntimeBundle } = require('./lib/runtime-bundle');
 
 const log = createLogger('dev:astro');
@@ -185,6 +186,11 @@ async function main() {
   const repoRoot = path.resolve(__dirname, '..');
 
   log.info('开始', { version: process.env.npm_package_version });
+
+  if (!ensureSupportedNodeVersion({ repoRoot, log, command: 'npm run dev:astro' })) {
+    process.exitCode = 1;
+    return;
+  }
 
   if (!preparePublic(repoRoot)) {
     process.exitCode = 1;
