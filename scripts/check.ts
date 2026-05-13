@@ -1,7 +1,7 @@
-const path = require('node:path') as typeof import('node:path');
-const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('check');
 

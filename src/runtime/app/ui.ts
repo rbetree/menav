@@ -51,7 +51,12 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
   // 移除预加载类，允许 CSS 过渡效果
   document.documentElement.classList.remove('preload');
 
-  let systemThemeMql: MediaQueryList | null = null;
+  type LegacyMediaQueryList = Omit<MediaQueryList, 'addListener' | 'removeListener'> & {
+    addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+    removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+  };
+
+  let systemThemeMql: LegacyMediaQueryList | null = null;
   let systemThemeListener: ((event: MediaQueryListEvent) => void) | null = null;
 
   function setTheme(isLight: boolean): void {
@@ -72,8 +77,8 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     if (systemThemeMql && systemThemeListener) {
       if (typeof systemThemeMql.removeEventListener === 'function') {
         systemThemeMql.removeEventListener('change', systemThemeListener);
-      } else if (typeof systemThemeMql.removeListener === 'function') {
-        systemThemeMql.removeListener(systemThemeListener);
+      } else {
+        systemThemeMql.removeListener?.(systemThemeListener);
       }
     }
     systemThemeMql = null;
@@ -84,7 +89,7 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     stopSystemThemeFollow();
 
     try {
-      systemThemeMql = window.matchMedia('(prefers-color-scheme: light)');
+      systemThemeMql = window.matchMedia('(prefers-color-scheme: light)') as LegacyMediaQueryList;
     } catch (e) {
       systemThemeMql = null;
     }
@@ -101,8 +106,8 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
 
     if (typeof systemThemeMql.addEventListener === 'function') {
       systemThemeMql.addEventListener('change', systemThemeListener);
-    } else if (typeof systemThemeMql.addListener === 'function') {
-      systemThemeMql.addListener(systemThemeListener);
+    } else {
+      systemThemeMql.addListener?.(systemThemeListener);
     }
   }
 

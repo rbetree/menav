@@ -1,8 +1,9 @@
-const path = require('node:path') as typeof import('node:path');
-const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
-const { resolveAstroCli } = require('./lib/astro-cli.ts');
-const { createLogger } = require('../src/lib/logging/logger.ts');
-const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+import { createLogger } from '../src/lib/logging/logger.ts';
+import { resolveAstroCli } from './lib/astro-cli.ts';
+import { ensureSupportedNodeVersion } from './lib/node-version.ts';
 
 const log = createLogger('astro:build');
 

@@ -1,11 +1,11 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
-const { spawn, spawnSync } = require('node:child_process') as typeof import('node:child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawn, spawnSync } from 'node:child_process';
 
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { resolveAstroCli } = require('./lib/astro-cli.ts');
-const { ensureSupportedNodeVersion } = require('./lib/node-version.ts');
-const { watchRuntimeBundle } = require('./lib/runtime-bundle.ts');
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { resolveAstroCli } from './lib/astro-cli.ts';
+import { ensureSupportedNodeVersion } from './lib/node-version.ts';
+import { watchRuntimeBundle } from './lib/runtime-bundle.ts';
 
 const log = createLogger('dev:astro');
 

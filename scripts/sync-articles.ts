@@ -5,8 +5,8 @@ const dns = require('node:dns').promises as typeof import('node:dns').promises;
 const net = require('node:net') as typeof import('node:net');
 const Parser = require('rss-parser') as new (options?: Record<string, unknown>) => RssParserLike;
 
-const { loadConfig } = require('../src/lib/config/index.ts');
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+import { loadConfig } from '../src/lib/config/index.ts';
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('sync:articles');
 

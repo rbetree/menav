@@ -1,8 +1,8 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
-const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
-const { createLogger, startTimer } = require('../src/lib/logging/logger.ts');
+import { createLogger, startTimer } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('audit:final');
 const repoRoot = path.resolve(__dirname, '..');

@@ -1,11 +1,13 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-const { loadConfig, MENAV_EXTENSION_CONFIG_FILE } = require('../src/lib/config/index.ts');
-const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
-const { buildSearchIndex, MENAV_SEARCH_INDEX_FILE } = require('../src/lib/search-index/index.ts');
-const { collectSitesRecursively } = require('../src/lib/site-data/sites.ts');
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+import type { AppConfig } from '../src/types/config';
+
+import { loadConfig, MENAV_EXTENSION_CONFIG_FILE } from '../src/lib/config/index.ts';
+import { prepareSiteRenderData } from '../src/lib/view-data/render-data.ts';
+import { buildSearchIndex, MENAV_SEARCH_INDEX_FILE } from '../src/lib/search-index/index.ts';
+import { collectSitesRecursively } from '../src/lib/site-data/sites.ts';
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('astro-public');
 
@@ -199,7 +201,7 @@ function copyFavicon(config: ConfigLike): void {
 
 function main() {
   const elapsedMs = startTimer();
-  const config = loadConfig() as ConfigLike;
+  const config = loadConfig() as AppConfig & ConfigLike;
 
   ensureDir('public');
 

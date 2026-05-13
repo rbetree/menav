@@ -1,7 +1,7 @@
 import type { MeNavApi } from '../types';
 
 // 删除元素
-module.exports = function removeElement(this: MeNavApi, type: string, id: string): boolean {
+function removeElement(this: MeNavApi, type: string, id: string): boolean {
   const element = this._findElement ? this._findElement(type, id) : null;
   if (!element) return false;
 
@@ -25,4 +25,6 @@ module.exports = function removeElement(this: MeNavApi, type: string, id: string
   });
 
   return true;
-};
+}
+
+export { removeElement };

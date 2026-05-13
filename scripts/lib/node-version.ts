@@ -1,5 +1,5 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 type NodeVersion = {
   major: number;
@@ -90,6 +90,4 @@ function ensureSupportedNodeVersion(options: EnsureSupportedNodeVersionOptions):
   return false;
 }
 
-module.exports = {
-  ensureSupportedNodeVersion,
-};
+export { ensureSupportedNodeVersion };

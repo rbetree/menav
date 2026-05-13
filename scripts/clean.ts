@@ -1,7 +1,7 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-const { createLogger } = require('../src/lib/logging/logger.ts');
+import { createLogger } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('clean');
 

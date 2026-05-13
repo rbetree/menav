@@ -1,6 +1,6 @@
 import type { RuntimeEvents } from '../types';
 
-module.exports = function createMenavEvents(): RuntimeEvents {
+function createMenavEvents(): RuntimeEvents {
   return {
     listeners: {},
 
@@ -33,4 +33,6 @@ module.exports = function createMenavEvents(): RuntimeEvents {
       return this;
     },
   };
-};
+}
+
+export { createMenavEvents };

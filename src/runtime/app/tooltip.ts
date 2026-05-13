@@ -110,7 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 兼容旧版 Safari：addListener/removeListener
   if (hoverMedia.addEventListener) {
     hoverMedia.addEventListener('change', syncTooltipEnabled);
-  } else if (hoverMedia.addListener) {
-    hoverMedia.addListener(syncTooltipEnabled);
+  } else {
+    const addLegacyListener = (hoverMedia as unknown as {
+      addListener?: (listener: () => void) => void;
+    })['addListener'];
+    if (typeof addLegacyListener === 'function') {
+      addLegacyListener.call(hoverMedia, syncTooltipEnabled);
+    }
   }
 });

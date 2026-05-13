@@ -1,8 +1,8 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const http = require('node:http') as typeof import('node:http');
-const path = require('node:path') as typeof import('node:path');
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
 
-const { createLogger, isVerbose } = require('../src/lib/logging/logger.ts');
+import { createLogger, isVerbose } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('serve');
 
@@ -309,7 +309,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = {
-  resolveServerOptionsFromEnv,
-  startServer,
-};
+export { resolveServerOptionsFromEnv, startServer };

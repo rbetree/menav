@@ -43,7 +43,4 @@ function collectSitesRecursively(node: unknown, output: unknown[]): void {
   }
 }
 
-module.exports = {
-  normalizeUrlKey,
-  collectSitesRecursively,
-};
+export { collectSitesRecursively, normalizeUrlKey };

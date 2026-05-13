@@ -1,7 +1,7 @@
-const path = require('node:path');
+import path from 'node:path';
 
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { runBuildPipeline } = require('./lib/build-pipeline.ts');
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { runBuildPipeline } from './lib/build-pipeline.ts';
 
 const log = createLogger('generate');
 

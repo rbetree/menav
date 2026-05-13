@@ -1,13 +1,13 @@
 import type { MenavConfig } from '../types';
 
-const { SELECTORS, byId } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+import { SELECTORS, byId } from '../dom/selectors.ts';
 
 // 配置数据缓存：避免浏览器扩展/站点脚本频繁 JSON.parse
 let menavConfigCacheReady = false;
 let menavConfigCacheRaw: string | null = null;
 let menavConfigCacheValue: MenavConfig | null = null;
 
-module.exports = function getConfig(options?: { clone?: boolean }): MenavConfig | null {
+function getConfig(options?: { clone?: boolean }): MenavConfig | null {
   const configData = byId(SELECTORS.configData);
   if (!configData) return null;
 
@@ -26,4 +26,6 @@ module.exports = function getConfig(options?: { clone?: boolean }): MenavConfig 
   }
 
   return menavConfigCacheValue;
-};
+}
+
+export { getConfig };

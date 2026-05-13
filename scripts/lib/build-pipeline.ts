@@ -1,12 +1,7 @@
-const path = require('node:path') as typeof import('node:path');
-const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
-const { ensureSupportedNodeVersion } = require('./node-version.ts') as {
-  ensureSupportedNodeVersion: (options: {
-    repoRoot: string;
-    log: PipelineLogger;
-    command: string;
-  }) => boolean;
-};
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+import { ensureSupportedNodeVersion } from './node-version.ts';
 
 type PipelineLogger = {
   error: (message: string, meta?: Record<string, unknown>) => void;
@@ -84,6 +79,4 @@ function runBuildPipeline(options: BuildPipelineOptions): boolean {
   return true;
 }
 
-module.exports = {
-  runBuildPipeline,
-};
+export { runBuildPipeline };

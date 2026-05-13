@@ -1,4 +1,7 @@
-const path = require('node:path') as typeof import('node:path');
+import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 type AstroPackageJson = {
   bin?: string | { astro?: string };
@@ -15,6 +18,4 @@ function resolveAstroCli(repoRoot: string): string {
   return path.resolve(path.dirname(astroPackagePath), bin);
 }
 
-module.exports = {
-  resolveAstroCli,
-};
+export { resolveAstroCli };

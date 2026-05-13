@@ -1,20 +1,8 @@
-const path = require('node:path') as typeof import('node:path');
+import path from 'node:path';
 
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { runBuildPipeline } = require('./lib/build-pipeline.ts');
-const { resolveServerOptionsFromEnv, startServer } = require('./serve-dist.ts') as {
-  resolveServerOptionsFromEnv: () => {
-    host: string;
-    port: number;
-    strictPort: boolean;
-  };
-  startServer: (options: {
-    rootDir: string;
-    host: string;
-    port: number;
-    strictPort: boolean;
-  }) => Promise<{ server: import('node:http').Server; port: number }>;
-};
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { runBuildPipeline } from './lib/build-pipeline.ts';
+import { resolveServerOptionsFromEnv, startServer } from './serve-dist.ts';
 
 const log = createLogger('dev:offline');
 let serverRef: import('node:http').Server | null = null;

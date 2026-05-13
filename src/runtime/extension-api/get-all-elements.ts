@@ -1,9 +1,9 @@
 import type { MeNavApi } from '../types';
 
-const { qsa, dataTypeSelector } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+import { qsa, dataTypeSelector } from '../dom/selectors.ts';
 
 // 获取所有元素
-module.exports = function getAllElements(this: MeNavApi, type: string) {
+function getAllElements(this: MeNavApi, type: string) {
   return Array.from(qsa(dataTypeSelector(type))).map((el: HTMLElement) => {
     const id = this._getElementId ? this._getElementId(el) : null;
     return {
@@ -12,4 +12,6 @@ module.exports = function getAllElements(this: MeNavApi, type: string) {
       element: el,
     };
   });
-};
+}
+
+export { getAllElements };

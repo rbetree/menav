@@ -1,7 +1,7 @@
-const path = require('node:path') as typeof import('node:path');
+import path from 'node:path';
 
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
-const { buildRuntimeBundle } = require('./lib/runtime-bundle.ts');
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { buildRuntimeBundle } from './lib/runtime-bundle.ts';
 
 const log = createLogger('bundle');
 

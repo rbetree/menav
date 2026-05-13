@@ -2,8 +2,8 @@
 const fs = require('node:fs') as typeof import('node:fs');
 const path = require('node:path') as typeof import('node:path');
 
-const { loadConfig } = require('../src/lib/config/index.ts');
-const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
+import { loadConfig } from '../src/lib/config/index.ts';
+import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 
 const log = createLogger('sync:projects');
 

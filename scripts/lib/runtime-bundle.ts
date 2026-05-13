@@ -1,5 +1,5 @@
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 type RuntimeLogger = {
   error: (message: string, meta?: Record<string, unknown>) => void;
@@ -159,9 +159,4 @@ async function watchRuntimeBundle(options: RuntimeBundleOptions): Promise<unknow
   return context;
 }
 
-module.exports = {
-  buildRuntimeBundle,
-  getRuntimeBuildOptions,
-  getRuntimeBundlePaths,
-  watchRuntimeBundle,
-};
+export { buildRuntimeBundle, getRuntimeBuildOptions, getRuntimeBundlePaths, watchRuntimeBundle };

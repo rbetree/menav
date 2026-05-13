@@ -1,14 +1,13 @@
-import type { MeNavApi, RuntimeEvents } from '../types';
+import type { MeNavApi } from '../types';
 
-const { menavDetectVersion } = require('../shared.ts') as typeof import('../shared');
-const { qs, dataTypeAttrSelector } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
-
-const createMenavEvents = require('./events.ts') as () => RuntimeEvents;
-const getConfig = require('./get-config.ts');
-const updateElement = require('./update-element.ts');
-const addElement = require('./add-element.ts');
-const removeElement = require('./remove-element.ts');
-const getAllElements = require('./get-all-elements.ts');
+import { menavDetectVersion } from '../shared.ts';
+import { qs, dataTypeAttrSelector } from '../dom/selectors.ts';
+import { createMenavEvents } from './events.ts';
+import { getConfig } from './get-config.ts';
+import { updateElement } from './update-element.ts';
+import { addElement } from './add-element.ts';
+import { removeElement } from './remove-element.ts';
+import { getAllElements } from './get-all-elements.ts';
 
 function getDefaultElementId(element: HTMLElement): string | null {
   const type = element.getAttribute('data-type');
@@ -71,4 +70,4 @@ window.MeNav = Object.assign(existing, {
   events: events,
 });
 
-module.exports = window.MeNav;
+export {};
