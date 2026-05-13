@@ -114,16 +114,15 @@ function tryBundleCss(srcPath: string, destPath: string): boolean {
   }
 }
 
-function tryMinifyStaticAsset(srcPath: string, destPath: string, loader: string): boolean {
+function writeMinifiedStaticScript(source: string, destPath: string): boolean {
   const esbuild = loadEsbuild();
   if (!esbuild) {
     return false;
   }
 
   try {
-    const source = fs.readFileSync(srcPath, 'utf8');
     const result = esbuild.transformSync(source, {
-      loader,
+      loader: 'js',
       minify: true,
       charset: 'utf8',
     });
@@ -131,13 +130,24 @@ function tryMinifyStaticAsset(srcPath: string, destPath: string, loader: string)
     fs.writeFileSync(destPath, result.code);
     return true;
   } catch (error) {
-    log.warn('压缩静态资源失败，已降级为原文件', {
-      path: srcPath,
+    log.warn('压缩静态脚本失败，已降级为原始脚本', {
+      path: destPath,
       message: getErrorMessage(error),
     });
     const stack = getErrorStack(error);
     if (isVerbose() && stack) console.error(stack);
     return false;
+  }
+}
+
+function writePinyinMatchScript(destPath: string): void {
+  const { pinyinMatchScript } = require('../assets/pinyin-match.ts') as {
+    pinyinMatchScript: string;
+  };
+
+  if (!writeMinifiedStaticScript(pinyinMatchScript, destPath)) {
+    ensureDir(path.dirname(destPath));
+    fs.writeFileSync(destPath, pinyinMatchScript);
   }
 }
 
@@ -210,9 +220,7 @@ function main() {
     copyDirRecursive('assets/styles', 'public/assets/styles');
   }
 
-  if (!tryMinifyStaticAsset('assets/pinyin-match.js', 'public/pinyin-match.js', 'js')) {
-    copyFile('assets/pinyin-match.js', 'public/pinyin-match.js');
-  }
+  writePinyinMatchScript('public/pinyin-match.js');
 
   try {
     const extensionConfig =
