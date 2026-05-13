@@ -1,5 +1,4 @@
 const path = require('node:path') as typeof import('node:path');
-const http = require('node:http') as typeof import('node:http');
 
 const { createLogger, isVerbose, startTimer } = require('../src/lib/logging/logger.ts');
 const { runBuildPipeline } = require('./lib/build-pipeline.ts');
@@ -24,7 +23,6 @@ let shuttingDown = false;
 function closeServer(server: import('node:http').Server | null, exitCode: number): void {
   if (!server) {
     process.exit(exitCode);
-    return;
   }
 
   try {

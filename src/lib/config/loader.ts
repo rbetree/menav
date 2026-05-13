@@ -1,10 +1,12 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const yaml = require('js-yaml');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-const { createLogger, isVerbose } = require('../logging/logger.ts');
+import { createLogger, isVerbose } from '../logging/logger.ts';
 
-type LoadedConfig = Record<string, unknown>;
+const yaml = require('js-yaml') as {
+  loadAll: (source: string) => unknown[];
+};
+
 type YamlLoadError = Error & { stack?: string };
 type LoadedPageConfig = {
   configKey: string;
@@ -24,7 +26,7 @@ function handleConfigLoadError(filePath: string, error: YamlLoadError): void {
   }
 }
 
-function safeLoadYamlConfig(filePath: string): unknown | null {
+export function safeLoadYamlConfig(filePath: string): unknown | null {
   if (!fs.existsSync(filePath)) {
     return null;
   }
@@ -49,7 +51,7 @@ function safeLoadYamlConfig(filePath: string): unknown | null {
   }
 }
 
-function loadPageConfigFiles(pagesPath: string): LoadedPageConfig[] {
+export function loadPageConfigFiles(pagesPath: string): LoadedPageConfig[] {
   if (!fs.existsSync(pagesPath)) {
     return [];
   }
@@ -66,8 +68,3 @@ function loadPageConfigFiles(pagesPath: string): LoadedPageConfig[] {
       };
     });
 }
-
-module.exports = {
-  safeLoadYamlConfig,
-  loadPageConfigFiles,
-};

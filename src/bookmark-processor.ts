@@ -94,8 +94,6 @@ const CONFIG_DEFAULT_DIR = 'config/_default';
 const CONFIG_USER_PAGES_DIR = path.join(CONFIG_USER_DIR, 'pages');
 // 模块化输出配置文件路径
 const MODULAR_OUTPUT_FILE = path.join(CONFIG_USER_PAGES_DIR, 'bookmarks.yml');
-// 模块化默认书签配置文件路径
-const MODULAR_DEFAULT_BOOKMARKS_FILE = 'config/_default/pages/bookmarks.yml';
 
 const USER_SITE_YML = path.join(CONFIG_USER_DIR, 'site.yml');
 const DEFAULT_SITE_YML = path.join(CONFIG_DEFAULT_DIR, 'site.yml');
@@ -339,10 +337,6 @@ function getLatestBookmarkFile(): string | null {
 
 // 解析书签HTML内容，支持2-4层级嵌套结构
 function parseBookmarks(htmlContent: string): BookmarksData {
-  // 正则表达式匹配文件夹和书签
-  const folderRegex = /<DT><H3([^>]*)>(.*?)<\/H3>/g;
-  const bookmarkRegex = /<DT><A HREF="([^"]+)"[^>]*>(.*?)<\/A>/g;
-
   // 储存解析结果
   const bookmarks: BookmarksData = {
     categories: [],
