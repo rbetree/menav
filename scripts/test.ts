@@ -13,7 +13,7 @@ function collectTestFiles(repoRoot: string): string[] {
 
   return fs
     .readdirSync(testDir)
-    .filter((name) => name.endsWith('.js'))
+    .filter((name) => name.endsWith('.ts'))
     .map((name) => path.join('test', name))
     .sort();
 }

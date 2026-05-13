@@ -18,7 +18,7 @@ function main() {
   const registerScript = path.join(__dirname, 'register-ts.cjs');
   const result = spawnSync(
     process.execPath,
-    ['-r', registerScript, path.join(repoRoot, 'test', 'browser', 'contract.js')],
+    ['-r', registerScript, path.join(repoRoot, 'test', 'browser', 'contract.ts')],
     {
       cwd: repoRoot,
       stdio: 'inherit',

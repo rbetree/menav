@@ -49,25 +49,24 @@ function main() {
   const targetDirs = ['src', 'scripts', 'test'].map((dir) => path.join(projectRoot, dir));
 
   const jsFiles = targetDirs.flatMap((dir) => collectJsFiles(dir)).sort();
+  let hasError = false;
 
   if (jsFiles.length === 0) {
-    log.ok('未发现需要检查的 .js 文件，跳过');
-    return;
+    log.ok('未发现需要检查的 .js 文件，跳过 JS 语法检查');
+  } else {
+    jsFiles.forEach((filePath) => {
+      const relativePath = path.relative(projectRoot, filePath);
+      try {
+        execFileSync(process.execPath, ['--check', filePath], { stdio: 'inherit' });
+      } catch (error) {
+        hasError = true;
+        log.error('语法检查失败', {
+          file: relativePath,
+          exit: error && typeof error === 'object' && 'status' in error ? error.status : 1,
+        });
+      }
+    });
   }
-
-  let hasError = false;
-  jsFiles.forEach((filePath) => {
-    const relativePath = path.relative(projectRoot, filePath);
-    try {
-      execFileSync(process.execPath, ['--check', filePath], { stdio: 'inherit' });
-    } catch (error) {
-      hasError = true;
-      log.error('语法检查失败', {
-        file: relativePath,
-        exit: error && typeof error === 'object' && 'status' in error ? error.status : 1,
-      });
-    }
-  });
 
   const astroCli = resolveAstroCli(projectRoot);
   const registerScript = path.join(__dirname, 'register-ts.cjs');

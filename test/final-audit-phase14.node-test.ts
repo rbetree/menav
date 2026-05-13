@@ -25,5 +25,5 @@ test('Phase 14：源码文档应说明浏览器契约测试入口', () => {
 
   assert.ok(srcReadme.includes('npm run test:browser'));
   assert.ok(srcReadme.includes('scripts/test-browser.ts'));
-  assert.ok(srcReadme.includes('test/browser/contract.js'));
+  assert.ok(srcReadme.includes('test/browser/contract.ts'));
 });

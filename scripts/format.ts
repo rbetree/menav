@@ -14,7 +14,7 @@ const PATTERNS = [
   'src/**/*.js',
   'src/**/*.astro',
   'scripts/**/*.js',
-  'test/**/*.js',
+  'test/**/*.ts',
   '.github/**/*.yml',
   'astro.config.mjs',
   '*.{md,json}',

@@ -152,7 +152,7 @@ function auditLegacyBoundaries() {
 
   const files = collectFiles('src', 'scripts', 'test').filter(
     (file) =>
-      file !== 'test/modernization-phase12.node-test.js' && file !== 'scripts/audit-final.ts'
+      file !== 'test/modernization-phase12.node-test.ts' && file !== 'scripts/audit-final.ts'
   );
   const forbiddenTokens = [
     'src/generator',
