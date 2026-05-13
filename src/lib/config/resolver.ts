@@ -1,11 +1,11 @@
 import type { PageRegistryItem } from '../../types/page';
-const fs = require('node:fs');
-const path = require('node:path');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-const { safeLoadYamlConfig, loadPageConfigFiles } = require('./loader.ts');
-const { assignCategorySlugs } = require('./slugs.ts');
-const { ConfigError } = require('../errors.ts');
-const { createLogger, isVerbose } = require('../logging/logger.ts');
+import { safeLoadYamlConfig, loadPageConfigFiles } from './loader.ts';
+import { assignCategorySlugs } from './slugs.ts';
+import { ConfigError } from '../errors.ts';
+import { createLogger, isVerbose } from '../logging/logger.ts';
 
 type AnyRecord = Record<string, unknown>;
 type NavigationItemLike = AnyRecord & {
@@ -23,7 +23,7 @@ type LoadedPageConfig = {
 };
 
 const log = createLogger('config');
-const MENAV_EXTENSION_CONFIG_FILE = 'menav-config.json';
+export const MENAV_EXTENSION_CONFIG_FILE = 'menav-config.json';
 const BUILTIN_PAGE_TEMPLATES = new Set([
   'articles',
   'bookmarks',
@@ -37,7 +37,7 @@ function isRecord(value: unknown): value is AnyRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function resolveConfigDirectory(): string {
+export function resolveConfigDirectory(): string {
   const hasUserModularConfig = fs.existsSync('config/user');
   const hasDefaultModularConfig = fs.existsSync('config/_default');
 
@@ -69,7 +69,7 @@ function resolveConfigDirectory(): string {
   ]);
 }
 
-function loadModularConfig(dirPath: string): AnyRecord | null {
+export function loadModularConfig(dirPath: string): AnyRecord | null {
   if (!fs.existsSync(dirPath)) {
     return null;
   }
@@ -110,7 +110,7 @@ function loadModularConfig(dirPath: string): AnyRecord | null {
   return config;
 }
 
-function getSubmenuForNavItem(
+export function getSubmenuForNavItem(
   navItem: NavigationItemLike | null,
   config: AnyRecord | null
 ): unknown[] | null {
@@ -132,7 +132,7 @@ function makeJsonSafeForHtmlScript(jsonString: unknown): string {
   return jsonString.replace(/<\/script/gi, '<\\/script');
 }
 
-function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | null): string {
+export function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | null): string {
   if (!pageId) return 'page';
 
   const pageConfig =
@@ -145,7 +145,7 @@ function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | null): 
   return 'page';
 }
 
-function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
+export function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
   const meta = renderData && isRecord(renderData._meta) ? renderData._meta : null;
   const version =
     meta && meta.version && String(meta.version).trim()
@@ -188,7 +188,7 @@ function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
   };
 }
 
-function prepareRenderData(config: AnyRecord): AnyRecord {
+export function prepareRenderData(config: AnyRecord): AnyRecord {
   const renderData: AnyRecord = { ...config };
 
   renderData._meta = {
@@ -263,13 +263,3 @@ function prepareRenderData(config: AnyRecord): AnyRecord {
 
   return renderData;
 }
-
-module.exports = {
-  MENAV_EXTENSION_CONFIG_FILE,
-  resolveConfigDirectory,
-  loadModularConfig,
-  getSubmenuForNavItem,
-  resolveTemplateNameForPage,
-  buildExtensionConfig,
-  prepareRenderData,
-};
