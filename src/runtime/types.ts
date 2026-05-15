@@ -126,42 +126,8 @@ export type RuntimeSearchApi = {
   performSearch: (searchTerm: string) => void;
 };
 
-export type RuntimeEvents = {
-  listeners: Record<string, Array<(data: unknown) => void>>;
-  on: (event: string, callback: (data: unknown) => void) => RuntimeEvents;
-  emit: (event: string, data?: unknown) => RuntimeEvents;
-  off: (event: string, callback?: (data: unknown) => void) => RuntimeEvents;
-};
-
-export type MeNavApi = {
-  version?: string;
-  getConfig?: (options?: { clone?: boolean }) => MenavConfig | null;
-  getAllElements?: (type: string) => Array<{ id: string | null; type: string; element: Element }>;
-  addElement?: (
-    type: string,
-    parentId: string,
-    data: Record<string, unknown>
-  ) => Element | boolean | null;
-  updateElement?: (type: string, id: string, newData: Record<string, unknown>) => boolean;
-  removeElement?: (type: string, id: string) => boolean;
-  events?: RuntimeEvents;
-  _getElementId?: (element: HTMLElement) => string | null;
-  _findElement?: (type: string, id: string) => HTMLElement | null;
-  expandAll?: () => void;
-  collapseAll?: () => void;
-  toggleCategories?: () => void;
-  toggleCategory?: (
-    categoryName: string,
-    subcategoryName?: string | null,
-    groupName?: string | null,
-    subgroupName?: string | null
-  ) => void;
-  getNestedStructure?: () => NestedStructureNode[];
-};
-
 declare global {
   interface Window {
-    MeNav?: MeNavApi;
     PinyinMatch?: {
       match?: (input: string, pattern: string) => unknown;
     };

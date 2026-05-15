@@ -6,10 +6,9 @@ import {
   resolveConfigDirectory,
   loadModularConfig,
   prepareRenderData,
-  MENAV_EXTENSION_CONFIG_FILE,
   getSubmenuForNavItem,
   resolveTemplateNameForPage,
-  buildExtensionConfig,
+  buildRuntimeConfig,
 } from './resolver.ts';
 import { assignCategorySlugs } from './slugs.ts';
 import { ConfigError } from '../errors.ts';
@@ -33,12 +32,11 @@ export function loadConfig(): ConfigRecord {
 }
 
 export {
-  MENAV_EXTENSION_CONFIG_FILE,
   resolveConfigDirectory,
   loadModularConfig,
   prepareRenderData,
   resolveTemplateNameForPage,
-  buildExtensionConfig,
+  buildRuntimeConfig,
   getSubmenuForNavItem,
   assignCategorySlugs,
   ensureConfigDefaults,

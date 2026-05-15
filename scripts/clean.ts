@@ -11,7 +11,6 @@ const generatedPublicPaths = [
   path.join(publicPath, 'assets'),
   path.join(publicPath, 'pinyin-match.js'),
   path.join(publicPath, 'script.js'),
-  path.join(publicPath, 'menav-config.json'),
   path.join(publicPath, 'search-index.json'),
   path.join(publicPath, 'menav.svg'),
   path.join(publicPath, 'favicon.ico'),

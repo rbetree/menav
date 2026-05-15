@@ -1,6 +1,6 @@
 const SELECTORS = {
   metaVersion: 'meta[name="menav-version"]',
-  configData: 'menav-config-data',
+  runtimeConfigData: 'menav-runtime-config',
   searchInput: 'search',
   searchBox: '.search-box',
   searchResultsPage: 'search-results',

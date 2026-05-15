@@ -14,7 +14,7 @@ interface Props {
   fontLinks?: string;
   fontCss?: string;
   currentYear?: number;
-  configJSON?: string;
+  runtimeConfigJson?: string;
 }
 
 const {
@@ -25,7 +25,7 @@ const {
   fontLinks = '',
   fontCss = '',
   currentYear,
-  configJSON = '{}',
+  runtimeConfigJson = '{}',
 } = Astro.props;
 
 const site = config.site || {};
@@ -279,10 +279,10 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 
     <script
       is:inline
-      id="menav-config-data"
+      id="menav-runtime-config"
       type="application/json"
       style="display: none;"
-      set:html={configJSON}
+      set:html={runtimeConfigJson}
     />
     <script is:inline src="./pinyin-match.js"></script>
     <script is:inline src="./script.js"></script>

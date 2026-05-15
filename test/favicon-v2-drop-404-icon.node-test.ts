@@ -18,12 +18,12 @@ test('faviconV2：应追加 drop_404_icon=true 以避免返回占位图', () => 
   }
 });
 
-test('运行时新增站点：faviconV2 URL 也应包含 drop_404_icon=true', () => {
+test('运行时不应再保留扩展式新增站点入口', () => {
   const repoRoot = path.resolve(__dirname, '..');
-  const runtimePath = path.join(repoRoot, 'src', 'runtime', 'extension-api', 'add-element.ts');
+  const runtimePath = path.join(repoRoot, 'src', 'runtime', 'index.ts');
   const content = fs.readFileSync(runtimePath, 'utf8');
   assert.ok(
-    content.includes('drop_404_icon=true'),
-    'src/runtime/extension-api/add-element.ts 应追加 drop_404_icon=true'
+    !content.includes("require('./extension-api')"),
+    'src/runtime/index.ts 不应再加载扩展式 DOM 增删改查入口'
   );
 });

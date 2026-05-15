@@ -18,9 +18,8 @@ const searchIndex = require('./search-index/index.ts') as Record<string, unknown
 const sites = require('./site-data/sites.ts') as Record<string, unknown>;
 
 const {
-  MENAV_EXTENSION_CONFIG_FILE,
   assignCategorySlugs,
-  buildExtensionConfig,
+  buildRuntimeConfig,
   ensureConfigDefaults,
   getConfigValidationErrors,
   getSubmenuForNavItem,
@@ -54,12 +53,11 @@ const { MENAV_SEARCH_INDEX_FILE, SEARCH_INDEX_SCHEMA_VERSION, buildSearchIndex }
 const { collectSitesRecursively, normalizeUrlKey } = sites;
 
 export {
-  MENAV_EXTENSION_CONFIG_FILE,
   MENAV_SEARCH_INDEX_FILE,
   assignCategorySlugs,
   applyRepoMetaToCategories,
   buildArticlesCategoriesByPageCategories,
-  buildExtensionConfig,
+  buildRuntimeConfig,
   buildProjectsMeta,
   buildSearchIndex,
   BuildError,

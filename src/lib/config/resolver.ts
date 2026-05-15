@@ -23,7 +23,6 @@ type LoadedPageConfig = {
 };
 
 const log = createLogger('config');
-export const MENAV_EXTENSION_CONFIG_FILE = 'menav-config.json';
 const BUILTIN_PAGE_TEMPLATES = new Set([
   'articles',
   'bookmarks',
@@ -145,7 +144,7 @@ export function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | 
   return 'page';
 }
 
-export function buildExtensionConfig(renderData: AnyRecord | null): AnyRecord {
+export function buildRuntimeConfig(renderData: AnyRecord | null): AnyRecord {
   const meta = renderData && isRecord(renderData._meta) ? renderData._meta : null;
   const version =
     meta && meta.version && String(meta.version).trim()
@@ -245,15 +244,9 @@ export function prepareRenderData(config: AnyRecord): AnyRecord {
     });
   }
 
-  const extensionConfig = buildExtensionConfig(renderData);
-  renderData.extensionConfig = extensionConfig;
-  renderData.extensionConfigUrl = `./${MENAV_EXTENSION_CONFIG_FILE}`;
-  renderData.configJSON = makeJsonSafeForHtmlScript(
-    JSON.stringify({
-      ...extensionConfig,
-      configUrl: renderData.extensionConfigUrl,
-    })
-  );
+  const runtimeConfig = buildRuntimeConfig(renderData);
+  renderData.runtimeConfig = runtimeConfig;
+  renderData.runtimeConfigJson = makeJsonSafeForHtmlScript(JSON.stringify(runtimeConfig));
 
   renderData.navigationData = renderData.navigation;
 

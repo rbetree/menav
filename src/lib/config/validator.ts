@@ -57,9 +57,6 @@ type SchemaLike = {
 const TOP_LEVEL_NON_PAGE_KEYS = new Set([
   '_meta',
   'categories',
-  'configJSON',
-  'extensionConfig',
-  'extensionConfigUrl',
   'fonts',
   'github',
   'homePageId',
@@ -68,12 +65,14 @@ const TOP_LEVEL_NON_PAGE_KEYS = new Set([
   'navigationData',
   'pageRegistry',
   'profile',
+  'runtimeConfig',
+  'runtimeConfigJson',
   'rss',
+  'security',
   'site',
   'social',
   'socialLinks',
   'theme',
-  'security',
 ]);
 
 function isRecord(value: unknown): value is AnyRecord {

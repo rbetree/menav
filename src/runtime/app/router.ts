@@ -7,7 +7,11 @@ import type {
   RuntimeState,
 } from '../types';
 
-const nested = require('./nested.ts') as { initializeNestedCategories: () => void };
+const nested = require('./nested.ts') as {
+  initializeNestedCategories: () => void;
+  toggleCategories: () => void;
+};
+const { getRuntimeConfig } = require('../runtime-config.ts') as typeof import('../runtime-config');
 const { buildRoutePath, parseRouteFromHref } =
   require('./router-url.ts') as typeof import('./router-url');
 const { SELECTORS, byId, qs, qsa } =
@@ -90,7 +94,7 @@ module.exports = function initRouting(
 
     const pageRegistry: PageRegistryItem[] = (() => {
       try {
-        const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
+        const config: MenavConfig | null = getRuntimeConfig();
         const registry =
           config && config.data && Array.isArray(config.data.pageRegistry)
             ? config.data.pageRegistry
@@ -463,7 +467,7 @@ module.exports = function initRouting(
     const categoryToggleBtn = byId(SELECTORS.categoryToggle);
     if (categoryToggleBtn) {
       categoryToggleBtn.addEventListener('click', function () {
-        window.MeNav?.toggleCategories?.();
+        nested.toggleCategories();
       });
     } else {
       console.error('Category toggle button not found');

@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import type { AppConfig } from '../src/types/config';
 
-import { loadConfig, MENAV_EXTENSION_CONFIG_FILE } from '../src/lib/config/index.ts';
+import { loadConfig } from '../src/lib/config/index.ts';
 import { prepareSiteRenderData } from '../src/lib/view-data/render-data.ts';
 import { buildSearchIndex, MENAV_SEARCH_INDEX_FILE } from '../src/lib/search-index/index.ts';
 import { collectSitesRecursively } from '../src/lib/site-data/sites.ts';
@@ -31,7 +31,6 @@ type NavigationItemLike = {
 type ConfigLike = {
   site?: SiteLike;
   navigation?: NavigationItemLike[];
-  extensionConfig?: unknown;
   [key: string]: unknown;
 };
 
@@ -221,18 +220,6 @@ function main() {
   }
 
   writePinyinMatchScript('public/pinyin-match.js');
-
-  try {
-    const extensionConfig =
-      config && config.extensionConfig ? JSON.stringify(config.extensionConfig, null, 2) : '';
-    if (extensionConfig) {
-      fs.writeFileSync(path.join('public', MENAV_EXTENSION_CONFIG_FILE), extensionConfig);
-    }
-  } catch (error) {
-    log.warn('写入扩展配置文件失败', {
-      message: getErrorMessage(error),
-    });
-  }
 
   try {
     const renderData = prepareSiteRenderData(config);

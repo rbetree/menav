@@ -38,37 +38,23 @@ test('Phase 7 runtime：入口应迁移为 TypeScript 并由 esbuild 打包', ()
   );
 });
 
-test('Phase 7 runtime：window.MeNav facade 应由 extension-api 统一组装', () => {
+test('Phase 7 runtime：入口不应再组装对外扩展 facade', () => {
   const runtimeEntry = read('src/runtime/index.ts');
-  const extensionApi = read('src/runtime/extension-api/index.ts');
-  const extensionMethods = [
-    'getConfig',
-    'getAllElements',
-    'addElement',
-    'updateElement',
-    'removeElement',
-    'events',
-  ];
+  const runtimeConfig = read('src/runtime/runtime-config.ts');
 
   assert.ok(!exists('src/runtime/menav'), '旧 src/runtime/menav 目录应删除');
-  assert.ok(runtimeEntry.includes("require('./extension-api')"), 'runtime 入口应先加载扩展 API');
   assert.ok(
-    runtimeEntry.indexOf("require('./extension-api')") <
-      runtimeEntry.indexOf("require('./app/nested.ts')"),
-    'extension-api 应先于 nested/app 运行，保证 window.MeNav 可用'
+    !runtimeEntry.includes("require('./extension-api')"),
+    'runtime 入口不应再加载对外扩展 API'
   );
   assert.ok(
-    extensionApi.includes('window.MeNav = Object.assign'),
-    'src/runtime/extension-api/index.ts 应负责组装 window.MeNav facade'
+    runtimeEntry.includes("require('./app/nested.ts')"),
+    'runtime 入口仍应加载 nested 功能'
   );
-
-  for (const method of extensionMethods) {
-    assert.match(
-      extensionApi,
-      new RegExp(`${method}:\\s*${method}`),
-      `window.MeNav 应暴露 ${method}`
-    );
-  }
+  assert.ok(
+    runtimeConfig.includes('getRuntimeConfig'),
+    'runtime-config.ts 应负责读取页面内运行时配置'
+  );
 });
 
 test('Phase 9 runtime：启动初始化应留在 app/index.ts，router 只处理路由', () => {
@@ -80,7 +66,7 @@ test('Phase 9 runtime：启动初始化应留在 app/index.ts，router 只处理
     'ui.initSidebarState()',
     'search.initSearchEngine()',
     'search.initSearchIndex()',
-    'window.MeNav.version = version',
+    'logRuntimeVersion()',
   ]) {
     assert.ok(appIndex.includes(token), `app/index.ts 应保留 ${token}`);
     assert.ok(!router.includes(token), `router.ts 不应保留 ${token}`);

@@ -15,17 +15,16 @@ function withRepoRoot(fn) {
   }
 }
 
-test('P1-7：页面内不应注入整站 configJSON，应仅保留扩展元信息与最小运行时参数', () => {
+test('P1-7：页面内不应注入整站配置，应仅保留最小运行时参数', () => {
   withRepoRoot(() => {
     const config = loadConfig();
     const renderData = prepareSiteRenderData(config);
-    const raw = String(renderData.configJSON || '').trim();
-    assert.ok(raw.length > 0, 'menav-config-data 内容不应为空');
+    const raw = String(renderData.runtimeConfigJson || '').trim();
+    assert.ok(raw.length > 0, 'menav-runtime-config 内容不应为空');
 
     const parsed = JSON.parse(raw);
 
     assert.ok(parsed && typeof parsed === 'object');
-    assert.equal(parsed.configUrl, './menav-config.json');
     assert.ok(parsed.version, '应包含 version');
     assert.ok(parsed.timestamp, '应包含 timestamp');
 

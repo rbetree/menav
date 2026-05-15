@@ -8,7 +8,7 @@ const { createLogger, startTimer } = require('../../src/lib/logging/logger.ts');
 const log = createLogger('browser-contract');
 
 async function waitForMenav(page) {
-  await page.waitForFunction(() => Boolean(window.MeNav && window.MeNav.getConfig), null, {
+  await page.waitForFunction(() => Boolean(document.getElementById('menav-runtime-config')), null, {
     timeout: 5000,
   });
 }
@@ -143,83 +143,37 @@ async function runRouteContract(page, baseUrl) {
   assert.equal(response404.status(), 404);
 }
 
-async function runExtensionContract(page, baseUrl) {
+async function runRuntimeConfigContract(page, baseUrl) {
   await openPage(page, baseUrl, '/');
 
-  const extensionState = await page.evaluate(() => {
-    const api = window.MeNav;
-    const config = api.getConfig();
-    const clonedConfig = api.getConfig({ clone: true });
-    const sites = api.getAllElements('site');
-    const firstCategoryName =
-      document.querySelector('[data-type="category"]')?.getAttribute('data-name') || '';
-    const firstSite = sites[0];
-    let eventPayload = null;
-    api.events.on('elementAdded', (payload) => {
-      eventPayload = payload;
-    });
-
-    const added = firstCategoryName
-      ? api.addElement('site', firstCategoryName, {
-          name: 'Browser Contract Site',
-          url: 'https://contract.example.com',
-          icon: 'fas fa-vial',
-          description: 'Created by browser contract test',
-        })
-      : null;
-    const addedElement = document.querySelector(
-      '[data-type="site"][data-url="https://contract.example.com"]'
-    );
-    const updated = addedElement
-      ? api.updateElement('site', 'https://contract.example.com', {
-          name: 'Browser Contract Site Updated',
-          description: 'Updated by browser contract test',
-        })
-      : false;
-    const updatedElement = document.querySelector(
-      '[data-type="site"][data-url="https://contract.example.com"]'
-    );
-    const removed = updatedElement
-      ? api.removeElement('site', 'https://contract.example.com')
-      : false;
+  const runtimeConfigState = await page.evaluate(() => {
+    const script = document.getElementById('menav-runtime-config');
+    const parsed = script ? JSON.parse(script.textContent || '{}') : null;
 
     return {
-      hasApi: Boolean(api),
-      configUrl: config?.configUrl,
-      configCloneDistinct: clonedConfig !== config,
-      pageRegistryCount: config?.data?.pageRegistry?.length || 0,
-      sitesCount: sites.length,
-      firstSiteHasElement: Boolean(firstSite?.element),
-      firstSiteId: firstSite?.id || '',
-      addedId: added || '',
-      addedTag: addedElement?.tagName || '',
-      addedExists: Boolean(addedElement),
-      updated,
-      updatedName: updatedElement?.getAttribute('data-name') || '',
-      removed,
-      removedExists: Boolean(
-        document.querySelector('[data-type="site"][data-url="https://contract.example.com"]')
+      hasRuntimeConfig: Boolean(script),
+      version: parsed?.version || '',
+      hasIcons: Boolean(parsed?.icons && typeof parsed.icons === 'object'),
+      homePageId: parsed?.data?.homePageId || '',
+      pageRegistryCount: Array.isArray(parsed?.data?.pageRegistry)
+        ? parsed.data.pageRegistry.length
+        : 0,
+      hasPageTemplates: Boolean(
+        parsed?.data?.pageTemplates && typeof parsed.data.pageTemplates === 'object'
       ),
-      eventType: eventPayload?.type || '',
-      eventId: eventPayload?.id || '',
+      leaksCategories: Object.prototype.hasOwnProperty.call(parsed?.data || {}, 'categories'),
+      leaksSites: Object.prototype.hasOwnProperty.call(parsed?.data || {}, 'sites'),
     };
   });
 
-  assert.equal(extensionState.hasApi, true);
-  assert.equal(extensionState.configUrl, './menav-config.json');
-  assert.equal(extensionState.configCloneDistinct, true);
-  assert.ok(extensionState.pageRegistryCount > 0, '扩展配置应包含页面注册表');
-  assert.ok(extensionState.sitesCount > 0, '应能读取站点元素');
-  assert.equal(extensionState.firstSiteHasElement, true);
-  assert.ok(extensionState.firstSiteId, '站点元素应有稳定 id');
-  assert.equal(extensionState.addedId, 'Browser Contract Site');
-  assert.equal(extensionState.addedTag, 'A');
-  assert.equal(extensionState.addedExists, true);
-  assert.equal(extensionState.updated, true);
-  assert.equal(extensionState.updatedName, 'Browser Contract Site Updated');
-  assert.equal(extensionState.removed, true);
-  assert.equal(extensionState.removedExists, false);
-  assert.equal(extensionState.eventType, 'site');
+  assert.equal(runtimeConfigState.hasRuntimeConfig, true);
+  assert.ok(runtimeConfigState.version);
+  assert.equal(runtimeConfigState.hasIcons, true);
+  assert.ok(runtimeConfigState.homePageId);
+  assert.ok(runtimeConfigState.pageRegistryCount > 0, '运行时配置应包含页面注册表');
+  assert.equal(runtimeConfigState.hasPageTemplates, true);
+  assert.equal(runtimeConfigState.leaksCategories, false);
+  assert.equal(runtimeConfigState.leaksSites, false);
 }
 
 async function runDomThemeSearchContract(page, baseUrl) {
@@ -349,7 +303,7 @@ async function main() {
     });
 
     await runRouteContract(page, baseUrl);
-    await runExtensionContract(page, baseUrl);
+    await runRuntimeConfigContract(page, baseUrl);
     await runDomThemeSearchContract(page, baseUrl);
     await assertNoConsoleErrors(messages);
 

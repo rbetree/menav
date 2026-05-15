@@ -7,11 +7,6 @@ import { createLogger, startTimer } from '../src/lib/logging/logger.ts';
 const log = createLogger('audit:final');
 const repoRoot = path.resolve(__dirname, '..');
 
-type PublicConfig = {
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
-};
-
 type SearchIndex = {
   schemaVersion?: unknown;
   items?: unknown[];
@@ -36,8 +31,6 @@ const SOURCE_EXTENSIONS = new Set([
   '.yaml',
 ]);
 const CODE_EXTENSIONS = new Set(['.astro', '.js', '.ts']);
-const EXPECTED_PUBLIC_CONFIG_KEYS = ['version', 'timestamp', 'icons', 'data'];
-const EXPECTED_PUBLIC_CONFIG_DATA_KEYS = ['homePageId', 'pageRegistry', 'pageTemplates', 'site'];
 const REQUIRED_DOC_COMMANDS = [
   'npm run dev',
   'npm run dev:offline',
@@ -126,7 +119,6 @@ function ensureBuildArtifacts() {
   const required = [
     'dist/index.html',
     'dist/script.js',
-    'dist/menav-config.json',
     'dist/search-index.json',
   ];
   const missing = required.filter((file) => !exists(file));
@@ -250,27 +242,6 @@ function auditPublicArtifacts() {
     fail('生产 runtime bundle 不应包含 sourcemap 引用');
   const runtimeBytes = Buffer.byteLength(runtimeBundle);
   if (runtimeBytes > 55000) fail('runtime bundle 超出 Phase 14 预算', `${runtimeBytes} bytes`);
-
-  const publicConfig = readJson<PublicConfig>('dist/menav-config.json');
-  assertDeepEqual(
-    Object.keys(publicConfig),
-    EXPECTED_PUBLIC_CONFIG_KEYS,
-    '公开配置顶层字段不符合运行时摘要边界'
-  );
-  assertDeepEqual(
-    Object.keys(publicConfig.data || {}),
-    EXPECTED_PUBLIC_CONFIG_DATA_KEYS,
-    '公开配置 data 字段不符合运行时摘要边界'
-  );
-  const serializedConfig = JSON.stringify(publicConfig);
-  ['navigation', 'pages', 'social', 'categories', 'sites'].forEach((token) => {
-    if (Object.prototype.hasOwnProperty.call(publicConfig.data, token)) {
-      fail('公开配置泄漏完整站点数据', token);
-    }
-    if (serializedConfig.includes('Browser Contract Site')) {
-      fail('公开配置包含测试运行时数据');
-    }
-  });
 
   const searchIndex = readJson<SearchIndex>('dist/search-index.json');
   if (searchIndex.schemaVersion !== 1)

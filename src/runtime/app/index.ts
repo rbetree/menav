@@ -15,23 +15,22 @@ const initRouting = require('./router.ts') as (
   api: { ui: RuntimeUiApi; search: RuntimeSearchApi }
 ) => RuntimeRoutingApi;
 const { SELECTORS, byId, qs, qsa } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+const { getRuntimeConfig } = require('../runtime-config.ts') as typeof import('../runtime-config');
 
 function detectHomePageId(): string {
   // 首页不再固定为 "home"：以导航顺序第一项为准
   // 1) 优先从生成端注入的配置数据读取（保持与实际导航顺序一致）
   try {
-    const config: MenavConfig | null =
-      window.MeNav && typeof window.MeNav.getConfig === 'function'
-        ? window.MeNav.getConfig()
-        : null;
+    const config: MenavConfig | null = getRuntimeConfig();
     const injectedHomePageId =
       config && config.data && config.data.homePageId ? String(config.data.homePageId).trim() : '';
     if (injectedHomePageId) return injectedHomePageId;
-    const nav =
-      config && config.data && Array.isArray(config.data.navigation)
-        ? config.data.navigation
+    const pageRegistry =
+      config && config.data && Array.isArray(config.data.pageRegistry)
+        ? config.data.pageRegistry
         : null;
-    const firstId = nav && nav[0] && nav[0].id ? String(nav[0].id).trim() : '';
+    const firstId =
+      pageRegistry && pageRegistry[0] && pageRegistry[0].id ? String(pageRegistry[0].id).trim() : '';
     if (firstId) return firstId;
   } catch (error) {
     // 忽略解析错误，继续使用 DOM 推断
@@ -51,16 +50,15 @@ function detectHomePageId(): string {
   return 'home';
 }
 
-function initializeMenavVersion(): void {
+function logRuntimeVersion(): void {
   try {
-    const config: MenavConfig | null = window.MeNav?.getConfig?.() || null;
+    const config: MenavConfig | null = getRuntimeConfig();
     const version = config && config.version ? String(config.version) : '';
-    if (version && window.MeNav) {
-      window.MeNav.version = version;
-      console.log('MeNav API initialized with version:', version);
+    if (version) {
+      console.log('MeNav runtime initialized with version:', version);
     }
   } catch (error) {
-    console.error('Error initializing MeNav API:', error);
+    console.error('Error initializing MeNav runtime:', error);
   }
 }
 
@@ -150,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ui.initTheme();
   ui.initSidebarState();
   search.initSearchEngine();
-  initializeMenavVersion();
+  logRuntimeVersion();
 
   initRouting(state, dom, { ui, search });
 

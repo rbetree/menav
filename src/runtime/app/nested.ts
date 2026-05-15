@@ -143,85 +143,76 @@ function extractNestedData(element: HTMLElement): NestedStructureNode {
   return data;
 }
 
-function registerNestedApi(): void {
-  if (!window.MeNav) {
-    // runtime 入口会先初始化 MeNav；这里兜底避免报错
-    window.MeNav = {};
-  }
-
-  window.MeNav.expandAll = function () {
-    const activePage = qs(SELECTORS.pageActive);
-    if (activePage) {
-      getCollapsibleNestedContainers(activePage).forEach((element) => {
-        element.classList.remove('collapsed');
-        saveToggleState(element, 'expanded');
-      });
-    }
-  };
-
-  window.MeNav.collapseAll = function () {
-    const activePage = qs(SELECTORS.pageActive);
-    if (activePage) {
-      getCollapsibleNestedContainers(activePage).forEach((element) => {
-        element.classList.add('collapsed');
-        saveToggleState(element, 'collapsed');
-      });
-    }
-  };
-
-  // 智能切换分类展开/收起状态
-  window.MeNav.toggleCategories = function () {
-    const activePage = qs(SELECTORS.pageActive);
-    if (!activePage) return;
-
-    const allElements = getCollapsibleNestedContainers(activePage);
-    const collapsedElements = allElements.filter((element) =>
-      element.classList.contains('collapsed')
-    );
-    if (allElements.length === 0) return;
-
-    // 如果收起的数量 >= 总数的一半，执行展开；否则执行收起
-    if (collapsedElements.length >= allElements.length / 2) {
-      window.MeNav?.expandAll?.();
-      updateCategoryToggleIcon('up');
-    } else {
-      window.MeNav?.collapseAll?.();
-      updateCategoryToggleIcon('down');
-    }
-  };
-
-  window.MeNav.toggleCategory = function (
-    categoryName: string,
-    subcategoryName: string | null = null,
-    groupName: string | null = null,
-    subgroupName: string | null = null
-  ) {
-    let selector = `[data-name="${categoryName}"]`;
-
-    if (subcategoryName) selector += ` [data-name="${subcategoryName}"]`;
-    if (groupName) selector += ` [data-name="${groupName}"]`;
-    if (subgroupName) selector += ` [data-name="${subgroupName}"]`;
-
-    const element = qs(selector);
-    if (element) {
-      toggleNestedElement(element);
-    }
-  };
-
-  window.MeNav.getNestedStructure = function () {
-    // 返回完整的嵌套结构数据
-    const categories: NestedStructureNode[] = [];
-    qsa(SELECTORS.categoryLevelOne).forEach((cat: HTMLElement) => {
-      categories.push(extractNestedData(cat));
+function expandAll(): void {
+  const activePage = qs(SELECTORS.pageActive);
+  if (activePage) {
+    getCollapsibleNestedContainers(activePage).forEach((element) => {
+      element.classList.remove('collapsed');
+      saveToggleState(element, 'expanded');
     });
-    return categories;
-  };
+  }
 }
 
-registerNestedApi();
+function collapseAll(): void {
+  const activePage = qs(SELECTORS.pageActive);
+  if (activePage) {
+    getCollapsibleNestedContainers(activePage).forEach((element) => {
+      element.classList.add('collapsed');
+      saveToggleState(element, 'collapsed');
+    });
+  }
+}
+
+function toggleCategories(): void {
+  const activePage = qs(SELECTORS.pageActive);
+  if (!activePage) return;
+
+  const allElements = getCollapsibleNestedContainers(activePage);
+  const collapsedElements = allElements.filter((element) => element.classList.contains('collapsed'));
+  if (allElements.length === 0) return;
+
+  if (collapsedElements.length >= allElements.length / 2) {
+    expandAll();
+    updateCategoryToggleIcon('up');
+  } else {
+    collapseAll();
+    updateCategoryToggleIcon('down');
+  }
+}
+
+function toggleCategory(
+  categoryName: string,
+  subcategoryName: string | null = null,
+  groupName: string | null = null,
+  subgroupName: string | null = null
+): void {
+  let selector = `[data-name="${categoryName}"]`;
+
+  if (subcategoryName) selector += ` [data-name="${subcategoryName}"]`;
+  if (groupName) selector += ` [data-name="${groupName}"]`;
+  if (subgroupName) selector += ` [data-name="${subgroupName}"]`;
+
+  const element = qs(selector);
+  if (element) {
+    toggleNestedElement(element);
+  }
+}
+
+function getNestedStructure(): NestedStructureNode[] {
+  const categories: NestedStructureNode[] = [];
+  qsa(SELECTORS.categoryLevelOne).forEach((cat: HTMLElement) => {
+    categories.push(extractNestedData(cat));
+  });
+  return categories;
+}
 
 module.exports = {
+  collapseAll,
+  expandAll,
+  getNestedStructure,
   initializeNestedCategories,
+  toggleCategories,
+  toggleCategory,
   updateCategoryToggleIcon,
   extractNestedData,
 };

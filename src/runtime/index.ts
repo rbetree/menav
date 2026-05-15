@@ -8,8 +8,6 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', menavUpdateAppHeight);
 }
 
-// 扩展契约：先初始化 window.MeNav，再挂载 nested API 与应用逻辑
-require('./extension-api');
 require('./app/nested.ts');
 require('./app');
 

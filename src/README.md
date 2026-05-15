@@ -2,17 +2,17 @@
 
 ## 架构概述
 
-MeNav 现在使用 Astro 负责静态页面渲染，继续保留原有 YAML 配置、vanilla JS 运行时和浏览器扩展契约。构建目标仍是单页导航站：`dist/index.html` 内包含所有 `.page` 容器，运行时通过 `?page=<id>` 切换页面。
+MeNav 现在使用 Astro 负责静态页面渲染，继续保留原有 YAML 配置与 vanilla JS 运行时。构建目标仍是单页导航站：`dist/index.html` 内包含所有 `.page` 容器，运行时通过 `?page=<id>` 切换页面。
 
 Astro 现代化迁移已完成；以下是重构后的核心边界：
 
 核心边界：
 
 - `src/pages`：Astro 页面入口，当前包含 `index.astro` 和默认 404。
-- `src/layouts`：页面外壳，负责侧边栏、搜索框、全局脚本和扩展配置注入。
+- `src/layouts`：页面外壳，负责侧边栏、搜索框、全局脚本和运行时配置注入。
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
 - `src/lib`：构建期核心能力，包含正式库入口、配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
-- `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和 `window.MeNav`。
+- `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和运行时配置读取。
 - `src/bookmark-processor.ts`：浏览器书签导入与用户配置初始化。
 
 ## 构建流程
@@ -32,7 +32,7 @@ npm run test:browser
 
 1. `scripts/build.ts` 清理 `dist/` 和生成型 `public/` 资源。
 2. `sync-projects`、`sync-heatmap`、`sync-articles` 以 best-effort 方式刷新 `dev/` 缓存。
-3. `scripts/prepare-astro-public.ts` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl`、`menav-config.json` 和 `search-index.json`。
+3. `scripts/prepare-astro-public.ts` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl` 和 `search-index.json`。
 4. `scripts/build-runtime.ts` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
 5. `scripts/run-astro-build.ts` 执行 Astro build，产物输出到 `dist/`。
 
@@ -42,16 +42,15 @@ npm run test:browser
 
 `npm run dev:astro` 会先运行 `scripts/prepare-astro-public.ts` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
 
-`npm run test:browser` 由 `scripts/test-browser.ts` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.ts` 覆盖真实浏览器中的路由、`window.MeNav`、关键 `data-*`、主题和搜索契约。`npm run check` 会在构建后自动运行该浏览器契约测试与 `scripts/audit-final.ts` 最终审计。
+`npm run test:browser` 由 `scripts/test-browser.ts` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.ts` 覆盖真实浏览器中的路由、运行时配置注入、关键 `data-*`、主题和搜索契约。`npm run check` 会在构建后自动运行该浏览器契约测试与 `scripts/audit-final.ts` 最终审计。
 
-## 扩展契约
+## 运行时契约
 
 Astro 组件修改时必须保持以下契约稳定：
 
 - 页面仍为单页模型：所有导航页面在 `index.html` 中对应一个 `.page#<id>` 容器。
 - 运行时导航仍使用 `/?page=<id>` 和 `/?page=<id>#<categorySlug>`；未知路径不做旧式自动回跳。
-- 页面中保留 `#menav-config-data`，独立配置文件保留 `menav-config.json`。
-- 运行时保留 `window.MeNav` API。
+- 页面中保留 `#menav-runtime-config` 运行时配置注入。
 - 导航、分类、站点、社交链接保留关键 `data-*`：`data-type`、`data-id`、`data-name`、`data-url`、`data-icon`、`data-container` 等。
 - `pinyin-match.js` 继续作为全局脚本加载，搜索逻辑优先读取 `search-index.json`，并继续使用全局 `PinyinMatch`。
 
@@ -60,4 +59,4 @@ Astro 组件修改时必须保持以下契约稳定：
 - 优先改数据准备和 Astro 组件边界，避免把运行时行为散落到组件内。
 - 配置结构保持兼容，新增字段要先落到 `config/_default` 和 `config/README.md`。
 - 视觉层保持在 `assets/style.css` 与 `assets/styles/`，Astro 迁移本身不承担 UI 重设计。
-- 测试优先断言数据行为、构建产物结构和扩展契约，不再依赖旧模板文件。
+- 测试优先断言数据行为、构建产物结构和运行时契约，不再依赖旧模板文件。

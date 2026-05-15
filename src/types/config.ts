@@ -10,9 +10,8 @@ export type NavigationSubmenuItem = SchemaNavigationSubmenuItem;
 
 export type AppConfig = RenderConfig & {
   homePageId?: string | null;
-  configJSON?: string;
-  extensionConfig?: Record<string, unknown>;
-  extensionConfigUrl?: string;
+  runtimeConfig?: Record<string, unknown>;
+  runtimeConfigJson?: string;
   navigationData?: NavigationItem[];
   pageRegistry?: PageRegistryItem[];
   socialLinks?: unknown[];

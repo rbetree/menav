@@ -40,7 +40,7 @@ type SiteRenderData = {
   fontLinks: string;
   fontCss: string;
   currentYear: number;
-  configJSON: string;
+  runtimeConfigJson: string;
 };
 
 function prepareNavigationData(config: AppConfig): NavigationItem[] {
@@ -103,7 +103,7 @@ function prepareSiteRenderData(config: AppConfig = loadConfig()): SiteRenderData
     fontLinks: generateFontLinks(config),
     fontCss: generateFontCss(config),
     currentYear: new Date().getFullYear(),
-    configJSON: config.configJSON || '{}',
+    runtimeConfigJson: config.runtimeConfigJson || '{}',
   };
 }
 

@@ -1,6 +1,7 @@
 import type { MenavConfig } from './types';
 
 const { SELECTORS, qs, byId } = require('./dom/selectors.ts') as typeof import('./dom/selectors');
+const { getRuntimeConfig } = require('./runtime-config.ts') as typeof import('./runtime-config');
 
 function menavExtractDomain(url: unknown): string {
   if (!url) return '';
@@ -24,10 +25,7 @@ function menavExtractDomain(url: unknown): string {
 // URL 安全策略：默认仅允许 http/https（可加 mailto/tel）与相对链接；其他 scheme 降级为 '#'
 function menavGetAllowedUrlSchemes(): string[] {
   try {
-    const cfg: MenavConfig | null =
-      window.MeNav && typeof window.MeNav.getConfig === 'function'
-        ? window.MeNav.getConfig()
-        : null;
+    const cfg: MenavConfig | null = getRuntimeConfig();
     const fromConfig =
       cfg &&
       cfg.data &&
@@ -108,7 +106,7 @@ function menavSanitizeClassList(rawClassList: unknown, contextLabel: string): st
   return sanitized;
 }
 
-// 版本号统一来源：优先读取 meta[menav-version]，回退到 menav-config-data.version
+// 版本号统一来源：优先读取 meta[menav-version]，回退到运行时配置注入
 function menavDetectVersion(): string {
   try {
     const meta = qs(SELECTORS.metaVersion);
@@ -119,7 +117,7 @@ function menavDetectVersion(): string {
   }
 
   try {
-    const configData = byId(SELECTORS.configData);
+    const configData = byId(SELECTORS.runtimeConfigData);
     const raw = configData ? String(configData.textContent || '').trim() : '';
     if (!raw) return '1.0.0';
     const parsed = JSON.parse(raw);
