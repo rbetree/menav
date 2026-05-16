@@ -63,7 +63,7 @@ jobs:
           MENAV_BOOKMARKS_DETERMINISTIC: '1'
         run: |
           echo "Processing bookmark files..."
-          node src/bookmark-processor.js
+          npm run import-bookmarks
 
       - name: Commit & push bookmark import result (single commit)
         if: steps.check_bookmark_files.outputs.found == 'true'
