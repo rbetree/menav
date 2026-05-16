@@ -5,12 +5,14 @@ const path = require('node:path');
 const os = require('node:os');
 
 const {
-  ensureUserConfigInitialized,
-  ensureUserSiteYmlExists,
   upsertBookmarksNavInSiteYml,
   parseBookmarks,
   generateBookmarksYaml,
 } = require('../src/bookmark-processor.ts');
+const {
+  ensureUserConfigInitialized,
+  ensureUserSiteYmlExists,
+} = require('../src/lib/config/init.ts');
 
 function stripYamlComments(yamlText) {
   return yamlText

@@ -13,10 +13,14 @@ function read(relativePath) {
 
 test('init-config：应提供不会覆盖现有用户配置的初始化入口', () => {
   const packageJson = JSON.parse(read('package.json'));
+  const initConfigScript = read('scripts/init-config.ts');
+
   assert.equal(
     packageJson.scripts['init-config'],
     'node -r ./scripts/register-ts.cjs ./scripts/init-config.ts'
   );
+  assert.ok(initConfigScript.includes('../src/lib/config/init.ts'));
+  assert.equal(initConfigScript.includes('../src/bookmark-processor.ts'), false);
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-init-config-'));
   fs.mkdirSync(path.join(tmp, 'config/_default/pages'), { recursive: true });

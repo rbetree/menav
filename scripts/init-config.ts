@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 import { ensureSupportedNodeVersion } from './lib/node-version.ts';
 
-const { ensureUserConfigInitialized } = require('../src/bookmark-processor.ts') as {
+const { ensureUserConfigInitialized } = require('../src/lib/config/init.ts') as {
   ensureUserConfigInitialized: () => { initialized: boolean; source: string };
 };
 

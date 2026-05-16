@@ -13,7 +13,8 @@ Astro 现代化迁移已完成；以下是重构后的核心边界：
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
 - `src/lib`：构建期核心能力，包含正式库入口、配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
 - `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和运行时配置读取。
-- `src/bookmark-processor.ts`：浏览器书签导入与用户配置初始化。
+- `src/bookmark-processor.ts`：浏览器书签导入、书签页写入与导航补充。
+- `src/lib/config/init.ts`：用户配置初始化，供 `npm run init-config` 和书签导入复用。
 
 ## 构建流程
 
