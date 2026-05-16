@@ -103,6 +103,54 @@ test('Phase 4：config/user 完全替换策略不从 _default 补齐页面', () 
   });
 });
 
+test('Phase 4：导航与页面文件不匹配时应输出提示但不阻断配置加载', () => {
+  withTempCwd(() => {
+    fs.mkdirSync('config/_default/pages', { recursive: true });
+    fs.writeFileSync(
+      'config/_default/site.yml',
+      [
+        'title: Default',
+        'navigation:',
+        '  - name: 缺页',
+        '    id: missing-page',
+        '  - name: 已有',
+        '    id: common',
+        '',
+      ].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      'config/_default/pages/common.yml',
+      ['title: 已有', 'template: page', 'categories: []', ''].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      'config/_default/pages/orphan.yml',
+      ['title: 未导航', 'template: page', 'categories: []', ''].join('\n'),
+      'utf8'
+    );
+
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (line) => warnings.push(String(line));
+
+    try {
+      const config = loadModularConfig('config/_default');
+      assert.equal(config['missing-page'], undefined);
+      assert.ok(config.common);
+      assert.ok(config.orphan);
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    const output = warnings.join('\n');
+    assert.match(output, /navigation 页面缺少配置文件/);
+    assert.match(output, /id=missing-page/);
+    assert.match(output, /页面配置未出现在 navigation 中/);
+    assert.match(output, /id=orphan/);
+  });
+});
+
 test('Phase 4：存在的空 YAML 也应输出字段路径错误', () => {
   withTempCwd(() => {
     fs.mkdirSync('config/_default/pages', { recursive: true });

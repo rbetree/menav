@@ -36,6 +36,40 @@ function isRecord(value: unknown): value is AnyRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function getNavigationPageIds(navigation: unknown): Set<string> {
+  if (!Array.isArray(navigation)) return new Set();
+
+  return new Set(
+    navigation
+      .map((item: unknown) => {
+        if (!isRecord(item) || item.id === undefined || item.id === null) return '';
+        return String(item.id).trim();
+      })
+      .filter(Boolean)
+  );
+}
+
+function warnNavigationPageMismatches(config: AnyRecord, pageIds: Set<string>): void {
+  const navIds = getNavigationPageIds(config.navigation);
+  if (navIds.size === 0 && pageIds.size === 0) return;
+
+  const missingPageIds = [...navIds].filter((id) => !pageIds.has(id));
+  if (missingPageIds.length > 0) {
+    log.warn('navigation 页面缺少配置文件，将使用空页面回退', {
+      id: missingPageIds.join(','),
+      suggestion: '创建对应的 pages/<id>.yml，或从 site.yml 的 navigation 中移除该项',
+    });
+  }
+
+  const hiddenPageIds = [...pageIds].filter((id) => !navIds.has(id));
+  if (hiddenPageIds.length > 0) {
+    log.warn('页面配置未出现在 navigation 中，不会显示在侧边栏导航', {
+      id: hiddenPageIds.join(','),
+      suggestion: '如需展示，请在 site.yml 的 navigation 中添加对应 id',
+    });
+  }
+}
+
 export function resolveConfigDirectory(): string {
   const hasUserModularConfig = fs.existsSync('config/user');
   const hasDefaultModularConfig = fs.existsSync('config/_default');
@@ -102,9 +136,12 @@ export function loadModularConfig(dirPath: string): AnyRecord | null {
   }
 
   const pagesPath = path.join(dirPath, 'pages');
+  const pageIds = new Set<string>();
   loadPageConfigFiles(pagesPath).forEach((entry: LoadedPageConfig) => {
+    pageIds.add(entry.configKey);
     config[entry.configKey] = entry.config;
   });
+  warnNavigationPageMismatches(config, pageIds);
 
   return config;
 }
