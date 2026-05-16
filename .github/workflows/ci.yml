@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      browser_contract:
+        description: 'Run browser contract with Playwright'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build_test:
@@ -23,5 +30,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check
+      - name: Fast check
         run: npm run check
+
+      - name: Install Playwright browsers
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_contract }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser contract
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_contract }}
+        run: npm run check:browser

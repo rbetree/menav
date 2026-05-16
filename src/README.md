@@ -27,6 +27,8 @@ npm run dev:astro
 npm run init-config
 npm run build
 npm run check
+npm run check:fast
+npm run check:browser
 npm run test:browser
 ```
 
@@ -44,7 +46,7 @@ npm run test:browser
 
 `npm run dev:astro` 会先运行 `scripts/prepare-astro-public.ts` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
 
-`npm run test:browser` 由 `scripts/test-browser.ts` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.ts` 覆盖真实浏览器中的路由、运行时配置注入、关键 `data-*`、主题和搜索契约。`npm run check` 会在构建后自动运行该浏览器契约测试与 `scripts/audit-final.ts` 最终审计。
+`npm run check` 默认等同于 `npm run check:fast`，覆盖 lint、单元测试、构建、最终审计和 TypeScript 类型检查，不启动真实浏览器。`npm run check:browser` 会先构建，再通过 `scripts/test-browser.ts` 启动本地 `dist/` 静态服务，并执行 `test/browser/contract.ts` 覆盖真实浏览器中的路由、运行时配置注入、关键 `data-*`、主题和搜索契约。
 
 ## 运行时契约
 

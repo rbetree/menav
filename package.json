@@ -22,7 +22,9 @@
     "format": "node -r ./scripts/register-ts.cjs ./scripts/format.ts --write",
     "format:check": "node -r ./scripts/register-ts.cjs ./scripts/format.ts --check",
     "format:check:changed": "node -r ./scripts/register-ts.cjs ./scripts/format-check-changed.ts",
-    "check": "node -r ./scripts/register-ts.cjs ./scripts/check.ts && tsc --noEmit",
+    "check:fast": "node -r ./scripts/register-ts.cjs ./scripts/check.ts && tsc --noEmit",
+    "check:browser": "npm run build && npm run test:browser",
+    "check": "npm run check:fast",
     "prepare": "husky",
     "dev:astro": "node -r ./scripts/register-ts.cjs ./scripts/dev-astro.ts",
     "test:browser": "node -r ./scripts/register-ts.cjs ./scripts/test-browser.ts"

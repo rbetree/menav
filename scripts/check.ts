@@ -40,13 +40,6 @@ async function main() {
     return;
   }
 
-  const browserTestExit = runNode(path.join(repoRoot, 'scripts', 'test-browser.ts'));
-  if (browserTestExit !== 0) {
-    log.error('browser contract 失败', { exit: browserTestExit });
-    process.exitCode = browserTestExit;
-    return;
-  }
-
   const finalAuditExit = runNode(path.join(repoRoot, 'scripts', 'audit-final.ts'));
   if (finalAuditExit !== 0) {
     log.error('final audit 失败', { exit: finalAuditExit });

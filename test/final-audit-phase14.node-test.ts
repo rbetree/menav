@@ -9,17 +9,20 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
-test('Phase 14：最终审计脚本应接入 check 门禁', () => {
+test('Phase 14：最终审计脚本应接入快速 check 门禁', () => {
   const check = read('scripts/check.ts');
   const audit = read('scripts/audit-final.ts');
 
   assert.ok(check.includes("scripts', 'audit-final.ts'"), 'npm run check 应执行最终审计脚本');
+  assert.equal(check.includes("scripts', 'test-browser.ts'"), false, '快速 check 不应启动浏览器契约');
   assert.ok(audit.includes('auditDependencyDirection'), '最终审计应覆盖依赖方向');
   assert.ok(audit.includes('auditPublicArtifacts'), '最终审计应覆盖公开产物');
   assert.ok(audit.includes('auditStyleLayers'), '最终审计应覆盖样式分层');
   assert.ok(audit.includes('auditDocs'), '最终审计应覆盖文档入口');
   assert.ok(audit.includes('npm run init-config'), '最终审计应覆盖配置初始化入口');
+  assert.ok(audit.includes('npm run check:browser'), '最终审计应覆盖浏览器契约分层入口');
   assert.ok(audit.includes("'init-config'"), '最终审计应要求 package.json 提供 init-config');
+  assert.ok(audit.includes("'check:browser'"), '最终审计应要求 package.json 提供 check:browser');
 });
 
 test('Phase 14：源码文档应说明浏览器契约测试入口', () => {

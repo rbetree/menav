@@ -162,8 +162,15 @@ npm run build
 6. 提交前检查（推荐）
 
 ```bash
-# 一键检查（语法检查 + 单元测试 + 构建）
+# 默认快速检查（语法检查 + 单元测试 + 构建 + 最终审计）
 npm run check
+```
+
+`npm run check` 等同于 `npm run check:fast`，用于日常提交和默认 CI。
+
+```bash
+# 可选：真实浏览器契约测试（需要 Playwright Chromium）
+npm run check:browser
 ```
 
 （可选）格式化代码：

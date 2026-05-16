@@ -38,6 +38,8 @@ const REQUIRED_DOC_COMMANDS = [
   'npm run dev:astro',
   'npm run build',
   'npm run check',
+  'npm run check:fast',
+  'npm run check:browser',
 ];
 const REQUIRED_SRC_DOC_COMMANDS = [...REQUIRED_DOC_COMMANDS, 'npm run test:browser'];
 const REQUIRED_STYLE_LAYERS = [
@@ -306,6 +308,8 @@ function auditDocs() {
   const requiredScripts = [
     'build',
     'check',
+    'check:browser',
+    'check:fast',
     'dev',
     'dev:offline',
     'dev:astro',

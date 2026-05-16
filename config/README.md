@@ -380,6 +380,7 @@ categories:
    - 定期备份您的用户配置
 
 4. **配置验证**:
-   - 修改配置后运行 `npm run check`（语法检查 + 单测 + 构建）
+   - 修改配置后运行 `npm run check`（快速检查：语法检查 + 单测 + 构建 + 审计）
+   - 若修改了运行时交互、路由、搜索或页面 DOM 契约，再运行 `npm run check:browser`
    - 需要本地预览时运行 `npm run dev`（命令入口见 [`../README.md#快速开始`](../README.md#快速开始)）
    - 确保 YAML 语法正确无误
