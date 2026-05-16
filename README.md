@@ -263,7 +263,7 @@ MENAV_PORT=80 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose 
 
 #### 配置与更新
 
-- 配置目录挂载在 `./config`，个人配置按“完全替换策略”建议：将 `config/_default/` 完整复制到 `config/user/` 再修改（见 [设置配置文件](#设置配置文件) 与 `config/README.md`）。
+- 配置目录挂载在 `./config`，个人配置按“完全替换策略”建议：先运行 `npm run init-config`，再修改 `config/user/`（见 [设置配置文件](#设置配置文件) 与 `config/README.md`）。
 - 如需导入书签：将浏览器导出的书签 HTML 放到 `./bookmarks/`，并设置 `MENAV_IMPORT_BOOKMARKS=true` 后重启容器。
 - 修改配置/书签后生效方式（触发重新构建）：
 

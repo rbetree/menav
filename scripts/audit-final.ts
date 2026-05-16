@@ -32,6 +32,7 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 const CODE_EXTENSIONS = new Set(['.astro', '.js', '.ts']);
 const REQUIRED_DOC_COMMANDS = [
+  'npm run init-config',
   'npm run dev',
   'npm run dev:offline',
   'npm run dev:astro',
@@ -300,6 +301,7 @@ function auditDocs() {
   assertIncludes(srcReadme, 'scripts/test-browser.ts', 'src/README 缺少浏览器契约脚本说明');
   assertIncludes(configReadme, 'npm run check', 'config/README 缺少配置验证入口');
   assertIncludes(configReadme, 'npm run dev', 'config/README 缺少配置预览入口');
+  assertIncludes(configReadme, 'npm run init-config', 'config/README 缺少配置初始化入口');
 
   const requiredScripts = [
     'build',
@@ -308,6 +310,7 @@ function auditDocs() {
     'dev:offline',
     'dev:astro',
     'generate',
+    'init-config',
     'lint',
     'test',
     'test:browser',

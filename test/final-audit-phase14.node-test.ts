@@ -18,6 +18,8 @@ test('Phase 14：最终审计脚本应接入 check 门禁', () => {
   assert.ok(audit.includes('auditPublicArtifacts'), '最终审计应覆盖公开产物');
   assert.ok(audit.includes('auditStyleLayers'), '最终审计应覆盖样式分层');
   assert.ok(audit.includes('auditDocs'), '最终审计应覆盖文档入口');
+  assert.ok(audit.includes('npm run init-config'), '最终审计应覆盖配置初始化入口');
+  assert.ok(audit.includes("'init-config'"), '最终审计应要求 package.json 提供 init-config');
 });
 
 test('Phase 14：源码文档应说明浏览器契约测试入口', () => {

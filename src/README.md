@@ -23,6 +23,7 @@ Astro 现代化迁移已完成；以下是重构后的核心边界：
 npm run dev
 npm run dev:offline
 npm run dev:astro
+npm run init-config
 npm run build
 npm run check
 npm run test:browser

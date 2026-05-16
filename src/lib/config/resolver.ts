@@ -78,14 +78,15 @@ export function resolveConfigDirectory(): string {
     if (!fs.existsSync('config/user/site.yml')) {
       throw new ConfigError('检测到 config/user/ 目录，但缺少 config/user/site.yml', [
         '由于配置采用"完全替换"策略，系统不会从 config/_default/ 补齐缺失配置',
-        '解决方法：先完整复制 config/_default/ 到 config/user/，再按需修改',
+        '如果尚未创建个人配置，请删除空的 config/user/ 后运行 npm run init-config',
+        '如果已有个人配置，请手动补齐 config/user/site.yml',
         '参考文档: config/README.md',
       ]);
     }
 
     if (!fs.existsSync('config/user/pages')) {
       log.warn('检测到 config/user/pages/ 缺失，部分页面内容可能为空');
-      log.warn('建议复制 config/_default/pages/ 到 config/user/pages/，再按需修改');
+      log.warn('npm run init-config 不会覆盖已有 config/user；请手动补齐 config/user/pages/');
     }
 
     return 'config/user';

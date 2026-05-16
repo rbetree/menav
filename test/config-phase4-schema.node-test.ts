@@ -10,6 +10,7 @@ const {
   loadModularConfig,
   resolveConfigDirectory,
 } = require('../src/lib/config/index.ts');
+const { ConfigError } = require('../src/lib/errors.ts');
 
 function withTempCwd(callback) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-config-phase4-'));
@@ -100,6 +101,47 @@ test('Phase 4：config/user 完全替换策略不从 _default 补齐页面', () 
     assert.ok(config['user-only']);
     assert.equal(config['default-only'], undefined);
     assert.deepEqual(getConfigValidationErrors(config), []);
+  });
+});
+
+test('Phase 4：config/user 缺少 site.yml 时应提示使用 init-config', () => {
+  withTempCwd(() => {
+    fs.mkdirSync('config/user', { recursive: true });
+    fs.mkdirSync('config/_default/pages', { recursive: true });
+    fs.writeFileSync('config/_default/site.yml', 'title: Default\n', 'utf8');
+
+    assert.throws(
+      () => resolveConfigDirectory(),
+      (error) => {
+        assert.ok(error instanceof ConfigError);
+        const details = [error.message, ...(error.suggestions || [])].join('\n');
+        assert.match(details, /npm run init-config/);
+        assert.doesNotMatch(details, /完整复制 config\/_default\/ 到 config\/user\//);
+        return true;
+      }
+    );
+  });
+});
+
+test('Phase 4：config/user 缺少 pages 目录时应提示 init-config 不覆盖现有配置', () => {
+  withTempCwd(() => {
+    fs.mkdirSync('config/user', { recursive: true });
+    fs.writeFileSync('config/user/site.yml', 'title: User\n', 'utf8');
+
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (line) => warnings.push(String(line));
+
+    try {
+      assert.equal(resolveConfigDirectory(), 'config/user');
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    const output = warnings.join('\n');
+    assert.match(output, /config\/user\/pages/);
+    assert.match(output, /npm run init-config/);
+    assert.match(output, /不会覆盖已有 config\/user/);
   });
 });
 
