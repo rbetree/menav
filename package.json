@@ -11,6 +11,7 @@
     "generate": "node -r ./scripts/register-ts.cjs ./scripts/generate.ts",
     "dev": "node -r ./scripts/register-ts.cjs ./scripts/dev.ts",
     "dev:offline": "node -r ./scripts/register-ts.cjs ./scripts/dev-offline.ts",
+    "init-config": "node -r ./scripts/register-ts.cjs ./scripts/init-config.ts",
     "clean": "node -r ./scripts/register-ts.cjs ./scripts/clean.ts",
     "build": "node -r ./scripts/register-ts.cjs ./scripts/build.ts",
     "sync-articles": "node -r ./scripts/register-ts.cjs ./scripts/sync-articles.ts",
