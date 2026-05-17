@@ -1,15 +1,11 @@
 import type { RenderConfig } from './schema/site';
 
 import { ensureConfigDefaults } from './normalizer.ts';
+import { getSubmenuForNavItem, resolveTemplateNameForPage } from './page-template.ts';
+import { prepareRenderData } from './render-data.ts';
+import { buildRuntimeConfig } from './runtime-config.ts';
+import { resolveConfigDirectory, loadModularConfig } from './resolver.ts';
 import { validateConfig, getConfigValidationErrors } from './validator.ts';
-import {
-  resolveConfigDirectory,
-  loadModularConfig,
-  prepareRenderData,
-  getSubmenuForNavItem,
-  resolveTemplateNameForPage,
-  buildRuntimeConfig,
-} from './resolver.ts';
 import { assignCategorySlugs } from './slugs.ts';
 import { ConfigError } from '../errors.ts';
 

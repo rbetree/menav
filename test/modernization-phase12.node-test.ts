@@ -64,14 +64,17 @@ test('Phase 12：业务代码不应再引用旧 generator、helpers 或 lib 兼�
 
 test('Phase 12：PageRegistryItem 应只有共享类型来源', () => {
   const pageTypes = read('src/types/page.ts');
-  const resolver = read('src/lib/config/resolver.ts');
+  const renderData = read('src/lib/config/render-data.ts');
+  const runtimeConfig = read('src/lib/config/runtime-config.ts');
   const router = read('src/runtime/app/router.ts');
   const routerUrl = read('src/runtime/app/router-url.ts');
 
   assert.ok(pageTypes.includes('export interface PageRegistryItem'));
-  assert.ok(resolver.includes("import type { PageRegistryItem } from '../../types/page'"));
+  assert.ok(renderData.includes("import type { PageRegistryItem } from '../../types/page'"));
+  assert.ok(runtimeConfig.includes("import type { PageRegistryItem } from '../../types/page'"));
   assert.ok(router.includes("import type { PageRegistryItem } from '../../types/page'"));
   assert.ok(routerUrl.includes("import type { PageRegistryItem } from '../../types/page'"));
-  assert.equal(resolver.includes('type PageRegistryItem ='), false);
+  assert.equal(renderData.includes('type PageRegistryItem ='), false);
+  assert.equal(runtimeConfig.includes('type PageRegistryItem ='), false);
   assert.equal(router.includes('RuntimePageRegistryItem'), false);
 });

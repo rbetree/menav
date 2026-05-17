@@ -1,21 +1,11 @@
-import type { PageRegistryItem } from '../../types/page';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { safeLoadYamlConfig, loadPageConfigFiles } from './loader.ts';
-import { assignCategorySlugs } from './slugs.ts';
 import { ConfigError } from '../errors.ts';
 import { createLogger, isVerbose } from '../logging/logger.ts';
 
 type AnyRecord = Record<string, unknown>;
-type NavigationItemLike = AnyRecord & {
-  id?: unknown;
-  submenu?: unknown;
-};
-type PageConfigLike = AnyRecord & {
-  categories?: unknown;
-  template?: unknown;
-};
 type LoadedPageConfig = {
   configKey: string;
   config: unknown;
@@ -23,14 +13,6 @@ type LoadedPageConfig = {
 };
 
 const log = createLogger('config');
-const BUILTIN_PAGE_TEMPLATES = new Set([
-  'articles',
-  'bookmarks',
-  'content',
-  'page',
-  'projects',
-  'search-results',
-]);
 
 function isRecord(value: unknown): value is AnyRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -145,152 +127,4 @@ export function loadModularConfig(dirPath: string): AnyRecord | null {
   warnNavigationPageMismatches(config, pageIds);
 
   return config;
-}
-
-export function getSubmenuForNavItem(
-  navItem: NavigationItemLike | null,
-  config: AnyRecord | null
-): unknown[] | null {
-  if (!navItem || !navItem.id || !config) {
-    return null;
-  }
-
-  const pageConfig = config[String(navItem.id)] as PageConfigLike | undefined;
-  if (pageConfig && Array.isArray(pageConfig.categories)) return pageConfig.categories;
-
-  return null;
-}
-
-function makeJsonSafeForHtmlScript(jsonString: unknown): string {
-  if (typeof jsonString !== 'string') {
-    return '';
-  }
-
-  return jsonString.replace(/<\/script/gi, '<\\/script');
-}
-
-export function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | null): string {
-  if (!pageId) return 'page';
-
-  const pageConfig =
-    config && config[String(pageId)] ? (config[String(pageId)] as PageConfigLike) : null;
-  const explicit = pageConfig && pageConfig.template ? String(pageConfig.template).trim() : '';
-  if (explicit) return BUILTIN_PAGE_TEMPLATES.has(explicit) ? explicit : 'page';
-
-  if (BUILTIN_PAGE_TEMPLATES.has(String(pageId))) return String(pageId);
-
-  return 'page';
-}
-
-export function buildRuntimeConfig(renderData: AnyRecord | null): AnyRecord {
-  const meta = renderData && isRecord(renderData._meta) ? renderData._meta : null;
-  const version =
-    meta && meta.version && String(meta.version).trim()
-      ? String(meta.version).trim()
-      : process.env.npm_package_version || '1.0.0';
-
-  const pageTemplates: Record<string, string> = {};
-  const pageRegistry: PageRegistryItem[] = [];
-  if (renderData && Array.isArray(renderData.navigation)) {
-    renderData.navigation.forEach((navItem: unknown, index: number) => {
-      if (!isRecord(navItem)) return;
-      const pageId = navItem.id ? String(navItem.id).trim() : '';
-      if (!pageId) return;
-      const template = resolveTemplateNameForPage(pageId, renderData);
-      pageTemplates[pageId] = template;
-      pageRegistry.push({
-        id: pageId,
-        name: navItem.name ? String(navItem.name).trim() : pageId,
-        template,
-        active: index === 0,
-      });
-    });
-  }
-
-  const site = renderData && isRecord(renderData.site) ? renderData.site : null;
-  const security = site && isRecord(site.security) ? site.security : null;
-  const allowedSchemes =
-    security && Array.isArray(security.allowedSchemes) ? security.allowedSchemes : null;
-
-  return {
-    version,
-    timestamp: new Date().toISOString(),
-    icons: renderData && renderData.icons ? renderData.icons : undefined,
-    data: {
-      homePageId: renderData && renderData.homePageId ? renderData.homePageId : null,
-      pageRegistry,
-      pageTemplates,
-      site: allowedSchemes ? { security: { allowedSchemes } } : undefined,
-    },
-  };
-}
-
-export function prepareRenderData(config: AnyRecord): AnyRecord {
-  const renderData: AnyRecord = { ...config };
-
-  renderData._meta = {
-    generated_at: new Date(),
-    version: process.env.npm_package_version || '1.0.0',
-    generatedBy: 'MeNav',
-  };
-
-  if (!Array.isArray(renderData.navigation)) {
-    renderData.navigation = [];
-  }
-
-  if (Array.isArray(renderData.navigation)) {
-    renderData.navigation = renderData.navigation.map((item: unknown, index: number) => {
-      const base = isRecord(item) ? item : {};
-      const navItem: NavigationItemLike = {
-        ...base,
-        isActive: index === 0,
-        id: base.id || `nav-${index}`,
-        active: index === 0,
-      };
-
-      const submenu = getSubmenuForNavItem(navItem, renderData);
-      if (submenu) {
-        navItem.submenu = submenu;
-      }
-
-      return navItem;
-    });
-  }
-
-  renderData.homePageId =
-    Array.isArray(renderData.navigation) && renderData.navigation[0]
-      ? (renderData.navigation[0] as NavigationItemLike).id
-      : null;
-  renderData.pageRegistry = [];
-
-  if (Array.isArray(renderData.navigation)) {
-    renderData.navigation.forEach((navItem: unknown, index: number) => {
-      if (!isRecord(navItem)) return;
-      const pageId = navItem.id ? String(navItem.id) : '';
-      if (pageId) {
-        (renderData.pageRegistry as PageRegistryItem[]).push({
-          id: pageId,
-          name: navItem.name ? String(navItem.name).trim() : pageId,
-          template: resolveTemplateNameForPage(pageId, renderData),
-          active: index === 0,
-        });
-      }
-      const pageConfig = pageId ? (renderData[pageId] as PageConfigLike | undefined) : undefined;
-      if (pageConfig && Array.isArray(pageConfig.categories)) {
-        assignCategorySlugs(pageConfig.categories, new Map());
-      }
-    });
-  }
-
-  const runtimeConfig = buildRuntimeConfig(renderData);
-  renderData.runtimeConfig = runtimeConfig;
-  renderData.runtimeConfigJson = makeJsonSafeForHtmlScript(JSON.stringify(runtimeConfig));
-
-  renderData.navigationData = renderData.navigation;
-
-  if (Array.isArray(renderData.social)) {
-    renderData.socialLinks = renderData.social;
-  }
-
-  return renderData;
 }
