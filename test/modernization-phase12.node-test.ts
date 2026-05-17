@@ -78,3 +78,17 @@ test('Phase 12：PageRegistryItem 应只有共享类型来源', () => {
   assert.equal(runtimeConfig.includes('type PageRegistryItem ='), false);
   assert.equal(router.includes('RuntimePageRegistryItem'), false);
 });
+
+test('Phase 12：page-data 主流程不直接依赖页面特化数据源', () => {
+  const pageData = read('src/lib/view-data/page-data.ts');
+  const pageKind = read('src/lib/view-data/page-kind.ts');
+
+  assert.ok(pageData.includes('applyPageKindData'));
+  assert.ok(pageKind.includes('tryLoadArticlesFeedCache'));
+  assert.ok(pageKind.includes('tryLoadProjectsRepoCache'));
+  assert.ok(pageKind.includes('renderMarkdownToHtml'));
+  assert.equal(pageData.includes("'cache', 'articles.ts'"), false);
+  assert.equal(pageData.includes("'cache', 'projects.ts'"), false);
+  assert.equal(pageData.includes("'content', 'markdown.ts'"), false);
+  assert.equal(pageData.includes('getPageConfigUpdatedAtMeta'), false);
+});
