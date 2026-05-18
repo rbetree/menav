@@ -14,7 +14,11 @@ test('Phase 14：最终审计脚本应接入快速 check 门禁', () => {
   const audit = read('scripts/audit-final.ts');
 
   assert.ok(check.includes("scripts', 'audit-final.ts'"), 'npm run check 应执行最终审计脚本');
-  assert.equal(check.includes("scripts', 'test-browser.ts'"), false, '快速 check 不应启动浏览器契约');
+  assert.equal(
+    check.includes("scripts', 'test-browser.ts'"),
+    false,
+    '快速 check 不应启动浏览器契约'
+  );
   assert.ok(audit.includes('auditDependencyDirection'), '最终审计应覆盖依赖方向');
   assert.ok(audit.includes('auditPublicArtifacts'), '最终审计应覆盖公开产物');
   assert.ok(audit.includes('auditStyleLayers'), '最终审计应覆盖样式分层');

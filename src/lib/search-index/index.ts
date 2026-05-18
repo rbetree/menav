@@ -32,6 +32,11 @@ function normalizeSearchText(...parts: unknown[]): string {
     .join(' ');
 }
 
+function normalizeNumber(value: unknown): number | null {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 function collectCategorySources(
   category: CategoryItem | null | undefined,
   output: SearchIndexSource[],
@@ -131,8 +136,15 @@ function createSearchIndexItem(
   const url = getSafeUrl(rawUrl, renderContext.allowedSchemes);
   const type = source.type || (normalizeText(site.type) === 'article' ? 'article' : 'site');
   const style = normalizeText(source.style) || normalizeText(site.style) || '';
+  const faviconUrl = normalizeText(site.faviconUrl);
+  const forceIconMode = normalizeText(site.forceIconMode);
   const publishedAt = normalizeText(site.publishedAt);
   const articleSource = normalizeText(site.source);
+  const language = normalizeText(site.language);
+  const languageColor = normalizeText(site.languageColor);
+  const stars = normalizeNumber(site.stars);
+  const forks = normalizeNumber(site.forks);
+  const issues = normalizeNumber(site.issues);
 
   return {
     pageId,
@@ -142,6 +154,8 @@ function createSearchIndexItem(
     icon,
     type,
     ...(style ? { style } : {}),
+    ...(faviconUrl ? { faviconUrl } : {}),
+    ...(forceIconMode ? { forceIconMode } : {}),
     ...(source.categoryId ? { categoryId: source.categoryId } : {}),
     ...(source.categoryName ? { categoryName: source.categoryName } : {}),
     ...(source.categoryPath && source.categoryPath.length > 0
@@ -149,6 +163,11 @@ function createSearchIndexItem(
       : {}),
     ...(publishedAt ? { publishedAt } : {}),
     ...(articleSource ? { source: articleSource } : {}),
+    ...(language ? { language } : {}),
+    ...(languageColor ? { languageColor } : {}),
+    ...(stars !== null ? { stars } : {}),
+    ...(forks !== null ? { forks } : {}),
+    ...(issues !== null ? { issues } : {}),
     ...(site.external !== undefined ? { external: Boolean(site.external) } : {}),
     searchText: normalizeSearchText(title, description),
   };

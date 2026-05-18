@@ -8,11 +8,18 @@ export interface SearchIndexItem {
   icon: string;
   type: SearchIndexSourceKind;
   style?: string;
+  faviconUrl?: string;
+  forceIconMode?: string;
   categoryId?: string;
   categoryName?: string;
   categoryPath?: string[];
   publishedAt?: string;
   source?: string;
+  language?: string;
+  languageColor?: string;
+  stars?: number;
+  forks?: number;
+  issues?: number;
   external?: boolean;
   searchText: string;
 }

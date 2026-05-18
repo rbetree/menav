@@ -1,0 +1,17 @@
+---
+interface Props {
+  runtimeConfigJson?: string;
+}
+
+const { runtimeConfigJson = '{}' } = Astro.props;
+---
+
+<script
+  is:inline
+  id="menav-runtime-config"
+  type="application/json"
+  style="display: none;"
+  set:html={runtimeConfigJson}
+/>
+<script is:inline src="./pinyin-match.js"></script>
+<script is:inline src="./script.js"></script>

@@ -1,0 +1,96 @@
+<div class="search-container">
+  <div class="search-box">
+    <button
+      class="search-engine-button search-engine-toggle"
+      type="button"
+      title="选择搜索引擎"
+      aria-label="选择搜索引擎"
+      aria-haspopup="menu"
+      aria-controls="search-engine-dropdown"
+      aria-expanded="false"
+    >
+      <i class="search-engine-icon search-engine-icon-svg" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" focusable="false">
+          <path fill="#616161" d="M29.171,32.001L32,29.172l12.001,12l-2.828,2.828L29.171,32.001z"
+          ></path>
+          <path
+            fill="#616161"
+            d="M36,20c0,8.837-7.163,16-16,16S4,28.837,4,20S11.163,4,20,4S36,11.163,36,20"></path>
+          <path fill="#37474f" d="M32.476,35.307l2.828-2.828l8.693,8.693L41.17,44L32.476,35.307z"
+          ></path>
+          <path
+            fill="#64b5f6"
+            d="M7,20c0-7.18,5.82-13,13-13s13,5.82,13,13s-5.82,13-13,13S7,27.18,7,20"></path>
+        </svg>
+      </i>
+      <span class="search-engine-label">本地</span>
+    </button>
+
+    <input
+      type="text"
+      id="search"
+      placeholder="Search"
+      aria-label="搜索"
+      aria-keyshortcuts="Control+K Meta+K"
+    />
+    <span class="search-shortcut-hint" aria-hidden="true">Ctrl+K</span>
+
+    <div
+      class="search-engine-dropdown"
+      id="search-engine-dropdown"
+      role="menu"
+      aria-label="搜索引擎列表"
+    >
+      <button
+        class="search-engine-option"
+        type="button"
+        role="menuitem"
+        data-engine="local"
+        title="本地搜索"
+      >
+        <i class="search-engine-option-svg" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" focusable="false">
+            <path fill="#616161" d="M29.171,32.001L32,29.172l12.001,12l-2.828,2.828L29.171,32.001z"
+            ></path>
+            <path
+              fill="#616161"
+              d="M36,20c0,8.837-7.163,16-16,16S4,28.837,4,20S11.163,4,20,4S36,11.163,36,20"></path>
+            <path fill="#37474f" d="M32.476,35.307l2.828-2.828l8.693,8.693L41.17,44L32.476,35.307z"
+            ></path>
+            <path
+              fill="#64b5f6"
+              d="M7,20c0-7.18,5.82-13,13-13s13,5.82,13,13s-5.82,13-13,13S7,27.18,7,20"></path>
+          </svg>
+        </i>
+        <span class="search-engine-option-label">本地搜索</span>
+      </button>
+      <button
+        class="search-engine-option"
+        type="button"
+        role="menuitem"
+        data-engine="google"
+        title="Google搜索"
+      >
+        <span class="search-engine-option-label">Google</span>
+      </button>
+      <button
+        class="search-engine-option"
+        type="button"
+        role="menuitem"
+        data-engine="bing"
+        title="Bing搜索"
+      >
+        <span class="search-engine-option-label">Bing</span>
+      </button>
+      <button
+        class="search-engine-option"
+        type="button"
+        role="menuitem"
+        data-engine="duckduckgo"
+        title="DuckDuckGo搜索"
+      >
+        <span class="search-engine-option-label">DuckDuckGo</span>
+      </button>
+    </div>
+  </div>
+</div>

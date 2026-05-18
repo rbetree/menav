@@ -14,9 +14,19 @@ const highlightSearchTerm = require('./highlight.ts') as (
 ) => void;
 const { SELECTORS, qs, qsa } =
   require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+const { getRuntimeConfig } =
+  require('../../runtime-config.ts') as typeof import('../../runtime-config');
 
 const SEARCH_INDEX_SCHEMA_VERSION = 1;
 const SEARCH_INDEX_URL = './search-index.json';
+
+type IconRenderOptions = {
+  name: string;
+  url: string;
+  icon: string;
+  faviconUrl?: string;
+  forceIconMode?: string;
+};
 
 function normalizeText(value: unknown): string {
   return String(value === null || value === undefined ? '' : value).trim();
@@ -31,6 +41,78 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   if (className) el.className = className;
   if (text !== undefined) el.textContent = text;
   return el;
+}
+
+function isHttpUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
+
+function buildFaviconV2Url(url: string, domain: string): string {
+  return `https://${domain}/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=32&drop_404_icon=true`;
+}
+
+function getIconConfig(): { mode: string; region: string } {
+  try {
+    const config = getRuntimeConfig();
+    const icons = config && config.icons && typeof config.icons === 'object' ? config.icons : null;
+    return {
+      mode: icons && icons.mode === 'manual' ? 'manual' : 'favicon',
+      region: icons && icons.region === 'cn' ? 'cn' : 'com',
+    };
+  } catch (error) {
+    return { mode: 'favicon', region: 'com' };
+  }
+}
+
+function createCardIcon(options: IconRenderOptions): HTMLElement {
+  const iconWrap = createElement('div', 'site-card-icon');
+  iconWrap.setAttribute('aria-hidden', 'true');
+
+  const { mode, region } = getIconConfig();
+  const forceIconMode = normalizeText(options.forceIconMode);
+  const shouldUseFavicon = forceIconMode ? forceIconMode === 'favicon' : mode === 'favicon';
+  const canUseGeneratedFavicon = shouldUseFavicon && isHttpUrl(options.url);
+  const primaryDomain = region === 'cn' ? 't3.gstatic.cn' : 't3.gstatic.com';
+  const fallbackDomain = region === 'cn' ? 't3.gstatic.com' : 't3.gstatic.cn';
+  const src =
+    normalizeText(options.faviconUrl) ||
+    (canUseGeneratedFavicon ? buildFaviconV2Url(options.url, primaryDomain) : '');
+
+  if (!src) {
+    iconWrap.appendChild(createElement('i', `${options.icon || 'fas fa-link'} site-icon`));
+    return iconWrap;
+  }
+
+  const container = createElement('div', 'icon-container');
+  const placeholder = createElement('i', 'fas fa-circle-notch fa-spin icon-placeholder');
+  const img = createElement('img', 'favicon-icon') as HTMLImageElement;
+  const fallback = createElement('i', `${options.icon || 'fas fa-link'} icon-fallback`);
+
+  placeholder.setAttribute('aria-hidden', 'true');
+  fallback.setAttribute('aria-hidden', 'true');
+  img.src = src;
+  img.alt = `${options.name} favicon`;
+  img.loading = 'lazy';
+
+  img.addEventListener('load', () => {
+    img.classList.add('loaded');
+    placeholder.classList.add('hidden');
+  });
+
+  img.addEventListener('error', () => {
+    if (canUseGeneratedFavicon && !img.dataset.faviconFallbackTried) {
+      img.dataset.faviconFallbackTried = '1';
+      img.src = buildFaviconV2Url(options.url, fallbackDomain);
+      return;
+    }
+    img.classList.add('error');
+    placeholder.classList.add('hidden');
+    fallback.classList.add('visible');
+  });
+
+  container.append(placeholder, img, fallback);
+  iconWrap.appendChild(container);
+  return iconWrap;
 }
 
 function normalizeIndexItem(raw: unknown): RuntimeSearchIndexItem | null {
@@ -56,11 +138,18 @@ function normalizeIndexItem(raw: unknown): RuntimeSearchIndexItem | null {
     icon: normalizeText(item.icon) || 'fas fa-link',
     type,
     style: normalizeText(item.style),
+    faviconUrl: normalizeText(item.faviconUrl),
+    forceIconMode: normalizeText(item.forceIconMode),
     categoryId: normalizeText(item.categoryId),
     categoryName: normalizeText(item.categoryName),
     categoryPath,
     publishedAt: normalizeText(item.publishedAt),
     source: normalizeText(item.source),
+    language: normalizeText(item.language),
+    languageColor: normalizeText(item.languageColor),
+    stars: Number.isFinite(item.stars) ? Number(item.stars) : undefined,
+    forks: Number.isFinite(item.forks) ? Number(item.forks) : undefined,
+    issues: Number.isFinite(item.issues) ? Number(item.issues) : undefined,
     external: typeof item.external === 'boolean' ? item.external : undefined,
     searchText,
   };
@@ -77,6 +166,8 @@ function createCardFromIndexItem(item: RuntimeSearchIndexItem): HTMLElement {
   card.dataset.name = item.title;
   card.dataset.url = item.url || '#';
   card.dataset.icon = item.icon || '';
+  if (item.faviconUrl) card.dataset.faviconUrl = item.faviconUrl;
+  if (item.forceIconMode) card.dataset.forceIconMode = item.forceIconMode;
   card.dataset.description = item.description || '';
   card.dataset.tooltip = `${item.title} - ${item.description || item.url || ''}`;
   if (item.publishedAt) card.dataset.publishedAt = item.publishedAt;
@@ -88,9 +179,13 @@ function createCardFromIndexItem(item: RuntimeSearchIndexItem): HTMLElement {
 
   if (isArticle) {
     const header = createElement('div', 'article-card-header');
-    const iconWrap = createElement('div', 'site-card-icon');
-    iconWrap.setAttribute('aria-hidden', 'true');
-    iconWrap.appendChild(createElement('i', `${item.icon || 'fas fa-pen'} site-icon`));
+    const iconWrap = createCardIcon({
+      name: item.title,
+      url: item.url,
+      icon: item.icon || 'fas fa-pen',
+      faviconUrl: item.faviconUrl,
+      forceIconMode: item.forceIconMode,
+    });
     const titleWrap = createElement('div', 'article-card-title');
     titleWrap.appendChild(createElement('h3', '', item.title));
     header.append(iconWrap, titleWrap);
@@ -119,12 +214,55 @@ function createCardFromIndexItem(item: RuntimeSearchIndexItem): HTMLElement {
     header.appendChild(createElement('div', 'repo-title', item.title));
     card.appendChild(header);
     card.appendChild(createElement('div', 'repo-desc', item.description));
+
+    if (item.language || item.stars || item.forks || item.issues) {
+      const stats = createElement('div', 'repo-stats');
+
+      if (item.language) {
+        const language = createElement('div', 'stat-item');
+        const dot = createElement('span', 'lang-dot');
+        dot.style.backgroundColor = item.languageColor || '#909296';
+        language.append(dot, document.createTextNode(item.language));
+        stats.appendChild(language);
+      }
+
+      if (item.stars) {
+        const stars = createElement('div', 'stat-item');
+        stars.append(createElement('i', 'far fa-star'), document.createTextNode(` ${item.stars}`));
+        stats.appendChild(stars);
+      }
+
+      if (item.forks) {
+        const forks = createElement('div', 'stat-item');
+        forks.append(
+          createElement('i', 'fas fa-code-branch'),
+          document.createTextNode(` ${item.forks}`)
+        );
+        stats.appendChild(forks);
+      }
+
+      if (item.issues) {
+        const issues = createElement('div', 'stat-item');
+        issues.append(
+          createElement('i', 'fas fa-exclamation-circle'),
+          document.createTextNode(` ${item.issues}`)
+        );
+        stats.appendChild(issues);
+      }
+
+      card.appendChild(stats);
+    }
+
     return card;
   }
 
-  const iconWrap = createElement('div', 'site-card-icon');
-  iconWrap.setAttribute('aria-hidden', 'true');
-  iconWrap.appendChild(createElement('i', `${item.icon || 'fas fa-link'} site-icon`));
+  const iconWrap = createCardIcon({
+    name: item.title,
+    url: item.url,
+    icon: item.icon || 'fas fa-link',
+    faviconUrl: item.faviconUrl,
+    forceIconMode: item.forceIconMode,
+  });
   const content = createElement('div', 'site-card-content');
   content.appendChild(createElement('h3', '', item.title));
   content.appendChild(createElement('p', '', item.description));

@@ -1,0 +1,35 @@
+<script is:inline>
+  (function () {
+    var savedTheme = localStorage.getItem('theme');
+    var defaultThemeMode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
+    defaultThemeMode = String(defaultThemeMode).trim().toLowerCase();
+    var shouldUseLight = false;
+
+    if (savedTheme === 'light') {
+      shouldUseLight = true;
+    } else if (savedTheme === 'dark') {
+      shouldUseLight = false;
+    } else if (defaultThemeMode === 'light') {
+      shouldUseLight = true;
+    } else if (defaultThemeMode === 'system') {
+      try {
+        shouldUseLight =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      } catch (e) {
+        shouldUseLight = false;
+      }
+    }
+
+    if (shouldUseLight) {
+      document.documentElement.classList.add('theme-preload');
+    }
+
+    var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    var isMobile = window.innerWidth <= 768;
+    if (sidebarCollapsed && !isMobile) {
+      document.documentElement.classList.add('sidebar-collapsed-preload');
+    }
+
+    document.documentElement.classList.add('preload');
+  })();
+</script>
