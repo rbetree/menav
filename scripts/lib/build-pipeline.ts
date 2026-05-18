@@ -19,8 +19,35 @@ function runNode(scriptPath: string): number {
   const registerScript = path.join(__dirname, '..', 'register-ts.cjs');
   const result = spawnSync(process.execPath, ['-r', registerScript, scriptPath], {
     stdio: 'inherit',
+    env: process.env,
   });
   return Number.isFinite(result.status) ? Number(result.status) : 1;
+}
+
+function runConfigPreflight(log: PipelineLogger, repoRoot: string): boolean {
+  const registerScript = path.join(__dirname, '..', 'register-ts.cjs');
+  const result = spawnSync(
+    process.execPath,
+    [
+      '-r',
+      registerScript,
+      '-e',
+      "try { require('./src/lib/config/index.ts').loadConfig() } catch (error) { require('./src/lib/errors.ts').handleError(error) }",
+    ],
+    {
+      cwd: repoRoot,
+      stdio: 'inherit',
+      env: process.env,
+    }
+  );
+
+  const exit = Number.isFinite(result.status) ? Number(result.status) : 1;
+  if (exit !== 0) {
+    log.error('config preflight 失败', { exit });
+    return false;
+  }
+
+  return true;
 }
 
 function runStep(log: PipelineLogger, label: string, scriptPath: string): boolean {
@@ -52,31 +79,54 @@ function runBuildPipeline(options: BuildPipelineOptions): boolean {
     return false;
   }
 
-  if (!runStep(log, 'clean', path.join(repoRoot, 'scripts', 'clean.ts'))) {
+  if (!runConfigPreflight(log, repoRoot)) {
     return false;
   }
 
-  if (sync) {
-    runBestEffortStep(log, 'sync-projects', path.join(repoRoot, 'scripts', 'sync-projects.ts'));
-    runBestEffortStep(log, 'sync-heatmap', path.join(repoRoot, 'scripts', 'sync-heatmap.ts'));
-    runBestEffortStep(log, 'sync-articles', path.join(repoRoot, 'scripts', 'sync-articles.ts'));
-  }
+  const previousConfigDiagnostics = process.env.MENAV_CONFIG_DIAGNOSTICS;
+  process.env.MENAV_CONFIG_DIAGNOSTICS = 'silent';
 
-  if (
-    !runStep(log, 'prepare astro public', path.join(repoRoot, 'scripts', 'prepare-astro-public.ts'))
-  ) {
-    return false;
-  }
+  const restoreConfigDiagnostics = (): void => {
+    if (previousConfigDiagnostics === undefined) {
+      delete process.env.MENAV_CONFIG_DIAGNOSTICS;
+      return;
+    }
+    process.env.MENAV_CONFIG_DIAGNOSTICS = previousConfigDiagnostics;
+  };
 
-  if (!runStep(log, 'runtime bundle', path.join(repoRoot, 'scripts', 'build-runtime.ts'))) {
-    return false;
-  }
+  try {
+    if (!runStep(log, 'clean', path.join(repoRoot, 'scripts', 'clean.ts'))) {
+      return false;
+    }
 
-  if (!runStep(log, 'astro build', path.join(repoRoot, 'scripts', 'run-astro-build.ts'))) {
-    return false;
-  }
+    if (sync) {
+      runBestEffortStep(log, 'sync-projects', path.join(repoRoot, 'scripts', 'sync-projects.ts'));
+      runBestEffortStep(log, 'sync-heatmap', path.join(repoRoot, 'scripts', 'sync-heatmap.ts'));
+      runBestEffortStep(log, 'sync-articles', path.join(repoRoot, 'scripts', 'sync-articles.ts'));
+    }
 
-  return true;
+    if (
+      !runStep(
+        log,
+        'prepare astro public',
+        path.join(repoRoot, 'scripts', 'prepare-astro-public.ts')
+      )
+    ) {
+      return false;
+    }
+
+    if (!runStep(log, 'runtime bundle', path.join(repoRoot, 'scripts', 'build-runtime.ts'))) {
+      return false;
+    }
+
+    if (!runStep(log, 'astro build', path.join(repoRoot, 'scripts', 'run-astro-build.ts'))) {
+      return false;
+    }
+
+    return true;
+  } finally {
+    restoreConfigDiagnostics();
+  }
 }
 
 export { runBuildPipeline };

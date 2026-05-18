@@ -67,3 +67,17 @@ test('Phase 11：build-runtime 与 dev:astro 应复用同一份 runtime bundle �
   assert.ok(runtimeBundle.includes('watchRuntimeBundle'));
   assert.ok(runtimeBundle.includes('buildRuntimeBundle'));
 });
+
+test('Phase 11：build/dev 管线应先配置预检查并静默后续重复诊断', () => {
+  const buildPipeline = read('scripts/lib/build-pipeline.ts');
+
+  assert.ok(buildPipeline.includes('runConfigPreflight'), '管线应先执行配置预检查');
+  assert.ok(
+    buildPipeline.includes("process.env.MENAV_CONFIG_DIAGNOSTICS = 'silent'"),
+    '配置预检查后应静默后续重复诊断'
+  );
+  assert.ok(
+    buildPipeline.includes('restoreConfigDiagnostics'),
+    '管线结束后应恢复 MENAV_CONFIG_DIAGNOSTICS'
+  );
+});

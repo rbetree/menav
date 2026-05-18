@@ -13,6 +13,12 @@ type LoadedPageConfig = {
 };
 
 const log = createLogger('config');
+const emittedConfigDiagnostics = new Set<string>();
+
+type PageIdTypoPair = {
+  navigationId: string;
+  pageId: string;
+};
 
 function isRecord(value: unknown): value is AnyRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -31,22 +37,137 @@ function getNavigationPageIds(navigation: unknown): Set<string> {
   );
 }
 
-function warnNavigationPageMismatches(config: AnyRecord, pageIds: Set<string>): void {
+function normalizePageIdForCompare(id: string): string {
+  return id.toLowerCase().replace(/[-_\s]/g, '');
+}
+
+function getEditDistance(left: string, right: string): number {
+  const previousRow = Array.from({ length: right.length + 1 }, (_, index) => index);
+
+  for (let leftIndex = 0; leftIndex < left.length; leftIndex += 1) {
+    const currentRow = [leftIndex + 1];
+
+    for (let rightIndex = 0; rightIndex < right.length; rightIndex += 1) {
+      const insertCost = currentRow[rightIndex] + 1;
+      const deleteCost = previousRow[rightIndex + 1] + 1;
+      const replaceCost = previousRow[rightIndex] + (left[leftIndex] === right[rightIndex] ? 0 : 1);
+
+      currentRow.push(Math.min(insertCost, deleteCost, replaceCost));
+    }
+
+    previousRow.splice(0, previousRow.length, ...currentRow);
+  }
+
+  return previousRow[right.length];
+}
+
+function isLikelyPageIdTypo(navigationId: string, pageId: string): boolean {
+  const normalizedNavigationId = normalizePageIdForCompare(navigationId);
+  const normalizedPageId = normalizePageIdForCompare(pageId);
+  if (!normalizedNavigationId || !normalizedPageId || normalizedNavigationId === normalizedPageId) {
+    return false;
+  }
+
+  if (
+    (normalizedNavigationId.startsWith(normalizedPageId) ||
+      normalizedPageId.startsWith(normalizedNavigationId)) &&
+    Math.abs(normalizedNavigationId.length - normalizedPageId.length) <= 2
+  ) {
+    return true;
+  }
+
+  const distance = getEditDistance(normalizedNavigationId, normalizedPageId);
+  const maxAllowedDistance = Math.max(
+    1,
+    Math.floor(Math.max(normalizedNavigationId.length, normalizedPageId.length) * 0.25)
+  );
+  return distance <= maxAllowedDistance;
+}
+
+function findLikelyPageIdTypoPairs(
+  missingPageIds: string[],
+  hiddenPageIds: string[]
+): PageIdTypoPair[] {
+  const pairs: PageIdTypoPair[] = [];
+  const usedPageIds = new Set<string>();
+
+  missingPageIds.forEach((navigationId) => {
+    const candidates = hiddenPageIds
+      .filter((pageId) => !usedPageIds.has(pageId) && isLikelyPageIdTypo(navigationId, pageId))
+      .map((pageId) => ({
+        pageId,
+        distance: getEditDistance(
+          normalizePageIdForCompare(navigationId),
+          normalizePageIdForCompare(pageId)
+        ),
+      }))
+      .sort(
+        (left, right) => left.distance - right.distance || left.pageId.localeCompare(right.pageId)
+      );
+
+    const bestMatch = candidates[0];
+    if (!bestMatch) return;
+
+    usedPageIds.add(bestMatch.pageId);
+    pairs.push({ navigationId, pageId: bestMatch.pageId });
+  });
+
+  return pairs;
+}
+
+function shouldSuppressConfigDiagnostics(): boolean {
+  const mode = String(process.env.MENAV_CONFIG_DIAGNOSTICS || '')
+    .trim()
+    .toLowerCase();
+  return mode === 'silent' || mode === 'off' || mode === '0' || mode === 'false';
+}
+
+function warnConfigDiagnostic(message: string, meta?: Record<string, unknown>): void {
+  if (shouldSuppressConfigDiagnostics()) return;
+
+  const key = `${message}\n${JSON.stringify(meta || {})}`;
+  if (!isVerbose() && emittedConfigDiagnostics.has(key)) return;
+
+  emittedConfigDiagnostics.add(key);
+  log.warn(message, meta);
+}
+
+function warnNavigationPageMismatches(
+  config: AnyRecord,
+  pageIds: Set<string>,
+  dirPath: string
+): void {
   const navIds = getNavigationPageIds(config.navigation);
   if (navIds.size === 0 && pageIds.size === 0) return;
 
   const missingPageIds = [...navIds].filter((id) => !pageIds.has(id));
-  if (missingPageIds.length > 0) {
-    log.warn('navigation 页面缺少配置文件，将使用空页面回退', {
-      id: missingPageIds.join(','),
+  const hiddenPageIds = [...pageIds].filter((id) => !navIds.has(id));
+  const typoPairs = findLikelyPageIdTypoPairs(missingPageIds, hiddenPageIds);
+  const pairedNavigationIds = new Set(typoPairs.map((pair) => pair.navigationId));
+  const pairedPageIds = new Set(typoPairs.map((pair) => pair.pageId));
+
+  typoPairs.forEach((pair) => {
+    warnConfigDiagnostic('navigation id 与页面文件名疑似不一致，页面不会显示或同步', {
+      navigationId: pair.navigationId,
+      page: path.join(dirPath, 'pages', `${pair.pageId}.yml`),
+      suggestion: `将 site.yml 中该导航项 id 改为 ${pair.pageId}，或创建 pages/${pair.navigationId}.yml`,
+    });
+  });
+
+  const unpairedMissingPageIds = missingPageIds.filter((id) => !pairedNavigationIds.has(id));
+  if (unpairedMissingPageIds.length > 0) {
+    warnConfigDiagnostic('navigation 页面缺少配置文件，将使用空页面回退', {
+      id: unpairedMissingPageIds.join(','),
+      site: path.join(dirPath, 'site.yml'),
       suggestion: '创建对应的 pages/<id>.yml，或从 site.yml 的 navigation 中移除该项',
     });
   }
 
-  const hiddenPageIds = [...pageIds].filter((id) => !navIds.has(id));
-  if (hiddenPageIds.length > 0) {
-    log.warn('页面配置未出现在 navigation 中，不会显示在侧边栏导航', {
-      id: hiddenPageIds.join(','),
+  const unpairedHiddenPageIds = hiddenPageIds.filter((id) => !pairedPageIds.has(id));
+  if (unpairedHiddenPageIds.length > 0) {
+    warnConfigDiagnostic('页面配置未出现在 navigation 中，不会显示在侧边栏导航', {
+      id: unpairedHiddenPageIds.join(','),
+      pages: unpairedHiddenPageIds.map((id) => path.join(dirPath, 'pages', `${id}.yml`)).join(','),
       suggestion: '如需展示，请在 site.yml 的 navigation 中添加对应 id',
     });
   }
@@ -67,8 +188,10 @@ export function resolveConfigDirectory(): string {
     }
 
     if (!fs.existsSync('config/user/pages')) {
-      log.warn('检测到 config/user/pages/ 缺失，部分页面内容可能为空');
-      log.warn('npm run init-config 不会覆盖已有 config/user；请手动补齐 config/user/pages/');
+      warnConfigDiagnostic('检测到 config/user/pages/ 缺失，部分页面内容可能为空');
+      warnConfigDiagnostic(
+        'npm run init-config 不会覆盖已有 config/user；请手动补齐 config/user/pages/'
+      );
     }
 
     return 'config/user';
@@ -124,7 +247,7 @@ export function loadModularConfig(dirPath: string): AnyRecord | null {
     pageIds.add(entry.configKey);
     config[entry.configKey] = entry.config;
   });
-  warnNavigationPageMismatches(config, pageIds);
+  warnNavigationPageMismatches(config, pageIds, dirPath);
 
   return config;
 }
