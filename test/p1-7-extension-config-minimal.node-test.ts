@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 
 const { loadConfig } = require('../src/lib/config/index.ts');
-const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
+const { buildTestSiteModel } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -18,8 +18,8 @@ function withRepoRoot(fn) {
 test('P1-7：页面内不应注入整站配置，应仅保留最小运行时参数', () => {
   withRepoRoot(() => {
     const config = loadConfig();
-    const renderData = prepareSiteRenderData(config);
-    const raw = String(renderData.runtimeConfigJson || '').trim();
+    const model = buildTestSiteModel(config);
+    const raw = String(model.runtimeConfigJson || '').trim();
     assert.ok(raw.length > 0, 'menav-runtime-config 内容不应为空');
 
     const parsed = JSON.parse(raw);

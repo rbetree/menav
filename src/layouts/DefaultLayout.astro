@@ -5,12 +5,12 @@ import RuntimeScripts from '../components/RuntimeScripts.astro';
 import SearchBar from '../components/SearchBar.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import ThemePreloadScript from '../components/ThemePreloadScript.astro';
-import type { LayoutConfig, NavigationItem } from '../types/config';
+import type { NavigationItem, ResolvedConfig } from '../types/config';
 import type { PageEntry } from '../types/page';
 import type { RenderContext } from '../types/render';
 
 interface Props {
-  config: LayoutConfig;
+  config: ResolvedConfig;
   pages?: PageEntry[];
   navigationData?: NavigationItem[];
   renderContext?: RenderContext;
@@ -18,6 +18,7 @@ interface Props {
   fontCss?: string;
   currentYear?: number;
   runtimeConfigJson?: string;
+  version?: string;
 }
 
 const {
@@ -29,6 +30,7 @@ const {
   fontCss = '',
   currentYear,
   runtimeConfigJson = '{}',
+  version = '',
 } = Astro.props;
 
 const site = config.site || {};
@@ -44,7 +46,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="menav-version" content={config._meta?.version} />
+    <meta name="menav-version" content={version} />
     <title data-editable="site-title">{site.title}</title>
     <meta name="description" content={site.description} data-editable="site-description" />
     <meta name="author" content={site.author} data-editable="site-author" />

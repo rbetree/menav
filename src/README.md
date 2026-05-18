@@ -11,9 +11,11 @@ Astro 现代化迁移已完成；以下是重构后的核心边界：
 - `src/pages`：Astro 页面入口，当前包含 `index.astro` 和默认 404。
 - `src/layouts`：页面外壳，负责侧边栏、搜索框、全局脚本和运行时配置注入。
 - `src/components`：Astro 组件，负责导航、分类、分组、站点卡片、首页仪表盘等 DOM 输出。
-- `src/lib`：构建期核心能力，包含正式库入口、配置、缓存读取、Markdown 渲染、字体 HTML、页面 view data 和安全工具。
+- `src/lib`：构建期核心能力，包含正式库入口、配置加载、`site-model`、缓存读取、Markdown 渲染、字体 HTML、搜索索引和安全工具。
+- `src/lib/site-model`：单一站点模型层。`buildSiteModel()` 只消费已解析配置与外部数据，不直接读 Markdown、缓存或文件系统。
+- `src/lib/bookmarks`：书签导入的 parser、icons、serializer、writer；`src/bookmark-processor.ts` 只负责 CLI 编排。
 - `src/runtime`：浏览器端运行时，负责搜索、主题、侧边栏、路由、Todo、tooltip 和运行时配置读取。
-- `src/bookmark-processor.ts`：浏览器书签导入、书签页写入与导航补充。
+- `src/bookmark-processor.ts`：浏览器书签导入 CLI，负责选择 HTML 文件、调用书签模块、写入书签页并补充导航。
 - `src/lib/config/init.ts`：用户配置初始化，供 `npm run init-config` 和书签导入复用。
 
 ## 构建流程
@@ -34,15 +36,15 @@ npm run test:browser
 
 流程摘要：
 
-1. `scripts/build.ts` 清理 `dist/` 和生成型 `public/` 资源。
-2. `sync-projects`、`sync-heatmap`、`sync-articles` 以 best-effort 方式刷新 `dev/` 缓存。
-3. `scripts/prepare-astro-public.ts` 读取配置，准备 CSS、`pinyin-match.js`、favicon、本地 `faviconUrl` 和 `search-index.json`。
-4. `scripts/build-runtime.ts` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
-5. `scripts/run-astro-build.ts` 执行 Astro build，产物输出到 `dist/`。
+1. `scripts/build.ts` 清理 `dist/` 和生成型 `public/` 资源，默认不执行联网同步。
+2. `scripts/prepare-astro-public.ts` 读取配置，收集 Markdown、RSS 缓存、projects 缓存、书签更新时间等外部数据，并调用 `buildSiteModel()` 生成搜索索引和运行时配置。
+3. `scripts/build-runtime.ts` 将 `src/runtime/index.ts` 打包为 `public/script.js`。
+4. `scripts/run-astro-build.ts` 执行 Astro build，`src/pages/index.astro` 使用 `loadConfig()`、外部数据 loader 和 `buildSiteModel()` 生成单页站点。
+5. 需要刷新联网缓存时显式运行 `npm run sync`；部署工作流会先同步，再离线构建。
 
-`npm run generate` 通过 `scripts/generate.ts` 执行同一套静态站点生成流程；可复用库能力从 `src/lib/index.ts` 进入。
+`npm run generate` 通过 `scripts/generate.ts` 执行同一套静态站点生成流程，语义同样是离线构建；可复用库能力从 `src/lib/index.ts` 进入。包根只暴露 `loadConfig()`、`buildSiteModel()`、`buildSearchIndex()` 和 `ConfigError` / `BuildError` / `FileError`。
 
-`npm run dev:offline` 会跳过联网同步，仅准备静态资源、打包运行时并构建 Astro 页面后启动本地静态服务。
+`npm run dev` 会显式传入 `sync: true`，先刷新联网缓存再构建并启动静态服务；`npm run dev:offline` 显式 `sync: false`，仅使用现有缓存。
 
 `npm run dev:astro` 会先运行 `scripts/prepare-astro-public.ts` 并启动 runtime esbuild watch，然后通过 Astro dev server 提供组件级快速刷新。它监听 `config/`、`assets/` 和数据准备相关 `src/lib/*` 目录，变更后重新准备 `public/` 资源；默认 `npm run dev` 仍保留为构建后静态服务。
 
@@ -54,13 +56,13 @@ Astro 组件修改时必须保持以下契约稳定：
 
 - 页面仍为单页模型：所有导航页面在 `index.html` 中对应一个 `.page#<id>` 容器。
 - 运行时导航仍使用 `/?page=<id>` 和 `/?page=<id>#<categorySlug>`；未知路径不做旧式自动回跳。
-- 页面中保留 `#menav-runtime-config` 运行时配置注入。
+- 页面中保留 `#menav-runtime-config` 运行时配置注入，数据来自 `SiteModel.runtimeConfigJson`。
 - 导航、分类、站点、社交链接保留关键 `data-*`：`data-type`、`data-id`、`data-name`、`data-url`、`data-icon`、`data-container` 等。
-- `pinyin-match.js` 继续作为全局脚本加载，搜索逻辑优先读取 `search-index.json`，并继续使用全局 `PinyinMatch`。
+- `pinyin-match.js` 继续作为全局脚本加载，搜索逻辑优先读取 `search-index.json`，并继续使用全局 `PinyinMatch`。搜索索引由 `buildSearchIndex(siteModel)` 从 `siteModel.searchSources` 生成。
 
 ## 开发原则
 
 - 优先改数据准备和 Astro 组件边界，避免把运行时行为散落到组件内。
-- 配置结构保持兼容，新增字段要先落到 `config/_default` 和 `config/README.md`。
+- 配置结构不保留旧扁平页面兼容分支；新增字段要先落到 `config/_default` 和 `config/README.md`。
 - 视觉层保持在 `assets/style.css` 与 `assets/styles/`，Astro 迁移本身不承担 UI 重设计。
 - 测试优先断言数据行为、构建产物结构和运行时契约，不再依赖旧模板文件。

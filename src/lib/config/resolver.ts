@@ -165,11 +165,13 @@ function warnNavigationPageMismatches(
 
   const unpairedHiddenPageIds = hiddenPageIds.filter((id) => !pairedPageIds.has(id));
   if (unpairedHiddenPageIds.length > 0) {
-    warnConfigDiagnostic('页面配置未出现在 navigation 中，不会显示在侧边栏导航', {
-      id: unpairedHiddenPageIds.join(','),
-      pages: unpairedHiddenPageIds.map((id) => path.join(dirPath, 'pages', `${id}.yml`)).join(','),
-      suggestion: '如需展示，请在 site.yml 的 navigation 中添加对应 id',
-    });
+    throw new ConfigError('页面配置未在 navigation 中声明', [
+      `未声明页面：${unpairedHiddenPageIds.join(', ')}`,
+      `文件：${unpairedHiddenPageIds.map((id) => path.join(dirPath, 'pages', `${id}.yml`)).join(', ')}`,
+      '如需侧边栏显示，请在 site.yml 的 navigation 中添加对应 id',
+      '如需隐藏但可通过 ?page=<id> 访问，请在 navigation 中添加该 id 并设置 hidden: true',
+      '如不需要该页面，请删除对应 pages/<id>.yml 文件',
+    ]);
   }
 }
 
@@ -220,6 +222,7 @@ export function loadModularConfig(dirPath: string): AnyRecord | null {
     profile: {},
     social: [],
     categories: [],
+    pages: {},
   };
 
   const siteConfigPath = path.join(dirPath, 'site.yml');
@@ -243,10 +246,12 @@ export function loadModularConfig(dirPath: string): AnyRecord | null {
 
   const pagesPath = path.join(dirPath, 'pages');
   const pageIds = new Set<string>();
+  const pages: AnyRecord = {};
   loadPageConfigFiles(pagesPath).forEach((entry: LoadedPageConfig) => {
     pageIds.add(entry.configKey);
-    config[entry.configKey] = entry.config;
+    pages[entry.configKey] = entry.config;
   });
+  config.pages = pages;
   warnNavigationPageMismatches(config, pageIds, dirPath);
 
   return config;

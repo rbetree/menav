@@ -1,4 +1,4 @@
-import type { AppConfig } from '../../types/config';
+import type { ResolvedConfig } from '../../types/config';
 import type { IconMode, IconRegion, RenderContext } from '../../types/render';
 
 const DEFAULT_ALLOWED_SCHEMES = ['http', 'https', 'mailto', 'tel'];
@@ -36,7 +36,7 @@ function normalizeAllowedSchemes(value: unknown): string[] {
   return schemes.length > 0 ? schemes : [...DEFAULT_ALLOWED_SCHEMES];
 }
 
-function createRenderContext(config: AppConfig | null | undefined): RenderContext {
+function createRenderContext(config: ResolvedConfig | null | undefined): RenderContext {
   return {
     icons: {
       mode: normalizeIconMode(config?.icons?.mode),

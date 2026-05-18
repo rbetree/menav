@@ -155,7 +155,6 @@ function auditLegacyBoundaries() {
     './generator',
     'generator.js',
     'src/helpers',
-    'helpers/',
     'render-data.js',
     'view-utils.js',
     'src/lib/render-data',

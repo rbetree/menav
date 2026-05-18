@@ -6,11 +6,12 @@ interface Props {
 }
 
 const { navigation = [] } = Astro.props;
+const visibleNavigation = navigation.filter((item) => !item.hidden);
 ---
 
 <div data-container="nav-items">
   {
-    navigation.map((item) => (
+    visibleNavigation.map((item) => (
       <div class="nav-item-wrapper">
         <a
           href={`?page=${item.id}`}

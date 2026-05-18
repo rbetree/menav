@@ -18,6 +18,7 @@
     "clean": "node -r ./scripts/register-ts.cjs ./scripts/clean.ts",
     "build:lib": "node -r ./scripts/register-ts.cjs ./scripts/build-lib.ts",
     "build": "node -r ./scripts/register-ts.cjs ./scripts/build.ts",
+    "sync": "node -r ./scripts/register-ts.cjs ./scripts/sync.ts",
     "sync-articles": "node -r ./scripts/register-ts.cjs ./scripts/sync-articles.ts",
     "sync-projects": "node -r ./scripts/register-ts.cjs ./scripts/sync-projects.ts",
     "import-bookmarks": "node -r ./scripts/register-ts.cjs src/bookmark-processor.ts",

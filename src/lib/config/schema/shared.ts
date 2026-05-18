@@ -42,9 +42,10 @@ const navigationSubmenuItemSchema = z.looseObject({
 });
 
 const navigationItemSchema = z.looseObject({
-  id: optionalTrimmedStringSchema('id'),
+  id: z.string({ error: 'id 必须是字符串' }).trim().min(1, { error: 'id 不能为空' }),
   name: optionalTrimmedStringSchema('name'),
   icon: optionalTrimmedStringSchema('icon'),
+  hidden: z.boolean({ error: 'hidden 必须是布尔值' }).optional(),
   isActive: z.boolean({ error: 'isActive 必须是布尔值' }).optional(),
   active: z.boolean({ error: 'active 必须是布尔值' }).optional(),
   submenu: z.array(navigationSubmenuItemSchema, { error: 'submenu 必须是数组' }).optional(),

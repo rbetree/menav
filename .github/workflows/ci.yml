@@ -33,10 +33,21 @@ jobs:
       - name: Fast check
         run: npm run check
 
+      - name: Detect browser contract paths
+        id: browser_paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            browser_contract:
+              - 'src/components/**'
+              - 'src/runtime/**'
+              - 'src/lib/site-model/**'
+              - 'src/lib/view-data/**'
+
       - name: Install Playwright browsers
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_contract }}
+        if: ${{ steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract) }}
         run: npx playwright install --with-deps chromium
 
       - name: Browser contract
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_contract }}
+        if: ${{ steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract) }}
         run: npm run check:browser

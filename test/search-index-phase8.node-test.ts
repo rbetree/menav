@@ -1,10 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 
-const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
+const { buildTestSiteModel } = require('./helpers/site-model.ts');
 const {
   SEARCH_INDEX_SCHEMA_VERSION,
   buildSearchIndex,
@@ -22,10 +21,6 @@ function withRepoRoot(fn) {
 
 test('Phase 8：构建期搜索索引应扁平化页面、分类、站点和文章基础字段', () => {
   withRepoRoot(() => {
-    const previousCacheDir = process.env.RSS_CACHE_DIR;
-    const tmpCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-search-index-rss-'));
-    process.env.RSS_CACHE_DIR = tmpCacheDir;
-
     const config = {
       site: {
         title: 'Test Site',
@@ -120,28 +115,26 @@ test('Phase 8：构建期搜索索引应扁平化页面、分类、站点和文�
       },
     };
 
-    try {
-      const renderData = prepareSiteRenderData(config);
-      const articlesPage = renderData.pages.find((page) => page.id === 'articles');
-      const articleItem = {
-        name: 'Article A',
-        url: 'https://blog.example.com/a',
-        icon: 'fas fa-pen',
-        description: 'Article summary',
-        publishedAt: '2026-01-01T00:00:00.000Z',
-        source: 'Example Blog',
-        external: true,
-      };
-      articlesPage.data.articlesItems = [articleItem];
-      articlesPage.data.articlesCategories = [
-        {
-          name: '最新文章',
-          icon: 'fas fa-rss',
-          items: [articleItem],
+    const articleItem = {
+      name: 'Article A',
+      url: 'https://blog.example.com/a',
+      icon: 'fas fa-pen',
+      description: 'Article summary',
+      publishedAt: '2026-01-01T00:00:00.000Z',
+      source: 'Example Blog',
+      external: true,
+    };
+    const model = buildTestSiteModel(config, {
+      externalData: {
+        articles: {
+          articles: {
+            items: [articleItem],
+            meta: { generatedAt: '2026-01-01T00:00:00.000Z' },
+          },
         },
-      ];
-
-      const index = buildSearchIndex(renderData.pages, renderData.renderContext);
+      },
+    });
+    const index = buildSearchIndex(model);
       const byTitle = new Map(index.items.map((item) => [String(item.title).toLowerCase(), item]));
 
       assert.equal(index.schemaVersion, SEARCH_INDEX_SCHEMA_VERSION);
@@ -170,14 +163,6 @@ test('Phase 8：构建期搜索索引应扁平化页面、分类、站点和文�
       assert.ok(!raw.includes('navigation'));
       assert.ok(!raw.includes('runtimeConfig'));
       assert.ok(!raw.includes('runtimeConfigJson'));
-    } finally {
-      if (previousCacheDir === undefined) {
-        delete process.env.RSS_CACHE_DIR;
-      } else {
-        process.env.RSS_CACHE_DIR = previousCacheDir;
-      }
-      fs.rmSync(tmpCacheDir, { recursive: true, force: true });
-    }
   });
 });
 

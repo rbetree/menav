@@ -1,5 +1,6 @@
-import type { PageRegistryItem } from './page';
-import type { RenderConfig } from '../lib/config/schema/site';
+import type { PageConfig } from '../lib/config/schema/page';
+import type { SiteConfig } from './site';
+import type { RenderContext } from './render';
 import type {
   NavigationItem as SchemaNavigationItem,
   NavigationSubmenuItem as SchemaNavigationSubmenuItem,
@@ -8,22 +9,23 @@ import type {
 export type NavigationItem = SchemaNavigationItem;
 export type NavigationSubmenuItem = SchemaNavigationSubmenuItem;
 
-export type AppConfig = RenderConfig & {
-  homePageId?: string | null;
-  runtimeConfig?: Record<string, unknown>;
-  runtimeConfigJson?: string;
-  navigationData?: NavigationItem[];
-  pageRegistry?: PageRegistryItem[];
-  socialLinks?: unknown[];
-  _meta?: {
-    version?: string;
-    generated_at?: Date;
-    generatedBy?: string;
-    [key: string]: unknown;
-  };
-};
+export type PageId = string;
 
-export type LayoutConfig = AppConfig;
+export type ResolvedConfig = {
+  site: SiteConfig;
+  navigation: NavigationItem[];
+  pages: Record<PageId, PageConfig>;
+  homePageId: PageId;
+  renderContext: RenderContext;
+  fonts?: SiteConfig['fonts'];
+  profile?: SiteConfig['profile'];
+  social?: SiteConfig['social'];
+  icons?: SiteConfig['icons'];
+  rss?: SiteConfig['rss'];
+  github?: SiteConfig['github'];
+  theme?: SiteConfig['theme'];
+  security?: SiteConfig['security'];
+};
 
 export interface LinkNavigationItem {
   label: string;

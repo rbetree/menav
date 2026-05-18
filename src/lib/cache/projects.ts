@@ -43,7 +43,7 @@ type ProjectsHeatmapCache = {
   };
 };
 
-type RepoMeta = {
+export type RepoMeta = {
   language: string;
   languageColor: string;
   stars: number | null;

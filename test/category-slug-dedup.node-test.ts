@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { preparePageData } = require('../src/lib/view-data/page-data.ts');
+const { prepareTestPageData } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -33,7 +33,7 @@ test('P1-2：分类 slug 应稳定且可去重', () => {
       },
     };
 
-    const { data } = preparePageData('home', config);
+    const { data } = prepareTestPageData('home', config);
     const slugs = data.categories.map((category) => category.slug);
 
     assert.deepEqual(slugs, ['重复-分类', '重复-分类-2', '含-空格-特殊-字符']);

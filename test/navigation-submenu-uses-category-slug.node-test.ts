@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
+const { prepareTestSiteRenderData } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -32,7 +32,7 @@ test('P1-2：子菜单锚点应使用分类 slug（href + data-category-id）', 
       },
     };
 
-    const renderData = prepareSiteRenderData(config);
+    const renderData = prepareTestSiteRenderData(config);
     const navItem = renderData.navigationData[0];
 
     assert.equal(navItem.id, 'home');

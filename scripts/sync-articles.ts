@@ -15,6 +15,7 @@ type ConfigLike = {
     rss?: Partial<RssSettings>;
   };
   navigation?: Array<{ id?: unknown }>;
+  pages?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -806,7 +807,7 @@ function pickArticlesPages(config: ConfigLike, onlyPageId: string | null): PageS
     if (!pageId) continue;
     if (onlyPageId && pageId !== onlyPageId) continue;
 
-    const pageConfig = config[pageId];
+    const pageConfig = config.pages ? config.pages[pageId] : config[pageId];
     if (!pageConfig || typeof pageConfig !== 'object') continue;
     const pageRecord = pageConfig as PageConfigLike;
 

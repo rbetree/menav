@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import yaml from 'js-yaml';
 
 import { createLogger, isVerbose } from '../logging/logger.ts';
+import { getPageIdIssue } from './page-id.ts';
 
 type YamlLoadError = Error & { stack?: string };
 type LoadedPageConfig = {
@@ -58,8 +59,15 @@ export function loadPageConfigFiles(pagesPath: string): LoadedPageConfig[] {
     .filter((file: string) => file.endsWith('.yml') || file.endsWith('.yaml'))
     .map((file: string) => {
       const filePath = path.join(pagesPath, file);
+      const configKey = path.basename(file, path.extname(file));
+      const issue = getPageIdIssue(configKey);
+      if (issue) {
+        throw new Error(
+          `页面配置文件名无效：${file}\n${issue}\n请将文件改名为 pages/<id>.yml，或从 navigation 中移除对应页面。`
+        );
+      }
       return {
-        configKey: path.basename(file, path.extname(file)),
+        configKey,
         config: safeLoadYamlConfig(filePath),
         filePath,
       };

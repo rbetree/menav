@@ -4,11 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-const {
-  upsertBookmarksNavInSiteYml,
-  parseBookmarks,
-  generateBookmarksYaml,
-} = require('../src/bookmark-processor.ts');
+const { parseBookmarks } = require('../src/lib/bookmarks/parser.ts');
+const { generateBookmarksYaml } = require('../src/lib/bookmarks/serializer.ts');
+const { upsertBookmarksNavInSiteYml } = require('../src/lib/bookmarks/writer.ts');
 const {
   ensureUserConfigInitialized,
   ensureUserSiteYmlExists,
@@ -58,7 +56,7 @@ test('parseBookmarks：解析书签栏、根目录书签与图标映射', () => 
 });
 
 test('page-data：subgroups（第4层）应保留给 Astro 页面渲染', () => {
-  const { preparePageData } = require('../src/lib/view-data/page-data.ts');
+  const { prepareTestPageData } = require('./helpers/site-model.ts');
   const config = {
     site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
     profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
@@ -104,7 +102,7 @@ test('page-data：subgroups（第4层）应保留给 Astro 页面渲染', () => 
     },
   };
 
-  const page = preparePageData('bookmarks', config).data;
+  const page = prepareTestPageData('bookmarks', config).data;
   const subgroup = page.categories[0].subcategories[0].groups[0].subgroups[0];
 
   assert.equal(subgroup.name, 'React生态');
@@ -153,6 +151,66 @@ test('upsertBookmarksNavInSiteYml：无 navigation 时追加并幂等', () => {
   const r2 = upsertBookmarksNavInSiteYml(filePath);
   assert.equal(r2.updated, false);
   assert.equal(r2.reason, 'already_present');
+});
+
+
+test('upsertBookmarksNavInSiteYml：已有 navigation 时插入并保留注释与缩进', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-test-'));
+  const filePath = path.join(tmp, 'site.yml');
+
+  fs.writeFileSync(
+    filePath,
+    [
+      '# 顶部注释',
+      'title: Test Site',
+      'navigation:',
+      '  # 常用页面',
+      '  - name: 首页',
+      '    icon: fas fa-home',
+      '    id: common',
+      'theme:',
+      '  mode: system',
+      '',
+    ].join('\n'),
+    'utf8'
+  );
+
+  const result = upsertBookmarksNavInSiteYml(filePath);
+  assert.equal(result.updated, true);
+  assert.equal(result.reason, 'updated_navigation_block');
+
+  const updated = fs.readFileSync(filePath, 'utf8');
+  assert.ok(updated.includes('# 顶部注释'));
+  assert.ok(updated.includes('  # 常用页面'));
+  assert.match(updated, /navigation:\n  # 常用页面\n  - name: 首页[\s\S]*?  - name: 书签\n    icon: fas fa-bookmark\n    id: bookmarks\ntheme:/);
+});
+
+test('upsertBookmarksNavInSiteYml：已有 bookmarks 时不重复写入', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-test-'));
+  const filePath = path.join(tmp, 'site.yml');
+
+  fs.writeFileSync(
+    filePath,
+    ['title: Test Site', 'navigation:', '  - name: 书签', '    id: bookmarks', ''].join('\n'),
+    'utf8'
+  );
+
+  const result = upsertBookmarksNavInSiteYml(filePath);
+  assert.equal(result.updated, false);
+  assert.equal(result.reason, 'already_present');
+  assert.equal((fs.readFileSync(filePath, 'utf8').match(/id: bookmarks/g) || []).length, 1);
+});
+
+test('upsertBookmarksNavInSiteYml：navigation 非数组时返回诊断且不改文件', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-test-'));
+  const filePath = path.join(tmp, 'site.yml');
+  const original = ['title: Test Site', 'navigation:', '  enabled: true', ''].join('\n');
+  fs.writeFileSync(filePath, original, 'utf8');
+
+  const result = upsertBookmarksNavInSiteYml(filePath);
+  assert.equal(result.updated, false);
+  assert.equal(result.reason, 'navigation_not_array');
+  assert.equal(fs.readFileSync(filePath, 'utf8'), original);
 });
 
 test('ensureUserConfigInitialized/ensureUserSiteYmlExists：可在空目录初始化用户配置', () => {

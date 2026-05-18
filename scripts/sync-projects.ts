@@ -18,6 +18,7 @@ type ConfigLike = {
     github?: GithubConfigLike;
   };
   navigation?: Array<{ id?: unknown }>;
+  pages?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -183,8 +184,8 @@ function findProjectsPages(config: ConfigLike): ProjectPage[] {
   const nav = Array.isArray(config.navigation) ? config.navigation : [];
   nav.forEach((item) => {
     const pageId = item && item.id ? String(item.id) : '';
-    if (!pageId || !config[pageId]) return;
-    const page = config[pageId];
+    const page = pageId && config.pages ? config.pages[pageId] : config[pageId];
+    if (!pageId || !page) return;
     if (!page || typeof page !== 'object') return;
     const pageRecord = page as PageLike;
     const templateName = pageRecord.template ? String(pageRecord.template) : pageId;

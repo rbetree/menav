@@ -21,7 +21,7 @@ test('deploy workflow：书签导入应复用 npm 脚本入口', () => {
   assert.equal(deployWorkflow.includes('src/bookmark-processor.js'), false);
 });
 
-test('ci workflow：默认使用快速 check，浏览器契约保留为手动分层', () => {
+test('ci workflow：默认使用快速 check，并按路径变更触发浏览器契约', () => {
   const ciWorkflow = read('.github/workflows/ci.yml');
   const packageJson = JSON.parse(read('package.json'));
 
@@ -32,8 +32,10 @@ test('ci workflow：默认使用快速 check，浏览器契约保留为手动分
   assert.equal(packageJson.scripts.check, 'npm run check:fast');
   assert.equal(packageJson.scripts['check:browser'], 'npm run build && npm run test:browser');
   assert.ok(ciWorkflow.includes('npm run check'));
-  assert.ok(ciWorkflow.includes('workflow_dispatch'));
-  assert.ok(ciWorkflow.includes('browser_contract'));
+  assert.ok(ciWorkflow.includes('dorny/paths-filter'));
+  assert.ok(ciWorkflow.includes('src/components/**'));
+  assert.ok(ciWorkflow.includes('src/runtime/**'));
+  assert.ok(ciWorkflow.includes('src/lib/site-model/**'));
   assert.ok(ciWorkflow.includes('npx playwright install --with-deps chromium'));
   assert.ok(ciWorkflow.includes('npm run check:browser'));
   assert.equal(ciWorkflow.includes('npm run lint'), false);

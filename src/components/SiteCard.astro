@@ -1,31 +1,56 @@
 ---
 import CardIcon from './CardIcon.astro';
 import { extractDomain, formatDate, getSafeUrl } from '../lib/view-data/view-utils.ts';
+import { toCardViewModel } from '../lib/site-model/card.ts';
+import type { CardViewModel } from '../types/model';
 import type { RenderContext } from '../types/render';
 import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
 import type { SiteItem } from '../types/site';
 
 interface Props {
   site?: SiteItem;
+  card?: CardViewModel;
   style?: string;
   type?: string;
   renderContext?: RenderContext;
 }
 
-const { site = {}, style = '', type = '', renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
+const {
+  site = {},
+  card = null,
+  style = '',
+  type = '',
+  renderContext = DEFAULT_RENDER_CONTEXT,
+} = Astro.props;
 
-const cardType = type || site.type || 'site';
-const cardStyle = style || site.style || '';
-const name = site.name || '未命名站点';
-const url = site.url || '#';
-const icon = site.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
-const description = site.description || extractDomain(url);
-const safeHref = getSafeUrl(url, renderContext.allowedSchemes);
-const faviconUrl = site.faviconUrl || '';
-const forceIconMode = site.forceIconMode || '';
+const cardModel =
+  card ||
+  toCardViewModel({
+    pageId: '',
+    site,
+    renderContext,
+    type: type === 'article' ? 'article' : undefined,
+    style,
+  });
+const cardType = cardModel?.type || type || site.type || 'site';
+const cardStyle = cardModel?.style || style || site.style || '';
+const name = cardModel?.title || site.name || '未命名站点';
+const url = cardModel?.url || site.url || '#';
+const icon = cardModel?.icon || site.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
+const description = cardModel?.description || site.description || extractDomain(url);
+const safeHref = cardModel?.safeUrl || getSafeUrl(url, renderContext.allowedSchemes);
+const faviconUrl = cardModel?.faviconUrl || site.faviconUrl || '';
+const forceIconMode = cardModel?.forceIconMode || site.forceIconMode || '';
 const tooltip = `${name} - ${description || extractDomain(url)}`;
-const useExternal = site.external;
+const useExternal = cardModel?.external ?? site.external;
 const shouldOpenExternal = Boolean(useExternal);
+const publishedAt = cardModel?.publishedAt || site.publishedAt || '';
+const source = cardModel?.source || site.source || '';
+const language = cardModel?.language || site.language || '';
+const languageColor = cardModel?.languageColor || site.languageColor || '';
+const stars = cardModel?.stars ?? site.stars;
+const forks = cardModel?.forks ?? site.forks;
+const issues = cardModel?.issues ?? site.issues;
 ---
 
 {
@@ -43,8 +68,8 @@ const shouldOpenExternal = Boolean(useExternal);
       data-force-icon-mode={forceIconMode || undefined}
       data-description={description}
       data-tooltip={tooltip}
-      data-published-at={site.publishedAt || undefined}
-      data-source={site.source || undefined}
+      data-published-at={publishedAt || undefined}
+      data-source={source || undefined}
     >
       {cardType === 'article' ? (
         <>
@@ -55,15 +80,13 @@ const shouldOpenExternal = Boolean(useExternal);
             </div>
           </div>
           <div class="article-card-body">
-            {(site.publishedAt || site.source) && (
+            {(publishedAt || source) && (
               <div class="site-card-meta">
-                {site.publishedAt && (
-                  <span class="site-card-meta-date">
-                    {formatDate(site.publishedAt, 'YYYY-MM-DD')}
-                  </span>
+                {publishedAt && (
+                  <span class="site-card-meta-date">{formatDate(publishedAt, 'YYYY-MM-DD')}</span>
                 )}
-                {site.publishedAt && site.source && <span class="site-card-meta-sep">·</span>}
-                {site.source && <span class="site-card-meta-source">{site.source}</span>}
+                {publishedAt && source && <span class="site-card-meta-sep">·</span>}
+                {source && <span class="site-card-meta-source">{source}</span>}
               </div>
             )}
             <p>{description}</p>
@@ -76,30 +99,30 @@ const shouldOpenExternal = Boolean(useExternal);
             <div class="repo-title">{name}</div>
           </div>
           <div class="repo-desc">{description}</div>
-          {(site.language || site.stars || site.forks || site.issues) && (
+          {(language || stars || forks || issues) && (
             <div class="repo-stats">
-              {site.language && (
+              {language && (
                 <div class="stat-item">
                   <span
                     class="lang-dot"
-                    style={`background-color: ${site.languageColor || '#909296'};`}
+                    style={`background-color: ${languageColor || '#909296'};`}
                   />
-                  {site.language}
+                  {language}
                 </div>
               )}
-              {site.stars && (
+              {stars && (
                 <div class="stat-item">
-                  <i class="far fa-star" aria-hidden="true" /> {site.stars}
+                  <i class="far fa-star" aria-hidden="true" /> {stars}
                 </div>
               )}
-              {site.forks && (
+              {forks && (
                 <div class="stat-item">
-                  <i class="fas fa-code-branch" aria-hidden="true" /> {site.forks}
+                  <i class="fas fa-code-branch" aria-hidden="true" /> {forks}
                 </div>
               )}
-              {site.issues && (
+              {issues && (
                 <div class="stat-item">
-                  <i class="fas fa-exclamation-circle" aria-hidden="true" /> {site.issues}
+                  <i class="fas fa-exclamation-circle" aria-hidden="true" /> {issues}
                 </div>
               )}
             </div>

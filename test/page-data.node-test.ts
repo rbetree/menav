@@ -4,8 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { preparePageData } = require('../src/lib/view-data/page-data.ts');
-const { prepareSiteRenderData } = require('../src/lib/view-data/render-data.ts');
+const { prepareTestPageData, prepareTestSiteRenderData } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -69,8 +68,8 @@ test('friends/articles：应保留分类展示数据结构', () => {
       },
     };
 
-    const friends = preparePageData('friends', config);
-    const articles = preparePageData('articles', config);
+    const friends = prepareTestPageData('friends', config);
+    const articles = prepareTestPageData('articles', config);
 
     assert.equal(friends.templateName, 'page');
     assert.equal(friends.data.categories[0].name, '技术博主');
@@ -117,8 +116,8 @@ test('friends/articles：页面配置使用顶层 sites 时应自动映射为分
       },
     };
 
-    const friends = preparePageData('friends', config).data;
-    const articles = preparePageData('articles', config).data;
+    const friends = prepareTestPageData('friends', config).data;
+    const articles = prepareTestPageData('articles', config).data;
 
     assert.equal(friends.categories[0].name, '全部友链');
     assert.equal(friends.categories[0].sites[0].name, 'Example');
@@ -140,7 +139,7 @@ test('缺少 friends 页面配置时：仍应准备页面数据（标题回退�
       home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
     };
 
-    const page = preparePageData('friends', config);
+    const page = prepareTestPageData('friends', config);
 
     assert.equal(page.templateName, 'page');
     assert.equal(page.data.title, '朋友');
@@ -162,7 +161,7 @@ test('bookmarks：标题区应准备内容更新时间元数据', () => {
       bookmarks: { title: '书签', subtitle: '书签页', template: 'bookmarks', categories: [] },
     };
 
-    const page = preparePageData('bookmarks', config).data;
+    const page = prepareTestPageData('bookmarks', config).data;
 
     assert.ok(page.pageMeta, '应包含 pageMeta');
     assert.match(page.pageMeta.updatedAt, /^\d{4}-\d{2}-\d{2}/);
@@ -198,7 +197,7 @@ test('projects：应准备代码仓库风格卡片数据', () => {
       },
     };
 
-    const page = preparePageData('projects', config);
+    const page = prepareTestPageData('projects', config);
 
     assert.equal(page.templateName, 'projects');
     assert.equal(page.data.siteCardStyle, 'repo');
@@ -268,7 +267,7 @@ test('articles Phase 2：存在 RSS 缓存时准备文章条目与扩展影子�
         },
       };
 
-      const page = preparePageData('articles', config).data;
+      const page = prepareTestPageData('articles', config).data;
 
       assert.equal(page.articlesItems[0].name, 'Article A');
       assert.equal(page.articlesItems[0].source, 'Example Blog');
@@ -308,7 +307,7 @@ test('render context：站点渲染数据应只暴露组件需要的最小全局
       home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
     };
 
-    const renderData = prepareSiteRenderData(config);
+    const renderData = prepareTestSiteRenderData(config);
 
     assert.deepEqual(renderData.renderContext, {
       icons: { mode: 'manual', region: 'cn' },
@@ -328,7 +327,7 @@ test('search-results：页面 view data 不应携带完整站点配置', () => {
       home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
     };
 
-    const renderData = prepareSiteRenderData(config);
+    const renderData = prepareTestSiteRenderData(config);
     const searchPage = renderData.pages.find((page) => page.id === 'search-results');
 
     assert.ok(searchPage, '应包含搜索结果页');

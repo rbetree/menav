@@ -27,6 +27,7 @@ type NavigationItemLike = {
 type ConfigLike = {
   site?: SiteLike;
   navigation?: NavigationItemLike[];
+  pages?: Record<string, PageConfigLike | unknown>;
   [key: string]: unknown;
 };
 
@@ -192,7 +193,7 @@ function copyLocalFaviconUrls(config: ConfigLike, log: PublicAssetsLogger): void
   config.navigation.forEach((navItem) => {
     const pageId = navItem && navItem.id ? String(navItem.id) : '';
     if (!pageId) return;
-    const pageConfig = config[pageId];
+    const pageConfig = config.pages && config.pages[pageId] ? config.pages[pageId] : config[pageId];
     if (!isPageConfig(pageConfig)) return;
 
     if (Array.isArray(pageConfig.sites)) {

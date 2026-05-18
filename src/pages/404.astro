@@ -1,7 +1,7 @@
 ---
-import { prepareSiteRenderData } from '../lib/view-data/render-data.ts';
+import { loadConfig } from '../lib/config/index.ts';
 
-const { config } = prepareSiteRenderData();
+const config = loadConfig();
 const title = config?.site?.title || 'MeNav';
 ---
 

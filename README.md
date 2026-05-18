@@ -70,7 +70,7 @@ menav/
 - 更新说明2025/12/27（兼容性移除 / 迁移指南）：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
 - 配置系统（完全替换策略、目录结构、示例）：[`config/README.md`](config/README.md)
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
-- 源码结构（各脚本职责）：[`src/README.md`](src/README.md)
+- 源码结构（架构边界、SiteModel、脚本职责）：[`src/README.md`](src/README.md)
 - 静态资源（样式/图片等）：[`assets/README.md`](assets/README.md)
 
 ## 快速开始
@@ -153,11 +153,17 @@ npm run dev:astro
 ```
 
 ```bash
-# 生成静态HTML文件
+# 生成静态HTML文件（纯离线，不刷新 RSS/GitHub 缓存）
 npm run build
 ```
 
-构建后的文件位于`dist`目录
+构建后的文件位于`dist`目录。需要刷新 RSS、projects 仓库统计或贡献热力图缓存时，先运行：
+
+```bash
+npm run sync
+```
+
+`npm run generate` 与 `npm run build` 使用同一套离线构建语义；`npm run dev` 会显式联网刷新缓存，`npm run dev:offline` 不联网。
 
 6. 提交前检查（推荐）
 
@@ -218,7 +224,7 @@ npm run format
 - GitHub Actions会自动检测您的更改
 - 构建并部署您的网站
 - 部署完成后，您可以在 Settings -> Pages 中找到您的网站地址
-  - 站点内容的“时效性数据”（RSS 文章聚合、projects 仓库统计）会由部署工作流在构建前自动刷新
+  - 站点内容的“时效性数据”（RSS 文章聚合、projects 仓库统计、贡献热力图）会由部署工作流先执行 `npm run sync` 刷新，再执行离线 `npm run build`
   - 也支持定时刷新：默认每天 UTC 02:00 触发一次（GitHub Actions cron 使用 UTC；北京时间=UTC+8，可在 `.github/workflows/deploy.yml` 中调整 `schedule.cron`）
 
 **重要: Sync fork后需要手动触发工作流**:
@@ -293,6 +299,8 @@ docker compose restart menav
 npm run build
 ```
 
+`npm run build` 默认离线。如果需要先刷新 RSS、projects 仓库统计和贡献热力图缓存，请执行 `npm run sync && npm run build`。
+
 2. 复制构建结果:
    - 所有生成的静态文件都位于 `dist` 目录中
    - 将 `dist` 目录中的所有文件复制到您的Web服务器根目录
@@ -355,15 +363,15 @@ Vercel 部署:
 5. 值填写：`false`
 6. 点击 "Add variable"
 
-设置后，GitHub Actions 仍会自动构建网站（包括书签处理、RSS 同步等），但会跳过 GitHub Pages 部署步骤，避免报错。第三方平台（如 Vercel/Cloudflare Pages）会自动检测到代码变化并部署。
+设置后，GitHub Actions 仍会自动构建网站（包括书签处理和 `npm run sync` 等），但会跳过 GitHub Pages 部署步骤，避免报错。第三方平台（如 Vercel/Cloudflare Pages）会自动检测到代码变化并部署。
 
 > 如果你希望在构建时刷新“时效性数据”（RSS 文章聚合、projects 仓库统计），请将构建命令改为：
 >
 > ```bash
-> npm ci && npm run sync-projects && npm run sync-articles && npm run build
+> npm ci && npm run sync && npm run build
 > ```
 >
-> 说明：`sync-*` 会联网抓取并写入 `dev/` 缓存（仓库默认 gitignore）；同步脚本为 best-effort，失败不会阻断后续 `build`。
+> 说明：`npm run sync` 会按 best-effort 顺序执行 projects 仓库统计、贡献热力图和 RSS 文章聚合，并写入 `dev/` 缓存（仓库默认 gitignore）；同步失败会记录告警但不阻断后续 `build`。
 >
 > 备注：`dev/` 只用于构建过程的中间缓存，默认不会被提交到仓库；部署时也只会上传 `dist/`，不会包含 `dev/`。
 

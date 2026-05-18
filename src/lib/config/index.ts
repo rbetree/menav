@@ -1,15 +1,14 @@
-import type { RenderConfig } from './schema/site';
+import type { ResolvedConfig } from '../../types/config';
 
 import { ensureConfigDefaults } from './normalizer.ts';
 import { getSubmenuForNavItem, resolveTemplateNameForPage } from './page-template.ts';
-import { prepareRenderData } from './render-data.ts';
-import { buildRuntimeConfig } from './runtime-config.ts';
 import { resolveConfigDirectory, loadModularConfig } from './resolver.ts';
 import { validateConfig, getConfigValidationErrors } from './validator.ts';
 import { assignCategorySlugs } from './slugs.ts';
 import { ConfigError } from '../errors.ts';
+import { createRenderContext } from '../view-data/render-context.ts';
 
-type ConfigRecord = RenderConfig & Record<string, unknown>;
+type ConfigRecord = ResolvedConfig & Record<string, unknown>;
 
 export function loadConfig(): ConfigRecord {
   const configDir = resolveConfigDirectory();
@@ -23,16 +22,19 @@ export function loadConfig(): ConfigRecord {
   }
 
   config = ensureConfigDefaults(config) as ConfigRecord;
+  config.homePageId =
+    Array.isArray(config.navigation) && config.navigation[0]
+      ? String(config.navigation[0].id).trim()
+      : 'home';
+  config.renderContext = createRenderContext(config);
 
-  return prepareRenderData(config) as ConfigRecord;
+  return config;
 }
 
 export {
   resolveConfigDirectory,
   loadModularConfig,
-  prepareRenderData,
   resolveTemplateNameForPage,
-  buildRuntimeConfig,
   getSubmenuForNavItem,
   assignCategorySlugs,
   ensureConfigDefaults,

@@ -7,20 +7,22 @@ test('Phase 3：配置校验错误应包含页面字段路径', () => {
   const issues = getConfigValidationErrors({
     site: {},
     navigation: [{ id: 'bookmarks', name: '书签' }],
-    bookmarks: {
-      template: 'bookmarks',
-      categories: [
-        {
-          name: '工具',
-          sites: [
-            {
-              name: '错误站点',
-              url: 123,
-              external: 'yes',
-            },
-          ],
-        },
-      ],
+    pages: {
+      bookmarks: {
+        template: 'bookmarks',
+        categories: [
+          {
+            name: '工具',
+            sites: [
+              {
+                name: '错误站点',
+                url: 123,
+                external: 'yes',
+              },
+            ],
+          },
+        ],
+      },
     },
   });
 

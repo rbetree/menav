@@ -6,13 +6,21 @@ const { spawnSync } = require('node:child_process');
 
 const lib = require('..');
 
-test('包主入口应从编译后的 Node 产物暴露构建期能力', () => {
+test('包主入口应只暴露稳定构建期 API', () => {
+  assert.deepEqual(Object.keys(lib).sort(), [
+    'BuildError',
+    'ConfigError',
+    'FileError',
+    'buildSearchIndex',
+    'buildSiteModel',
+    'loadConfig',
+  ]);
   assert.equal(typeof lib.loadConfig, 'function');
-  assert.equal(typeof lib.preparePageData, 'function');
-  assert.equal(typeof lib.prepareSiteRenderData, 'function');
-  assert.equal(typeof lib.renderMarkdownToHtml, 'function');
+  assert.equal(typeof lib.buildSiteModel, 'function');
   assert.equal(typeof lib.buildSearchIndex, 'function');
-  assert.equal(lib.MENAV_SEARCH_INDEX_FILE, 'search-index.json');
+  assert.equal(typeof lib.ConfigError, 'function');
+  assert.equal(typeof lib.BuildError, 'function');
+  assert.equal(typeof lib.FileError, 'function');
 });
 
 test('包主入口不依赖 register-ts 也能被普通 Node 加载', () => {

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { preparePageData } = require('../src/lib/view-data/page-data.ts');
+const { prepareTestPageData } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
   const originalCwd = process.cwd();
@@ -59,7 +59,7 @@ test('content：构建期渲染 markdown 文件，并对链接做 scheme 安全�
         },
       };
 
-      const { data, templateName } = preparePageData('about', config);
+      const { data, templateName } = prepareTestPageData('about', config);
       const html = data.contentHtml;
 
       assert.equal(templateName, 'content');

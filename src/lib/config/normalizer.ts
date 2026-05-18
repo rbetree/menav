@@ -26,6 +26,7 @@ export function ensureConfigDefaults(config: MutableRecord | null | undefined): 
 
   result.site = isRecord(result.site) ? result.site : {};
   result.navigation = Array.isArray(result.navigation) ? result.navigation : [];
+  result.pages = isRecord(result.pages) ? result.pages : {};
 
   result.fonts = isRecord(result.fonts) ? result.fonts : {};
   const fonts = result.fonts as MutableRecord;
@@ -90,8 +91,8 @@ export function ensureConfigDefaults(config: MutableRecord | null | undefined): 
     processNodeSitesRecursively(category);
   }
 
-  Object.keys(result).forEach((key: string) => {
-    const pageConfig = result[key];
+  Object.keys(result.pages as MutableRecord).forEach((key: string) => {
+    const pageConfig = (result.pages as MutableRecord)[key];
     if (!isRecord(pageConfig)) return;
 
     if (Array.isArray(pageConfig.categories)) {

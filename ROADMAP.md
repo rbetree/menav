@@ -16,11 +16,12 @@ MeNav 当前基线已经明确：
 
 - MeNav 是一个以 `YAML + Markdown + Astro` 为核心的静态导航站生成器。
 - 单页模型继续保留：所有导航页面构建到同一个 `index.html`，运行时通过 `?page=<id>` 切换。
+- 配置已收敛为 `ResolvedConfig.pages` 和 `buildSiteModel()` 单一站点模型；页面必须由 `navigation.id` 声明，隐藏页使用 `hidden: true`。
 - 项目已完成 Astro 现代化迁移，并具备完整的 `lint / test / build / browser contract / audit` 校验链路。
 - 浏览器扩展只保留“书签导入入口”这一条链路，不再承担页面运行时 CRUD 或后台职责。
 - 如果未来需要后台能力，方向暂定 `Cloudflare Worker + D1 + Access`。
 
-当前判断不是继续快速堆功能，而是进入“边界收敛、范本化、稳态演进”阶段。
+当前判断不是继续快速堆功能，而是进入“边界收敛、范本化、稳态演进”阶段。近期架构清理已经把配置加载、站点模型、搜索索引和包根 API 收窄到更明确的边界，后续重点是稳住这些契约。
 
 ## 能力边界
 
@@ -28,7 +29,7 @@ MeNav 当前基线已经明确：
 
 这是 MeNav 的主路径，也是默认推荐能力。
 
-- 使用 `config/` 下的 YAML 管理导航结构。
+- 使用 `config/` 下的 YAML 管理导航结构；`navigation[].id` 是页面身份的唯一来源。
 - 使用 `content/` 下的 Markdown 管理内容页。
 - 使用 Astro 构建为可直接部署的静态站点。
 - 适合希望自托管、可版本管理、无后端依赖的用户。
@@ -39,7 +40,7 @@ MeNav 当前基线已经明确：
 
 - 用户在浏览器里管理书签。
 - 浏览器书签通过导出 HTML 或由 MarksVault 推送到仓库的 `bookmarks/` 目录。
-- `npm run import-bookmarks` 将书签 HTML 转成 `config/user/pages/bookmarks.yml`。
+- `npm run import-bookmarks` 将书签 HTML 转成 `config/user/pages/bookmarks.yml`，并由拆分后的 parser/icons/serializer/writer 模块完成解析、图标推断、序列化和导航补入。
 - GitHub Actions 或本地构建重新生成静态站点。
 
 这条链路的目标是降低导入和同步成本，而不是提供在线后台。
@@ -95,6 +96,8 @@ MeNav 当前基线已经明确：
 #### layout / runtime / 构建期边界继续收敛
 
 - 继续拆掉职责过重的入口文件。
+- 维护 `buildSiteModel()` 作为页面、导航、运行时配置和搜索来源的单一事实来源。
+- 保持包根公开 API 收窄：`loadConfig()`、`buildSiteModel()`、`buildSearchIndex()` 和错误类型。
 - 明确哪些逻辑属于构建期，哪些属于 Astro 组件层，哪些属于浏览器 runtime。
 - 维持运行时最小公开面，避免再次把内部实现扩成外部契约。
 
@@ -102,6 +105,7 @@ MeNav 当前基线已经明确：
 
 - 关键目录职责更清晰。
 - 新增功能时更容易判断应该落在哪一层。
+- 不再出现配置加载、页面模型、搜索索引各自重复推导页面结构的路径。
 
 #### 默认示例与仓库范本质量提升
 
@@ -167,9 +171,9 @@ Later 只放方向，不放默认承诺。
 
 按当前判断，最近几个版本建议优先关注：
 
-1. `ROADMAP.md` / `README.md` / `src/README.md` / `config/README.md` 的叙事统一。
-2. 配置体验与迁移体验优化。
-3. layout、runtime、构建期职责继续拆分。
+1. 保持 `ROADMAP.md` / `README.md` / `src/README.md` / `config/README.md` 与架构边界同步。
+2. 继续改善配置体验与迁移体验，尤其是 `navigation.id`、隐藏页、孤儿页面报错和完全替换策略。
+3. 继续清理 layout、runtime、构建期之间的职责泄漏。
 4. 默认示例配置和文档样板整理。
 5. 为未来动态后台能力预留清晰进入条件，但不提前开工。
 

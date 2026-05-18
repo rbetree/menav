@@ -26,7 +26,8 @@ export function getSubmenuForNavItem(
     return null;
   }
 
-  const pageConfig = config[String(navItem.id)] as PageConfigLike | undefined;
+  const pages = config.pages && typeof config.pages === 'object' ? (config.pages as AnyRecord) : config;
+  const pageConfig = pages[String(navItem.id)] as PageConfigLike | undefined;
   if (pageConfig && Array.isArray(pageConfig.categories)) return pageConfig.categories;
 
   return null;
@@ -36,7 +37,11 @@ export function resolveTemplateNameForPage(pageId: unknown, config: AnyRecord | 
   if (!pageId) return 'page';
 
   const pageConfig =
-    config && config[String(pageId)] ? (config[String(pageId)] as PageConfigLike) : null;
+    config && config.pages && typeof config.pages === 'object'
+      ? ((config.pages as AnyRecord)[String(pageId)] as PageConfigLike | undefined)
+      : config && config[String(pageId)]
+        ? (config[String(pageId)] as PageConfigLike)
+        : null;
   const explicit = pageConfig && pageConfig.template ? String(pageConfig.template).trim() : '';
   if (explicit) return BUILTIN_PAGE_TEMPLATES.has(explicit) ? explicit : 'page';
 

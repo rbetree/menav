@@ -1,4 +1,4 @@
-import type { AppConfig } from '../src/types/config';
+import type { ResolvedConfig } from '../src/types/config';
 
 import { loadConfig } from '../src/lib/config/index.ts';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
@@ -17,7 +17,7 @@ const log = createLogger('astro-public');
 
 function main() {
   const elapsedMs = startTimer();
-  const config = loadConfig() as AppConfig & ConfigLike;
+  const config = loadConfig() as ResolvedConfig & ConfigLike;
   const verbose = isVerbose();
 
   ensureDir('public');

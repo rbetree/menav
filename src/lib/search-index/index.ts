@@ -1,189 +1,63 @@
-import type { CategoryItem, PageEntry } from '../../types/page';
+import type { PageEntry } from '../../types/page';
 import type { RenderContext } from '../../types/render';
+import type { CardViewModel, SiteModel } from '../../types/model';
 import type {
   SearchIndexItem,
   SearchIndexPayload,
-  SearchIndexSourceKind,
 } from '../../types/search';
-import type { SiteItem } from '../../types/site';
 import { DEFAULT_RENDER_CONTEXT } from '../view-data/render-context.ts';
-import { extractDomain, getSafeUrl } from '../view-data/view-utils.ts';
+import { collectSearchSourcesForPage } from '../site-model/index.ts';
 
 const SEARCH_INDEX_SCHEMA_VERSION = 1;
 const MENAV_SEARCH_INDEX_FILE = 'search-index.json';
 
-type SearchIndexSource = {
-  site: SiteItem;
-  type?: SearchIndexSourceKind;
-  style?: string;
-  categoryId?: string;
-  categoryName?: string;
-  categoryPath?: string[];
-};
-
-function normalizeText(value: unknown): string {
-  return String(value === null || value === undefined ? '' : value).trim();
-}
-
-function normalizeSearchText(...parts: unknown[]): string {
-  return parts
-    .map((part) => normalizeText(part).toLowerCase())
-    .filter(Boolean)
-    .join(' ');
-}
-
-function normalizeNumber(value: unknown): number | null {
-  const numeric = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
-}
-
-function collectCategorySources(
-  category: CategoryItem | null | undefined,
-  output: SearchIndexSource[],
-  parentPath: string[] = []
-): void {
-  if (!category || typeof category !== 'object') return;
-
-  const categoryName = normalizeText(category.name);
-  const categoryId = normalizeText(category.slug) || categoryName;
-  const categoryPath = categoryName ? [...parentPath, categoryName] : parentPath;
-
-  if (Array.isArray(category.subcategories)) {
-    category.subcategories.forEach((child) => collectCategorySources(child, output, categoryPath));
-  }
-
-  if (Array.isArray(category.groups)) {
-    category.groups.forEach((child) => collectCategorySources(child, output, categoryPath));
-  }
-
-  if (Array.isArray(category.subgroups)) {
-    category.subgroups.forEach((child) => collectCategorySources(child, output, categoryPath));
-  }
-
-  if (Array.isArray(category.sites)) {
-    category.sites.forEach((site) => {
-      if (site && typeof site === 'object') {
-        output.push({ site, categoryId, categoryName, categoryPath });
-      }
-    });
-  }
-}
-
-function collectPageSources(page: PageEntry): SearchIndexSource[] {
-  const data = page.data || {};
-  const sources: SearchIndexSource[] = [];
-
-  if (page.templateName === 'articles' && Array.isArray(data.articlesItems)) {
-    if (Array.isArray(data.articlesCategories) && data.articlesCategories.length > 0) {
-      data.articlesCategories.forEach((category) => {
-        const categoryName = normalizeText(category.name) || '最新文章';
-        const categoryId = normalizeText(category.slug) || categoryName;
-        const items = Array.isArray(category.items) ? category.items : [];
-        items.forEach((site) => {
-          if (site && typeof site === 'object') {
-            sources.push({
-              site,
-              type: 'article',
-              style: normalizeText(data.siteCardStyle),
-              categoryId,
-              categoryName,
-              categoryPath: [categoryName],
-            });
-          }
-        });
-      });
-      return sources;
-    }
-
-    data.articlesItems.forEach((site) => {
-      if (site && typeof site === 'object') {
-        const categoryName = '最新文章';
-        sources.push({
-          site,
-          type: 'article',
-          style: normalizeText(data.siteCardStyle),
-          categoryId: categoryName,
-          categoryName,
-          categoryPath: [categoryName],
-        });
-      }
-    });
-    return sources;
-  }
-
-  if (Array.isArray(data.categories)) {
-    data.categories.forEach((category) => collectCategorySources(category, sources));
-  }
-
-  const pageStyle = normalizeText(data.siteCardStyle);
-  if (pageStyle) sources.forEach((source) => (source.style = pageStyle));
-
-  return sources;
-}
-
-function createSearchIndexItem(
-  pageId: string,
-  source: SearchIndexSource,
-  renderContext: RenderContext
-): SearchIndexItem | null {
-  const site = source.site;
-  const title = normalizeText(site.name);
-  const rawUrl = normalizeText(site.url);
-  if (!title || !rawUrl) return null;
-
-  const description = normalizeText(site.description) || extractDomain(rawUrl);
-  const icon = normalizeText(site.icon) || 'fas fa-link';
-  const url = getSafeUrl(rawUrl, renderContext.allowedSchemes);
-  const type = source.type || (normalizeText(site.type) === 'article' ? 'article' : 'site');
-  const style = normalizeText(source.style) || normalizeText(site.style) || '';
-  const faviconUrl = normalizeText(site.faviconUrl);
-  const forceIconMode = normalizeText(site.forceIconMode);
-  const publishedAt = normalizeText(site.publishedAt);
-  const articleSource = normalizeText(site.source);
-  const language = normalizeText(site.language);
-  const languageColor = normalizeText(site.languageColor);
-  const stars = normalizeNumber(site.stars);
-  const forks = normalizeNumber(site.forks);
-  const issues = normalizeNumber(site.issues);
-
+function createSearchIndexItem(card: CardViewModel): SearchIndexItem {
   return {
-    pageId,
-    title,
-    description,
-    url,
-    icon,
-    type,
-    ...(style ? { style } : {}),
-    ...(faviconUrl ? { faviconUrl } : {}),
-    ...(forceIconMode ? { forceIconMode } : {}),
-    ...(source.categoryId ? { categoryId: source.categoryId } : {}),
-    ...(source.categoryName ? { categoryName: source.categoryName } : {}),
-    ...(source.categoryPath && source.categoryPath.length > 0
-      ? { categoryPath: source.categoryPath }
-      : {}),
-    ...(publishedAt ? { publishedAt } : {}),
-    ...(articleSource ? { source: articleSource } : {}),
-    ...(language ? { language } : {}),
-    ...(languageColor ? { languageColor } : {}),
-    ...(stars !== null ? { stars } : {}),
-    ...(forks !== null ? { forks } : {}),
-    ...(issues !== null ? { issues } : {}),
-    ...(site.external !== undefined ? { external: Boolean(site.external) } : {}),
-    searchText: normalizeSearchText(title, description),
+    pageId: card.pageId,
+    title: card.title,
+    description: card.description,
+    url: card.safeUrl,
+    icon: card.icon,
+    type: card.type,
+    ...(card.style ? { style: card.style } : {}),
+    ...(card.faviconUrl ? { faviconUrl: card.faviconUrl } : {}),
+    ...(card.forceIconMode ? { forceIconMode: card.forceIconMode } : {}),
+    ...(card.categoryId ? { categoryId: card.categoryId } : {}),
+    ...(card.categoryName ? { categoryName: card.categoryName } : {}),
+    ...(card.categoryPath && card.categoryPath.length > 0 ? { categoryPath: card.categoryPath } : {}),
+    ...(card.publishedAt ? { publishedAt: card.publishedAt } : {}),
+    ...(card.source ? { source: card.source } : {}),
+    ...(card.language ? { language: card.language } : {}),
+    ...(card.languageColor ? { languageColor: card.languageColor } : {}),
+    ...(card.stars !== undefined ? { stars: card.stars } : {}),
+    ...(card.forks !== undefined ? { forks: card.forks } : {}),
+    ...(card.issues !== undefined ? { issues: card.issues } : {}),
+    ...(card.external !== undefined ? { external: card.external } : {}),
+    searchText: card.searchText,
   };
 }
 
+function isSiteModel(value: unknown): value is SiteModel {
+  return Boolean(value && typeof value === 'object' && Array.isArray((value as SiteModel).searchSources));
+}
+
 function buildSearchIndex(
-  pages: PageEntry[],
+  input: SiteModel | PageEntry[],
   renderContext: RenderContext = DEFAULT_RENDER_CONTEXT
 ): SearchIndexPayload {
-  const items = pages.flatMap((page) => {
-    if (!page || !page.id || page.id === 'search-results') return [];
-
-    return collectPageSources(page)
-      .map((source) => createSearchIndexItem(page.id, source, renderContext))
-      .filter((item: SearchIndexItem | null): item is SearchIndexItem => Boolean(item));
-  });
+  const sources = isSiteModel(input)
+    ? input.searchSources
+    : input.flatMap((page) => {
+        if (!page || !page.id || page.id === 'search-results') return [];
+        return collectSearchSourcesForPage(page, {
+          site: {},
+          navigation: [],
+          pages: {},
+          homePageId: '',
+          renderContext,
+        });
+      });
+  const items = sources.map((source) => createSearchIndexItem(source));
 
   return {
     schemaVersion: SEARCH_INDEX_SCHEMA_VERSION,
@@ -196,7 +70,5 @@ export {
   MENAV_SEARCH_INDEX_FILE,
   SEARCH_INDEX_SCHEMA_VERSION,
   buildSearchIndex,
-  collectCategorySources,
-  collectPageSources,
 };
 export type { SearchIndexItem, SearchIndexPayload };
