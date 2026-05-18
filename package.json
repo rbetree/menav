@@ -2,7 +2,10 @@
   "name": "menav",
   "version": "1.4.0",
   "description": "A personal navigation website",
-  "main": "src/lib/index.ts",
+  "main": "dist-node/index.cjs",
+  "exports": {
+    ".": "./dist-node/index.cjs"
+  },
   "engines": {
     "node": ">=22.12"
   },
@@ -13,6 +16,7 @@
     "dev:offline": "node -r ./scripts/register-ts.cjs ./scripts/dev-offline.ts",
     "init-config": "node -r ./scripts/register-ts.cjs ./scripts/init-config.ts",
     "clean": "node -r ./scripts/register-ts.cjs ./scripts/clean.ts",
+    "build:lib": "node -r ./scripts/register-ts.cjs ./scripts/build-lib.ts",
     "build": "node -r ./scripts/register-ts.cjs ./scripts/build.ts",
     "sync-articles": "node -r ./scripts/register-ts.cjs ./scripts/sync-articles.ts",
     "sync-projects": "node -r ./scripts/register-ts.cjs ./scripts/sync-projects.ts",
@@ -22,12 +26,13 @@
     "format": "node -r ./scripts/register-ts.cjs ./scripts/format.ts --write",
     "format:check": "node -r ./scripts/register-ts.cjs ./scripts/format.ts --check",
     "format:check:changed": "node -r ./scripts/register-ts.cjs ./scripts/format-check-changed.ts",
-    "check:fast": "node -r ./scripts/register-ts.cjs ./scripts/check.ts && tsc --noEmit",
+    "check:fast": "node -r ./scripts/register-ts.cjs ./scripts/check.ts && npm run build:lib && node -e \"require('.')\" && tsc --noEmit",
     "check:browser": "npm run build && npm run test:browser",
     "check": "npm run check:fast",
     "prepare": "husky",
     "dev:astro": "node -r ./scripts/register-ts.cjs ./scripts/dev-astro.ts",
-    "test:browser": "node -r ./scripts/register-ts.cjs ./scripts/test-browser.ts"
+    "test:browser": "node -r ./scripts/register-ts.cjs ./scripts/test-browser.ts",
+    "prepack": "npm run build:lib"
   },
   "keywords": [
     "navigation",

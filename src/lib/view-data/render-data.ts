@@ -1,36 +1,10 @@
 import type { AppConfig, NavigationItem } from '../../types/config';
 import type { PageEntry } from '../../types/page';
 import type { RenderContext } from '../../types/render';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const path = require('node:path') as typeof import('node:path');
-
-const { loadConfig, getSubmenuForNavItem } = require(
-  path.join(process.cwd(), 'src', 'lib', 'config', 'index.ts')
-) as {
-  loadConfig: () => AppConfig;
-  getSubmenuForNavItem: (navItem: NavigationItem, config: AppConfig) => unknown[] | null;
-};
-const { generateFontLinks, generateFontCss } = require(
-  path.join(process.cwd(), 'src', 'lib', 'html', 'fonts.ts')
-) as {
-  generateFontLinks: (config: AppConfig) => string;
-  generateFontCss: (config: AppConfig) => string;
-};
-const { createRenderContext } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-data', 'render-context.ts')
-) as {
-  createRenderContext: (config: AppConfig | null | undefined) => RenderContext;
-};
-const { preparePageData } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-data', 'page-data.ts')
-) as {
-  preparePageData: (
-    pageId: string,
-    config: AppConfig
-  ) => { data: PageEntry['data']; templateName: string };
-};
+import { getSubmenuForNavItem, loadConfig } from '../config/index.ts';
+import { generateFontCss, generateFontLinks } from '../html/fonts.ts';
+import { preparePageData } from './page-data.ts';
+import { createRenderContext } from './render-context.ts';
 
 type SiteRenderData = {
   config: AppConfig;

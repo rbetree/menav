@@ -1,70 +1,20 @@
 import type { AppConfig } from '../../types/config';
-import type { CategoryItem, PageData } from '../../types/page';
-import type { SiteItem } from '../../types/site';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
-
-const { tryLoadArticlesFeedCache, buildArticlesCategoriesByPageCategories } = require(
-  path.join(process.cwd(), 'src', 'lib', 'cache', 'articles.ts')
-) as {
-  tryLoadArticlesFeedCache: (
-    pageId: string,
-    config: AppConfig
-  ) => {
-    items: SiteItem[];
-    meta: Record<string, unknown>;
-  } | null;
-  buildArticlesCategoriesByPageCategories: (
-    categories: CategoryItem[] | undefined,
-    articlesItems: SiteItem[]
-  ) => CategoryItem[];
-};
-const {
-  tryLoadProjectsRepoCache,
-  tryLoadProjectsHeatmapCache,
+import type { PageData } from '../../types/page';
+import fs from 'node:fs';
+import path from 'node:path';
+import {
+  buildArticlesCategoriesByPageCategories,
+  tryLoadArticlesFeedCache,
+} from '../cache/articles.ts';
+import {
   applyRepoMetaToCategories,
   buildProjectsMeta,
-} = require(path.join(process.cwd(), 'src', 'lib', 'cache', 'projects.ts')) as {
-  tryLoadProjectsRepoCache: (
-    pageId: string,
-    config: AppConfig
-  ) => {
-    map: Map<string, unknown>;
-    meta: Record<string, unknown>;
-  } | null;
-  tryLoadProjectsHeatmapCache: (
-    pageId: string,
-    config: AppConfig
-  ) => {
-    username: string;
-    html: string;
-    meta: Record<string, unknown>;
-  } | null;
-  applyRepoMetaToCategories: (
-    categories: CategoryItem[],
-    repoMetaMap: Map<string, unknown>
-  ) => void;
-  buildProjectsMeta: (config: AppConfig) => PageData['projectsMeta'] | null;
-};
-const { getPageConfigUpdatedAtMeta } = require(
-  path.join(process.cwd(), 'src', 'lib', 'site-data', 'page-meta.ts')
-) as {
-  getPageConfigUpdatedAtMeta: (
-    pageId: string
-  ) => { updatedAt: string; updatedAtSource: 'git' | 'mtime' } | null;
-};
-const { ConfigError } = require(path.join(process.cwd(), 'src', 'lib', 'errors.ts')) as {
-  ConfigError: new (message: string, suggestions?: string[]) => Error;
-};
-const { renderMarkdownToHtml } = require(
-  path.join(process.cwd(), 'src', 'lib', 'content', 'markdown.ts')
-) as {
-  renderMarkdownToHtml: (markdownText: string, opts?: { allowedSchemes?: unknown }) => string;
-};
+  tryLoadProjectsHeatmapCache,
+  tryLoadProjectsRepoCache,
+} from '../cache/projects.ts';
+import { renderMarkdownToHtml } from '../content/markdown.ts';
+import { ConfigError } from '../errors.ts';
+import { getPageConfigUpdatedAtMeta } from '../site-data/page-meta.ts';
 
 function applyProjectsData(data: PageData, pageId: string, config: AppConfig): void {
   data.siteCardStyle = 'repo';

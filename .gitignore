@@ -4,6 +4,7 @@ npm-debug.log*
 
 # 构建输出
 dist/
+dist-node/
 .astro/
 public/assets/
 public/pinyin-match.js

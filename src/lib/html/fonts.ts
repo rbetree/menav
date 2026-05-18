@@ -1,11 +1,4 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const path = require('node:path') as typeof import('node:path');
-
-const { escapeHtml } = require(path.join(process.cwd(), 'src', 'lib', 'security', 'html.ts')) as {
-  escapeHtml: (unsafe: unknown) => string;
-};
+import { escapeHtml } from '../security/html.ts';
 
 type FontConfigInput = {
   fonts?: {

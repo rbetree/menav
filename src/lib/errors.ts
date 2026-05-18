@@ -1,3 +1,5 @@
+import { formatPrefix, isVerbose } from './logging/logger.ts';
+
 type ErrorSuggestion = string;
 type ErrorContext = Record<string, unknown>;
 type MaybeString = string | null;
@@ -52,12 +54,7 @@ export class FileError extends Error {
 }
 
 export function handleError(error: ErrorWithMetadata, exitCode = 1): never {
-  const logger = require('./logging/logger.ts') as {
-    formatPrefix: (level: 'INFO' | 'WARN' | 'ERROR' | 'OK') => string;
-    isVerbose: () => boolean;
-  };
-
-  console.error(`\n${logger.formatPrefix('ERROR')} ${error.name}: ${error.message}`);
+  console.error(`\n${formatPrefix('ERROR')} ${error.name}: ${error.message}`);
 
   if (error.filePath || error.templatePath) {
     const location = error.filePath || error.templatePath;
@@ -81,7 +78,7 @@ export function handleError(error: ErrorWithMetadata, exitCode = 1): never {
   if (process.env.DEBUG) {
     console.error('\n堆栈:');
     console.error(error.stack || String(error));
-  } else if (logger.isVerbose() && error.stack) {
+  } else if (isVerbose() && error.stack) {
     console.error('\n堆栈:');
     console.error(error.stack);
   } else {

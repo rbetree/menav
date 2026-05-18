@@ -1,6 +1,4 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
+import MarkdownItModule from 'markdown-it';
 
 type MarkdownItToken = {
   attrs: [string, string][] | null;
@@ -28,7 +26,7 @@ type MarkdownItInstance = {
 
 type MarkdownItConstructor = new (options: Record<string, unknown>) => MarkdownItInstance;
 
-const MarkdownIt = require('markdown-it') as MarkdownItConstructor;
+const MarkdownIt = MarkdownItModule as MarkdownItConstructor;
 
 function normalizeAllowedSchemes(allowedSchemes: unknown): string[] {
   if (!Array.isArray(allowedSchemes) || allowedSchemes.length === 0) {

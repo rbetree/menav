@@ -1,23 +1,4 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-
-const config = require('./config/index.ts') as Record<string, unknown>;
-const pageData = require('./view-data/page-data.ts') as Record<string, unknown>;
-const renderData = require('./view-data/render-data.ts') as Record<string, unknown>;
-const articlesCache = require('./cache/articles.ts') as Record<string, unknown>;
-const projectsCache = require('./cache/projects.ts') as Record<string, unknown>;
-const markdown = require('./content/markdown.ts') as Record<string, unknown>;
-const fonts = require('./html/fonts.ts') as Record<string, unknown>;
-const errors = require('./errors.ts') as Record<string, unknown>;
-const github = require('./github/contributions.ts') as Record<string, unknown>;
-const logger = require('./logging/logger.ts') as Record<string, unknown>;
-const securityHtml = require('./security/html.ts') as Record<string, unknown>;
-const pageMeta = require('./site-data/page-meta.ts') as Record<string, unknown>;
-const searchIndex = require('./search-index/index.ts') as Record<string, unknown>;
-const sites = require('./site-data/sites.ts') as Record<string, unknown>;
-
-const {
+export {
   assignCategorySlugs,
   buildRuntimeConfig,
   ensureConfigDefaults,
@@ -29,73 +10,33 @@ const {
   resolveConfigDirectory,
   resolveTemplateNameForPage,
   validateConfig,
-} = config;
-
-const { preparePageData } = pageData;
-const { prepareNavigationData, preparePages, prepareSiteRenderData } = renderData;
-
-const { buildArticlesCategoriesByPageCategories, tryLoadArticlesFeedCache } = articlesCache;
-const {
+} from './config/index.ts';
+export { preparePageData } from './view-data/page-data.ts';
+export { prepareNavigationData, preparePages, prepareSiteRenderData } from './view-data/render-data.ts';
+export { buildArticlesCategoriesByPageCategories, tryLoadArticlesFeedCache } from './cache/articles.ts';
+export {
   applyRepoMetaToCategories,
   buildProjectsMeta,
   tryLoadProjectsHeatmapCache,
   tryLoadProjectsRepoCache,
-} = projectsCache;
-
-const { renderMarkdownToHtml, sanitizeLinkHref } = markdown;
-const { generateFontCss, generateFontLinks } = fonts;
-const { BuildError, ConfigError, FileError, TemplateError, handleError, wrapAsyncError } = errors;
-const { fetchGithubContributionsHtml } = github;
-const { createLogger, formatMeta, formatPrefix, isVerbose, startTimer } = logger;
-const { escapeHtml } = securityHtml;
-const { getPageConfigUpdatedAtMeta, resolvePageConfigFilePath } = pageMeta;
-const { MENAV_SEARCH_INDEX_FILE, SEARCH_INDEX_SCHEMA_VERSION, buildSearchIndex } = searchIndex;
-const { collectSitesRecursively, normalizeUrlKey } = sites;
-
+} from './cache/projects.ts';
+export { renderMarkdownToHtml, sanitizeLinkHref } from './content/markdown.ts';
+export { generateFontCss, generateFontLinks } from './html/fonts.ts';
+export {
+  BuildError,
+  ConfigError,
+  FileError,
+  TemplateError,
+  handleError,
+  wrapAsyncError,
+} from './errors.ts';
+export { extractYearlyContributionsInnerHtml } from './github/contributions.ts';
+export { createLogger, formatMeta, formatPrefix, isVerbose, startTimer } from './logging/logger.ts';
+export { escapeHtml } from './security/html.ts';
+export { getPageConfigUpdatedAtMeta, resolvePageConfigFilePath } from './site-data/page-meta.ts';
 export {
   MENAV_SEARCH_INDEX_FILE,
-  assignCategorySlugs,
-  applyRepoMetaToCategories,
-  buildArticlesCategoriesByPageCategories,
-  buildRuntimeConfig,
-  buildProjectsMeta,
-  buildSearchIndex,
-  BuildError,
-  collectSitesRecursively,
-  ConfigError,
-  createLogger,
-  ensureConfigDefaults,
-  escapeHtml,
-  fetchGithubContributionsHtml,
-  FileError,
-  formatMeta,
-  formatPrefix,
-  generateFontCss,
-  generateFontLinks,
-  getConfigValidationErrors,
-  getPageConfigUpdatedAtMeta,
-  getSubmenuForNavItem,
-  handleError,
-  isVerbose,
-  loadConfig,
-  loadModularConfig,
-  normalizeUrlKey,
-  prepareNavigationData,
-  preparePageData,
-  preparePages,
-  prepareRenderData,
-  prepareSiteRenderData,
-  renderMarkdownToHtml,
-  resolveConfigDirectory,
-  resolvePageConfigFilePath,
-  resolveTemplateNameForPage,
-  sanitizeLinkHref,
   SEARCH_INDEX_SCHEMA_VERSION,
-  startTimer,
-  TemplateError,
-  tryLoadArticlesFeedCache,
-  tryLoadProjectsHeatmapCache,
-  tryLoadProjectsRepoCache,
-  validateConfig,
-  wrapAsyncError,
-};
+  buildSearchIndex,
+} from './search-index/index.ts';
+export { collectSitesRecursively, normalizeUrlKey } from './site-data/sites.ts';

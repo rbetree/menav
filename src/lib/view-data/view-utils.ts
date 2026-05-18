@@ -1,13 +1,6 @@
-import { createRequire } from 'node:module';
 import type { IconRegion } from '../../types/render';
 import { DEFAULT_ALLOWED_SCHEMES, normalizeAllowedSchemes } from './render-context.ts';
-
-const require = createRequire(import.meta.url);
-const path = require('node:path') as typeof import('node:path');
-
-const { escapeHtml } = require(path.join(process.cwd(), 'src', 'lib', 'security', 'html.ts')) as {
-  escapeHtml: (unsafe: unknown) => string;
-};
+import { escapeHtml } from '../security/html.ts';
 
 function extractDomain(url: unknown): string {
   if (!url) return '';

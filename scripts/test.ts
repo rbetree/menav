@@ -36,6 +36,21 @@ async function main() {
   }
 
   const registerScript = path.join(__dirname, 'register-ts.cjs');
+  const buildLibResult = spawnSync(
+    process.execPath,
+    ['-r', registerScript, path.join(repoRoot, 'scripts', 'build-lib.ts')],
+    {
+      cwd: repoRoot,
+      stdio: 'inherit',
+    }
+  );
+  const buildLibExit = Number.isFinite(buildLibResult.status) ? Number(buildLibResult.status) : 1;
+  if (buildLibExit !== 0) {
+    log.error('build:lib 失败', { exit: buildLibExit });
+    process.exitCode = buildLibExit;
+    return;
+  }
+
   const result = spawnSync(process.execPath, ['-r', registerScript, '--test', ...files], {
     cwd: repoRoot,
     stdio: 'inherit',

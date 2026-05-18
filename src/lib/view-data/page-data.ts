@@ -1,37 +1,12 @@
 import type { AppConfig, NavigationItem } from '../../types/config';
-import type { CategoryItem, PageData } from '../../types/page';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-
-const path = require('node:path') as typeof import('node:path');
-
-const { getSubmenuForNavItem, assignCategorySlugs, resolveTemplateNameForPage } = require(
-  path.join(process.cwd(), 'src', 'lib', 'config', 'index.ts')
-) as {
-  getSubmenuForNavItem: (navItem: NavigationItem, config: AppConfig) => unknown[] | null;
-  assignCategorySlugs: (categories: CategoryItem[], usedSlugs: Map<string, number>) => void;
-  resolveTemplateNameForPage: (pageId: string, config: Record<string, unknown>) => string;
-};
-const { applyPageKindData } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-data', 'page-kind.ts')
-) as {
-  applyPageKindData: (
-    data: PageData,
-    pageId: string,
-    templateName: string,
-    config: AppConfig
-  ) => void;
-};
-const { createLogger, isVerbose } = require(
-  path.join(process.cwd(), 'src', 'lib', 'logging', 'logger.ts')
-) as {
-  createLogger: (scope: string) => {
-    warn: (message: string, meta?: Record<string, unknown>) => void;
-    info: (message: string, meta?: Record<string, unknown>) => void;
-  };
-  isVerbose: () => boolean;
-};
+import type { PageData } from '../../types/page';
+import {
+  assignCategorySlugs,
+  getSubmenuForNavItem,
+  resolveTemplateNameForPage,
+} from '../config/index.ts';
+import { createLogger, isVerbose } from '../logging/logger.ts';
+import { applyPageKindData } from './page-kind.ts';
 
 const log = createLogger('render');
 

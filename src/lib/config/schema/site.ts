@@ -1,20 +1,7 @@
 import type { z as ZodNamespace } from 'zod';
-import type { PageConfigSchema } from './page';
-import type {
-  FontsSchema,
-  GithubSchema,
-  IconsSchema,
-  NavigationItemSchema,
-  ProfileSchema,
-  RssSchema,
-  SecuritySchema,
-  SocialItemSchema,
-  ThemeSchema,
-} from './shared';
-
-const { z } = require('zod') as typeof import('zod');
-const { pageConfigSchema } = require('./page.ts') as { pageConfigSchema: PageConfigSchema };
-const {
+import { z } from 'zod';
+import { pageConfigSchema } from './page.ts';
+import {
   fontsSchema,
   githubSchema,
   iconsSchema,
@@ -24,17 +11,7 @@ const {
   securitySchema,
   socialItemSchema,
   themeSchema,
-} = require('./shared.ts') as {
-  fontsSchema: FontsSchema;
-  githubSchema: GithubSchema;
-  iconsSchema: IconsSchema;
-  navigationItemSchema: NavigationItemSchema;
-  profileSchema: ProfileSchema;
-  rssSchema: RssSchema;
-  securitySchema: SecuritySchema;
-  socialItemSchema: SocialItemSchema;
-  themeSchema: ThemeSchema;
-};
+} from './shared.ts';
 
 const siteConfigSchema = z.looseObject({
   title: z.string({ error: 'title 必须是字符串' }).trim().optional(),
@@ -75,7 +52,7 @@ export type SiteConfig = ZodNamespace.output<SiteConfigSchema>;
 export type ModularConfig = ZodNamespace.output<ModularConfigSchema> & Record<string, unknown>;
 export type RenderConfig = ZodNamespace.output<RenderConfigSchema>;
 
-module.exports = {
+export {
   siteConfigSchema,
   modularConfigSchema,
   renderConfigSchema,

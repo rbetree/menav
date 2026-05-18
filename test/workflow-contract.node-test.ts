@@ -27,7 +27,7 @@ test('ci workflow：默认使用快速 check，浏览器契约保留为手动分
 
   assert.equal(
     packageJson.scripts['check:fast'],
-    'node -r ./scripts/register-ts.cjs ./scripts/check.ts && tsc --noEmit'
+    'node -r ./scripts/register-ts.cjs ./scripts/check.ts && npm run build:lib && node -e "require(\'.\')" && tsc --noEmit'
   );
   assert.equal(packageJson.scripts.check, 'npm run check:fast');
   assert.equal(packageJson.scripts['check:browser'], 'npm run build && npm run test:browser');

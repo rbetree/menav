@@ -1,6 +1,5 @@
 import type { z as ZodNamespace } from 'zod';
-
-const { z } = require('zod') as typeof import('zod');
+import { z } from 'zod';
 
 function optionalTrimmedStringSchema(fieldName: string) {
   return z
@@ -128,7 +127,7 @@ export type SecurityConfig = ZodNamespace.output<SecuritySchema>;
 export type RssConfig = ZodNamespace.output<RssSchema>;
 export type GithubConfig = ZodNamespace.output<GithubSchema>;
 
-module.exports = {
+export {
   siteItemSchema,
   socialItemSchema,
   navigationSubmenuItemSchema,

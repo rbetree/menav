@@ -1,11 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import yaml from 'js-yaml';
 
 import { createLogger, isVerbose } from '../logging/logger.ts';
-
-const yaml = require('js-yaml') as {
-  loadAll: (source: string) => unknown[];
-};
 
 type YamlLoadError = Error & { stack?: string };
 type LoadedPageConfig = {

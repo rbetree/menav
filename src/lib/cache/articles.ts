@@ -1,25 +1,9 @@
 import type { CategoryItem } from '../../types/page';
 import type { SiteItem } from '../../types/site';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
-
-const { collectSitesRecursively, normalizeUrlKey } = require(
-  path.join(process.cwd(), 'src', 'lib', 'site-data', 'sites.ts')
-) as {
-  collectSitesRecursively: (node: unknown, output: unknown[]) => void;
-  normalizeUrlKey: (input: unknown) => string;
-};
-const { createLogger } = require(
-  path.join(process.cwd(), 'src', 'lib', 'logging', 'logger.ts')
-) as {
-  createLogger: (scope: string) => {
-    warn: (message: string, meta?: Record<string, unknown>) => void;
-  };
-};
+import fs from 'node:fs';
+import path from 'node:path';
+import { createLogger } from '../logging/logger.ts';
+import { collectSitesRecursively, normalizeUrlKey } from '../site-data/sites.ts';
 
 type RenderConfigLike = {
   site?: {
@@ -71,7 +55,7 @@ type ArticlesFeedCache = {
 type ArticleCategory = {
   name: string;
   icon: string;
-  items: ArticleItem[];
+  items: SiteItem[];
 };
 
 const log = createLogger('cache:articles');
@@ -139,7 +123,7 @@ function tryLoadArticlesFeedCache(
 
 function buildArticlesCategoriesByPageCategories(
   categories: CategoryItem[] | null | undefined,
-  articlesItems: ArticleItem[] | null | undefined
+  articlesItems: SiteItem[] | null | undefined
 ): ArticleCategory[] {
   const safeItems = Array.isArray(articlesItems) ? articlesItems : [];
   const safeCategories = Array.isArray(categories) ? categories : [];
@@ -172,10 +156,10 @@ function buildArticlesCategoriesByPageCategories(
     return { category, siteUrlKeys, siteNameKeys };
   });
 
-  const buckets = categoryIndex.map((): ArticleItem[] => []);
-  const uncategorized: ArticleItem[] = [];
+  const buckets = categoryIndex.map((): SiteItem[] => []);
+  const uncategorized: SiteItem[] = [];
 
-  safeItems.forEach((item: ArticleItem) => {
+  safeItems.forEach((item: SiteItem) => {
     const sourceUrlKey = normalizeUrlKey(item?.sourceUrl ? String(item.sourceUrl) : '');
     const sourceNameKey = item?.source ? String(item.source).trim().toLowerCase() : '';
 

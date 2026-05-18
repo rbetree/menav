@@ -6,22 +6,8 @@ import type {
   SearchIndexSourceKind,
 } from '../../types/search';
 import type { SiteItem } from '../../types/site';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const path = require('node:path') as typeof import('node:path');
-
-const { extractDomain, getSafeUrl } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-data', 'view-utils.ts')
-) as {
-  extractDomain: (url: unknown) => string;
-  getSafeUrl: (url: unknown, allowedSchemes?: string[]) => string;
-};
-const { DEFAULT_RENDER_CONTEXT } = require(
-  path.join(process.cwd(), 'src', 'lib', 'view-data', 'render-context.ts')
-) as {
-  DEFAULT_RENDER_CONTEXT: RenderContext;
-};
+import { DEFAULT_RENDER_CONTEXT } from '../view-data/render-context.ts';
+import { extractDomain, getSafeUrl } from '../view-data/view-utils.ts';
 
 const SEARCH_INDEX_SCHEMA_VERSION = 1;
 const MENAV_SEARCH_INDEX_FILE = 'search-index.json';

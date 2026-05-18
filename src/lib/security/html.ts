@@ -11,6 +11,4 @@ function escapeHtml(unsafe: unknown): string {
     .replace(/'/g, '&#039;');
 }
 
-module.exports = {
-  escapeHtml,
-};
+export { escapeHtml };

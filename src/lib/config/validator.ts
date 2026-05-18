@@ -1,22 +1,8 @@
 import type { z as ZodNamespace } from 'zod';
-import type { PageConfigSchema } from './schema/page';
-import type {
-  FontsSchema,
-  GithubSchema,
-  IconsSchema,
-  NavigationItemSchema,
-  ProfileSchema,
-  RssSchema,
-  SecuritySchema,
-  SocialItemSchema,
-  ThemeSchema,
-} from './schema/shared';
-import type { SiteConfigSchema } from './schema/site';
-
+import { z } from 'zod';
 import { createLogger } from '../logging/logger.ts';
-
-const { pageConfigSchema } = require('./schema/page.ts') as { pageConfigSchema: PageConfigSchema };
-const {
+import { pageConfigSchema } from './schema/page.ts';
+import {
   fontsSchema,
   githubSchema,
   iconsSchema,
@@ -26,18 +12,8 @@ const {
   securitySchema,
   socialItemSchema,
   themeSchema,
-} = require('./schema/shared.ts') as {
-  fontsSchema: FontsSchema;
-  githubSchema: GithubSchema;
-  iconsSchema: IconsSchema;
-  navigationItemSchema: NavigationItemSchema;
-  profileSchema: ProfileSchema;
-  rssSchema: RssSchema;
-  securitySchema: SecuritySchema;
-  socialItemSchema: SocialItemSchema;
-  themeSchema: ThemeSchema;
-};
-const { siteConfigSchema } = require('./schema/site.ts') as { siteConfigSchema: SiteConfigSchema };
+} from './schema/shared.ts';
+import { siteConfigSchema } from './schema/site.ts';
 
 type AnyRecord = Record<string, unknown>;
 type ValidationIssue = {
@@ -162,7 +138,6 @@ export function getConfigValidationErrors(config: unknown): ValidationIssue[] {
 }
 
 function zArray<T extends ZodNamespace.ZodTypeAny>(schema: T, message: string) {
-  const { z } = require('zod') as typeof import('zod');
   return z.array(schema, { error: message });
 }
 
