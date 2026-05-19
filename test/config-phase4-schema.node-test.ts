@@ -128,6 +128,54 @@ test('Phase 4：config/user 完全替换策略不从 _default 补齐页面', () 
   });
 });
 
+test('Phase 4：MENAV_CONFIG_DIR 应显式覆盖 config/user 自动选择', () => {
+  withTempCwd((tmpDir) => {
+    fs.mkdirSync('config/_default/pages', { recursive: true });
+    fs.mkdirSync('config/user/pages', { recursive: true });
+    const overrideConfigDir = path.join(tmpDir, 'isolated-config');
+    fs.mkdirSync(path.join(overrideConfigDir, 'pages'), { recursive: true });
+
+    fs.writeFileSync(
+      'config/user/site.yml',
+      ['title: User', 'navigation:', '  - name: 用户页', '    id: user-only', ''].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      'config/user/pages/user-only.yml',
+      ['title: 用户页', 'template: page', 'categories: []', ''].join('\n'),
+      'utf8'
+    );
+
+    fs.writeFileSync(
+      path.join(overrideConfigDir, 'site.yml'),
+      ['title: Override', 'navigation:', '  - name: 覆盖页', '    id: override-only', ''].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(overrideConfigDir, 'pages', 'override-only.yml'),
+      ['title: 覆盖页', 'template: page', 'categories: []', ''].join('\n'),
+      'utf8'
+    );
+
+    const previousConfigDir = process.env.MENAV_CONFIG_DIR;
+    process.env.MENAV_CONFIG_DIR = overrideConfigDir;
+
+    try {
+      assert.equal(resolveConfigDirectory(), overrideConfigDir);
+      const config = loadConfig();
+      assert.equal(config.site.title, 'Override');
+      assert.ok(config.pages['override-only']);
+      assert.equal(config.pages['user-only'], undefined);
+    } finally {
+      if (previousConfigDir === undefined) {
+        delete process.env.MENAV_CONFIG_DIR;
+      } else {
+        process.env.MENAV_CONFIG_DIR = previousConfigDir;
+      }
+    }
+  });
+});
+
 test('Phase 4：config/user 缺少 site.yml 时应提示使用 init-config', () => {
   withTempCwd(() => {
     fs.mkdirSync('config/user', { recursive: true });

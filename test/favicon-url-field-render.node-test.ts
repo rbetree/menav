@@ -14,6 +14,7 @@ function buildSite() {
       cwd: repoRoot,
       env: {
         ...process.env,
+        MENAV_CONFIG_DIR: path.join(repoRoot, 'config', '_default'),
         PROJECTS_ENABLED: 'false',
         HEATMAP_ENABLED: 'false',
         RSS_ENABLED: 'false',

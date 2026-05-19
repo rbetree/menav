@@ -176,6 +176,25 @@ function warnNavigationPageMismatches(
 }
 
 export function resolveConfigDirectory(): string {
+  const configDirOverride = String(process.env.MENAV_CONFIG_DIR || '').trim();
+  if (configDirOverride) {
+    const resolvedConfigDir = path.resolve(configDirOverride);
+    if (!fs.existsSync(resolvedConfigDir)) {
+      throw new ConfigError('MENAV_CONFIG_DIR 指向的配置目录不存在', [
+        `当前值：${configDirOverride}`,
+        '请将 MENAV_CONFIG_DIR 指向包含 site.yml 与 pages/ 的配置目录',
+      ]);
+    }
+    if (!fs.existsSync(path.join(resolvedConfigDir, 'site.yml'))) {
+      throw new ConfigError('MENAV_CONFIG_DIR 指向的配置目录缺少 site.yml', [
+        `当前值：${configDirOverride}`,
+        '请将 MENAV_CONFIG_DIR 指向包含 site.yml 与 pages/ 的配置目录',
+      ]);
+    }
+
+    return resolvedConfigDir;
+  }
+
   const hasUserModularConfig = fs.existsSync('config/user');
   const hasDefaultModularConfig = fs.existsSync('config/_default');
 
