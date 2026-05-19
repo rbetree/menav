@@ -52,7 +52,10 @@ assets/
     ├── _modal.css         # 模态框、表单
     ├── _content.css       # Markdown 内容页
     ├── _dashboard.css     # 仪表盘（时钟/Todo）
-    └── _main.css          # 兜底样式（分类、热力图、响应式）
+    ├── _category.css      # 分类层级、折叠和嵌套网格
+    ├── _github-heatmap.css # GitHub 热力图
+    ├── _responsive.css    # 全局响应式规则
+    └── _main.css          # 剩余兜底样式
 ```
 
 ### 模块说明
@@ -64,7 +67,7 @@ assets/
 | `base.css` | 基础层聚合入口，导入 `_base.css` 与 `_animations.css` |
 | `layout.css` | 布局层聚合入口，导入 `_layout.css` |
 | `components.css` | 组件层聚合入口，导入侧边栏、搜索、卡片、表单、内容、仪表盘样式 |
-| `utilities.css` | 工具/兜底层聚合入口，导入 `_main.css` |
+| `utilities.css` | 工具/兜底层聚合入口，导入 `_category.css`、`_github-heatmap.css`、`_responsive.css` 和 `_main.css` |
 | `_variables.css` | 旧变量入口兼容层，新代码不要继续扩展该文件 |
 | `_base.css` | 全局重置、滚动条、遮罩层、主题切换按钮 |
 | `_animations.css` | 所有 `@keyframes` 定义 |
@@ -75,7 +78,10 @@ assets/
 | `_modal.css` | 模态框、表单控件、按钮样式 |
 | `_content.css` | Markdown 渲染（标题、代码块、表格等） |
 | `_dashboard.css` | 仪表盘网格、时钟卡片、Todo 列表 |
-| `_main.css` | 分类层级、GitHub 热力图、全局响应式 |
+| `_category.css` | 分类层级、折叠状态和嵌套站点网格 |
+| `_github-heatmap.css` | projects 页 GitHub 热力图和第三方日历覆盖 |
+| `_responsive.css` | 全局移动端、窄屏和桌面宽度响应式规则 |
+| `_main.css` | 剩余兜底样式，包含搜索结果页、页面过渡和少量侧边栏遗留规则 |
 
 ### 构建流程
 

@@ -33,15 +33,33 @@ test('ci workflow：默认使用快速 check，并按路径变更触发浏览器
   assert.equal(packageJson.scripts['check:browser'], 'npm run build && npm run test:browser');
   assert.ok(ciWorkflow.includes('npm run check'));
   assert.ok(ciWorkflow.includes('dorny/paths-filter'));
-  assert.ok(ciWorkflow.includes('src/components/**'));
-  assert.ok(ciWorkflow.includes('src/layouts/**'));
-  assert.ok(ciWorkflow.includes('src/pages/**'));
-  assert.ok(ciWorkflow.includes('src/lib/search-index/**'));
-  assert.ok(ciWorkflow.includes('src/runtime/**'));
-  assert.ok(ciWorkflow.includes('src/lib/site-model/**'));
-  assert.ok(ciWorkflow.includes('src/lib/view-data/**'));
-  assert.ok(ciWorkflow.includes('scripts/lib/search-index-assets.ts'));
-  assert.ok(ciWorkflow.includes('scripts/prepare-astro-public.ts'));
+
+  for (const browserContractPath of [
+    'assets/style.css',
+    'assets/styles/**',
+    'assets/pinyin-match.ts',
+    'config/_default/**',
+    'src/components/**',
+    'src/layouts/**',
+    'src/pages/**',
+    'src/lib/search-index/**',
+    'src/runtime/**',
+    'src/lib/site-model/**',
+    'src/lib/view-data/**',
+    'scripts/lib/public-assets.ts',
+    'scripts/lib/runtime-bundle.ts',
+    'scripts/lib/search-index-assets.ts',
+    'scripts/build-runtime.ts',
+    'scripts/prepare-astro-public.ts',
+    'test/browser/**',
+  ]) {
+    assert.ok(
+      ciWorkflow.includes(browserContractPath),
+      `ci.yml 应按 ${browserContractPath} 变更触发浏览器契约`
+    );
+  }
+
+  assert.ok(ciWorkflow.includes("github.repository == 'rbetree/menav'"));
   assert.ok(ciWorkflow.includes('npx playwright install --with-deps chromium'));
   assert.ok(ciWorkflow.includes('npm run check:browser'));
   assert.equal(ciWorkflow.includes('npm run lint'), false);

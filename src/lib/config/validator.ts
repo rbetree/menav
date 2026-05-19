@@ -24,6 +24,8 @@ type ValidationIssue = {
 type ZodIssueLike = {
   path: PropertyKey[];
   message: string;
+  code?: string;
+  keys?: string[];
 };
 type SchemaLike = {
   safeParse: (
@@ -67,7 +69,12 @@ function appendPath(basePath: string, segments: PropertyKey[]): string {
   }, basePath);
 }
 
-function normalizeSchemaMessage(message: string): string {
+function normalizeSchemaMessage(issue: ZodIssueLike, unknownKey?: string): string {
+  const message = issue.message;
+  if (unknownKey) {
+    return `不支持的字段：${unknownKey}`;
+  }
+
   if (message.startsWith('Invalid input: expected object')) return '期望为对象';
   if (message.startsWith('Invalid input: expected array')) return '期望为数组';
   if (message.startsWith('Invalid input: expected string')) return '期望为字符串';
@@ -86,9 +93,19 @@ function collectSchemaIssues(
   if (result.success) return;
 
   result.error.issues.forEach((issue: ZodIssueLike) => {
+    if (issue.code === 'unrecognized_keys' && Array.isArray(issue.keys)) {
+      issue.keys.forEach((key) => {
+        issues.push({
+          path: appendPath(basePath, [...issue.path, key]),
+          message: normalizeSchemaMessage(issue, key),
+        });
+      });
+      return;
+    }
+
     issues.push({
       path: appendPath(basePath, issue.path),
-      message: normalizeSchemaMessage(issue.message),
+      message: normalizeSchemaMessage(issue),
     });
   });
 }

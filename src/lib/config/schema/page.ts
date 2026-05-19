@@ -34,7 +34,7 @@ const contentPageSchema = z.looseObject({
   file: z.string({ error: 'file 必须是字符串' }).trim().optional(),
 });
 
-const pageConfigSchema = z.looseObject({
+const pageConfigSchema = z.strictObject({
   title: z.string({ error: 'title 必须是字符串' }).trim().optional(),
   subtitle: z.string({ error: 'subtitle 必须是字符串' }).trim().optional(),
   template: z

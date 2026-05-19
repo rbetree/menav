@@ -13,7 +13,7 @@ import {
   themeSchema,
 } from './shared.ts';
 
-const siteConfigSchema = z.looseObject({
+const siteConfigSchema = z.strictObject({
   title: z.string({ error: 'title 必须是字符串' }).trim().optional(),
   description: z.string({ error: 'description 必须是字符串' }).trim().optional(),
   keywords: z.string({ error: 'keywords 必须是字符串' }).trim().optional(),
@@ -33,7 +33,7 @@ const siteConfigSchema = z.looseObject({
   navigation: z.array(navigationItemSchema, { error: 'navigation 必须是数组' }).optional(),
 });
 
-const modularConfigSchema = z.looseObject({
+const modularConfigSchema = z.strictObject({
   site: siteConfigSchema,
   fonts: fontsSchema.optional(),
   profile: profileSchema.optional(),

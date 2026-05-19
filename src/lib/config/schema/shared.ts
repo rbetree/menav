@@ -35,13 +35,13 @@ const socialItemSchema = z.looseObject({
   icon: optionalTrimmedStringSchema('icon'),
 });
 
-const navigationSubmenuItemSchema = z.looseObject({
+const navigationSubmenuItemSchema = z.strictObject({
   name: optionalTrimmedStringSchema('name'),
   icon: optionalTrimmedStringSchema('icon'),
   slug: optionalTrimmedStringSchema('slug'),
 });
 
-const navigationItemSchema = z.looseObject({
+const navigationItemSchema = z.strictObject({
   id: z.string({ error: 'id 必须是字符串' }).trim().min(1, { error: 'id 不能为空' }),
   name: optionalTrimmedStringSchema('name'),
   icon: optionalTrimmedStringSchema('icon'),

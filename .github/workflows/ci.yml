@@ -39,6 +39,10 @@ jobs:
         with:
           filters: |
             browser_contract:
+              - 'assets/style.css'
+              - 'assets/styles/**'
+              - 'assets/pinyin-match.ts'
+              - 'config/_default/**'
               - 'src/components/**'
               - 'src/layouts/**'
               - 'src/pages/**'
@@ -46,13 +50,17 @@ jobs:
               - 'src/runtime/**'
               - 'src/lib/site-model/**'
               - 'src/lib/view-data/**'
+              - 'scripts/lib/public-assets.ts'
+              - 'scripts/lib/runtime-bundle.ts'
               - 'scripts/lib/search-index-assets.ts'
+              - 'scripts/build-runtime.ts'
               - 'scripts/prepare-astro-public.ts'
+              - 'test/browser/**'
 
       - name: Install Playwright browsers
-        if: ${{ steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract) }}
+        if: ${{ github.repository == 'rbetree/menav' && (steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract)) }}
         run: npx playwright install --with-deps chromium
 
       - name: Browser contract
-        if: ${{ steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract) }}
+        if: ${{ github.repository == 'rbetree/menav' && (steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract)) }}
         run: npm run check:browser

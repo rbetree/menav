@@ -1,2 +1,5 @@
 /* Utilities & Legacy Consolidation Layer */
+@import './_category.css';
+@import './_github-heatmap.css';
+@import './_responsive.css';
 @import './_main.css';

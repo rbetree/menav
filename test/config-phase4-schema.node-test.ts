@@ -91,6 +91,68 @@ test('Phase 4：默认配置应通过 YAML schema', () => {
   assert.deepEqual(issues, []);
 });
 
+test('Phase 4：site、页面顶层和 navigation 应拒绝未知字段', () => {
+  const issues = getConfigValidationErrors({
+    site: {
+      title: 'Test',
+      typo_title: '拼写错误',
+    },
+    navigation: [
+      {
+        id: 'common',
+        name: '常用',
+        extraNav: true,
+      },
+    ],
+    pages: {
+      common: {
+        title: '常用',
+        template: 'page',
+        extraPage: true,
+        categories: [],
+      },
+    },
+  });
+
+  assert.deepEqual(
+    issues.map((issue) => `${issue.path}: ${issue.message}`),
+    [
+      'site.typo_title: 不支持的字段：typo_title',
+      'navigation[0].extraNav: 不支持的字段：extraNav',
+      'pages.common.extraPage: 不支持的字段：extraPage',
+    ]
+  );
+});
+
+test('Phase 4：sites 与分类节点应继续容忍扩展元数据', () => {
+  const issues = getConfigValidationErrors({
+    site: {},
+    navigation: [{ id: 'common', name: '常用' }],
+    pages: {
+      common: {
+        title: '常用',
+        template: 'page',
+        categories: [
+          {
+            name: '工具',
+            customMeta: { owner: 'test' },
+            sites: [
+              {
+                name: 'Example',
+                url: 'https://example.com',
+                stars: 42,
+                tags: ['dev'],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(issues, []);
+});
+
 test('Phase 4：config/user 完全替换策略不从 _default 补齐页面', () => {
   withTempCwd(() => {
     fs.mkdirSync('config/_default/pages', { recursive: true });

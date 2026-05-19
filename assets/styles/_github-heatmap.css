@@ -1,0 +1,325 @@
+/* projects：GitHub 热力图（github-calendar.js，底部展示） */
+.page-template-projects .gh-heatmap-category {
+  /* 外层已复用一级分类卡片（.category），这里仅保留热力图内部布局/色阶 */
+  --gh-text: var(--text-color);
+  --gh-text-muted: var(--text-muted);
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
+  --gh-radius: 3px;
+
+  margin: 0 auto 1.2rem auto;
+}
+
+.page-template-projects .gh-heatmap-wrapper {
+  margin-top: 0;
+}
+
+/* 浅色主题：更接近 GitHub 原色阶 */
+html.theme-preload .page-template-projects .gh-heatmap-category,
+html.light-theme .page-template-projects .gh-heatmap-category {
+  /* 浅色主题下，空格子需要比背景更明显一点 */
+  --gh-level-0: var(--gh-level-0-token);
+  --gh-level-1: var(--gh-level-1-token);
+  --gh-level-2: var(--gh-level-2-token);
+  --gh-level-3: var(--gh-level-3-token);
+  --gh-level-4: var(--gh-level-4-token);
+}
+
+/* 标题中的用户名（@xxx）更弱化一点，像副标题 */
+.page-template-projects .gh-heatmap-username {
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 0.35rem;
+}
+
+/* 使用一级分类标题的排版节奏，略收紧热力图区域 */
+.page-template-projects .gh-heatmap-category .category-header {
+  margin-bottom: 0.8rem;
+}
+
+/* 标题行：左侧标题 + 右侧 legend（不占内容区高度） */
+.page-template-projects .gh-heatmap-category .gh-heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.page-template-projects .gh-heatmap-category .gh-heatmap-header h2 {
+  margin: 0;
+}
+
+/* 让 legend 与标题体系保持一致：放在标题区右侧 */
+.page-template-projects .gh-heatmap-category .gh-legend {
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.page-template-projects .gh-header {
+  display: none;
+}
+
+.page-template-projects .gh-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--gh-text-muted);
+  white-space: nowrap;
+}
+
+/* heatmap：移动端标题/legend 文本简写 */
+.gh-text-mobile {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .gh-text-desktop {
+    display: none;
+  }
+
+  .gh-text-mobile {
+    display: inline;
+  }
+
+  .page-template-projects .gh-heatmap-category .gh-heatmap-header {
+    flex-wrap: wrap;
+  }
+
+  .page-template-projects .gh-heatmap-category .gh-legend {
+    gap: 2px;
+    font-size: 0.7rem;
+  }
+
+  .page-template-projects .gh-legend-item {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+.page-template-projects .gh-legend-item {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.page-template-projects .gh-legend .level-0 {
+  background-color: var(--gh-level-0);
+}
+
+.page-template-projects .gh-legend .level-1 {
+  background-color: var(--gh-level-1);
+}
+
+.page-template-projects .gh-legend .level-2 {
+  background-color: var(--gh-level-2);
+}
+
+.page-template-projects .gh-legend .level-3 {
+  background-color: var(--gh-level-3);
+}
+
+.page-template-projects .gh-legend .level-4 {
+  background-color: var(--gh-level-4);
+}
+
+/* github-calendar 注入的内容容器 */
+.page-template-projects .gh-calendar {
+  border: none !important;
+  min-height: 0;
+  width: 100%;
+  /* 构建期注入：避免 flex 居中导致内容超宽“撑破卡片” */
+  display: block;
+}
+
+/* 顶部统计标题：XXX contributions in the last year */
+.page-template-projects .gh-calendar #js-contribution-activity-description {
+  /* 注意：全局 .category h2 会把 h2 设为 flex，导致“看起来左对齐”。这里强制回退为 block。 */
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin: 0 0 12px 0;
+}
+
+/* 外层包裹：强制占满卡片宽度，滚动发生在内部 */
+.page-template-projects .gh-calendar .graph-before-activity-overview {
+  width: 100%;
+}
+
+/* 允许移动端横向滚动查看（GitHub 风格） */
+.page-template-projects .gh-calendar .js-calendar-graph {
+  width: 100%;
+  /* 构建期注入 GitHub 原生 table：滚动交给内层容器，避免裁剪 */
+  display: block;
+}
+
+/* GitHub 原生 markup：通常在 .js-calendar-graph 内有一个 div 设置 overflow-x */
+.page-template-projects .gh-calendar .js-calendar-graph > div {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* 由 table 的 margin:auto 来实现“可居中 + 可滚动时左对齐起始列” */
+  display: block;
+  padding-bottom: 10px;
+}
+
+.page-template-projects .gh-calendar .js-calendar-graph-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* 覆盖每个方块的颜色（依赖 github-calendar 的 data-level） */
+.page-template-projects .gh-calendar .day {
+  rx: var(--gh-radius);
+  ry: var(--gh-radius);
+  outline: none;
+}
+
+.page-template-projects .gh-calendar .day[data-level='0'] {
+  fill: var(--gh-level-0);
+}
+
+.page-template-projects .gh-calendar .day[data-level='1'] {
+  fill: var(--gh-level-1);
+}
+
+.page-template-projects .gh-calendar .day[data-level='2'] {
+  fill: var(--gh-level-2);
+}
+
+.page-template-projects .gh-calendar .day[data-level='3'] {
+  fill: var(--gh-level-3);
+}
+
+.page-template-projects .gh-calendar .day[data-level='4'] {
+  fill: var(--gh-level-4);
+}
+
+.page-template-projects .gh-calendar text {
+  fill: var(--gh-text-muted);
+  font-size: 10px;
+}
+
+/* 去掉库自带 footer（更简洁） */
+.page-template-projects .gh-calendar .contrib-footer {
+  display: none !important;
+}
+
+.page-template-projects .gh-calendar.gh-calendar-error {
+  color: var(--gh-text-muted);
+  font-size: 0.85rem;
+}
+
+/* github-calendar（HTML table 版）：适配 ContributionCalendar-* 类名 */
+.page-template-projects .gh-calendar table {
+  /* 让热力图在卡片内尽量铺满宽度；需要时仍可横向滚动 */
+  /* 关键：避免 table 按列拉伸导致 day 变成长方形 */
+  display: table;
+  /* 不强制占满：保持自然宽度，并在容器内居中 */
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 5px !important;
+  /* table 未超宽时居中；超宽时 margin auto 会退化为 0（滚动起始列左对齐） */
+  margin: 0 auto;
+}
+
+/* GitHub 原生 table：thead 行内写死 height:15px，需强制更高以避免月份 label 压到格子 */
+.page-template-projects .gh-calendar table thead tr {
+  height: 20px !important;
+}
+
+/* GitHub 原生 table 的月份 label 使用 absolute 定位，需要为 thead 行预留高度，避免与格子重叠 */
+.page-template-projects .gh-calendar .ContributionCalendar-label {
+  height: 16px;
+  position: relative;
+  padding-bottom: 4px;
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: 400;
+  vertical-align: bottom;
+}
+
+@media (max-width: 600px) {
+  /* 移动端：格子更紧凑，减少横向滚动压力 */
+  .page-template-projects .gh-calendar table {
+    border-spacing: 3px !important;
+  }
+
+  .page-template-projects .gh-calendar .ContributionCalendar-day {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+  }
+
+  .page-template-projects .gh-calendar #js-contribution-activity-description {
+    font-size: 0.95rem;
+  }
+}
+
+/* GitHub 原生 footer：保留“Learn how we count contributions”，隐藏右侧自带 legend（避免与自定义 legend 重复） */
+.page-template-projects .gh-calendar .float-right.color-fg-muted.d-flex.flex-items-center {
+  display: none !important;
+}
+
+/* 按需求：去除 “Learn how we count contributions” */
+.page-template-projects .gh-calendar .float-left {
+  display: none !important;
+}
+
+/* Link--muted 目前不展示（float-left 已隐藏）；保留基础链接色由下方 a 规则兜底 */
+
+.page-template-projects .gh-calendar .ContributionCalendar-day {
+  /* 固定正方形，防止被 table 列宽拉伸 */
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  min-height: 15px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--gh-radius);
+  background-color: var(--gh-level-0);
+}
+
+.page-template-projects .gh-calendar .ContributionCalendar-day[data-level='0'] {
+  background-color: var(--gh-level-0) !important;
+}
+
+.page-template-projects .gh-calendar .ContributionCalendar-day[data-level='1'] {
+  background-color: var(--gh-level-1) !important;
+}
+
+.page-template-projects .gh-calendar .ContributionCalendar-day[data-level='2'] {
+  background-color: var(--gh-level-2) !important;
+}
+
+.page-template-projects .gh-calendar .ContributionCalendar-day[data-level='3'] {
+  background-color: var(--gh-level-3) !important;
+}
+
+.page-template-projects .gh-calendar .ContributionCalendar-day[data-level='4'] {
+  background-color: var(--gh-level-4) !important;
+}
+
+/* a11y 跳转链接：视觉隐藏（保留可访问性） */
+.page-template-projects .gh-calendar a[href^='#year-list'],
+.page-template-projects .gh-calendar a[href*='year-list'],
+.page-template-projects .gh-calendar a[href*='contributions-year'] {
+  /* GitHub 注入的 "Skip to contributions year list"（常见为 show-on-focus） */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
