@@ -10,6 +10,8 @@ interface Props {
   name?: string;
   url?: string;
   icon?: string;
+  faviconUrl?: string;
+  forceIconMode?: string;
 }
 
 const {
@@ -18,14 +20,19 @@ const {
   name = '',
   url = '',
   icon = 'fas fa-link',
+  faviconUrl = '',
+  forceIconMode = '',
 } = Astro.props;
-const faviconUrl = site.faviconUrl || '';
-const forceIconMode = site.forceIconMode || '';
+const resolvedFaviconUrl = faviconUrl || site.faviconUrl || '';
+const resolvedForceIconMode = forceIconMode || site.forceIconMode || '';
 const iconsMode = renderContext.icons.mode;
-const shouldUseFavicon = forceIconMode ? forceIconMode === 'favicon' : iconsMode === 'favicon';
+const shouldUseFavicon = resolvedForceIconMode
+  ? resolvedForceIconMode === 'favicon'
+  : iconsMode === 'favicon';
 const canUseGeneratedFavicon = shouldUseFavicon && isHttpUrl(url);
 const src =
-  faviconUrl || (canUseGeneratedFavicon ? getFaviconV2Url(url, renderContext.icons.region) : '');
+  resolvedFaviconUrl ||
+  (canUseGeneratedFavicon ? getFaviconV2Url(url, renderContext.icons.region) : '');
 const fallback = canUseGeneratedFavicon
   ? getFaviconFallbackUrl(url, renderContext.icons.region)
   : '';

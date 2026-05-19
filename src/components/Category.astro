@@ -10,26 +10,20 @@ interface Props {
   category?: CategoryItem;
   level?: number;
   renderContext?: RenderContext;
-  siteCardStyle?: string;
 }
 
-const {
-  category = {},
-  level = 1,
-  renderContext = DEFAULT_RENDER_CONTEXT,
-  siteCardStyle = '',
-} = Astro.props;
+const { category = {}, level = 1, renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 const categoryLevel = category.level || level || 1;
 const headingLevel = Math.min(categoryLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
 const id = category.slug || category.name;
 const subcategories = Array.isArray(category.subcategories) ? category.subcategories : [];
 const groups = Array.isArray(category.groups) ? category.groups : [];
-const sites = Array.isArray(category.sites) ? category.sites : [];
+const cards = Array.isArray(category.cards) ? category.cards : [];
 const hasSubcategories = subcategories.length > 0;
 const hasGroups = groups.length > 0;
-const hasSites = sites.length > 0;
-const isToggleable = hasSubcategories || hasGroups || hasSites;
+const hasCards = cards.length > 0;
+const isToggleable = hasSubcategories || hasGroups || hasCards;
 ---
 
 <section
@@ -65,7 +59,6 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
               category={subCategory}
               level={categoryLevel + 1}
               renderContext={renderContext}
-              siteCardStyle={siteCardStyle}
             />
           ))}
         </div>
@@ -76,22 +69,22 @@ const isToggleable = hasSubcategories || hasGroups || hasSites;
       hasGroups && (
         <div class="groups-container" data-container="groups">
           {groups.map((group) => (
-            <Group group={group} renderContext={renderContext} siteCardStyle={siteCardStyle} />
+            <Group group={group} renderContext={renderContext} />
           ))}
         </div>
       )
     }
 
     {
-      hasSites && (
+      hasCards && (
         <div class="sites-grid" data-container="sites">
-          {sites.map((site) => (
-            <SiteCard site={site} renderContext={renderContext} style={siteCardStyle} />
+          {cards.map((card) => (
+            <SiteCard card={card} renderContext={renderContext} />
           ))}
         </div>
       )
     }
 
-    {!hasSubcategories && !hasGroups && !hasSites && <p class="empty-content">暂无内容</p>}
+    {!hasSubcategories && !hasGroups && !hasCards && <p class="empty-content">暂无内容</p>}
   </div>
 </section>

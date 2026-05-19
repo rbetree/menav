@@ -1,4 +1,4 @@
-import type { CardType, CardViewModel } from '../../types/model';
+import type { CardType, CardViewModel } from '../../types/card';
 import type { RenderContext } from '../../types/render';
 import type { SiteItem } from '../../types/site';
 import { extractDomain, getSafeUrl } from '../view-data/view-utils.ts';

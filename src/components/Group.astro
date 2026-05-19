@@ -9,23 +9,17 @@ interface Props {
   group?: GroupItem;
   level?: number;
   renderContext?: RenderContext;
-  siteCardStyle?: string;
 }
 
-const {
-  group = {},
-  level = 3,
-  renderContext = DEFAULT_RENDER_CONTEXT,
-  siteCardStyle = '',
-} = Astro.props;
+const { group = {}, level = 3, renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 const groupLevel = group.level || level || 3;
 const headingLevel = Math.min(groupLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
 const subgroups = Array.isArray(group.subgroups) ? group.subgroups : [];
-const sites = Array.isArray(group.sites) ? group.sites : [];
+const cards = Array.isArray(group.cards) ? group.cards : [];
 const hasSubgroups = subgroups.length > 0;
-const hasSites = sites.length > 0;
-const isToggleable = hasSubgroups || hasSites;
+const hasCards = cards.length > 0;
+const isToggleable = hasSubgroups || hasCards;
 ---
 
 <div
@@ -54,27 +48,22 @@ const isToggleable = hasSubgroups || hasSites;
       hasSubgroups && (
         <div class="subgroups-container" data-container="subgroups">
           {subgroups.map((subgroup) => (
-            <Group
-              group={subgroup}
-              level={4}
-              renderContext={renderContext}
-              siteCardStyle={siteCardStyle}
-            />
+            <Group group={subgroup} level={4} renderContext={renderContext} />
           ))}
         </div>
       )
     }
 
     {
-      hasSites && (
+      hasCards && (
         <div class="sites-grid" data-container="sites">
-          {sites.map((site) => (
-            <SiteCard site={site} renderContext={renderContext} style={siteCardStyle} />
+          {cards.map((card) => (
+            <SiteCard card={card} renderContext={renderContext} />
           ))}
         </div>
       )
     }
 
-    {!hasSubgroups && !hasSites && <p class="empty-content">暂无网站</p>}
+    {!hasSubgroups && !hasCards && <p class="empty-content">暂无网站</p>}
   </div>
 </div>

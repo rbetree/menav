@@ -43,7 +43,7 @@ const pageConfigSchema = z.looseObject({
     })
     .optional(),
   categories: z.array(categoryNodeSchema, { error: 'categories 必须是数组' }).optional(),
-  sites: z.array(siteItemSchema, { error: 'sites 必须是数组' }).optional(),
+  sites: z.never({ error: '页面顶层 sites 已不支持，请改为 categories[].sites' }).optional(),
   content: contentPageSchema.optional(),
 });
 

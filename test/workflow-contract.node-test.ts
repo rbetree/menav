@@ -34,8 +34,14 @@ test('ci workflow：默认使用快速 check，并按路径变更触发浏览器
   assert.ok(ciWorkflow.includes('npm run check'));
   assert.ok(ciWorkflow.includes('dorny/paths-filter'));
   assert.ok(ciWorkflow.includes('src/components/**'));
+  assert.ok(ciWorkflow.includes('src/layouts/**'));
+  assert.ok(ciWorkflow.includes('src/pages/**'));
+  assert.ok(ciWorkflow.includes('src/lib/search-index/**'));
   assert.ok(ciWorkflow.includes('src/runtime/**'));
   assert.ok(ciWorkflow.includes('src/lib/site-model/**'));
+  assert.ok(ciWorkflow.includes('src/lib/view-data/**'));
+  assert.ok(ciWorkflow.includes('scripts/lib/search-index-assets.ts'));
+  assert.ok(ciWorkflow.includes('scripts/prepare-astro-public.ts'));
   assert.ok(ciWorkflow.includes('npx playwright install --with-deps chromium'));
   assert.ok(ciWorkflow.includes('npm run check:browser'));
   assert.equal(ciWorkflow.includes('npm run lint'), false);

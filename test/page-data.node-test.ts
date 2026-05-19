@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
+const { getConfigValidationErrors } = require('../src/lib/config/index.ts');
 const { prepareTestPageData, prepareTestSiteRenderData } = require('./helpers/site-model.ts');
 
 function withRepoRoot(fn) {
@@ -81,49 +82,23 @@ test('friends/articles：应保留分类展示数据结构', () => {
   });
 });
 
-test('friends/articles：页面配置使用顶层 sites 时应自动映射为分类容器', () => {
-  withRepoRoot(() => {
-    const config = {
-      site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
-      profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
-      social: [],
-      navigation: [
-        { id: 'home', name: '首页', icon: 'fas fa-home' },
-        { id: 'friends', name: '朋友', icon: 'fas fa-users' },
-        { id: 'articles', name: '文章', icon: 'fas fa-book' },
-      ],
-      home: { title: 'HOME', subtitle: 'HOME_SUB', template: 'page', categories: [] },
+test('页面顶层 sites：应作为无效配置提示改用 categories[].sites', () => {
+  const issues = getConfigValidationErrors({
+    site: {},
+    navigation: [{ id: 'friends', name: '朋友' }],
+    pages: {
       friends: {
         title: '友情链接',
-        subtitle: '朋友们',
         template: 'page',
-        sites: [
-          { name: 'Example', url: 'https://example.com', icon: 'fas fa-link', description: 'desc' },
-        ],
+        sites: [{ name: 'Example', url: 'https://example.com' }],
       },
-      articles: {
-        title: '文章',
-        subtitle: '文章入口',
-        template: 'articles',
-        sites: [
-          {
-            name: 'Article A',
-            url: 'https://example.com/a',
-            icon: 'fas fa-link',
-            description: 'summary',
-          },
-        ],
-      },
-    };
-
-    const friends = prepareTestPageData('friends', config).data;
-    const articles = prepareTestPageData('articles', config).data;
-
-    assert.equal(friends.categories[0].name, '全部友链');
-    assert.equal(friends.categories[0].sites[0].name, 'Example');
-    assert.equal(articles.categories[0].name, '全部来源');
-    assert.equal(articles.categories[0].sites[0].name, 'Article A');
+    },
   });
+
+  assert.deepEqual(
+    issues.map((issue) => `${issue.path}: ${issue.message}`),
+    ['pages.friends.sites: 页面顶层 sites 已不支持，请改为 categories[].sites']
+  );
 });
 
 test('缺少 friends 页面配置时：仍应准备页面数据（标题回退为导航名称）', () => {

@@ -1,7 +1,7 @@
 import type { NavigationItem, ResolvedConfig } from '../../types/config';
 import type { CategoryItem, PageData, PageEntry, PageRegistryItem } from '../../types/page';
+import type { CardViewModel } from '../../types/card';
 import type {
-  CardViewModel,
   MenavRuntimeConfig,
   SiteExternalData,
   SiteModel,
@@ -82,26 +82,6 @@ function applyHomePageTitles(data: PageData, pageId: string, config: ResolvedCon
   data.isHome = pageId === config.homePageId;
 }
 
-function convertTopLevelSitesToCategory(data: PageData, pageId: string, templateName: string): void {
-  const isFriendsPage = pageId === 'friends' || templateName === 'friends';
-  const isArticlesPage = pageId === 'articles' || templateName === 'articles';
-
-  if (
-    (isFriendsPage || isArticlesPage) &&
-    (!Array.isArray(data.categories) || data.categories.length === 0) &&
-    Array.isArray(data.sites) &&
-    data.sites.length > 0
-  ) {
-    data.categories = [
-      {
-        name: isFriendsPage ? '全部友链' : '全部来源',
-        icon: 'fas fa-link',
-        sites: data.sites,
-      },
-    ];
-  }
-}
-
 function applyPageKindData(
   data: PageData,
   pageId: string,
@@ -122,8 +102,6 @@ function applyPageKindData(
       applyRepoMetaToCategories(data.categories, projectExternal.repoMetaMap);
     }
   }
-
-  convertTopLevelSitesToCategory(data, pageId, templateName);
 
   if (templateName === 'articles') {
     const articleExternal = externalData.articles?.[pageId];
@@ -175,93 +153,87 @@ function preparePageData(
   return { data, templateName };
 }
 
-function collectCategoryCards(
+function assignCardsToCategory(
   pageId: string,
   category: CategoryItem,
-  output: CardViewModel[],
   config: ResolvedConfig,
   style = '',
-  parentPath: string[] = []
-): void {
+  parentPath: string[] = [],
+  type?: 'site' | 'article'
+): CardViewModel[] {
+  const output: CardViewModel[] = [];
   const categoryName = normalizeText(category.name);
   const categoryId = normalizeText(category.slug) || categoryName;
   const categoryPath = categoryName ? [...parentPath, categoryName] : parentPath;
+  const sites = Array.isArray(category.sites)
+    ? category.sites
+    : Array.isArray(category.items)
+      ? category.items
+      : [];
 
   if (Array.isArray(category.subcategories)) {
-    category.subcategories.forEach((child) =>
-      collectCategoryCards(pageId, child, output, config, style, categoryPath)
-    );
-  }
-  if (Array.isArray(category.groups)) {
-    category.groups.forEach((child) =>
-      collectCategoryCards(pageId, child, output, config, style, categoryPath)
-    );
-  }
-  if (Array.isArray(category.subgroups)) {
-    category.subgroups.forEach((child) =>
-      collectCategoryCards(pageId, child, output, config, style, categoryPath)
-    );
-  }
-  if (Array.isArray(category.sites)) {
-    category.sites.forEach((site) => {
-      const card = toCardViewModel({
-        pageId,
-        site: site as SiteItem,
-        renderContext: config.renderContext,
-        style,
-        categoryId,
-        categoryName,
-        categoryPath,
-      });
-      if (card) output.push(card);
+    category.subcategories.forEach((child) => {
+      output.push(...assignCardsToCategory(pageId, child, config, style, categoryPath, type));
     });
   }
+  if (Array.isArray(category.groups)) {
+    category.groups.forEach((child) => {
+      output.push(...assignCardsToCategory(pageId, child, config, style, categoryPath, type));
+    });
+  }
+  if (Array.isArray(category.subgroups)) {
+    category.subgroups.forEach((child) => {
+      output.push(...assignCardsToCategory(pageId, child, config, style, categoryPath, type));
+    });
+  }
+  if (sites.length > 0) {
+    category.cards = sites
+      .map((site) =>
+        toCardViewModel({
+          pageId,
+          site: site as SiteItem,
+          renderContext: config.renderContext,
+          type,
+          style,
+          categoryId,
+          categoryName,
+          categoryPath,
+        })
+      )
+      .filter((card): card is CardViewModel => Boolean(card));
+    output.push(...category.cards);
+  } else {
+    category.cards = [];
+  }
+
+  return output;
 }
 
-function collectSearchSourcesForPage(page: PageEntry, config: ResolvedConfig): CardViewModel[] {
+function assignCardsToPage(page: PageEntry, config: ResolvedConfig): CardViewModel[] {
   const data = page.data || {};
-  const output: CardViewModel[] = [];
-  if (page.id === 'search-results') return output;
+  const style = normalizeText(data.siteCardStyle);
+
+  if (page.id === 'search-results') return [];
 
   if (page.templateName === 'articles' && Array.isArray(data.articlesItems)) {
-    const style = normalizeText(data.siteCardStyle);
     const articlesCategories = Array.isArray(data.articlesCategories) ? data.articlesCategories : [];
     if (articlesCategories.length > 0) {
-      articlesCategories.forEach((category) => {
-        const categoryName = normalizeText(category.name) || '最新文章';
-        const categoryId = normalizeText(category.slug) || categoryName;
-        const items = Array.isArray(category.items) ? category.items : [];
-        items.forEach((site) => {
-          const card = toCardViewModel({
-            pageId: page.id,
-            site: site as SiteItem,
-            renderContext: config.renderContext,
-            type: 'article',
-            style,
-            categoryId,
-            categoryName,
-            categoryPath: [categoryName],
-          });
-          if (card) output.push(card);
+      const articleCards = articlesCategories.flatMap((category) =>
+        assignCardsToCategory(page.id, category, config, style, [], 'article')
+      );
+      if (Array.isArray(data.categories)) {
+        data.categories.forEach((category) => {
+          assignCardsToCategory(page.id, category, config, style, [], undefined);
         });
-      });
-      return output;
+      }
+      return articleCards;
     }
   }
 
-  if (Array.isArray(data.categories)) {
-    data.categories.forEach((category) => {
-      collectCategoryCards(
-        page.id,
-        category,
-        output,
-        config,
-        normalizeText(data.siteCardStyle),
-        []
-      );
-    });
-  }
-  return output;
+  if (!Array.isArray(data.categories)) return [];
+  return data.categories.flatMap((category) =>
+    assignCardsToCategory(page.id, category, config, style, [], undefined)
+  );
 }
 
 function buildRuntimeConfig(
@@ -339,7 +311,7 @@ function buildSiteModel(input: SiteModelInput | ResolvedConfig): SiteModel {
     },
   });
 
-  const searchSources = pages.flatMap((page) => collectSearchSourcesForPage(page, config));
+  const searchSources = pages.flatMap((page) => assignCardsToPage(page, config));
   const runtimeConfig = buildRuntimeConfig(config, pageRegistry, pageTemplates, meta);
 
   return {
@@ -358,7 +330,6 @@ function buildSiteModel(input: SiteModelInput | ResolvedConfig): SiteModel {
 
 export {
   buildSiteModel,
-  collectSearchSourcesForPage,
   prepareNavigationData,
   preparePageData,
 };

@@ -40,9 +40,14 @@ jobs:
           filters: |
             browser_contract:
               - 'src/components/**'
+              - 'src/layouts/**'
+              - 'src/pages/**'
+              - 'src/lib/search-index/**'
               - 'src/runtime/**'
               - 'src/lib/site-model/**'
               - 'src/lib/view-data/**'
+              - 'scripts/lib/search-index-assets.ts'
+              - 'scripts/prepare-astro-public.ts'
 
       - name: Install Playwright browsers
         if: ${{ steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract) }}

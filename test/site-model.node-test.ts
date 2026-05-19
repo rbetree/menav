@@ -39,6 +39,51 @@ function makeConfig() {
   return config;
 }
 
+function makeCardConfig() {
+  const config = {
+    site: {
+      title: 'Test',
+      description: '',
+      author: '',
+      favicon: 'menav.svg',
+      logo_text: 'Test',
+      security: { allowedSchemes: ['https:'] },
+    },
+    fonts: {},
+    profile: { title: 'Profile', subtitle: 'Sub' },
+    social: [],
+    icons: { mode: 'favicon', region: 'com' },
+    navigation: [{ id: 'projects', name: '项目', icon: 'fas fa-code' }],
+    pages: {
+      projects: {
+        title: '项目',
+        template: 'projects',
+        categories: [
+          {
+            name: 'Repos',
+            icon: 'fas fa-code',
+            sites: [
+              {
+                name: 'Zero Repo',
+                url: 'javascript:alert(1)',
+                icon: 'fas fa-code',
+                description: 'Zero stats',
+                external: false,
+                stars: 0,
+                forks: 0,
+                issues: 0,
+              },
+            ],
+          },
+        ],
+      },
+    },
+  };
+  config.homePageId = 'projects';
+  config.renderContext = createRenderContext(config);
+  return config;
+}
+
 test('SiteModel：hidden 页面可访问但不出现在侧边栏导航', () => {
   const model = buildSiteModel({
     config: makeConfig(),
@@ -65,4 +110,19 @@ test('SiteModel：search-results 只由模型层合成', () => {
 
   assert.equal(searchPages.length, 1);
   assert.equal(model.config.pages['search-results'], undefined);
+});
+
+test('SiteModel：页面卡片与 searchSources 复用同一归一化结果', () => {
+  const model = buildSiteModel(makeCardConfig());
+  const projects = model.pages.find((page) => page.id === 'projects');
+  const renderedCard = projects.data.categories[0].cards[0];
+  const searchCard = model.searchSources.find((card) => card.title === 'Zero Repo');
+
+  assert.equal(renderedCard, searchCard);
+  assert.equal(renderedCard.safeUrl, '#');
+  assert.equal(renderedCard.external, false);
+  assert.equal(renderedCard.style, 'repo');
+  assert.equal(renderedCard.stars, 0);
+  assert.equal(renderedCard.forks, 0);
+  assert.equal(renderedCard.issues, 0);
 });

@@ -1,4 +1,5 @@
 import type { NavigationItem } from './config';
+import type { CardViewModel } from './card';
 import type { CategoryItem as SchemaCategoryItem } from '../lib/config/schema/page';
 import type { SiteItem } from './site';
 
@@ -8,8 +9,13 @@ export interface PageMeta {
   [key: string]: unknown;
 }
 
-export type GroupItem = SchemaCategoryItem;
-export type CategoryItem = SchemaCategoryItem;
+export type CategoryItem = SchemaCategoryItem & {
+  cards?: CardViewModel[];
+  subcategories?: CategoryItem[];
+  groups?: CategoryItem[];
+  subgroups?: CategoryItem[];
+};
+export type GroupItem = CategoryItem;
 
 export interface PageData {
   pageId?: string;

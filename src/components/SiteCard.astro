@@ -1,56 +1,38 @@
 ---
 import CardIcon from './CardIcon.astro';
-import { extractDomain, formatDate, getSafeUrl } from '../lib/view-data/view-utils.ts';
-import { toCardViewModel } from '../lib/site-model/card.ts';
-import type { CardViewModel } from '../types/model';
+import { formatDate } from '../lib/view-data/view-utils.ts';
+import type { CardViewModel } from '../types/card';
 import type { RenderContext } from '../types/render';
 import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
-import type { SiteItem } from '../types/site';
 
 interface Props {
-  site?: SiteItem;
-  card?: CardViewModel;
-  style?: string;
-  type?: string;
+  card: CardViewModel;
   renderContext?: RenderContext;
 }
 
-const {
-  site = {},
-  card = null,
-  style = '',
-  type = '',
-  renderContext = DEFAULT_RENDER_CONTEXT,
-} = Astro.props;
+const { card, renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 
-const cardModel =
-  card ||
-  toCardViewModel({
-    pageId: '',
-    site,
-    renderContext,
-    type: type === 'article' ? 'article' : undefined,
-    style,
-  });
-const cardType = cardModel?.type || type || site.type || 'site';
-const cardStyle = cardModel?.style || style || site.style || '';
-const name = cardModel?.title || site.name || '未命名站点';
-const url = cardModel?.url || site.url || '#';
-const icon = cardModel?.icon || site.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
-const description = cardModel?.description || site.description || extractDomain(url);
-const safeHref = cardModel?.safeUrl || getSafeUrl(url, renderContext.allowedSchemes);
-const faviconUrl = cardModel?.faviconUrl || site.faviconUrl || '';
-const forceIconMode = cardModel?.forceIconMode || site.forceIconMode || '';
-const tooltip = `${name} - ${description || extractDomain(url)}`;
-const useExternal = cardModel?.external ?? site.external;
-const shouldOpenExternal = Boolean(useExternal);
-const publishedAt = cardModel?.publishedAt || site.publishedAt || '';
-const source = cardModel?.source || site.source || '';
-const language = cardModel?.language || site.language || '';
-const languageColor = cardModel?.languageColor || site.languageColor || '';
-const stars = cardModel?.stars ?? site.stars;
-const forks = cardModel?.forks ?? site.forks;
-const issues = cardModel?.issues ?? site.issues;
+const cardType = card.type;
+const cardStyle = card.style || '';
+const name = card.title;
+const url = card.url;
+const icon = card.icon || (cardStyle === 'repo' ? 'fas fa-code' : 'fas fa-link');
+const description = card.description;
+const safeHref = card.safeUrl;
+const faviconUrl = card.faviconUrl || '';
+const forceIconMode = card.forceIconMode || '';
+const tooltip = `${name} - ${description || url}`;
+const shouldOpenExternal = Boolean(card.external);
+const publishedAt = card.publishedAt || '';
+const source = card.source || '';
+const language = card.language || '';
+const languageColor = card.languageColor || '';
+const stars = card.stars;
+const forks = card.forks;
+const issues = card.issues;
+const hasRepoStats = Boolean(
+  language || stars !== undefined || forks !== undefined || issues !== undefined
+);
 ---
 
 {
@@ -74,7 +56,14 @@ const issues = cardModel?.issues ?? site.issues;
       {cardType === 'article' ? (
         <>
           <div class="article-card-header">
-            <CardIcon site={site} renderContext={renderContext} name={name} url={url} icon={icon} />
+            <CardIcon
+              renderContext={renderContext}
+              name={name}
+              url={url}
+              icon={icon}
+              faviconUrl={faviconUrl}
+              forceIconMode={forceIconMode}
+            />
             <div class="article-card-title">
               <h3>{name}</h3>
             </div>
@@ -99,7 +88,7 @@ const issues = cardModel?.issues ?? site.issues;
             <div class="repo-title">{name}</div>
           </div>
           <div class="repo-desc">{description}</div>
-          {(language || stars || forks || issues) && (
+          {hasRepoStats && (
             <div class="repo-stats">
               {language && (
                 <div class="stat-item">
@@ -110,17 +99,17 @@ const issues = cardModel?.issues ?? site.issues;
                   {language}
                 </div>
               )}
-              {stars && (
+              {stars !== undefined && (
                 <div class="stat-item">
                   <i class="far fa-star" aria-hidden="true" /> {stars}
                 </div>
               )}
-              {forks && (
+              {forks !== undefined && (
                 <div class="stat-item">
                   <i class="fas fa-code-branch" aria-hidden="true" /> {forks}
                 </div>
               )}
-              {issues && (
+              {issues !== undefined && (
                 <div class="stat-item">
                   <i class="fas fa-exclamation-circle" aria-hidden="true" /> {issues}
                 </div>
@@ -130,7 +119,14 @@ const issues = cardModel?.issues ?? site.issues;
         </>
       ) : (
         <>
-          <CardIcon site={site} renderContext={renderContext} name={name} url={url} icon={icon} />
+          <CardIcon
+            renderContext={renderContext}
+            name={name}
+            url={url}
+            icon={icon}
+            faviconUrl={faviconUrl}
+            forceIconMode={forceIconMode}
+          />
           <div class="site-card-content">
             <h3>{name}</h3>
             <p>{description}</p>

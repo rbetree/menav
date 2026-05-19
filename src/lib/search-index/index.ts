@@ -1,12 +1,9 @@
-import type { PageEntry } from '../../types/page';
-import type { RenderContext } from '../../types/render';
-import type { CardViewModel, SiteModel } from '../../types/model';
+import type { CardViewModel } from '../../types/card';
+import type { SiteModel } from '../../types/model';
 import type {
   SearchIndexItem,
   SearchIndexPayload,
 } from '../../types/search';
-import { DEFAULT_RENDER_CONTEXT } from '../view-data/render-context.ts';
-import { collectSearchSourcesForPage } from '../site-model/index.ts';
 
 const SEARCH_INDEX_SCHEMA_VERSION = 1;
 const MENAV_SEARCH_INDEX_FILE = 'search-index.json';
@@ -37,26 +34,8 @@ function createSearchIndexItem(card: CardViewModel): SearchIndexItem {
   };
 }
 
-function isSiteModel(value: unknown): value is SiteModel {
-  return Boolean(value && typeof value === 'object' && Array.isArray((value as SiteModel).searchSources));
-}
-
-function buildSearchIndex(
-  input: SiteModel | PageEntry[],
-  renderContext: RenderContext = DEFAULT_RENDER_CONTEXT
-): SearchIndexPayload {
-  const sources = isSiteModel(input)
-    ? input.searchSources
-    : input.flatMap((page) => {
-        if (!page || !page.id || page.id === 'search-results') return [];
-        return collectSearchSourcesForPage(page, {
-          site: {},
-          navigation: [],
-          pages: {},
-          homePageId: '',
-          renderContext,
-        });
-      });
+function buildSearchIndex(model: SiteModel): SearchIndexPayload {
+  const sources = model.searchSources;
   const items = sources.map((source) => createSearchIndexItem(source));
 
   return {

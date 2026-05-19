@@ -1,4 +1,5 @@
 import type { CategoryItem } from '../../types/page';
+import type { RepoMeta } from '../../types/card';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createLogger } from '../logging/logger.ts';
@@ -41,13 +42,6 @@ type ProjectsHeatmapCache = {
     generatedAt: unknown;
     sourceUrl: unknown;
   };
-};
-
-export type RepoMeta = {
-  language: string;
-  languageColor: string;
-  stars: number | null;
-  forks: number | null;
 };
 
 type ProjectsRepoCache = {

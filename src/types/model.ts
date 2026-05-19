@@ -1,35 +1,8 @@
 import type { NavigationItem, ResolvedConfig } from './config';
 import type { PageEntry, PageRegistryItem, PageMeta } from './page';
 import type { RenderContext } from './render';
-import type { RepoMeta } from '../lib/cache/projects';
+import type { CardViewModel, RepoMeta } from './card';
 import type { SiteItem } from './site';
-
-export type CardType = 'site' | 'article';
-
-export type CardViewModel = {
-  pageId: string;
-  title: string;
-  description: string;
-  url: string;
-  safeUrl: string;
-  icon: string;
-  type: CardType;
-  style?: string;
-  faviconUrl?: string;
-  forceIconMode?: string;
-  external?: boolean;
-  categoryId?: string;
-  categoryName?: string;
-  categoryPath?: string[];
-  publishedAt?: string;
-  source?: string;
-  language?: string;
-  languageColor?: string;
-  stars?: number;
-  forks?: number;
-  issues?: number;
-  searchText: string;
-};
 
 export type SiteExternalData = {
   articles?: Record<
