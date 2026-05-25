@@ -44,14 +44,14 @@
   "license": "AGPL-3.0-only",
   "dependencies": {
     "js-yaml": "^4.1.1",
-    "markdown-it": "^14.1.1",
+    "markdown-it": "^14.2.0",
     "rss-parser": "^3.13.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@types/node": "^25.8.0",
-    "astro": "^6.3.3",
+    "@types/node": "^25.9.1",
+    "astro": "^6.3.7",
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
