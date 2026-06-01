@@ -43,7 +43,7 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.2.0",
     "markdown-it": "^14.2.0",
     "rss-parser": "^3.13.0",
     "zod": "^4.4.3"
@@ -51,10 +51,10 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^25.9.1",
-    "astro": "^6.3.7",
+    "astro": "^6.4.2",
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
+    "lint-staged": "^17.0.7",
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
