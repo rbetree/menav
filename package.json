@@ -50,13 +50,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@types/node": "^25.9.2",
-    "astro": "^6.4.4",
-    "esbuild": "^0.28.0",
+    "@types/node": "^25.9.3",
+    "astro": "^6.4.6",
+    "esbuild": "^0.28.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "playwright": "^1.60.0",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
     "serve": "^14.2.6"
   },
