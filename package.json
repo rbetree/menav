@@ -43,7 +43,7 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^5.1.0",
     "markdown-it": "^14.2.0",
     "rss-parser": "^3.13.0",
     "zod": "^4.4.3"
