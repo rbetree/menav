@@ -21,13 +21,18 @@ updates:
         applies-to: security-updates
         patterns:
           - '*'
-      npm-minor-patch:
+      npm-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - patch
+      npm-minor:
         applies-to: version-updates
         patterns:
           - '*'
         update-types:
           - minor
-          - patch
 
   - package-ecosystem: github-actions
     directory: /
@@ -53,10 +58,15 @@ updates:
         applies-to: security-updates
         patterns:
           - '*'
-      github-actions-minor-patch:
+      github-actions-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - patch
+      github-actions-minor:
         applies-to: version-updates
         patterns:
           - '*'
         update-types:
           - minor
-          - patch
