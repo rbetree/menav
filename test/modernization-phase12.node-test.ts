@@ -13,6 +13,10 @@ function exists(relativePath) {
   return fs.existsSync(path.join(repoRoot, relativePath));
 }
 
+function normalizePath(filePath) {
+  return filePath.split(path.sep).join('/');
+}
+
 test('Phase 12：旧 generator 与 lib 兼容入口应删除', () => {
   assert.equal(exists('src/generator.js'), false);
   assert.equal(exists('src/lib/render-data.js'), false);
@@ -29,15 +33,15 @@ test('Phase 12：业务代码不应再引用旧 generator、helpers 或 lib 兼�
     ...fs
       .readdirSync(path.join(repoRoot, 'src'), { recursive: true })
       .filter((file) => typeof file === 'string')
-      .map((file) => path.join('src', file)),
+      .map((file) => normalizePath(path.join('src', file))),
     ...fs
       .readdirSync(path.join(repoRoot, 'scripts'), { recursive: true })
       .filter((file) => typeof file === 'string')
-      .map((file) => path.join('scripts', file)),
+      .map((file) => normalizePath(path.join('scripts', file))),
     ...fs
       .readdirSync(path.join(repoRoot, 'test'), { recursive: true })
       .filter((file) => typeof file === 'string')
-      .map((file) => path.join('test', file)),
+      .map((file) => normalizePath(path.join('test', file))),
   ].filter(
     (file) =>
       file !== 'test/modernization-phase12.node-test.ts' &&
@@ -72,7 +76,9 @@ test('Phase 12：PageRegistryItem 应只有共享类型来源', () => {
   const routerUrl = read('src/runtime/app/router-url.ts');
 
   assert.ok(pageTypes.includes('export interface PageRegistryItem'));
-  assert.ok(siteModel.includes("import type { CategoryItem, PageData, PageEntry, PageRegistryItem }"));
+  assert.ok(
+    siteModel.includes('import type { CategoryItem, PageData, PageEntry, PageRegistryItem }')
+  );
   assert.ok(router.includes("import type { PageRegistryItem } from '../../types/page'"));
   assert.ok(routerUrl.includes("import type { PageRegistryItem } from '../../types/page'"));
   assert.equal(siteModel.includes('type PageRegistryItem ='), false);

@@ -5,11 +5,10 @@ updates:
     directory: /
     target-branch: main
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: '09:00'
       timezone: Asia/Shanghai
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     labels:
       - dependencies
       - npm
@@ -38,11 +37,10 @@ updates:
     directory: /
     target-branch: main
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: '09:15'
       timezone: Asia/Shanghai
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     labels:
       - dependencies
       - github-actions

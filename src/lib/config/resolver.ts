@@ -132,6 +132,10 @@ function warnConfigDiagnostic(message: string, meta?: Record<string, unknown>): 
   log.warn(message, meta);
 }
 
+function toPortablePath(filePath: string): string {
+  return filePath.split(path.sep).join('/');
+}
+
 function warnNavigationPageMismatches(
   config: AnyRecord,
   pageIds: Set<string>,
@@ -149,7 +153,7 @@ function warnNavigationPageMismatches(
   typoPairs.forEach((pair) => {
     warnConfigDiagnostic('navigation id 与页面文件名疑似不一致，页面不会显示或同步', {
       navigationId: pair.navigationId,
-      page: path.join(dirPath, 'pages', `${pair.pageId}.yml`),
+      page: toPortablePath(path.join(dirPath, 'pages', `${pair.pageId}.yml`)),
       suggestion: `将 site.yml 中该导航项 id 改为 ${pair.pageId}，或创建 pages/${pair.navigationId}.yml`,
     });
   });
@@ -158,7 +162,7 @@ function warnNavigationPageMismatches(
   if (unpairedMissingPageIds.length > 0) {
     warnConfigDiagnostic('navigation 页面缺少配置文件，将使用空页面回退', {
       id: unpairedMissingPageIds.join(','),
-      site: path.join(dirPath, 'site.yml'),
+      site: toPortablePath(path.join(dirPath, 'site.yml')),
       suggestion: '创建对应的 pages/<id>.yml，或从 site.yml 的 navigation 中移除该项',
     });
   }
@@ -167,7 +171,9 @@ function warnNavigationPageMismatches(
   if (unpairedHiddenPageIds.length > 0) {
     throw new ConfigError('页面配置未在 navigation 中声明', [
       `未声明页面：${unpairedHiddenPageIds.join(', ')}`,
-      `文件：${unpairedHiddenPageIds.map((id) => path.join(dirPath, 'pages', `${id}.yml`)).join(', ')}`,
+      `文件：${unpairedHiddenPageIds
+        .map((id) => toPortablePath(path.join(dirPath, 'pages', `${id}.yml`)))
+        .join(', ')}`,
       '如需侧边栏显示，请在 site.yml 的 navigation 中添加对应 id',
       '如需隐藏但可通过 ?page=<id> 访问，请在 navigation 中添加该 id 并设置 hidden: true',
       '如不需要该页面，请删除对应 pages/<id>.yml 文件',

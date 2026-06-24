@@ -61,7 +61,8 @@
     "serve": "^14.2.6"
   },
   "overrides": {
-    "brace-expansion": "1.1.12"
+    "brace-expansion": "1.1.13",
+    "esbuild": "$esbuild"
   },
   "lint-staged": {
     "**/*.js": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown",
