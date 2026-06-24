@@ -8,7 +8,7 @@ updates:
       interval: monthly
       time: '09:00'
       timezone: Asia/Shanghai
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     labels:
       - dependencies
       - npm
@@ -20,18 +20,6 @@ updates:
         applies-to: security-updates
         patterns:
           - '*'
-      npm-patch:
-        applies-to: version-updates
-        patterns:
-          - '*'
-        update-types:
-          - patch
-      npm-minor:
-        applies-to: version-updates
-        patterns:
-          - '*'
-        update-types:
-          - minor
 
   - package-ecosystem: github-actions
     directory: /
@@ -40,31 +28,15 @@ updates:
       interval: monthly
       time: '09:15'
       timezone: Asia/Shanghai
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     labels:
       - dependencies
       - github-actions
     commit-message:
       prefix: ci
       include: scope
-    ignore:
-      - dependency-name: '*'
-        update-types:
-          - version-update:semver-major
     groups:
       security-updates:
         applies-to: security-updates
         patterns:
           - '*'
-      github-actions-patch:
-        applies-to: version-updates
-        patterns:
-          - '*'
-        update-types:
-          - patch
-      github-actions-minor:
-        applies-to: version-updates
-        patterns:
-          - '*'
-        update-types:
-          - minor
