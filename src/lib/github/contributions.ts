@@ -1,3 +1,46 @@
+import { sanitizeHtmlFragment, type HtmlSanitizePolicy } from '../security/html.ts';
+
+const GITHUB_CONTRIBUTIONS_HTML_POLICY: HtmlSanitizePolicy = {
+  allowedTags: new Set([
+    'a',
+    'div',
+    'g',
+    'h2',
+    'p',
+    'rect',
+    'span',
+    'svg',
+    'table',
+    'tbody',
+    'td',
+    'text',
+    'th',
+    'thead',
+    'tr',
+  ]),
+  globalAttributes: new Set([
+    'class',
+    'height',
+    'hidden',
+    'id',
+    'role',
+    'tabindex',
+    'title',
+    'width',
+  ]),
+  tagAttributes: {
+    a: new Set(['href']),
+    g: new Set(['transform']),
+    rect: new Set(['height', 'rx', 'ry', 'width', 'x', 'y']),
+    svg: new Set(['height', 'preserveaspectratio', 'viewbox', 'width']),
+    table: new Set(['summary']),
+    td: new Set(['colspan', 'headers', 'rowspan']),
+    text: new Set(['dx', 'dy', 'x', 'y']),
+    th: new Set(['colspan', 'headers', 'rowspan', 'scope']),
+  },
+  uriAttributes: new Set(['href']),
+};
+
 function extractYearlyContributionsInnerHtml(html: string): string | null {
   const source = String(html || '');
   if (!source) return null;
@@ -46,8 +89,10 @@ function extractYearlyContributionsInnerHtml(html: string): string | null {
   const closeStart = outerHtml.lastIndexOf('</div');
   if (openEnd === -1 || closeStart === -1 || closeStart <= openEnd) return null;
 
-  let inner = outerHtml.slice(openEnd + 1, closeStart);
-  inner = inner.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  const inner = sanitizeHtmlFragment(
+    outerHtml.slice(openEnd + 1, closeStart),
+    GITHUB_CONTRIBUTIONS_HTML_POLICY
+  );
 
   return inner.trim() ? inner : null;
 }

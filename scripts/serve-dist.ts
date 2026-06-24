@@ -28,6 +28,12 @@ type ParsedArgs = {
 
 type NodeError = Error & { code?: string };
 
+type SafeStaticPathResult =
+  | { ok: true; filePath: string }
+  | { ok: false; statusCode: 400 | 403; message: string };
+
+const SAFE_STATIC_PATH_SEGMENT_RE = /^[\p{L}\p{N}._~!$&'()+,;=@ -]+$/u;
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -96,6 +102,47 @@ function getContentType(filePath: string): string {
   return 'application/octet-stream';
 }
 
+function isPathInsideRoot(rootDir: string, filePath: string): boolean {
+  const relativePath = path.relative(rootDir, filePath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
+function resolveStaticRequestPath(rootDir: string, rawPath: string): SafeStaticPathResult {
+  if (!rawPath.startsWith('/')) {
+    return { ok: false, statusCode: 403, message: 'Forbidden' };
+  }
+
+  const safeSegments: string[] = [];
+  const rawSegments = rawPath.split('/').filter(Boolean);
+
+  for (const rawSegment of rawSegments) {
+    let segment = '';
+    try {
+      segment = decodeURIComponent(rawSegment);
+    } catch {
+      return { ok: false, statusCode: 400, message: 'Bad Request' };
+    }
+
+    if (
+      !segment ||
+      segment === '.' ||
+      segment === '..' ||
+      !SAFE_STATIC_PATH_SEGMENT_RE.test(segment)
+    ) {
+      return { ok: false, statusCode: 403, message: 'Forbidden' };
+    }
+
+    safeSegments.push(segment);
+  }
+
+  const filePath = path.join(rootDir, ...safeSegments);
+  if (!isPathInsideRoot(rootDir, filePath)) {
+    return { ok: false, statusCode: 403, message: 'Forbidden' };
+  }
+
+  return { ok: true, filePath };
+}
+
 function sendNotFound(res: import('node:http').ServerResponse, rootDir: string): void {
   const fallback404 = path.join(rootDir, '404.html');
   if (fs.existsSync(fallback404)) {
@@ -150,26 +197,15 @@ function buildHandler(
     const rawUrl = req.url || '/';
     const rawPath = rawUrl.split('?')[0] || '/';
 
-    let decodedPath = '/';
-    try {
-      decodedPath = decodeURIComponent(rawPath);
-    } catch {
-      res.statusCode = 400;
+    const safePath = resolveStaticRequestPath(normalizedRoot, rawPath);
+    if (!safePath.ok) {
+      res.statusCode = safePath.statusCode;
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end('Bad Request');
+      res.end(safePath.message);
       return;
     }
 
-    const safePath = decodedPath.replace(/\\/g, '/');
-    const resolved = path.resolve(normalizedRoot, `.${safePath}`);
-    if (!resolved.startsWith(`${normalizedRoot}${path.sep}`) && resolved !== normalizedRoot) {
-      res.statusCode = 403;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end('Forbidden');
-      return;
-    }
-
-    let target = resolved;
+    let target = safePath.filePath;
     try {
       if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
         target = path.join(target, 'index.html');

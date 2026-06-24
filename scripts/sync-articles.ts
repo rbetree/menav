@@ -7,6 +7,7 @@ const Parser = require('rss-parser') as new (options?: Record<string, unknown>) 
 
 import { loadConfig } from '../src/lib/config/index.ts';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { htmlToText } from '../src/lib/security/html.ts';
 
 const log = createLogger('sync:articles');
 
@@ -235,9 +236,7 @@ function isPrivateIp(ip: unknown): boolean {
   const ipText = String(ip);
 
   if (net.isIP(ipText) === 4) {
-    const parts = ipText
-      .split('.')
-      .map((n) => Number.parseInt(n, 10));
+    const parts = ipText.split('.').map((n) => Number.parseInt(n, 10));
     if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n) || n < 0 || n > 255))
       return true;
 
@@ -474,23 +473,7 @@ async function discoverFeedUrl(
 }
 
 function stripHtmlToText(input: unknown): string {
-  const raw = String(input || '');
-  const withoutTags = raw
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<[^>]+>/g, ' ');
-
-  const decoded = withoutTags
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0?39;/g, "'")
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(Number.parseInt(num, 10)));
-
-  return decoded.replace(/\s+/g, ' ').trim();
+  return htmlToText(input);
 }
 
 function truncateText(text: unknown, maxLen: number): string {

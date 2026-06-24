@@ -24,7 +24,19 @@ function makeCssSafeForHtmlStyleTag(cssText: unknown): string {
     return '';
   }
 
-  return cssText.replace(/<\/style/gi, '<\\/style');
+  const lowered = cssText.toLowerCase();
+  let output = '';
+  let cursor = 0;
+  let matchIndex = lowered.indexOf('</style');
+
+  while (matchIndex >= 0) {
+    output += cssText.slice(cursor, matchIndex);
+    output += '<\\/style';
+    cursor = matchIndex + '</style'.length;
+    matchIndex = lowered.indexOf('</style', cursor);
+  }
+
+  return output + cssText.slice(cursor);
 }
 
 function normalizeFontWeight(input: unknown): string {
@@ -40,7 +52,7 @@ function normalizeFontWeight(input: unknown): string {
   if (/^(normal|bold|bolder|lighter)$/i.test(raw)) return raw.toLowerCase();
   if (/^[1-9]00$/.test(raw)) return raw;
 
-  return raw;
+  return 'normal';
 }
 
 function normalizeFontFamilyForCss(input: unknown): string {
@@ -68,17 +80,57 @@ function normalizeFontFamilyForCss(input: unknown): string {
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
-      const unquoted = part.replace(/^["']|["']$/g, '').trim();
+      const unquoted = stripWrappingQuotes(part).trim();
       if (!unquoted) return '';
-      if (generics.has(unquoted)) return unquoted;
+      const lower = unquoted.toLowerCase();
+      if (generics.has(lower)) return lower;
+      if (!isSafeFontFamilyName(unquoted)) return '';
 
-      const needsQuotes = /\s/.test(unquoted);
-      if (!needsQuotes) return unquoted;
+      if (isCssIdentifierFamily(unquoted)) return unquoted;
 
-      return `"${unquoted.replace(/"/g, '\\"')}"`;
+      return `"${escapeCssString(unquoted)}"`;
     })
     .filter(Boolean)
     .join(', ');
+}
+
+function stripWrappingQuotes(input: string): string {
+  if (input.length < 2) return input;
+
+  const first = input[0];
+  const last = input[input.length - 1];
+  if ((first === '"' || first === "'") && first === last) return input.slice(1, -1);
+
+  return input;
+}
+
+function isSafeFontFamilyName(input: string): boolean {
+  if (!input || input.length > 100) return false;
+  return /^[\p{L}\p{N} ._'-]+$/u.test(input);
+}
+
+function isCssIdentifierFamily(input: string): boolean {
+  return /^-?[_A-Za-z][-_A-Za-z0-9]*$/.test(input);
+}
+
+function escapeCssString(input: string): string {
+  let output = '';
+
+  for (const char of input) {
+    if (char === '\\') {
+      output += '\\\\';
+      continue;
+    }
+
+    if (char === '"') {
+      output += '\\"';
+      continue;
+    }
+
+    output += char;
+  }
+
+  return output;
 }
 
 function normalizeFontSource(input: unknown): 'css' | 'google' | 'system' {
@@ -139,7 +191,7 @@ function generateFontLinks(config: FontConfigInput | null | undefined): string {
     links.push('<link rel="preconnect" href="https://fonts.googleapis.com">');
     links.push('<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
 
-    const familyNoQuotes = fonts.family.replace(/[\"']/g, '').split(',')[0].trim();
+    const familyNoQuotes = getPrimaryFontFamilyName(fonts.family);
     const weight = /^[1-9]00$/.test(fonts.weight) ? fonts.weight : '400';
     const familyParam = encodeURIComponent(familyNoQuotes).replace(/%20/g, '+');
     links.push(
@@ -151,6 +203,11 @@ function generateFontLinks(config: FontConfigInput | null | undefined): string {
   }
 
   return links.join('\n');
+}
+
+function getPrimaryFontFamilyName(fontsFamily: string): string {
+  const first = fontsFamily.split(',')[0]?.trim() || '';
+  return stripWrappingQuotes(first).trim();
 }
 
 function generateFontCss(config: FontConfigInput | null | undefined): string {
