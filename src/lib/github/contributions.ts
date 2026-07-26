@@ -3,6 +3,7 @@ import { sanitizeHtmlFragment, type HtmlSanitizePolicy } from '../security/html.
 const GITHUB_CONTRIBUTIONS_HTML_POLICY: HtmlSanitizePolicy = {
   allowedTags: new Set([
     'a',
+    'caption',
     'div',
     'g',
     'h2',
@@ -16,6 +17,7 @@ const GITHUB_CONTRIBUTIONS_HTML_POLICY: HtmlSanitizePolicy = {
     'text',
     'th',
     'thead',
+    'tool-tip',
     'tr',
   ]),
   globalAttributes: new Set([
