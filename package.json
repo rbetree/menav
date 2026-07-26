@@ -51,7 +51,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^26.0.0",
-    "astro": "^6.4.8",
+    "astro": "^7.1.0",
     "esbuild": "^0.28.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
@@ -62,7 +62,11 @@
   },
   "overrides": {
     "brace-expansion": "1.1.13",
-    "esbuild": "$esbuild"
+    "esbuild": "$esbuild",
+    "sharp": "0.35.0",
+    "fast-uri": "3.1.4",
+    "linkify-it": "5.0.2",
+    "svgo": "4.0.2"
   },
   "lint-staged": {
     "**/*.js": "node ./node_modules/prettier/bin/prettier.cjs --write --ignore-unknown",
