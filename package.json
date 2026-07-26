@@ -43,7 +43,7 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^4.3.0",
     "markdown-it": "^14.2.0",
     "rss-parser": "^3.13.0",
     "zod": "^4.4.3"
@@ -61,7 +61,7 @@
     "serve": "^14.2.6"
   },
   "overrides": {
-    "brace-expansion": "1.1.13",
+    "brace-expansion": "1.1.16",
     "esbuild": "$esbuild",
     "sharp": "0.35.0",
     "fast-uri": "3.1.4",
