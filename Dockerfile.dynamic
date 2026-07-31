@@ -1,0 +1,22 @@
+# 动态构建镜像：容器启动时执行构建，适合需要挂载配置并通过重启生效的场景。
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+ENV HUSKY=0
+
+COPY package.json package-lock.json ./
+RUN npm ci && apk add --no-cache nginx
+
+COPY . .
+
+COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+COPY docker/entrypoint-build-and-serve.sh /usr/local/bin/entrypoint-build-and-serve.sh
+RUN chmod +x /usr/local/bin/entrypoint-build-and-serve.sh
+
+EXPOSE 80
+
+STOPSIGNAL SIGQUIT
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-build-and-serve.sh"]

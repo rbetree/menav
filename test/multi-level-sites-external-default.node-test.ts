@@ -66,7 +66,8 @@ test('多级结构下 sites.external 未配置时应默认 true，且 external:f
     const groupSite = config.pages.bookmarks.categories[0].groups[0].sites[0];
     assert.equal(groupSite.external, true);
 
-    const deepSites = config.pages.bookmarks.categories[0].subcategories[0].groups[0].subgroups[0].sites;
+    const deepSites =
+      config.pages.bookmarks.categories[0].subcategories[0].groups[0].subgroups[0].sites;
     assert.equal(deepSites[0].external, true);
     assert.equal(deepSites[1].external, false);
   });

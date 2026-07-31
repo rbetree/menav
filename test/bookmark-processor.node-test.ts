@@ -153,7 +153,6 @@ test('upsertBookmarksNavInSiteYml：无 navigation 时追加并幂等', () => {
   assert.equal(r2.reason, 'already_present');
 });
 
-
 test('upsertBookmarksNavInSiteYml：已有 navigation 时插入并保留注释与缩进', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'menav-test-'));
   const filePath = path.join(tmp, 'site.yml');
@@ -182,7 +181,10 @@ test('upsertBookmarksNavInSiteYml：已有 navigation 时插入并保留注释�
   const updated = fs.readFileSync(filePath, 'utf8');
   assert.ok(updated.includes('# 顶部注释'));
   assert.ok(updated.includes('  # 常用页面'));
-  assert.match(updated, /navigation:\n  # 常用页面\n  - name: 首页[\s\S]*?  - name: 书签\n    icon: fas fa-bookmark\n    id: bookmarks\ntheme:/);
+  assert.match(
+    updated,
+    /navigation:\n  # 常用页面\n  - name: 首页[\s\S]*?  - name: 书签\n    icon: fas fa-bookmark\n    id: bookmarks\ntheme:/
+  );
 });
 
 test('upsertBookmarksNavInSiteYml：已有 bookmarks 时不重复写入', () => {

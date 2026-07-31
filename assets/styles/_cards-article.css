@@ -1,0 +1,74 @@
+/* articles：文章卡片与布局 */
+
+/* Phase 2：articles 页面隐藏“扩展写回结构”，避免与文章条目渲染混淆 */
+.menav-extension-shadow {
+  display: none;
+}
+
+.site-card[data-type='article'] .site-card-meta {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
+  color: var(--nav-item-color);
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.site-card[data-type='article'] .site-card-meta-sep {
+  opacity: 0.8;
+}
+
+/* articles：文章卡片布局（首行：图标+标题；下方：时间/来源 + 简介 全宽对齐） */
+.site-card[data-type='article'] {
+  display: block;
+  padding: 1rem 1.1rem;
+}
+
+.site-card[data-type='article'] .article-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.site-card[data-type='article'] .article-card-title {
+  min-width: 0;
+}
+
+.site-card[data-type='article'] .article-card-body {
+  margin-top: 0.55rem;
+}
+
+.site-card[data-type='article'] h3 {
+  margin: 0;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.site-card[data-type='article'] p {
+  margin: 0;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* articles：桌面端网格固定 3 列（避免 auto-fill 在大屏上过多列导致阅读密度过高） */
+.page-template-articles .sites-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+  .page-template-articles .sites-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .page-template-articles .sites-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

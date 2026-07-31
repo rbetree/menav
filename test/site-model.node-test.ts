@@ -99,7 +99,10 @@ test('SiteModel：hidden 页面可访问但不出现在侧边栏导航', () => {
   assert.equal(model.pageTemplates.secret, 'page');
   assert.ok(model.pages.some((page) => page.id === 'secret'));
   assert.ok(model.searchSources.some((card) => card.pageId === 'secret'));
-  assert.equal(model.runtimeConfig.data.pageRegistry.some((item) => item.id === 'secret'), true);
+  assert.equal(
+    model.runtimeConfig.data.pageRegistry.some((item) => item.id === 'secret'),
+    true
+  );
   assert.equal(model.meta.version, '9.9.9');
   assert.equal(model.runtimeConfig.timestamp, '2026-01-01T00:00:00.000Z');
 });

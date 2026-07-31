@@ -311,8 +311,9 @@ html.light-theme .page-template-projects .gh-heatmap-category {
 /* a11y 跳转链接：视觉隐藏（保留可访问性） */
 .page-template-projects .gh-calendar a[href^='#year-list'],
 .page-template-projects .gh-calendar a[href*='year-list'],
-.page-template-projects .gh-calendar a[href*='contributions-year'] {
-  /* GitHub 注入的 "Skip to contributions year list"（常见为 show-on-focus） */
+.page-template-projects .gh-calendar a[href*='contributions-year'],
+/* GitHub 注入的 "Skip to contributions year list"（常见为 show-on-focus） */
+.page-template-projects .gh-calendar a.show-on-focus {
   position: absolute;
   width: 1px;
   height: 1px;

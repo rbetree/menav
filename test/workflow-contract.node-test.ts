@@ -66,3 +66,14 @@ test('ci workflow：默认使用快速 check，并按路径变更触发浏览器
   assert.equal(ciWorkflow.includes('npm test'), false);
   assert.equal(ciWorkflow.includes('npm run build'), false);
 });
+
+test('test workflow：单元测试递归收集 node-test 且仅在产物缺失时构建库', () => {
+  const testScript = read('scripts/test.ts');
+
+  assert.ok(testScript.includes("entry.name.endsWith('.node-test.ts')"));
+  assert.ok(testScript.includes("entry.name === 'browser'"));
+  assert.ok(testScript.includes("path.join(repoRoot, 'scripts', 'build-lib.ts')"));
+  assert.ok(testScript.includes("log.error('build:lib 失败'"));
+  assert.ok(testScript.includes('!fs.existsSync(distNodeIndex)'));
+  assert.ok(testScript.includes("dist-node', 'index.cjs"));
+});

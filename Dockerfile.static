@@ -1,5 +1,5 @@
-# 静态构建版本（可选）：构建阶段生成 dist，运行阶段仅 nginx 提供静态文件。
-# 默认 Docker 方案请使用仓库根目录的 Dockerfile（动态构建，可挂载配置并通过重启生效）。
+# 静态构建版本：构建阶段生成 dist，运行阶段仅 nginx 提供静态文件。
+# 根目录 Dockerfile 使用同一静态运行模型；动态构建模式见 Dockerfile.dynamic。
 
 FROM node:22-alpine AS builder
 

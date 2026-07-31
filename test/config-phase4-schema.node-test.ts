@@ -210,7 +210,9 @@ test('Phase 4：MENAV_CONFIG_DIR 应显式覆盖 config/user 自动选择', () =
 
     fs.writeFileSync(
       path.join(overrideConfigDir, 'site.yml'),
-      ['title: Override', 'navigation:', '  - name: 覆盖页', '    id: override-only', ''].join('\n'),
+      ['title: Override', 'navigation:', '  - name: 覆盖页', '    id: override-only', ''].join(
+        '\n'
+      ),
       'utf8'
     );
     fs.writeFileSync(

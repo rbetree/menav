@@ -168,11 +168,11 @@ npm run sync
 6. 提交前检查（推荐）
 
 ```bash
-# 默认快速检查（语法检查 + 单元测试 + 构建 + 最终审计）
+# 默认快速检查（JS 语法与 Astro 检查 + 单元测试 + 构建 + 最终审计）
 npm run check
 ```
 
-`npm run check` 等同于 `npm run check:fast`，用于日常提交和默认 CI。
+`npm run check` 等同于 `npm run check:fast`，用于日常提交和默认 CI；其中 `npm run test` 只执行 `test/**/*.node-test.ts`，真实浏览器契约由下面的独立命令执行。
 
 ```bash
 # 可选：真实浏览器契约测试（需要 Playwright Chromium）
@@ -245,16 +245,18 @@ npm run format
 
 仓库已内置 `docker-compose.yml`，并提供 GHCR 预构建镜像；两种方式都建议统一使用 Docker Compose。
 
-> 说明：容器每次启动都会在容器内执行 `npm run build` 生成 `dist/`，然后用 nginx 提供静态文件。
+> 说明：默认 Docker 镜像在镜像构建阶段生成 `dist/`，运行阶段只用 nginx 提供静态文件。修改配置或书签后，需要重新构建镜像。
 >
 > 请在仓库根目录执行（需要 `config/_default` 等文件）。
 
-#### 方式 A：使用预构建镜像（推荐，免本地构建）
+#### 方式 A：使用预构建镜像（免本地构建）
 
 ```bash
 docker compose pull
 docker compose up -d --no-build
 ```
+
+预构建镜像包含发布时的默认静态站点；如果需要使用本仓库当前的 `config/` 或 `bookmarks/`，请使用方式 B 本地构建。
 
 #### 方式 B：本地构建镜像（适合二次开发/改源码）
 
@@ -267,21 +269,35 @@ docker compose up -d --build
 #### 可选参数（环境变量）
 
 ```bash
-MENAV_PORT=80 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose up -d --no-build
+MENAV_PORT=80 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose up -d --build
 ```
 
 - `MENAV_PORT`：宿主机端口（默认 `8080`）
-- `MENAV_ENABLE_SYNC`：启动构建时是否联网执行 `sync-*`（默认 `false`，更稳定）
-- `MENAV_IMPORT_BOOKMARKS`：启动构建前是否执行 `npm run import-bookmarks`（默认 `false`）
+- `MENAV_ENABLE_SYNC`：镜像构建时是否联网执行 `sync-*`（默认 `false`，更稳定）
+- `MENAV_IMPORT_BOOKMARKS`：镜像构建前是否执行 `npm run import-bookmarks`（默认 `false`）
 
 #### 配置与更新
 
-- 配置目录挂载在 `./config`，个人配置按“完全替换策略”建议：先运行 `npm run init-config`，再修改 `config/user/`（见 [设置配置文件](#设置配置文件) 与 `config/README.md`）。
-- 如需导入书签：将浏览器导出的书签 HTML 放到 `./bookmarks/`，并设置 `MENAV_IMPORT_BOOKMARKS=true` 后重启容器。
-- 修改配置/书签后生效方式（触发重新构建）：
+- 个人配置按“完全替换策略”建议：先运行 `npm run init-config`，再修改 `config/user/`（见 [设置配置文件](#设置配置文件) 与 `config/README.md`）。
+- 如需导入书签：将浏览器导出的书签 HTML 放到 `./bookmarks/`，并设置 `MENAV_IMPORT_BOOKMARKS=true` 后重新构建镜像。
+- 修改配置/书签后生效方式：
 
 ```bash
-docker compose restart menav
+docker compose up -d --build
+```
+
+#### 动态构建镜像（可选）
+
+如果需要保留“挂载配置并通过重启容器重新构建”的旧运行方式，可以显式使用 `Dockerfile.dynamic`：
+
+```bash
+docker build -f Dockerfile.dynamic -t menav:dynamic .
+docker run --rm -p 8080:80 \
+  -v "$PWD/config:/app/config" \
+  -v "$PWD/bookmarks:/app/bookmarks" \
+  -e MENAV_ENABLE_SYNC=false \
+  -e MENAV_IMPORT_BOOKMARKS=false \
+  menav:dynamic
 ```
 
 </details>

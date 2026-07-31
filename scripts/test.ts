@@ -11,11 +11,27 @@ function collectTestFiles(repoRoot: string): string[] {
   const testDir = path.join(repoRoot, 'test');
   if (!fs.existsSync(testDir)) return [];
 
-  return fs
-    .readdirSync(testDir)
-    .filter((name) => name.endsWith('.ts'))
-    .map((name) => path.join('test', name))
-    .sort();
+  const files: string[] = [];
+
+  const walk = (currentDir: string): void => {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+
+    entries.forEach((entry) => {
+      const fullPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'browser') return;
+        walk(fullPath);
+        return;
+      }
+
+      if (entry.isFile() && entry.name.endsWith('.node-test.ts')) {
+        files.push(path.relative(repoRoot, fullPath));
+      }
+    });
+  };
+
+  walk(testDir);
+  return files.sort();
 }
 
 async function main() {
@@ -35,22 +51,25 @@ async function main() {
     return;
   }
 
-  const registerScript = path.join(__dirname, 'register-ts.cjs');
-  const buildLibResult = spawnSync(
-    process.execPath,
-    ['-r', registerScript, path.join(repoRoot, 'scripts', 'build-lib.ts')],
-    {
-      cwd: repoRoot,
-      stdio: 'inherit',
+  const distNodeIndex = path.join(repoRoot, 'dist-node', 'index.cjs');
+  if (!fs.existsSync(distNodeIndex)) {
+    const buildLibResult = spawnSync(
+      process.execPath,
+      ['-r', path.join(__dirname, 'register-ts.cjs'), path.join(repoRoot, 'scripts', 'build-lib.ts')],
+      {
+        cwd: repoRoot,
+        stdio: isVerbose() ? 'inherit' : 'pipe',
+      }
+    );
+    const buildLibExit = Number.isFinite(buildLibResult.status) ? Number(buildLibResult.status) : 1;
+    if (buildLibExit !== 0) {
+      log.error('build:lib 失败', { exit: buildLibExit });
+      process.exitCode = buildLibExit;
+      return;
     }
-  );
-  const buildLibExit = Number.isFinite(buildLibResult.status) ? Number(buildLibResult.status) : 1;
-  if (buildLibExit !== 0) {
-    log.error('build:lib 失败', { exit: buildLibExit });
-    process.exitCode = buildLibExit;
-    return;
   }
 
+  const registerScript = path.join(__dirname, 'register-ts.cjs');
   const result = spawnSync(process.execPath, ['-r', registerScript, '--test', ...files], {
     cwd: repoRoot,
     stdio: 'inherit',

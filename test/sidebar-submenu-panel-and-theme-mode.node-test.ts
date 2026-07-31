@@ -52,9 +52,19 @@ test('Phase 10 样式：入口应使用 token/theme/base/layout/component/utilit
     'layout.css',
     'components.css',
     'utilities.css',
+    '_cards.css',
+    '_cards-repo.css',
+    '_cards-article.css',
   ]) {
     assert.ok(fs.existsSync(path.join(repoRoot, 'assets', 'styles', name)), `${name} 应存在`);
   }
+
+  const componentsContent = fs.readFileSync(
+    path.join(repoRoot, 'assets', 'styles', 'components.css'),
+    'utf8'
+  );
+  assert.ok(componentsContent.includes("@import './_cards-repo.css';"));
+  assert.ok(componentsContent.includes("@import './_cards-article.css';"));
 });
 
 test('侧边栏样式：收起时不应在页面按钮下方显示目录子菜单', () => {

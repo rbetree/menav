@@ -2,13 +2,11 @@ services:
   menav:
     container_name: menav
     image: ${MENAV_IMAGE:-ghcr.io/rbetree/menav:latest}
-    build: .
-    environment:
-      MENAV_ENABLE_SYNC: ${MENAV_ENABLE_SYNC:-false}
-      MENAV_IMPORT_BOOKMARKS: ${MENAV_IMPORT_BOOKMARKS:-false}
+    build:
+      context: .
+      args:
+        MENAV_ENABLE_SYNC: ${MENAV_ENABLE_SYNC:-false}
+        MENAV_IMPORT_BOOKMARKS: ${MENAV_IMPORT_BOOKMARKS:-false}
     ports:
       - '${MENAV_PORT:-8080}:80'
-    volumes:
-      - ./config:/app/config
-      - ./bookmarks:/app/bookmarks
     restart: unless-stopped

@@ -135,34 +135,34 @@ test('Phase 8：构建期搜索索引应扁平化页面、分类、站点和文�
       },
     });
     const index = buildSearchIndex(model);
-      const byTitle = new Map(index.items.map((item) => [String(item.title).toLowerCase(), item]));
+    const byTitle = new Map(index.items.map((item) => [String(item.title).toLowerCase(), item]));
 
-      assert.equal(index.schemaVersion, SEARCH_INDEX_SCHEMA_VERSION);
-      assert.match(index.generatedAt, /^\d{4}-\d{2}-\d{2}T/);
-      assert.ok(byTitle.has('example tool'), '应包含普通页面嵌套站点');
-      assert.ok(byTitle.has('repo a'), '应包含 projects 仓库卡片');
-      assert.ok(byTitle.has('article a'), '应包含文章缓存条目');
-      assert.equal(byTitle.get('example tool').categoryName, '开发');
-      assert.deepEqual(byTitle.get('example tool').categoryPath, ['工具', '开发']);
-      assert.equal(byTitle.get('example tool').faviconUrl, 'assets/menav.svg');
-      assert.equal(byTitle.get('example tool').forceIconMode, 'manual');
-      assert.equal(byTitle.get('article a').type, 'article');
-      assert.equal(byTitle.get('repo a').style, 'repo');
-      assert.equal(byTitle.get('repo a').language, 'TypeScript');
-      assert.equal(byTitle.get('repo a').languageColor, '#3178c6');
-      assert.equal(byTitle.get('repo a').stars, 42);
-      assert.equal(byTitle.get('repo a').forks, 7);
-      assert.equal(byTitle.get('repo a').issues, 3);
-      assert.equal(byTitle.has('source a'), false, '文章缓存存在时不应索引扩展影子来源卡片');
-      assert.equal(
-        index.items.some((item) => item.pageId === 'search-results'),
-        false
-      );
+    assert.equal(index.schemaVersion, SEARCH_INDEX_SCHEMA_VERSION);
+    assert.match(index.generatedAt, /^\d{4}-\d{2}-\d{2}T/);
+    assert.ok(byTitle.has('example tool'), '应包含普通页面嵌套站点');
+    assert.ok(byTitle.has('repo a'), '应包含 projects 仓库卡片');
+    assert.ok(byTitle.has('article a'), '应包含文章缓存条目');
+    assert.equal(byTitle.get('example tool').categoryName, '开发');
+    assert.deepEqual(byTitle.get('example tool').categoryPath, ['工具', '开发']);
+    assert.equal(byTitle.get('example tool').faviconUrl, 'assets/menav.svg');
+    assert.equal(byTitle.get('example tool').forceIconMode, 'manual');
+    assert.equal(byTitle.get('article a').type, 'article');
+    assert.equal(byTitle.get('repo a').style, 'repo');
+    assert.equal(byTitle.get('repo a').language, 'TypeScript');
+    assert.equal(byTitle.get('repo a').languageColor, '#3178c6');
+    assert.equal(byTitle.get('repo a').stars, 42);
+    assert.equal(byTitle.get('repo a').forks, 7);
+    assert.equal(byTitle.get('repo a').issues, 3);
+    assert.equal(byTitle.has('source a'), false, '文章缓存存在时不应索引扩展影子来源卡片');
+    assert.equal(
+      index.items.some((item) => item.pageId === 'search-results'),
+      false
+    );
 
-      const raw = JSON.stringify(index);
-      assert.ok(!raw.includes('navigation'));
-      assert.ok(!raw.includes('runtimeConfig'));
-      assert.ok(!raw.includes('runtimeConfigJson'));
+    const raw = JSON.stringify(index);
+    assert.ok(!raw.includes('navigation'));
+    assert.ok(!raw.includes('runtimeConfig'));
+    assert.ok(!raw.includes('runtimeConfigJson'));
   });
 });
 
