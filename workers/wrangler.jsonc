@@ -1,0 +1,20 @@
+// MeNav 形态二动态后台 — wrangler 配置
+{
+  "name": "menav-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "menav-backend",
+      "database_id": "__PLACEHOLDER__" // 本地 wrangler dev 用 miniflare 无需真实 id;部署前 wrangler d1 create menav-backend 后替换
+    }
+  ],
+  "vars": {
+    "TEAM_DOMAIN": "", // Cloudflare Access team domain,如 https://<team>.cloudflareaccess.com
+    "POLICY_AUD": "" // Access 应用 AUD tag
+  },
+  "observability": {
+    "enabled": true
+  }
+}
