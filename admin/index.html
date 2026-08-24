@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>menav · 动态后台</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <h1>menav 动态后台</h1>
+          <div class="admin-subtitle">页面 · 分类 · 站点管理</div>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn" data-action="add-page">新增页面</button>
+          <button type="button" class="btn" id="btn-import" data-action="import">导入书签</button>
+          <button type="button" class="btn" id="btn-refresh" data-action="refresh">刷新</button>
+          <button type="button" class="btn btn-primary" id="btn-publish" data-action="publish">
+            立即发布
+          </button>
+        </div>
+      </header>
+
+      <!-- 状态提示:加载中 / 脱机 / 错误 / 空数据 -->
+      <div id="status" class="status-notice" hidden>
+        <span class="status-icon"></span>
+        <span class="status-text"></span>
+      </div>
+
+      <!-- 树根:由 app.js 渲染 页面→分类→站点 -->
+      <main id="tree-root" class="tree-root"></main>
+    </div>
+
+    <!-- 通用弹窗(新增/编辑站点·分类·页面 / 删除确认 / 书签导入) -->
+    <div id="modal-overlay" class="modal-overlay">
+      <div class="modal-panel" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3 id="modal-title"></h3>
+          <button type="button" class="modal-close" data-action="modal-close" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 主题切换 -->
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换主题" title="切换主题"></button>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
