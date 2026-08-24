@@ -7,9 +7,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "tsc --noEmit",
-    "db:migrate": "wrangler d1 migrations apply DB",
-    "seed": "node seed/import-yaml.mjs"
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.6.0",

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
+import { markDirty } from '../db/dirty';
 
 /**
  * 分类(嵌套树节点)CRUD。
@@ -31,6 +32,7 @@ categoriesRoutes.post('/', async (c) => {
   )
     .bind(id, b.pageId, b.parentId ?? null, label, b.sort ?? 0, b.foldable ? 1 : 0)
     .run();
+  await markDirty(c.env.DB);
   return c.json({ ok: true, data: { id } }, 201);
 });
 
@@ -60,6 +62,17 @@ categoriesRoutes.put('/:id', async (c) => {
     const newParent = b.parentId || null;
     if (newParent === id) return c.json({ ok: false, error: 'cannot be own parent' }, 400);
     if (newParent !== null) {
+      // 校验父分类存在且与 self 同页面(与 POST 一致,防跨页挂父后随 page_id 级联误删)
+      const self = await c.env.DB.prepare('SELECT page_id FROM categories WHERE id = ?')
+        .bind(id)
+        .first<{ page_id: string }>();
+      const par = await c.env.DB.prepare('SELECT page_id FROM categories WHERE id = ?')
+        .bind(newParent)
+        .first<{ page_id: string }>();
+      if (!par) return c.json({ ok: false, error: 'parent not found' }, 404);
+      if (self && par.page_id !== self.page_id) {
+        return c.json({ ok: false, error: 'parent not in page' }, 400);
+      }
       // 防循环:newParent 不得是 self 的子孙
       const desc = await c.env.DB.prepare(
         `WITH RECURSIVE sub(id) AS (
@@ -81,6 +94,7 @@ categoriesRoutes.put('/:id', async (c) => {
     .bind(...vals)
     .run();
   if (res.meta.changes === 0) return c.json({ ok: false, error: 'not found' }, 404);
+  await markDirty(c.env.DB);
   return c.json({ ok: true });
 });
 
@@ -123,5 +137,6 @@ categoriesRoutes.delete('/:id', async (c) => {
     const res = await c.env.DB.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
     if (res.meta.changes === 0) return c.json({ ok: false, error: 'not found' }, 404);
   }
+  await markDirty(c.env.DB);
   return c.json({ ok: true, count: childCount + siteCount });
 });

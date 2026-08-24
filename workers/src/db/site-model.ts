@@ -61,10 +61,14 @@ export interface PageNode {
   categories: CategoryNode[];
 }
 
-/** 读取并组装全量(或单页面)站点模型。 */
+/**
+ * 读取并组装全量(或单页面)站点模型。
+ * opts.excludeHidden:为 true 时过滤 hidden 页面及其子树 —— 供公开 /api/nav 与
+ * 快照重建导出使用(隐藏内容「仅管理员可见」,不进公开站点,见 CONTEXT.md 可见性语义)。
+ */
 export async function loadSiteModel(
   db: D1Database,
-  opts?: { pageId?: string },
+  opts?: { pageId?: string; excludeHidden?: boolean },
 ): Promise<PageNode[]> {
   const [pagesRes, catsRes, sitesRes] = await Promise.all([
     db.prepare('SELECT id, label, sort, hidden, template FROM pages ORDER BY sort').all<PageRow>(),
@@ -121,6 +125,7 @@ export async function loadSiteModel(
   const pages: PageNode[] = [];
   for (const r of pagesRes.results) {
     if (opts?.pageId && r.id !== opts.pageId) continue;
+    if (opts?.excludeHidden && r.hidden !== 0) continue;
     pages.push({
       id: r.id,
       label: r.label,
@@ -130,6 +135,19 @@ export async function loadSiteModel(
     });
   }
   return pages;
+}
+
+/**
+ * 读取 settings kv 表全部键值(站点级配置:site_name/theme/icons 等,M3)。
+ * 供快照重建导出物并入,使构建输入自首日含标题/主题等配置。
+ */
+export async function loadSettings(db: D1Database): Promise<Record<string, string>> {
+  const res = await db
+    .prepare('SELECT key, value FROM settings')
+    .all<{ key: string; value: string }>();
+  const out: Record<string, string> = {};
+  for (const r of res.results) out[r.key] = r.value;
+  return out;
 }
 
 /** 便捷:按页面 id 取单个页面模型(不存在返回 null)。 */

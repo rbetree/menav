@@ -36,6 +36,10 @@ assert(Array.isArray(nav) && nav.length > 0, 'GET /api/nav 返回页面');
 assert(page.id && page.categories.length > 0, '页面含嵌套分类');
 assert(cat0.sites && cat0.sites.length > 0, '分类含站点');
 
+// 1b. 后台初始化契约(B1:admin api() 依赖 /api/state 返回数组,不得摊平)
+const state = await (await fetch(BASE + '/api/state')).json();
+assert(Array.isArray(state) && state.length > 0, 'GET /api/state 返回裸 PageNode[] 数组');
+
 // 2. 新增站点
 const addSite = await req('POST', '/api/sites', {
   categoryId: cat0.id,

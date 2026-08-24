@@ -1,5 +1,8 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
+import { markDirty } from '../db/dirty';
+import { sanitizeHttpUrl } from '../safe-url';
+import { BOOKMARKS_PAGE_ID } from '../bookmarks/import';
 
 /**
  * 种子导入(需求 R3,引导式隔离):一次性把仓库 YAML 产出的站点模型写入 D1。
@@ -8,6 +11,9 @@ import type { Env } from '../types';
  * 本路由把它扁平化并**事务级重建**(清空 + 重插)。这是初始引导而非增量同步,
  * 故 page 用 navigation id、category/site 用随机 uuid——不依赖幂等 id,且 uuid 无
  * 特殊字符,可直接作为路由 :id 路径参数。
+ *
+ * M5:语义为「一次性整库重置」——重复导入会覆盖后台在线编辑。因此当数据库已含非书签
+ * 页面数据时,需显式 `?reset=1` 才执行清空重建;首次引导(空库)无需开关。
  */
 
 interface SeedSiteNode {
@@ -44,6 +50,20 @@ export const seedRoutes = new Hono<{ Bindings: Env }>();
 
 seedRoutes.post('/', async (c) => {
   const body = await c.req.json<SeedInput>();
+  const reset = c.req.query('reset') === '1';
+
+  // M5:清空重建会覆盖后台在线编辑——非首次(已有非书签页面数据)必须显式 ?reset=1
+  if (!reset) {
+    const row = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM pages WHERE id != ?')
+      .bind(BOOKMARKS_PAGE_ID)
+      .first<{ n: number }>();
+    if (Number(row?.n ?? 0) > 0) {
+      return c.json(
+        { ok: false, error: '数据库已包含数据,清空重建将覆盖在线编辑;如确实需要请以 ?reset=1 调用' },
+        409,
+      );
+    }
+  }
 
   const pageRows: PageRow[] = [];
   const catRows: CatRow[] = [];
@@ -92,8 +112,19 @@ seedRoutes.post('/', async (c) => {
     );
   }
 
-  await c.env.DB.batch(stmts); // D1 batch = 事务
-  return c.json({ ok: true, pages: pageRows.length, categories: catRows.length, sites: siteRows.length });
+  // M7:≤100 条/批分片提交(D1 batch 上限);首批为 3 条 DELETE + 首个插入批,保证「清空重建」原子生效
+  const BATCH_LIMIT = 100;
+  for (let i = 0; i < stmts.length; i += BATCH_LIMIT) {
+    await c.env.DB.batch(stmts.slice(i, i + BATCH_LIMIT));
+  }
+  await markDirty(c.env.DB);
+  return c.json({
+    ok: true,
+    reset: true, // M5:显式声明该调用为整库重置
+    pages: pageRows.length,
+    categories: catRows.length,
+    sites: siteRows.length,
+  });
 });
 
 function walkCategory(
@@ -111,8 +142,10 @@ function walkCategory(
     const sites = Array.isArray(cat.sites) ? cat.sites : [];
     sites.forEach((s, si) => {
       const name = ((s.name ?? '') as string).trim();
-      const url = ((s.url ?? '') as string).trim();
-      if (!name || !url) return;
+      const url = sanitizeHttpUrl(s.url ?? '');
+      // M1:非 http(s) scheme 的 url 不落库
+      if (!name || url === null) return;
+      const faviconUrl = s.faviconUrl == null ? null : sanitizeHttpUrl(s.faviconUrl);
       siteRows.push([
         crypto.randomUUID(),
         catId,
@@ -120,7 +153,7 @@ function walkCategory(
         url,
         s.description ?? null,
         s.icon ?? null,
-        s.faviconUrl ?? null,
+        faviconUrl,
         s.external === false ? 0 : 1,
         si,
       ]);

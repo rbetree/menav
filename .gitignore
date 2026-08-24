@@ -59,3 +59,6 @@ AGENTS.md
 /.claude
 /discord-style-navstation
 REVIEW.md
+
+# Playwright MCP 痕跡(本地开发)
+.playwright-mcp/

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { Context } from 'hono';
 import type { Env } from '../types';
+import { markDirty } from '../db/dirty';
 
 /**
  * 排序维护(技术方案「五、API 层」/api/reorder):批量更新同层级兄弟的 sort,事务提交。
@@ -19,10 +19,19 @@ reorderRoutes.post('/', async (c) => {
   }
   if (items.length === 0) return c.json({ ok: false, error: 'items required' }, 400);
 
+  // M6:先预检所有 id 存在,避免「部分更新已落库却因个别 id 无效不置 dirty」的快照静默过期
+  const placeholders = items.map(() => '?').join(',');
+  const found = await c.env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE id IN (${placeholders})`)
+    .bind(...items.map((it) => it.id))
+    .first<{ n: number }>();
+  if (Number(found?.n ?? 0) !== items.length) {
+    return c.json({ ok: false, error: '部分 id 不存在,排序未保存' }, 400);
+  }
+
   const stmts = items.map((it) =>
     c.env.DB.prepare(`UPDATE ${table} SET sort = ? WHERE id = ?`).bind(it.sort, it.id),
   );
-  const results = await c.env.DB.batch(stmts);
-  const ok = results.every((r) => r.meta.changes === 0 || r.meta.changes > 0);
-  return c.json({ ok, count: items.length });
+  await c.env.DB.batch(stmts);
+  await markDirty(c.env.DB);
+  return c.json({ ok: true, count: items.length });
 });

@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
+import { markDirty } from '../db/dirty';
 
-/** 页面 CRUD。删除遵守 T-5=B:非空拒绝 + 显式级联(?force=1)。 */
+/** 页面 CRUD。删除遵守 T-5=B:非空拒绝 + 显式级联(?force=1)。每次写成功置 dirty(快照待重建)。 */
 export const pagesRoutes = new Hono<{ Bindings: Env }>();
 
 // 新增页面
@@ -20,6 +21,7 @@ pagesRoutes.post('/', async (c) => {
   )
     .bind(id, label, b.sort ?? 0, b.hidden ? 1 : 0, b.template ?? null)
     .run();
+  await markDirty(c.env.DB);
   return c.json({ ok: true, data: { id } }, 201);
 });
 
@@ -56,6 +58,7 @@ pagesRoutes.put('/:id', async (c) => {
     .bind(...vals)
     .run();
   if (res.meta.changes === 0) return c.json({ ok: false, error: 'not found' }, 404);
+  await markDirty(c.env.DB);
   return c.json({ ok: true });
 });
 
@@ -82,5 +85,6 @@ pagesRoutes.delete('/:id', async (c) => {
     const res = await c.env.DB.prepare('DELETE FROM pages WHERE id = ?').bind(id).run();
     if (res.meta.changes === 0) return c.json({ ok: false, error: 'not found' }, 404);
   }
+  await markDirty(c.env.DB);
   return c.json({ ok: true, count });
 });
