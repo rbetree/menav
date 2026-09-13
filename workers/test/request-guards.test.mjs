@@ -77,3 +77,16 @@ test('If-Match 接受弱验证器 W/"n" 与通配符，过期版本仍冲突', a
   );
   assert.equal(stale.status, 409);
 });
+
+test('同源无体 POST（如立即发布）不被 Content-Type 检查拦截', async (t) => {
+  const app = await createBackend();
+  t.after(() => app.dispose());
+  await seedOneSite(app);
+  const origin = new URL(app.url).origin;
+  const res = await app.request('POST', '/api/rebuild', undefined, {
+    origin,
+    'sec-fetch-site': 'same-origin',
+  });
+  // 未接线发布应返回 501（到达业务逻辑），而不是被 CSRF 中间件以 415 拦下。
+  assert.equal(res.status, 501);
+});

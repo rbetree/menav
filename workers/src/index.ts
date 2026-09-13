@@ -111,11 +111,12 @@ admin.use('/api/*', async (c, next) => {
     if (!sameHost)
       return c.json({ ok: false, error: 'cross_site_blocked', detail: '拒绝跨站写请求' }, 403);
   }
-  // 浏览器带体写请求必须是 JSON(跨站表单只能发出简单类型,无法伪造 application/json);
-  // DELETE 通常无请求体,不强制 Content-Type,其 CSRF 保护由 Origin/Sec-Fetch-Site 承担。
-  if (fromBrowser && c.req.method !== 'DELETE') {
+  // 浏览器写请求「声明了 Content-Type 时」必须是 JSON:无体的 POST(如 /api/rebuild)与 DELETE
+  // 不带该头,予以放行。其 CSRF 保护由 Origin/Sec-Fetch-Site 承担,而跨站表单必然携带简单类型
+  // (application/x-www-form-urlencoded、text/plain、multipart/form-data),会被拦下。
+  if (fromBrowser) {
     const contentType = (c.req.header('content-type') ?? '').toLowerCase();
-    if (!contentType.startsWith('application/json'))
+    if (contentType && !contentType.startsWith('application/json'))
       return c.json(
         { ok: false, error: 'unsupported_media_type', detail: '写操作需使用 application/json' },
         415
