@@ -6,8 +6,12 @@
 //   使前端(worker/workerd)可直接复用同一份解析逻辑(AC-10 语义一致)。
 //
 // 性能(M13):不再对剩余串反复 substring + search,改为 indexOf 游标推进的
-// 大小写不敏感扫描(<dl><p>/</dl><p> 标签为纯 ASCII,|32 位折叠即可),避免 O(n²) 拷贝;
+// 大小写不敏感扫描(<dl><p>/</dl><p> 标签为纯 ASCII),避免 O(n²) 拷贝;
 // 4 层嵌套截断时累计 truncated 计数并随结果返回,供导入链路向用户可见。
+//
+// 性能(M13 续):整份输入仅 toLowerCase() 一次缓存为折叠视图,大小写查找走原生
+// indexOf(V8 memmem);折叠不变长时「子串与折叠可交换」,递归子串直接切片小写
+// 缓冲,全程零重复折叠。书签栏边界只扫描一次,根书签提取与主流程共享结果。
 import { decodeHtmlEntities } from '../security/html.ts';
 import { inferBookmarkIcon } from './icons.ts';
 
@@ -64,10 +68,41 @@ const consoleLogger: ParserLogger = {
 };
 
 /**
- * 大小写不敏感 indexOf(标签为 ASCII):`charCodeAt | 32` 折叠大小写且长度不变,
- * 替代对剩余串逐次 substring + /i 正则的搜索,避免大文件下反复的 O(n) 子串拷贝。
+ * 大小写折叠视图:对输入仅 toLowerCase() 一次,后续大小写不敏感查找全部走
+ * 原生 indexOf(V8 内部 memmem,远快于手写逐字符循环)。仅当折叠后长度与
+ * 原串一致时缓存可用(索引 1:1 映射回原串);个别字符(如 İ U+0130)折叠后
+ * 长度会变化,此时 lower 置 null,查找回退到手写扫描。
  */
-function ciIndexOf(hay: string, needle: string, from: number): number {
+type CaseFolded = {
+  source: string;
+  lower: string | null;
+};
+
+function foldCase(source: string): CaseFolded {
+  const lower = source.toLowerCase();
+  return { source, lower: lower.length === source.length ? lower : null };
+}
+
+/**
+ * 截取子串的折叠视图:长度不变的折叠满足「先截取再折叠 === 先折叠再截取」,
+ * 直接切片小写缓冲即可,无需重新 toLowerCase。
+ */
+function sliceFolded(text: CaseFolded, start: number, end: number): CaseFolded {
+  const source = text.source.substring(start, end);
+  if (text.lower === null) return { source, lower: null };
+  return { source, lower: text.lower.substring(start, end) };
+}
+
+/**
+ * 大小写不敏感 indexOf(标签为 ASCII):优先在小写缓冲上走原生 indexOf;
+ * 仅在折叠缓存不可用(罕见非 ASCII 折叠变长)时,回退到 `charCodeAt | 32`
+ * 折叠的手写扫描。
+ */
+function ciIndexOf(text: CaseFolded, needle: string, from: number): number {
+  if (text.lower !== null) {
+    return text.lower.indexOf(needle, from);
+  }
+  const hay = text.source;
   if (hay.length < needle.length) return -1;
   const start = from < 0 ? 0 : from;
   const last = hay.length - needle.length;
@@ -96,20 +131,32 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
   };
   let truncated = 0;
 
-  // 提取根路径书签（书签栏容器内但不在任何子文件夹内的书签）
-  function extractRootBookmarks(content: string): BookmarkSite[] {
+  // 整份输入折叠一次,后续所有大小写不敏感查找共享该缓冲
+  const html = foldCase(htmlContent);
+
+  // 提取书签栏:定位 PERSONAL_TOOLBAR_FOLDER 及其 <DL><p> 容器边界,并收集
+  // 容器内不在任何子文件夹中的根书签。单次扫描,结果供主流程直接复用。
+  function extractBookmarkBar(text: CaseFolded): {
+    hasToolbar: boolean;
+    /** 书签栏容器内容;null 表示书签栏后未找到 <DL><p>。 */
+    barContent: CaseFolded | null;
+    rootSites: BookmarkSite[];
+  } {
+    const content = text.source;
     // 找到书签栏文件夹标签
     const bookmarkBarMatch = content.match(
-      /<DT><H3[^>]*PERSONAL_TOOLBAR_FOLDER[^>]*>([^<]+)<\/H3>/i,
+      /<DT><H3[^>]*PERSONAL_TOOLBAR_FOLDER[^>]*>([^<]+)<\/H3>/i
     );
     if (!bookmarkBarMatch) {
-      return [];
+      return { hasToolbar: false, barContent: null, rootSites: [] };
     }
     const bookmarkBarStart = getMatchIndex(bookmarkBarMatch) + bookmarkBarMatch[0].length;
 
     // 找到书签栏后面的 <DL><p> 标签
-    const dlIndex = ciIndexOf(content, DL_OPEN, bookmarkBarStart);
-    if (dlIndex < 0) return [];
+    const dlIndex = ciIndexOf(text, DL_OPEN, bookmarkBarStart);
+    if (dlIndex < 0) {
+      return { hasToolbar: true, barContent: null, rootSites: [] };
+    }
     const bookmarkBarContentStart = dlIndex + DL_OPEN.length;
 
     // 找到书签栏内容的结束位置(游标推进,depth 平衡)
@@ -117,8 +164,8 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
     let pos = bookmarkBarContentStart;
     let bookmarkBarContentEnd = content.length;
     while (pos < content.length && depth > 0) {
-      const dlStartIndex = ciIndexOf(content, DL_OPEN, pos);
-      const dlEndIndex = ciIndexOf(content, DL_CLOSE, pos);
+      const dlStartIndex = ciIndexOf(text, DL_OPEN, pos);
+      const dlEndIndex = ciIndexOf(text, DL_CLOSE, pos);
       if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
         depth += 1;
         pos = dlStartIndex + DL_OPEN.length;
@@ -131,28 +178,30 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
       }
     }
 
-    const bookmarkBarContent = content.substring(bookmarkBarContentStart, bookmarkBarContentEnd);
+    // 切片共享父级折叠缓冲,子串查找无需重新 toLowerCase
+    const barContent = sliceFolded(text, bookmarkBarContentStart, bookmarkBarContentEnd);
+    const bar = barContent.source;
 
     // 现在提取书签栏内所有子文件夹的范围
     const subfolderRanges: Range[] = [];
     const folderRegex = /<DT><H3[^>]*>([^<]+)<\/H3>/g;
     let folderMatch;
-    while ((folderMatch = folderRegex.exec(bookmarkBarContent)) !== null) {
+    while ((folderMatch = folderRegex.exec(bar)) !== null) {
       const folderStart = folderMatch.index + folderMatch[0].length;
 
       // 找到这个文件夹内容的结束位置
       let folderDepth = 0;
       let folderPos = folderStart;
-      let folderContentEnd = bookmarkBarContent.length;
+      let folderContentEnd = bar.length;
 
       // 跳过空白直到找到 <DL><p>
-      const dlIndex = ciIndexOf(bookmarkBarContent, DL_OPEN, folderPos);
-      if (dlIndex >= 0) {
+      const folderDlIndex = ciIndexOf(barContent, DL_OPEN, folderPos);
+      if (folderDlIndex >= 0) {
         folderDepth = 1;
-        folderPos = dlIndex + DL_OPEN.length;
-        while (folderPos < bookmarkBarContent.length && folderDepth > 0) {
-          const dlStartIndex = ciIndexOf(bookmarkBarContent, DL_OPEN, folderPos);
-          const dlEndIndex = ciIndexOf(bookmarkBarContent, DL_CLOSE, folderPos);
+        folderPos = folderDlIndex + DL_OPEN.length;
+        while (folderPos < bar.length && folderDepth > 0) {
+          const dlStartIndex = ciIndexOf(barContent, DL_OPEN, folderPos);
+          const dlEndIndex = ciIndexOf(barContent, DL_CLOSE, folderPos);
           if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
             folderDepth += 1;
             folderPos = dlStartIndex + DL_OPEN.length;
@@ -177,7 +226,7 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
     const rootSites: BookmarkSite[] = [];
     const bookmarkRegex = /<DT><A HREF="([^"]+)"[^>]*>(.*?)<\/A>/g;
     let bookmarkMatch;
-    while ((bookmarkMatch = bookmarkRegex.exec(bookmarkBarContent)) !== null) {
+    while ((bookmarkMatch = bookmarkRegex.exec(bar)) !== null) {
       const bookmarkPos = bookmarkMatch.index;
       // 浏览器导出的书签会将 & 编码为 &amp;，需先解码实体再写入站点名称与 URL
       const url = decodeHtmlEntities(bookmarkMatch[1]);
@@ -202,16 +251,17 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
       }
     }
 
-    return rootSites;
+    return { hasToolbar: true, barContent, rootSites };
   }
 
   // 递归解析嵌套文件夹
   function parseNestedFolder(
-    content: string,
+    text: CaseFolded,
     parentPath: string[] = [],
-    level = 1,
+    level = 1
   ): BookmarkCategory[] {
     const folders: BookmarkCategory[] = [];
+    const content = text.source;
 
     // 第一步：扫描所有文件夹，记录它们的完整范围
     const folderRanges: FolderRange[] = [];
@@ -227,13 +277,13 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
       let pos = folderHeaderEnd;
 
       // 跳过空白直到找到 <DL><p>
-      const dlIndex = ciIndexOf(content, DL_OPEN, pos);
+      const dlIndex = ciIndexOf(text, DL_OPEN, pos);
       if (dlIndex >= 0) {
         depth = 1;
         pos = dlIndex + DL_OPEN.length;
         while (pos < content.length && depth > 0) {
-          const dlStartIndex = ciIndexOf(content, DL_OPEN, pos);
-          const dlEndIndex = ciIndexOf(content, DL_CLOSE, pos);
+          const dlStartIndex = ciIndexOf(text, DL_OPEN, pos);
+          const dlEndIndex = ciIndexOf(text, DL_CLOSE, pos);
           if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
             depth += 1;
             pos = dlStartIndex + DL_OPEN.length;
@@ -278,8 +328,9 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
       const folderName = currentFolder.name;
 
       // 提取文件夹内容（保留完整的HTML结构供递归使用）
-      // 从headerEnd到end之间包含完整的<DL><p>...</DL><p>结构
-      const folderContent = content.substring(currentFolder.headerEnd, currentFolder.end);
+      // 从headerEnd到end之间包含完整的<DL><p>...</DL><p>结构;
+      // 切片共享父级折叠缓冲,递归全程零重复 toLowerCase
+      const folderContent = sliceFolded(text, currentFolder.headerEnd, currentFolder.end);
 
       // 验证是否有有效的容器结构
       if (ciIndexOf(folderContent, DL_OPEN, 0) < 0) {
@@ -295,7 +346,7 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
 
       // 检查是否包含子文件夹 - 创建新的正则实例避免干扰主循环
       const testFolderRegex = /<DT><H3([^>]*)>(.*?)<\/H3>/;
-      const hasSubfolders = testFolderRegex.test(folderContent);
+      const hasSubfolders = testFolderRegex.test(folderContent.source);
 
       // 先解析当前层级的书签
       const currentLevelSites = parseSitesInFolder(folderContent);
@@ -343,8 +394,9 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
   }
 
   // 解析文件夹中的书签（仅当前层级，排除子文件夹内的书签）
-  function parseSitesInFolder(content: string): BookmarkSite[] {
+  function parseSitesInFolder(text: CaseFolded): BookmarkSite[] {
     const sites: BookmarkSite[] = [];
+    const content = text.source;
 
     // 首先找到所有子文件夹的范围
     const subfolderRanges: Range[] = [];
@@ -360,13 +412,13 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
       let folderContentEnd = content.length;
 
       // 跳过空白直到找到 <DL><p>
-      const dlIndex = ciIndexOf(content, DL_OPEN, folderPos);
+      const dlIndex = ciIndexOf(text, DL_OPEN, folderPos);
       if (dlIndex >= 0) {
         folderDepth = 1;
         folderPos = dlIndex + DL_OPEN.length;
         while (folderPos < content.length && folderDepth > 0) {
-          const dlStartIndex = ciIndexOf(content, DL_OPEN, folderPos);
-          const dlEndIndex = ciIndexOf(content, DL_CLOSE, folderPos);
+          const dlStartIndex = ciIndexOf(text, DL_OPEN, folderPos);
+          const dlEndIndex = ciIndexOf(text, DL_CLOSE, folderPos);
           if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
             folderDepth += 1;
             folderPos = dlStartIndex + DL_OPEN.length;
@@ -418,80 +470,47 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
     return sites;
   }
 
-  // 开始解析
-  const rootSites = extractRootBookmarks(htmlContent);
+  // 开始解析:书签栏边界与根书签只扫描一次,下方主流程直接复用扫描结果
+  const located = extractBookmarkBar(html);
+  const rootSites = located.rootSites;
 
-  // 找到书签栏文件夹（PERSONAL_TOOLBAR_FOLDER）
-  const bookmarkBarMatch = htmlContent.match(
-    /<DT><H3[^>]*PERSONAL_TOOLBAR_FOLDER[^>]*>([^<]+)<\/H3>/i,
-  );
-  if (!bookmarkBarMatch) {
-    log.warn('未找到书签栏文件夹（PERSONAL_TOOLBAR_FOLDER），使用备用方案');
-    // 备用方案：使用第一个 <DL><p> 标签
-    const firstDLIndex = ciIndexOf(htmlContent, DL_OPEN, 0);
-    if (firstDLIndex < 0) {
-      log.error('未找到任何书签容器');
-      bookmarks.categories = [];
-    } else {
-      const dlStart = firstDLIndex + DL_OPEN.length;
-      let dlEnd = htmlContent.length;
-      let depth = 1;
-      let pos = dlStart;
-      while (pos < htmlContent.length && depth > 0) {
-        const dlStartIndex = ciIndexOf(htmlContent, DL_OPEN, pos);
-        const dlEndIndex = ciIndexOf(htmlContent, DL_CLOSE, pos);
-        if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
-          depth += 1;
-          pos = dlStartIndex + DL_OPEN.length;
-        } else if (dlEndIndex !== -1) {
-          depth -= 1;
-          pos = dlEndIndex + DL_CLOSE.length;
-        } else {
-          break;
-        }
-      }
-      dlEnd = pos - DL_CLOSE.length;
-      const bookmarksBarContent = htmlContent.substring(dlStart, dlEnd);
-      bookmarks.categories = parseNestedFolder(bookmarksBarContent);
-    }
-  } else {
-    const bookmarkBarStart = getMatchIndex(bookmarkBarMatch) + bookmarkBarMatch[0].length;
-
-    // 找到书签栏后面的 <DL><p> 标签
-    const dlIndex = ciIndexOf(htmlContent, DL_OPEN, bookmarkBarStart);
-    if (dlIndex < 0) {
+  if (located.barContent === null) {
+    if (located.hasToolbar) {
       log.error('未找到书签栏的内容容器 <DL><p>');
       bookmarks.categories = [];
     } else {
-      const bookmarkBarContentStart = dlIndex + DL_OPEN.length;
-
-      // 找到书签栏内容的结束位置
-      let depth = 1;
-      let pos = bookmarkBarContentStart;
-      let bookmarkBarContentEnd = htmlContent.length;
-      while (pos < htmlContent.length && depth > 0) {
-        const dlStartIndex = ciIndexOf(htmlContent, DL_OPEN, pos);
-        const dlEndIndex = ciIndexOf(htmlContent, DL_CLOSE, pos);
-        if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
-          depth += 1;
-          pos = dlStartIndex + DL_OPEN.length;
-        } else if (dlEndIndex !== -1) {
-          depth -= 1;
-          if (depth === 0) bookmarkBarContentEnd = dlEndIndex;
-          pos = dlEndIndex + DL_CLOSE.length;
-        } else {
-          break;
+      log.warn('未找到书签栏文件夹（PERSONAL_TOOLBAR_FOLDER），使用备用方案');
+      // 备用方案：使用第一个 <DL><p> 标签
+      const firstDLIndex = ciIndexOf(html, DL_OPEN, 0);
+      if (firstDLIndex < 0) {
+        log.error('未找到任何书签容器');
+        bookmarks.categories = [];
+      } else {
+        const dlStart = firstDLIndex + DL_OPEN.length;
+        let dlEnd = htmlContent.length;
+        let depth = 1;
+        let pos = dlStart;
+        while (pos < htmlContent.length && depth > 0) {
+          const dlStartIndex = ciIndexOf(html, DL_OPEN, pos);
+          const dlEndIndex = ciIndexOf(html, DL_CLOSE, pos);
+          if (dlStartIndex !== -1 && (dlEndIndex === -1 || dlStartIndex < dlEndIndex)) {
+            depth += 1;
+            pos = dlStartIndex + DL_OPEN.length;
+          } else if (dlEndIndex !== -1) {
+            depth -= 1;
+            pos = dlEndIndex + DL_CLOSE.length;
+          } else {
+            break;
+          }
         }
+        dlEnd = pos - DL_CLOSE.length;
+        const bookmarksBarContent = sliceFolded(html, dlStart, dlEnd);
+        bookmarks.categories = parseNestedFolder(bookmarksBarContent);
       }
-
-      const bookmarkBarContent = htmlContent.substring(
-        bookmarkBarContentStart,
-        bookmarkBarContentEnd,
-      );
-
-      // 解析书签栏内的子文件夹作为顶层分类（跳过书签栏本身）
-      bookmarks.categories = parseNestedFolder(bookmarkBarContent);
     }
+  } else {
+    // 解析书签栏内的子文件夹作为顶层分类（跳过书签栏本身）
+    bookmarks.categories = parseNestedFolder(located.barContent);
   }
 
   log.info('解析完成', { categories: bookmarks.categories.length, truncated });
