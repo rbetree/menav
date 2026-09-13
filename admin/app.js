@@ -704,6 +704,29 @@ function setFormError(msg) {
   const el = document.getElementById('form-error');
   el.textContent = msg;
   el.hidden = !msg;
+  const old = el.querySelector('.conflict-retry');
+  if (old) old.remove();
+  // 并发冲突时提供就地恢复:拉取最新版本并刷新 ETag,保留已填字段后再提交。
+  if (msg && /已在其他窗口更新/.test(msg)) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm conflict-retry';
+    btn.textContent = '载入最新并重试';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const r = await api('GET', '/api/state');
+      if (r.ok) {
+        state.pages = Array.isArray(r.data) ? r.data : [];
+        stateEtag = r.etag;
+        modalEtag = r.etag;
+        setFormError('');
+      } else {
+        btn.disabled = false;
+        toast(writeErr(r), 'error');
+      }
+    });
+    el.appendChild(btn);
+  }
 }
 
 /* M11:提交期间禁用按钮 + data-pending 拦截,防双击重复提交 */

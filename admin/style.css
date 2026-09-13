@@ -801,6 +801,11 @@ html.light-theme .badge {
   border: 1px solid rgba(var(--error-rgb), 0.3);
 }
 
+.conflict-retry {
+  display: block;
+  margin-top: var(--spacing-sm);
+}
+
 .settings-json {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
