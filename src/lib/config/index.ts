@@ -7,12 +7,15 @@ import { validateConfig, getConfigValidationErrors } from './validator.ts';
 import { assignCategorySlugs } from './slugs.ts';
 import { ConfigError } from '../errors.ts';
 import { createRenderContext } from '../view-data/render-context.ts';
+import { loadSnapshotConfig } from './snapshot.ts';
 
 type ConfigRecord = ResolvedConfig & Record<string, unknown>;
 
 export function loadConfig(): ConfigRecord {
-  const configDir = resolveConfigDirectory();
-  let config = loadModularConfig(configDir) as ConfigRecord;
+  const snapshotFile = process.env.MENAV_SNAPSHOT_FILE?.trim();
+  let config = snapshotFile
+    ? loadSnapshotConfig(snapshotFile)
+    : (loadModularConfig(resolveConfigDirectory()) as ConfigRecord);
 
   if (!validateConfig(config)) {
     const suggestions = getConfigValidationErrors(config).map(

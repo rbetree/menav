@@ -1,9 +1,11 @@
 ---
 import Group from './Group.astro';
+import Category from './Category.astro';
 import SiteCard from './SiteCard.astro';
 import type { GroupItem } from '../types/page';
 import type { RenderContext } from '../types/render';
 import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
+import { getCategoryChildren } from '../lib/site-data/categories.ts';
 
 interface Props {
   group?: GroupItem;
@@ -15,11 +17,11 @@ const { group = {}, level = 3, renderContext = DEFAULT_RENDER_CONTEXT } = Astro.
 const groupLevel = group.level || level || 3;
 const headingLevel = Math.min(groupLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
-const subgroups = Array.isArray(group.subgroups) ? group.subgroups : [];
+const children = getCategoryChildren(group);
 const cards = Array.isArray(group.cards) ? group.cards : [];
-const hasSubgroups = subgroups.length > 0;
+const hasSubgroups = children.length > 0;
 const hasCards = cards.length > 0;
-const isToggleable = hasSubgroups || hasCards;
+const isToggleable = group.foldable !== false && (hasSubgroups || hasCards);
 ---
 
 <div
@@ -47,9 +49,13 @@ const isToggleable = hasSubgroups || hasCards;
     {
       hasSubgroups && (
         <div class="subgroups-container" data-container="subgroups">
-          {subgroups.map((subgroup) => (
-            <Group group={subgroup} level={4} renderContext={renderContext} />
-          ))}
+          {children.map(({ kind, node }) =>
+            kind === 'subcategories' ? (
+              <Category category={node} level={groupLevel + 1} renderContext={renderContext} />
+            ) : (
+              <Group group={node} level={groupLevel + 1} renderContext={renderContext} />
+            )
+          )}
         </div>
       )
     }
