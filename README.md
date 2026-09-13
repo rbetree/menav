@@ -406,6 +406,34 @@ Vercel 部署:
 
 </details>
 
+## 动态后端形态（形态二，可选）
+
+MeNav 提供两种形态，按需选择、互不影响：
+
+- **形态一（静态，默认推荐）**：即上文全部部署方式。数据来自 `config/` 下的 YAML，无需数据库与后端服务，适合大多数个人导航站。
+- **形态二（动态后端）**：`workers/` 子项目（Cloudflare Worker + D1 + Access）提供在线后台，配合 `admin/` 管理控制台在线编辑页面/分类/站点并导入书签；公开站仍为静态快照（D1 数据经构建导出），与仓库 YAML 完全隔离、不写回仓库。
+
+简单自托管选形态一；确需在线编辑后台、且接受 Cloudflare 依赖与额外维护成本时再选形态二。
+
+动态后台已包含页面、正文、分类和站点编辑、同级排序、四层分类维护、书签上传、备份恢复、系统配置查看与发布状态。`hidden` 仅隐藏导航，链接和搜索仍可访问。
+
+公开构建使用专属 Cloudflare Pages Git 项目，允许获取应用源码；导航、正文、配置和本地图片来自 D1 快照。每次构建会按 D1 配置刷新 RSS、GitHub 项目统计和贡献图，失败来源回退到 D1 保存的数据，不读取仓库缓存。
+
+发布通过 Pages API 创建部署，5 分钟定时检查待发布内容，也可手动“立即发布”。后台核对生产部署及产物版本后才显示“已发布”；构建失败或期间发生新编辑时，待发布版本会保留。
+
+完整的首次部署、Access 路径配置、凭证、种子导入与升级说明见 [`workers/README.md`](workers/README.md)。需要分别准备 D1、Worker、Access 与 Pages 资源。生产 Access 登录和线上发布时延需在自己的 Cloudflare 项目中验收。
+
+```bash
+npm ci
+npm --prefix workers ci
+npm run backend:seed   # 生成 workers/.seed.json，在后台“系统配置”中导入
+npm run backend:dev    # 本地 Worker 与管理台
+npm run backend:check
+npm run backend:test   # 使用隔离 D1，不改动已部署的数据
+```
+
+本地开发需要在 `workers/.dev.vars` 中设置 `ALLOW_INSECURE_DEV=1`；该文件不提交，放行仅对本机地址有效。
+
 ## 设置配置文件
 
 MeNav 使用模块化配置方式，将配置分散到多个 YAML 文件中，更易于管理和维护。
