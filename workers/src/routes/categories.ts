@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { D1Database } from '@cloudflare/workers-types';
 import { commitEdit, type AdminEnv } from '../db/revision';
-import { object, text, bool, sortValue } from '../validation';
+import { object, text, bool, sortValue, categoryMetadata } from '../validation';
 import { ApiError } from '../errors';
 
 export const categoriesRoutes = new Hono<AdminEnv>();
@@ -77,6 +77,10 @@ categoriesRoutes.put('/:id', async (c) => {
   if (b.sort !== undefined) {
     sets.push('sort = ?');
     values.push(sortValue(b.sort));
+  }
+  if (b.metadata !== undefined) {
+    sets.push('metadata = ?');
+    values.push(categoryMetadata(b.metadata));
   }
   const extra = [];
   if (b.parentId !== undefined) {

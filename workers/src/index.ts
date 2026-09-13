@@ -12,6 +12,7 @@ import { pagesRoutes } from './routes/pages';
 import { categoriesRoutes } from './routes/categories';
 import { sitesRoutes } from './routes/sites';
 import { seedRoutes } from './routes/seed';
+import { settingsRoutes } from './routes/settings';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { rebuildRoutes } from './routes/rebuild';
 import { rebuildSnapshot, publishStatus, reconcilePublication, buildSnapshot } from './rebuild';
@@ -147,7 +148,16 @@ admin.get('/api/state', async (c) => {
   if (c.req.header('if-none-match') === tag) return c.body(null, 304);
   return c.json(snapshot.pages);
 });
-admin.get('/api/settings', async (c) => c.json(await loadSettings(c.env.DB)));
+admin.get('/api/settings', async (c) => {
+  const [settings, state] = await Promise.all([
+    loadSettings(c.env.DB),
+    c.env.DB.prepare('SELECT revision FROM content_state WHERE id = 1').first<{
+      revision: number;
+    }>(),
+  ]);
+  c.header('ETag', revisionTag(state!.revision));
+  return c.json(settings);
+});
 admin.get('/api/export', async (c) => c.json(await loadSnapshot(c.env.DB)));
 admin.get('/api/publish-status', async (c) => {
   // Pages API 抖动不应让本地状态不可读;核对失败时附带 reconcileError 交由前端提示。
@@ -166,6 +176,7 @@ admin.route('/api/categories', categoriesRoutes);
 admin.route('/api/sites', sitesRoutes);
 admin.route('/api/reorder', reorderRoutes);
 admin.route('/api/seed', seedRoutes);
+admin.route('/api/settings', settingsRoutes);
 admin.route('/api/bookmarks', bookmarksRoutes);
 admin.route('/api/rebuild', rebuildRoutes);
 

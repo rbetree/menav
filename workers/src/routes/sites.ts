@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { commitEdit, type AdminEnv } from '../db/revision';
 import { sanitizeSiteUrl, sanitizeIconUrl } from '../safe-url';
-import { object, text, bool, sortValue } from '../validation';
+import { object, text, bool, sortValue, siteMetadata } from '../validation';
 import { ApiError } from '../errors';
 import type { D1Database } from '@cloudflare/workers-types';
 
@@ -102,6 +102,10 @@ sitesRoutes.put('/:id', async (c) => {
   if (b.sort !== undefined) {
     sets.push('sort = ?');
     values.push(sortValue(b.sort));
+  }
+  if (b.metadata !== undefined) {
+    sets.push('metadata = ?');
+    values.push(siteMetadata(b.metadata));
   }
   if (!sets.length) throw new ApiError(400, '没有可更新字段');
   await commitEdit(c, [
