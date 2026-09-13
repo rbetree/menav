@@ -11,5 +11,5 @@
     }
   },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "dist-node", "node_modules", "test", "workers"]
+  "exclude": ["dist", "dist-node", "node_modules", "test", "workers", "dev"]
 }
