@@ -46,7 +46,7 @@ function main() {
     return;
   }
 
-  const targetDirs = ['src', 'scripts', 'test'].map((dir) => path.join(projectRoot, dir));
+  const targetDirs = ['src', 'scripts', 'test', 'admin'].map((dir) => path.join(projectRoot, dir));
 
   const jsFiles = targetDirs.flatMap((dir) => collectJsFiles(dir)).sort();
   let hasError = false;

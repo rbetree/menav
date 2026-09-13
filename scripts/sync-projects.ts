@@ -4,6 +4,7 @@ const path = require('node:path') as typeof import('node:path');
 
 import { loadConfig } from '../src/lib/config/index.ts';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
+import { collectSitesRecursively } from '../src/lib/site-data/sites.ts';
 
 const log = createLogger('sync:projects');
 
@@ -165,18 +166,6 @@ function isGithubRepoUrl(url: unknown): GithubRepo | null {
   } catch {
     return null;
   }
-}
-
-function collectSitesRecursively(node: unknown, output: SiteLike[]): void {
-  if (!node || typeof node !== 'object') return;
-  const record = node as Record<string, unknown>;
-  if (Array.isArray(record.subcategories))
-    record.subcategories.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(record.groups))
-    record.groups.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(record.subgroups))
-    record.subgroups.forEach((child) => collectSitesRecursively(child, output));
-  if (Array.isArray(record.sites)) record.sites.forEach((site) => output.push(site as SiteLike));
 }
 
 function findProjectsPages(config: ConfigLike): ProjectPage[] {
