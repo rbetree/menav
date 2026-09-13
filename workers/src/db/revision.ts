@@ -17,8 +17,14 @@ export async function editRevision(c: AdminContext, next: Next): Promise<void> {
   }>();
   const revision = row!.revision;
   const expected = c.req.header('if-match');
-  if (expected !== undefined && expected !== revisionTag(revision)) {
-    throw new ApiError(409, '内容已在其他窗口更新，请刷新后重新编辑', 'revision_conflict');
+  if (expected !== undefined) {
+    // 中间层可能把 ETag 弱化为 W/"n";同时接受通配 * 与逗号分隔的多个验证器。
+    const parts = expected.split(',').map((part) => part.trim());
+    const matches =
+      parts.includes('*') ||
+      parts.map((part) => part.replace(/^W\//, '')).includes(revisionTag(revision));
+    if (!matches)
+      throw new ApiError(409, '内容已在其他窗口更新，请刷新后重新编辑', 'revision_conflict');
   }
   c.set('revision', revision);
   await next();

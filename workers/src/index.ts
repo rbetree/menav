@@ -111,8 +111,9 @@ admin.use('/api/*', async (c, next) => {
     if (!sameHost)
       return c.json({ ok: false, error: 'cross_site_blocked', detail: '拒绝跨站写请求' }, 403);
   }
-  // 浏览器写请求必须是 JSON(跨站表单只能发出简单类型,无法伪造 application/json)。
-  if (fromBrowser) {
+  // 浏览器带体写请求必须是 JSON(跨站表单只能发出简单类型,无法伪造 application/json);
+  // DELETE 通常无请求体,不强制 Content-Type,其 CSRF 保护由 Origin/Sec-Fetch-Site 承担。
+  if (fromBrowser && c.req.method !== 'DELETE') {
     const contentType = (c.req.header('content-type') ?? '').toLowerCase();
     if (!contentType.startsWith('application/json'))
       return c.json(
