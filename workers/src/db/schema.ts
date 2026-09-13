@@ -70,14 +70,6 @@ export async function applySchema(db: D1Database): Promise<void> {
       published_build_nonce INTEGER NOT NULL DEFAULT 0,
       updated_at TEXT NOT NULL
     )`),
-    db
-      .prepare(
-        `INSERT OR IGNORE INTO content_state
-        (id, revision, published_revision, build_nonce, published_build_nonce, updated_at)
-      SELECT 1, CASE WHEN EXISTS(SELECT 1 FROM pages) THEN 1 ELSE 0 END, 0, 0, 0, ?`
-      )
-      .bind(new Date().toISOString()),
-    db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
     db.prepare(`CREATE TABLE IF NOT EXISTS publication (
       id INTEGER PRIMARY KEY CHECK(id = 1),
       job_id TEXT NOT NULL,
@@ -122,4 +114,16 @@ export async function applySchema(db: D1Database): Promise<void> {
       }
     }
   }
+
+  // 列补齐之后再初始化与清理:INSERT 引用了新增列,必须晚于 ALTER。
+  await db.batch([
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO content_state
+        (id, revision, published_revision, build_nonce, published_build_nonce, updated_at)
+      SELECT 1, CASE WHEN EXISTS(SELECT 1 FROM pages) THEN 1 ELSE 0 END, 0, 0, 0, ?`
+      )
+      .bind(new Date().toISOString()),
+    db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
+  ]);
 }
