@@ -83,7 +83,8 @@ categoriesRoutes.put('/:id', async (c) => {
     const parentId = b.parentId === null || b.parentId === '' ? null : text(b.parentId, 'parentId');
     const depth = await parentDepth(c.env.DB, self.page_id, parentId, id);
     const height = await c.env.DB.prepare(
-      'WITH RECURSIVE sub(id, depth) AS (SELECT ?, 1 UNION ALL SELECT c.id, s.depth + 1 FROM categories c JOIN sub s ON c.parent_id = s.id) SELECT MAX(depth) AS height FROM sub'
+      // depth 上限兜底:即便库中被外部改写成环也不会无限递归。
+      'WITH RECURSIVE sub(id, depth) AS (SELECT ?, 1 UNION ALL SELECT c.id, s.depth + 1 FROM categories c JOIN sub s ON c.parent_id = s.id WHERE s.depth < 10) SELECT MAX(depth) AS height FROM sub'
     )
       .bind(id)
       .first<{ height: number }>();

@@ -59,7 +59,42 @@ const TABLES = [
 
 /** 幂等建表。每次请求入口调用,module 级缓存避免重复执行。 */
 export async function applySchema(db: D1Database): Promise<void> {
-  await db.batch(TABLES.map((stmt) => db.prepare(stmt)));
+  // 建表与初始化始终执行(全部 IF NOT EXISTS / OR IGNORE,幂等)。
+  await db.batch([
+    ...TABLES.map((stmt) => db.prepare(stmt)),
+    db.prepare(`CREATE TABLE IF NOT EXISTS content_state (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      revision INTEGER NOT NULL CONSTRAINT revision_conflict CHECK(revision >= 0),
+      published_revision INTEGER NOT NULL DEFAULT 0,
+      build_nonce INTEGER NOT NULL DEFAULT 0,
+      published_build_nonce INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    )`),
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO content_state
+        (id, revision, published_revision, build_nonce, published_build_nonce, updated_at)
+      SELECT 1, CASE WHEN EXISTS(SELECT 1 FROM pages) THEN 1 ELSE 0 END, 0, 0, 0, ?`
+      )
+      .bind(new Date().toISOString()),
+    db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
+    db.prepare(`CREATE TABLE IF NOT EXISTS publication (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      job_id TEXT NOT NULL,
+      revision INTEGER NOT NULL,
+      build_nonce INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL,
+      deployment_id TEXT,
+      deployment_url TEXT,
+      error TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS snapshot_chunks (
+      part INTEGER PRIMARY KEY,
+      data TEXT NOT NULL
+    )`),
+  ]);
 
   // 升级已有数据库时只追加列；不重建或清空业务表。
   for (const [table, columns] of Object.entries({
@@ -69,6 +104,11 @@ export async function applySchema(db: D1Database): Promise<void> {
       kind: "TEXT NOT NULL DEFAULT 'subcategories'",
     },
     sites: { metadata: "TEXT NOT NULL DEFAULT '{}'", kind: "TEXT NOT NULL DEFAULT 'sites'" },
+    content_state: {
+      build_nonce: 'INTEGER NOT NULL DEFAULT 0',
+      published_build_nonce: 'INTEGER NOT NULL DEFAULT 0',
+    },
+    publication: { build_nonce: 'INTEGER NOT NULL DEFAULT 0' },
   })) {
     const existing = await db.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>();
     const names = new Set(existing.results.map((column) => column.name));
@@ -82,35 +122,4 @@ export async function applySchema(db: D1Database): Promise<void> {
       }
     }
   }
-
-  await db.batch([
-    db.prepare(`CREATE TABLE IF NOT EXISTS content_state (
-      id INTEGER PRIMARY KEY CHECK(id = 1),
-      revision INTEGER NOT NULL CONSTRAINT revision_conflict CHECK(revision >= 0),
-      published_revision INTEGER NOT NULL DEFAULT 0,
-      updated_at TEXT NOT NULL
-    )`),
-    db
-      .prepare(
-        `INSERT OR IGNORE INTO content_state (id, revision, published_revision, updated_at)
-      SELECT 1, CASE WHEN EXISTS(SELECT 1 FROM pages) THEN 1 ELSE 0 END, 0, ?`
-      )
-      .bind(new Date().toISOString()),
-    db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
-    db.prepare(`CREATE TABLE IF NOT EXISTS publication (
-      id INTEGER PRIMARY KEY CHECK(id = 1),
-      job_id TEXT NOT NULL,
-      revision INTEGER NOT NULL,
-      status TEXT NOT NULL,
-      deployment_id TEXT,
-      deployment_url TEXT,
-      error TEXT,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    )`),
-    db.prepare(`CREATE TABLE IF NOT EXISTS snapshot_chunks (
-      part INTEGER PRIMARY KEY,
-      data TEXT NOT NULL
-    )`),
-  ]);
 }

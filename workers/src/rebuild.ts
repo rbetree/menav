@@ -8,6 +8,7 @@ import { getPageIdIssue } from '../../src/lib/config/page-id';
 type Job = {
   job_id: string;
   revision: number;
+  build_nonce: number;
   status: 'dispatching' | 'building' | 'published' | 'failed';
   deployment_id: string | null;
   deployment_url: string | null;
@@ -120,9 +121,9 @@ export async function reconcilePublication(db: D1Database, env: Env): Promise<vo
   await db.batch([
     db
       .prepare(
-        "UPDATE content_state SET published_revision = MAX(published_revision, ?) WHERE id = 1 AND EXISTS (SELECT 1 FROM publication WHERE job_id = ? AND status IN ('dispatching', 'building'))"
+        "UPDATE content_state SET published_revision = MAX(published_revision, ?), published_build_nonce = MAX(published_build_nonce, ?) WHERE id = 1 AND EXISTS (SELECT 1 FROM publication WHERE job_id = ? AND status IN ('dispatching', 'building'))"
       )
-      .bind(job.revision, job.job_id),
+      .bind(job.revision, job.build_nonce ?? 0, job.job_id),
     db
       .prepare(
         "UPDATE publication SET status = 'published', error = NULL, updated_at = ? WHERE id = 1 AND job_id = ? AND status IN ('dispatching', 'building')"
@@ -133,16 +134,25 @@ export async function reconcilePublication(db: D1Database, env: Env): Promise<vo
 
 export async function publishStatus(db: D1Database, env: Env) {
   const [stateResult, jobResult] = await db.batch([
-    db.prepare('SELECT revision, published_revision FROM content_state WHERE id = 1'),
+    db.prepare(
+      'SELECT revision, published_revision, build_nonce, published_build_nonce FROM content_state WHERE id = 1'
+    ),
     db.prepare('SELECT * FROM publication WHERE id = 1'),
   ]);
-  const state = stateResult.results[0] as { revision: number; published_revision: number };
+  const state = stateResult.results[0] as {
+    revision: number;
+    published_revision: number;
+    build_nonce: number;
+    published_build_nonce: number;
+  };
   const job = jobResult.results[0] as Job | undefined;
+  const pending =
+    state.revision > state.published_revision || state.build_nonce > state.published_build_nonce;
   return {
     wired: publicationWired(env),
     revision: state.revision,
     publishedRevision: state.published_revision,
-    pending: state.revision > state.published_revision,
+    pending,
     job: job
       ? {
           id: job.job_id,
@@ -158,12 +168,15 @@ export async function publishStatus(db: D1Database, env: Env) {
 }
 
 /** 单个持久化发布槽串行构建；快照在申请该槽时冻结，编辑仍可继续。 */
-export async function rebuildSnapshot(db: D1Database, env: Env) {
+export async function rebuildSnapshot(db: D1Database, env: Env, opts: { force?: boolean } = {}) {
   if (!publicationWired(env)) throw new NotWiredError();
   await reconcilePublication(db, env);
   const existing = await currentJob(db);
   if (existing && isActive(existing))
     return { ok: true, queued: false, ...(await publishStatus(db, env)) };
+  // force:即使内容未变也递增构建序号,用于让新代码生效(代码 push 不改变 revision)。
+  if (opts.force)
+    await db.prepare('UPDATE content_state SET build_nonce = build_nonce + 1 WHERE id = 1').run();
   const snapshot = await loadSnapshot(db);
   for (const page of snapshot.pages) {
     const issue = getPageIdIssue(page.id);
@@ -186,12 +199,16 @@ export async function rebuildSnapshot(db: D1Database, env: Env) {
     );
   }
   const now = new Date().toISOString();
+  const stateRow = await db
+    .prepare('SELECT build_nonce FROM content_state WHERE id = 1')
+    .first<{ build_nonce: number }>();
+  const buildNonce = stateRow?.build_nonce ?? 0;
   const statements = [
     db
       .prepare(
-        "INSERT INTO publication (id, job_id, revision, status, created_at, updated_at) SELECT 1, ?, ?, 'dispatching', ?, ? FROM content_state WHERE id = 1 AND revision = ? AND revision > published_revision ON CONFLICT(id) DO UPDATE SET job_id = excluded.job_id, revision = excluded.revision, status = 'dispatching', deployment_id = NULL, deployment_url = NULL, error = NULL, created_at = excluded.created_at, updated_at = excluded.updated_at WHERE publication.status IN ('published', 'failed')"
+        "INSERT INTO publication (id, job_id, revision, build_nonce, status, created_at, updated_at) SELECT 1, ?, ?, ?, 'dispatching', ?, ? FROM content_state WHERE id = 1 AND revision = ? AND build_nonce = ? AND (revision > published_revision OR build_nonce > published_build_nonce) ON CONFLICT(id) DO UPDATE SET job_id = excluded.job_id, revision = excluded.revision, build_nonce = excluded.build_nonce, status = 'dispatching', deployment_id = NULL, deployment_url = NULL, error = NULL, created_at = excluded.created_at, updated_at = excluded.updated_at WHERE publication.status IN ('published', 'failed')"
       )
-      .bind(id, snapshot.revision, now, now, snapshot.revision),
+      .bind(id, snapshot.revision, buildNonce, now, now, snapshot.revision, buildNonce),
     db
       .prepare(
         'DELETE FROM snapshot_chunks WHERE EXISTS (SELECT 1 FROM publication WHERE job_id = ?)'

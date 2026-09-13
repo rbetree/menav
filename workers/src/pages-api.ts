@@ -40,8 +40,10 @@ export async function pagesApi<T>(env: Env, suffix = '', body?: FormData): Promi
     throw new PagesApiError(false, 'Pages API 返回无效响应');
   }
   if (!response.ok || json.success !== true || !json.result) {
+    // 408/429 属限流或超时,应可重试,不能把发布任务永久判为失败。
+    const retryable = response.status === 408 || response.status === 429;
     throw new PagesApiError(
-      response.status >= 400 && response.status < 500,
+      !retryable && response.status >= 400 && response.status < 500,
       `Pages API 请求失败（HTTP ${response.status}）`
     );
   }
