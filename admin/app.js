@@ -11,6 +11,10 @@
 
 /* ---------- 全局状态 ---------- */
 let state = { pages: [] }; // /api/state 返回的站点模型
+let stateEtag = null;
+let modalEtag = null;
+let mutationPending = false;
+let statusTimer;
 const collapsed = new Set(); // 'p:<id>' / 'c:<id>',折叠状态记忆
 const nodeIndex = { pages: [], categories: [], sites: [] };
 
@@ -33,7 +37,7 @@ function toast(msg, kind = 'info') {
   setTimeout(() => el.remove(), 3800);
 }
 
-function showStatus(kind, text) {
+function showStatus(kind, text, opts) {
   const el = document.getElementById('status');
   const icon = el.querySelector('.status-icon');
   const txt = el.querySelector('.status-text');
@@ -41,6 +45,17 @@ function showStatus(kind, text) {
   const icons = { loading: '⏳', error: '⚠️', empty: '🗂️', offline: '📡' };
   icon.textContent = icons[kind] || 'ℹ️';
   txt.textContent = text;
+  // 错误/脱机态附「重试」入口,替代只让用户手动刷新
+  const retryBtn = el.querySelector('.status-retry');
+  if (retryBtn) retryBtn.remove();
+  if (opts && typeof opts.retry === 'function') {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm status-retry';
+    btn.textContent = '重试';
+    btn.addEventListener('click', opts.retry);
+    el.appendChild(btn);
+  }
   el.hidden = false;
   document.getElementById('tree-root').innerHTML = '';
 }
@@ -50,40 +65,80 @@ function hideStatus() {
 }
 
 /* ---------- API 封装 ---------- */
+/* 404 意味着该条目已被删除或不存在(常见于编辑窗口打开期间数据被其他端改动),统一提示并刷新 */
+function isNotFound(r) {
+  return !r.ok && !r.auth && r.status === 404;
+}
+
 async function api(method, path, body) {
   const opts = { method, credentials: 'include', headers: {} };
-  if (body !== undefined) {
-    opts.headers['Content-Type'] = 'application/json';
-    opts.body = JSON.stringify(body);
+  const mutation = method !== 'GET' && path !== '/api/rebuild';
+  if (mutation && mutationPending)
+    return { ok: false, status: 409, error: 'busy', detail: '请等待当前保存完成' };
+  if (mutation) {
+    const etag = modalEtag || stateEtag;
+    if (!etag)
+      return { ok: false, status: 409, error: 'revision_conflict', detail: '请先刷新数据后再编辑' };
+    opts.headers['If-Match'] = etag;
+    mutationPending = true;
   }
-  let res;
   try {
-    res = await fetch(path, opts);
-  } catch {
-    return { ok: false, auth: false, status: 0, error: 'network' };
-  }
-  if (res.status === 401 || res.status === 403) {
-    return { ok: false, auth: true, status: res.status, error: 'auth' };
-  }
-  let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    /* 无 JSON body,仅依赖状态码 */
-  }
-  if (!res.ok || (data && data.ok === false)) {
+    if (body !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try {
+      res = await fetch(path, opts);
+    } catch {
+      return { ok: false, auth: false, status: 0, error: 'network' };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, auth: true, status: res.status, error: 'auth' };
+    }
+    // 仅认证重定向属于会话失效；普通 HTML 500 保留服务故障语义。
+    const contentType = res.headers.get('content-type') || '';
+    if (res.redirected && /\/cdn-cgi\/access\/|\.cloudflareaccess\.com/.test(res.url)) {
+      return { ok: false, auth: true, status: res.status, error: 'auth' };
+    }
+    if (!contentType.includes('application/json')) {
+      return {
+        ok: false,
+        auth: false,
+        status: res.status,
+        error: 'invalid_response',
+        detail: '服务返回异常响应（HTTP ' + res.status + '），请稍后重试',
+      };
+    }
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      return { ok: false, status: res.status, error: 'invalid_json', detail: '服务器响应格式无效' };
+    }
+    if (!res.ok || (data && data.ok === false)) {
+      return {
+        ok: false,
+        auth: false,
+        status: res.status,
+        error: (data && data.error) || 'HTTP ' + res.status,
+        detail: data ? data.detail : undefined,
+        count: data ? data.count : undefined,
+      };
+    }
+    // B1:裸数组响应(如 /api/state 返回 PageNode[])不得被 `...(data||{})` 摊平成索引对象
+    const etag = res.headers.get('etag');
+    if (Array.isArray(data)) return { ok: true, status: res.status, data, etag };
     return {
-      ok: false,
-      auth: false,
+      ok: true,
       status: res.status,
-      error: (data && data.error) || 'HTTP ' + res.status,
-      detail: data ? data.detail : undefined,
-      count: data ? data.count : undefined,
+      data: data ? data.data : undefined,
+      ...(data || {}),
+      etag,
     };
+  } finally {
+    if (mutation) mutationPending = false;
   }
-  // B1:裸数组响应(如 /api/state 返回 PageNode[])不得被 `...(data||{})` 摊平成索引对象
-  if (Array.isArray(data)) return { ok: true, status: res.status, data };
-  return { ok: true, status: res.status, data: data ? data.data : undefined, ...(data || {}) };
 }
 
 /* ---------- 数据加载 ---------- */
@@ -93,28 +148,30 @@ async function loadState() {
   if (r.status === 0) {
     showStatus(
       'offline',
-      '无法连接 /api/state —— 当前处于脱机态。请通过动态后台域名访问,并确保已登录 Cloudflare Access。'
+      '无法连接 /api/state —— 当前处于脱机态。请通过动态后台域名访问,并确保已登录 Cloudflare Access。',
+      { retry: loadState }
     );
     return;
   }
   if (r.auth) {
-    showStatus('error', '需登录(Cloudflare Access)。请刷新页面完成身份验证后重试。');
+    showStatus('error', '需登录(Cloudflare Access)。会话可能已过期,请刷新页面重新验证。');
     return;
   }
   if (!r.ok) {
-    showStatus('error', '获取站点模型失败:' + (r.error || '未知错误'));
+    // 404:admin 未与 Worker 同域部署时最常见,给出可操作的下一步
+    const msg =
+      r.status === 404
+        ? '获取站点模型失败:后端接口不可达(404)。请确认控制台部署在动态后台 Worker 同域下。'
+        : '获取站点模型失败:' + (r.detail || r.error || '未知错误');
+    showStatus('error', msg, { retry: loadState });
     return;
   }
-  // /api/state 直接返回 PageNode[];兼容 api() 数组分支(r.data)与旧契约 {pages:[...] }
-  state.pages = Array.isArray(r.data)
-    ? r.data
-    : Array.isArray(r)
-      ? r
-      : Array.isArray(r.pages)
-        ? r.pages
-        : [];
+  // /api/state 直接返回 PageNode[]
+  state.pages = Array.isArray(r.data) ? r.data : [];
+  stateEtag = r.etag;
   hideStatus();
   renderTree();
+  await loadPublishStatus();
 }
 
 /* ---------- 节点索引:定位节点 + 兄弟列表 ---------- */
@@ -360,22 +417,15 @@ async function reorder(type, id, dir) {
   const idx = list.findIndex((n) => n.id === id);
   const swap = idx + dir;
   if (idx < 0 || swap < 0 || swap >= list.length) return;
-  const a = list[idx];
-  const b = list[swap];
-  const tmp = a.sort;
-  a.sort = b.sort;
-  b.sort = tmp;
-  const items = list.map((n) => ({ id: n.id, sort: n.sort }));
+  const next = list.slice();
+  [next[idx], next[swap]] = [next[swap], next[idx]];
+  const items = next.map((n, sort) => ({ id: n.id, sort }));
   const r = await api('POST', '/api/reorder', { type, items });
   if (r.ok) {
     toast('已保存排序', 'success');
-    renderTree();
+    await loadState();
   } else {
-    // 失败时回滚乐观交换并重渲,避免 in-memory 顺序与服务器不一致的静默漂移
-    a.sort = b.sort;
-    b.sort = tmp;
-    renderTree();
-    toast('排序失败:' + (r.auth ? '需重新登录' : r.error), 'error');
+    toast(writeErr(r), 'error');
   }
 }
 
@@ -383,21 +433,48 @@ async function reorder(type, id, dir) {
 const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const modalContent = document.getElementById('modal-content');
+let previousFocus;
 
 function openModal(title, html) {
+  if (!modalOverlay.classList.contains('open')) previousFocus = document.activeElement;
+  modalEtag = stateEtag;
   modalTitle.textContent = title;
   modalContent.innerHTML = html;
   modalOverlay.classList.add('open');
+  document.querySelector('.admin-shell').inert = true;
+  document.getElementById('theme-toggle').inert = true;
   document.addEventListener('keydown', modalEsc);
+  (
+    modalContent.querySelector('input:not([type="hidden"]), select, textarea, button') ||
+    modalOverlay.querySelector('.modal-close')
+  ).focus();
 }
 
 function closeModal() {
+  modalEtag = null;
   modalOverlay.classList.remove('open');
+  document.querySelector('.admin-shell').inert = false;
+  document.getElementById('theme-toggle').inert = false;
   document.removeEventListener('keydown', modalEsc);
+  if (previousFocus?.isConnected) previousFocus.focus();
 }
 
 function modalEsc(e) {
   if (e.key === 'Escape') closeModal();
+  if (e.key === 'Tab') {
+    const focusable = [
+      ...modalOverlay.querySelectorAll('button, input, select, textarea, a[href]'),
+    ].filter((node) => !node.disabled && node.getClientRects().length);
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 }
 
 /* 表单字段辅助 */
@@ -533,8 +610,36 @@ function openPageForm(p) {
     isEdit ? '编辑页面' : '新增页面',
     '<form id="node-form">' +
       textField('label', '页面名称', p ? p.label : '', '例如:首页', '必填') +
-      textField('template', '模板', p && p.template ? p.template : '', 'collections(可选)') +
-      checkField('hidden', '隐藏(不在公开站展示)', p ? !!p.hidden : false) +
+      selectField(
+        'template',
+        '页面模板',
+        [
+          { value: '', label: '默认导航页' },
+          { value: 'page', label: '导航页' },
+          { value: 'content', label: '正文页' },
+          { value: 'bookmarks', label: '书签' },
+          { value: 'articles', label: '文章' },
+          { value: 'projects', label: '项目' },
+        ],
+        p?.template || ''
+      ) +
+      textField(
+        'title',
+        '页面标题',
+        p?.metadata?.title || '',
+        '',
+        '首页标题由站点个人资料设置决定'
+      ) +
+      textField('subtitle', '页面说明', p?.metadata?.subtitle || '', '') +
+      textField('navIcon', '导航图标', p?.navigation?.icon || '', 'fas fa-link') +
+      textareaField(
+        'markdown',
+        '正文（Markdown）',
+        p?.metadata?.content?.markdown || '',
+        '',
+        '选择正文页时显示此内容'
+      ) +
+      checkField('hidden', '在导航中隐藏（链接和搜索仍可访问）', p ? !!p.hidden : false) +
       formActions(isEdit ? '保存' : '新增')
   );
   const form = document.getElementById('node-form');
@@ -543,9 +648,21 @@ function openPageForm(p) {
     submitWithGuard(form, async () => {
       const payload = {
         label: document.getElementById('f-label').value.trim(),
-        template: document.getElementById('f-template').value.trim() || undefined,
+        template: document.getElementById('f-template').value,
         hidden: document.getElementById('f-hidden').checked,
+        metadata: {
+          ...(p?.metadata || {}),
+          title: document.getElementById('f-title').value.trim(),
+          subtitle: document.getElementById('f-subtitle').value.trim(),
+        },
+        navigation: {
+          ...(p?.navigation || {}),
+          icon: document.getElementById('f-navIcon').value.trim(),
+        },
       };
+      if (!payload.metadata.title) delete payload.metadata.title;
+      if (payload.template === 'content')
+        payload.metadata.content = { markdown: document.getElementById('f-markdown').value };
       if (!payload.label) {
         setFormError('页面名称不能为空');
         return;
@@ -558,7 +675,7 @@ function openPageForm(p) {
         closeModal();
         await loadState();
       } else {
-        setFormError(authErr(r) || '保存失败:' + r.error);
+        setFormError(writeErr(r));
       }
     });
   });
@@ -618,7 +735,7 @@ function openCategoryForm(opts) {
         closeModal();
         await loadState();
       } else {
-        setFormError(authErr(r) || '保存失败:' + r.error);
+        setFormError(writeErr(r));
       }
     });
   });
@@ -674,9 +791,9 @@ function openSiteForm(opts) {
       const payload = {
         name,
         url,
-        description: document.getElementById('f-description').value.trim() || undefined,
-        faviconUrl: document.getElementById('f-faviconUrl').value.trim() || undefined,
-        icon: document.getElementById('f-icon').value.trim() || undefined,
+        description: document.getElementById('f-description').value.trim(),
+        faviconUrl: document.getElementById('f-faviconUrl').value.trim(),
+        icon: document.getElementById('f-icon').value.trim(),
         external: document.getElementById('f-external').checked,
       };
       const r = isEdit
@@ -687,7 +804,7 @@ function openSiteForm(opts) {
         closeModal();
         await loadState();
       } else {
-        setFormError(authErr(r) || '保存失败:' + r.error);
+        setFormError(writeErr(r));
       }
     });
   });
@@ -697,6 +814,19 @@ function authErr(r) {
   if (r.auth) return '需登录(Cloudflare Access),请刷新页面重新验证。';
   if (r.status === 0) return '无法连接服务器,请检查网络。';
   return '';
+}
+
+/* 写操作统一的错误呈现:404 → 提示并刷新;409 级联等特殊分支由调用方先行处理 */
+function writeErr(r) {
+  if (r.auth || r.status === 0) return authErr(r);
+  if (r.error === 'revision_conflict')
+    return '内容已在其他窗口更新。本次未保存，请保留输入，关闭弹窗并刷新后重新编辑。';
+  if (r.status === 404) {
+    setTimeout(() => loadState(), 1200);
+    return '该条目不存在或已被删除，即将刷新';
+  }
+  if (typeof r.detail === 'string') return r.detail;
+  return r.error ? '保存失败:' + r.error : '保存失败:未知错误';
 }
 
 /* ---------- 删除确认(含级联询问) ---------- */
@@ -736,16 +866,16 @@ async function delPage(id) {
   if (r.ok) {
     toast('页面已删除', 'success');
     await loadState();
-  } else if (r.status === 409) {
+  } else if (r.status === 409 && r.count !== undefined) {
     openCascadeConfirm(r, async () => {
       const f = await api('DELETE', '/api/pages/' + id + '?force=1');
       if (f.ok) {
         toast('页面及子树已删除', 'success');
         await loadState();
-      } else toast('删除失败:' + (f.error || '未知错误'), 'error');
+      } else toast('删除失败:' + writeErr(f), 'error');
     });
   } else {
-    toast(authErr(r) || '删除失败:' + r.error, 'error');
+    toast(writeErr(r), 'error');
   }
 }
 
@@ -754,16 +884,16 @@ async function delCategory(id) {
   if (r.ok) {
     toast('分类已删除', 'success');
     await loadState();
-  } else if (r.status === 409) {
+  } else if (r.status === 409 && r.detail && typeof r.detail === 'object') {
     openCascadeConfirm(r, async () => {
       const f = await api('DELETE', '/api/categories/' + id + '?force=1');
       if (f.ok) {
         toast('分类及子树已删除', 'success');
         await loadState();
-      } else toast('删除失败:' + (f.error || '未知错误'), 'error');
+      } else toast('删除失败:' + writeErr(f), 'error');
     });
   } else {
-    toast(authErr(r) || '删除失败:' + r.error, 'error');
+    toast(writeErr(r), 'error');
   }
 }
 
@@ -773,7 +903,7 @@ async function delSite(id) {
     toast('站点已删除', 'success');
     await loadState();
   } else {
-    toast(authErr(r) || '删除失败:' + r.error, 'error');
+    toast(writeErr(r), 'error');
   }
 }
 
@@ -785,15 +915,157 @@ async function publish() {
   try {
     const r = await api('POST', '/api/rebuild');
     if (r.ok) {
-      // 按 queued 分支反馈,避免「无待发布变更」仍提示已触发
-      toast(r.queued ? '已开始重建,稍后刷新公开站生效' : '当前没有待发布变更', 'success');
+      toast(
+        r.queued
+          ? '已开始构建，发布状态将自动更新'
+          : r.pending
+            ? '已有构建正在进行，新修改将随后发布'
+            : '当前没有待发布变更',
+        'success'
+      );
+    } else if (r.status === 501 && r.detail) {
+      toast('发布未生效:' + r.detail + '。变更已保留,配置后重试。', 'error');
     } else {
-      toast(authErr(r) || '发布失败:' + r.error, 'error');
+      toast(writeErr(r), 'error');
     }
   } finally {
     btn.disabled = false;
     btn.textContent = '立即发布';
+    await loadPublishStatus();
   }
+}
+
+async function loadPublishStatus() {
+  clearTimeout(statusTimer);
+  const panel = document.getElementById('publish-status');
+  const r = await api('GET', '/api/publish-status');
+  if (!r.ok) {
+    panel.textContent = '发布状态暂不可用：' + writeErr(r);
+    statusTimer = setTimeout(loadPublishStatus, 15000);
+    return;
+  }
+  const labels = {
+    dispatching: '正在创建构建',
+    building: '构建中',
+    published: '已发布',
+    failed: '发布失败',
+  };
+  let message = '内容版本 ' + r.revision + ' · 已发布版本 ' + r.publishedRevision;
+  message += r.pending ? ' · 有待发布修改' : ' · 已是最新';
+  if (!r.wired) message += ' · 尚未配置发布服务';
+  if (r.job) message += ' · ' + labels[r.job.status] + (r.job.error ? '：' + r.job.error : '');
+  panel.textContent = message;
+  if (r.job?.status === 'published' && r.job.url) {
+    const link = document.createElement('a');
+    link.href = r.job.url;
+    link.textContent = '查看本次发布';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    panel.append(' · ', link);
+  }
+  statusTimer = setTimeout(
+    loadPublishStatus,
+    r.job && ['building', 'dispatching'].includes(r.job.status) ? 10000 : 60000
+  );
+}
+
+async function openSettings() {
+  const r = await api('GET', '/api/settings');
+  if (!r.ok) {
+    toast(writeErr(r), 'error');
+    return;
+  }
+  let site;
+  try {
+    site = JSON.parse(r.site || '{}');
+  } catch {
+    toast('站点配置格式无效', 'error');
+    return;
+  }
+  openModal(
+    '系统配置',
+    '<p class="field-hint">以下配置来自当前站点数据。导入初始数据会替换全部页面和配置，建议先导出备份。</p>' +
+      '<div class="form-actions"><button type="button" class="btn" data-action="export">导出备份</button><button type="button" class="btn" data-action="seed">导入初始数据</button></div>' +
+      '<pre class="settings-json">' +
+      esc(JSON.stringify(site, null, 2)) +
+      '</pre>'
+  );
+}
+
+async function exportSnapshot() {
+  const r = await api('GET', '/api/export');
+  if (!r.ok) {
+    toast(writeErr(r), 'error');
+    return;
+  }
+  const { schemaVersion, revision, updatedAt, settings, pages } = r;
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify({ schemaVersion, revision, updatedAt, settings, pages }, null, 2)], {
+      type: 'application/json',
+    })
+  );
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'menav-backup-v' + revision + '.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function openSeedImport() {
+  const replacing = state.pages.length > 0;
+  openModal(
+    '导入初始数据',
+    '<form id="seed-form">' +
+      '<p class="field-hint">选择初始数据 JSON 或此前导出的备份文件（最多 16 MB）。导入成功后需要发布才能更新公开站。</p>' +
+      '<div class="form-field"><label for="seed-file">数据文件</label><input id="seed-file" type="file" accept=".json,application/json" required></div>' +
+      '<p id="seed-preview" role="status"></p>' +
+      (replacing ? checkField('reset', '确认替换全部现有页面、站点和配置', false) : '') +
+      formActions('导入') +
+      '</form>'
+  );
+  const form = document.getElementById('seed-form');
+  let seed;
+  document.getElementById('seed-file').addEventListener('change', async (event) => {
+    seed = undefined;
+    setFormError('');
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 16_000_000) {
+      setFormError('文件超过 16 MB');
+      return;
+    }
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!Array.isArray(parsed.pages) || !parsed.pages.length)
+        throw new Error('数据文件必须包含非空 pages 数组');
+      seed = parsed;
+      document.getElementById('seed-preview').textContent =
+        '已读取 ' + file.name + '，包含 ' + seed.pages.length + ' 个页面。';
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : '无法读取数据文件');
+    }
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitWithGuard(form, async () => {
+      if (!seed) {
+        setFormError('请先选择有效的数据文件');
+        return;
+      }
+      if (replacing && !document.getElementById('f-reset').checked) {
+        setFormError('请先确认替换现有数据');
+        return;
+      }
+      const r = await api('POST', '/api/seed' + (replacing ? '?reset=1' : ''), seed);
+      if (!r.ok) {
+        setFormError(writeErr(r));
+        return;
+      }
+      toast('已导入 ' + r.pages + ' 个页面、' + r.sites + ' 个站点', 'success');
+      closeModal();
+      await loadState();
+    });
+  });
 }
 
 /* ---------- 书签导入 ---------- */
@@ -811,7 +1083,7 @@ function openImport() {
         '或手动粘贴书签 HTML(Netscape 格式)',
         '',
         '粘贴导出文件内容',
-        '支持的格式:Chrome / Firefox / Safari 导出的书签 HTML。导入后请「立即发布」让公开站生效。'
+        '支持 Chrome / Firefox / Safari 导出的书签 HTML，最多 8 MB。导入会替换书签页面现有内容，其他页面保持不变。'
       ) +
       formActions('开始导入')
   );
@@ -836,6 +1108,10 @@ function openImport() {
   });
 
   function loadFile(file) {
+    if (file.size > 8_000_000) {
+      setFormError('文件超过 8 MB，请缩减后再导入');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       textarea.value = reader.result;
@@ -868,7 +1144,7 @@ function openImport() {
         closeModal();
         await loadState();
       } else {
-        toast(authErr(r) || '导入失败:' + r.error, 'error');
+        toast(writeErr(r), 'error');
       }
     });
   });
@@ -915,7 +1191,18 @@ function bindEvents() {
         await publish();
         break;
       case 'import':
+      case 'open-import':
         openImport();
+        break;
+      case 'settings':
+      case 'open-settings':
+        await openSettings();
+        break;
+      case 'seed':
+        openSeedImport();
+        break;
+      case 'export':
+        await exportSnapshot();
         break;
       case 'add-page':
         openPageForm(null);
