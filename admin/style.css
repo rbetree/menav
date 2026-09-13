@@ -42,6 +42,11 @@
   --error-color: #ff5c5c;
   --warning-color: #ffd166;
   --info-color: #56b6e8;
+  /* 语义色的 RGB 三通道,供 rgba(var(--*-rgb), α) 使用(直接写 hex 会令 rgba() 失效) */
+  --success-rgb: 61, 220, 132;
+  --error-rgb: 255, 92, 92;
+  --warning-rgb: 255, 209, 102;
+  --info-rgb: 86, 182, 232;
 }
 
 html.light-theme {
@@ -50,17 +55,21 @@ html.light-theme {
   --card-bg: #ffffff;
   --sidebar-bg: #ecece6;
   --text-color: #26282c;
-  --text-muted: #6b7078;
+  --text-muted: #5f646b;
   --border-color: rgba(0, 0, 0, 0.1);
   --shadow-color: rgba(20, 25, 35, 0.08);
   --accent-color: #44649e;
   --accent-hover: #5274ae;
   --accent-rgb: 68, 100, 158;
-  --nav-item-color: #6b7078;
+  --nav-item-color: #5f646b;
   --success-color: #2e9e60;
   --error-color: #d63a3a;
-  --warning-color: #b58414;
-  --info-color: #3d8fc0;
+  --warning-color: #8a6410;
+  --info-color: #2b6e99;
+  --success-rgb: 46, 158, 96;
+  --error-rgb: 214, 58, 58;
+  --warning-rgb: 138, 100, 16;
+  --info-rgb: 43, 110, 153;
 }
 
 /* ---- 基础 ---- */
@@ -117,9 +126,15 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
 }
 
 select option {
@@ -346,8 +361,8 @@ textarea {
 
 .status-notice.is-error {
   color: var(--error-color);
-  border-color: rgba(var(--error-color), 0.45);
-  background: rgba(var(--error-color), 0.06);
+  border-color: rgba(var(--error-rgb), 0.45);
+  background: rgba(var(--error-rgb), 0.06);
 }
 
 .status-notice.is-error .status-icon {
@@ -368,7 +383,15 @@ textarea {
   border: 1px solid var(--border-color);
   color: var(--text-color);
   white-space: nowrap;
-  transition: all var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn:hover:not(:disabled) {
@@ -379,8 +402,13 @@ textarea {
 .btn-primary {
   background: var(--accent-color);
   border-color: var(--accent-color);
-  color: #fff;
+  /* 深色主题下品牌色偏亮,用深色文字满足 WCAG AA(hover 亦达标) */
+  color: #0e0f11;
   box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+}
+
+html.light-theme .btn-primary {
+  color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -389,12 +417,12 @@ textarea {
 }
 
 .btn-danger {
-  border-color: rgba(var(--error-color), 0.45);
+  border-color: rgba(var(--error-rgb), 0.45);
   color: var(--error-color);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(var(--error-color), 0.12);
+  background: rgba(var(--error-rgb), 0.12);
   border-color: var(--error-color);
 }
 
@@ -424,19 +452,24 @@ textarea {
   letter-spacing: 0.02em;
   background: rgba(var(--accent-rgb), 0.12);
   border: 1px solid rgba(var(--accent-rgb), 0.35);
-  color: var(--accent-color);
+  /* 深色下 accent 作小字号正文色对比不足,提亮以满足 AA */
+  color: #8aa6d8;
+}
+
+html.light-theme .badge {
+  color: #44649e;
 }
 
 .badge-hidden {
   color: var(--warning-color);
-  border-color: rgba(var(--warning-color), 0.45);
-  background: rgba(var(--warning-color), 0.1);
+  border-color: rgba(var(--warning-rgb), 0.45);
+  background: rgba(var(--warning-rgb), 0.1);
 }
 
 .badge-foldable {
   color: var(--info-color);
-  border-color: rgba(var(--info-color), 0.45);
-  background: rgba(var(--info-color), 0.1);
+  border-color: rgba(var(--info-rgb), 0.45);
+  background: rgba(var(--info-rgb), 0.1);
 }
 
 /* ==================== 树：页面卡片 ==================== */
@@ -491,7 +524,7 @@ textarea {
 }
 
 .cat-label {
-  font-weight: 550;
+  font-weight: 600;
   font-size: 0.94rem;
 }
 
@@ -550,7 +583,7 @@ textarea {
 }
 
 .site-name {
-  font-weight: 550;
+  font-weight: 600;
   font-size: 0.92rem;
 }
 
@@ -722,7 +755,7 @@ textarea {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-bottom: 0.3rem;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .form-field .field-hint {
@@ -764,8 +797,8 @@ textarea {
   margin: var(--spacing-sm) 0;
   padding: 0.4rem 0.7rem;
   border-radius: var(--radius-sm);
-  background: rgba(var(--error-color), 0.08);
-  border: 1px solid rgba(var(--error-color), 0.3);
+  background: rgba(var(--error-rgb), 0.08);
+  border: 1px solid rgba(var(--error-rgb), 0.3);
 }
 
 .settings-json {
@@ -937,5 +970,207 @@ textarea {
   .header-actions .btn {
     padding: 0.42rem 0.6rem;
     font-size: 0.8rem;
+  }
+}
+
+/* ==================== 工具栏(搜索定位) ==================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 420px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.65rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 0.95rem;
+}
+
+.search-box input {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.search-clear:hover {
+  background: var(--secondary-bg);
+  color: var(--text-color);
+}
+
+.search-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ==================== 拖拽排序 ==================== */
+.site-row[draggable='true'],
+.cat-item[draggable='true'] {
+  cursor: grab;
+}
+
+.site-row.dragging,
+.cat-item.dragging {
+  opacity: 0.45;
+}
+
+.site-row.drop-target,
+.cat-item.drop-target,
+.page-block.drop-target {
+  outline: 2px dashed var(--accent-color);
+  outline-offset: -2px;
+}
+
+/* ==================== 发布状态链接 ==================== */
+.publish-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.25rem;
+}
+
+/* ==================== 确认 / 提示 ==================== */
+.confirm-message {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
+}
+
+.form-actions-left {
+  justify-content: flex-start;
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* ==================== Toast 关闭按钮 ==================== */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.toast-text {
+  flex: 1;
+}
+
+.toast-close {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.15rem;
+}
+
+.toast-close:hover {
+  color: var(--text-color);
+}
+
+/* ==================== 分类层级引导线 ==================== */
+.cat-list {
+  border-left: 2px solid var(--border-color);
+  margin-left: 0.5rem;
+  padding-left: var(--spacing-sm);
+}
+
+.page-block > .cat-list {
+  border-left: none;
+  margin-left: 0;
+  padding-left: var(--spacing-md);
+}
+
+/* 复选框标签用正文色,区别于次要说明 */
+.form-check label {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.site-url:focus-visible {
+  outline: 2px solid var(--accent-color);
+  border-radius: 3px;
+}
+
+/* ==================== 动效豁免 ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================== 窄屏增强 ==================== */
+@media (max-width: 860px) {
+  .node-actions {
+    flex-basis: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .site-url {
+    max-width: none;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .modal-overlay {
+    padding: var(--spacing-sm);
+  }
+
+  .modal-body {
+    padding: var(--spacing-md);
+  }
+
+  .modal-panel {
+    margin-top: 2vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toast-container {
+    top: auto;
+    bottom: var(--spacing-md);
+    left: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  .toast {
+    max-width: none;
   }
 }

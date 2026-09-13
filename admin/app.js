@@ -3,7 +3,7 @@
 /* ============================================================
    menav 动态后台管理前端(形态二)
    纯原生 JS,无任何 UI 框架 / 构建步骤。
-   - 渲染 页面 → 分类(可嵌套) → 站点 树
+   - 渲染 页面 → 分类(可嵌套) → 站点 树,支持搜索定位与拖拽排序
    - 站点 / 分类 / 页面 CRUD,同级排序,立即发布,书签导入
    - 所有请求带 credentials;受保护端点由 Cloudflare Access 拦截,
      前端一律不自带 token。
@@ -15,6 +15,7 @@ let stateEtag = null;
 let modalEtag = null;
 let mutationPending = false;
 let statusTimer;
+let searchTerm = ''; // 当前搜索关键词
 const collapsed = new Set(); // 'p:<id>' / 'c:<id>',折叠状态记忆
 const nodeIndex = { pages: [], categories: [], sites: [] };
 
@@ -28,13 +29,35 @@ function esc(v) {
     .replace(/'/g, '&#39;');
 }
 
+/* 文本查询是否命中站点/分类/页面(大小写不敏感)。 */
+function matches(text) {
+  if (!searchTerm) return true;
+  return String(text || '')
+    .toLowerCase()
+    .includes(searchTerm);
+}
+
 function toast(msg, kind = 'info') {
   const box = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = 'toast' + (kind ? ' is-' + kind : '');
-  el.textContent = msg;
+  if (kind === 'error') el.setAttribute('role', 'alert');
+  const text = document.createElement('span');
+  text.className = 'toast-text';
+  text.textContent = msg;
+  el.appendChild(text);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'toast-close';
+  close.setAttribute('aria-label', '关闭提示');
+  close.textContent = '×';
+  close.addEventListener('click', () => el.remove());
+  el.appendChild(close);
   box.appendChild(el);
-  setTimeout(() => el.remove(), 3800);
+  // 文案越长停留越久,避免长提示读不完。
+  const duration = Math.min(3000 + msg.length * 70, 9000);
+  const timer = setTimeout(() => el.remove(), duration);
+  close.addEventListener('click', () => clearTimeout(timer), { once: true });
 }
 
 function showStatus(kind, text, opts) {
@@ -57,7 +80,8 @@ function showStatus(kind, text, opts) {
     el.appendChild(btn);
   }
   el.hidden = false;
-  document.getElementById('tree-root').innerHTML = '';
+  // 仅整屏加载态才清空树;错误态保留旧内容便于对照。
+  if (kind === 'loading') document.getElementById('tree-root').innerHTML = '';
 }
 
 function hideStatus() {
@@ -142,8 +166,14 @@ async function api(method, path, body) {
 }
 
 /* ---------- 数据加载 ---------- */
-async function loadState() {
-  showStatus('loading', '正在加载站点模型…');
+/* silent=true 用于写操作后的静默刷新:不清空树、保留滚动位置与焦点。 */
+async function loadState(opts = {}) {
+  const silent = opts.silent === true;
+  if (!silent) {
+    showStatus('loading', '正在加载站点模型…');
+  } else {
+    hideStatus();
+  }
   const r = await api('GET', '/api/state');
   if (r.status === 0) {
     showStatus(
@@ -170,7 +200,9 @@ async function loadState() {
   state.pages = Array.isArray(r.data) ? r.data : [];
   stateEtag = r.etag;
   hideStatus();
+  const scrollY = window.scrollY;
   renderTree();
+  if (silent) window.scrollTo(0, scrollY);
   await loadPublishStatus();
 }
 
@@ -227,18 +259,65 @@ function renderTree() {
   nodeIndex.categories = fresh.categories;
   nodeIndex.sites = fresh.sites;
 
+  // 记录当前焦点(用 data-* 复定位),重渲染后恢复,避免键盘操作被打断。
+  const active = document.activeElement;
+  let focusKey = null;
+  if (active && active.dataset && (active.dataset.target || active.dataset.id)) {
+    focusKey =
+      active.dataset.action + '|' + (active.dataset.target || '') + '|' + (active.dataset.id || '');
+  }
+
   const root = document.getElementById('tree-root');
   if (state.pages.length === 0) {
     root.innerHTML =
-      '<div class="status-notice"><span class="status-icon">🗂️</span><span class="status-text">还没有任何页面,点击右上角「新增页面」开始。</span></div>';
+      '<div class="status-notice"><span class="status-icon">🗂️</span><span class="status-text">还没有任何页面，点击「＋ 新增页面」开始。</span></div>';
+    updateSearchCount('');
     return;
   }
   root.innerHTML = state.pages.map((p) => renderPage(p)).join('');
+
+  if (focusKey) {
+    const [action, target, id] = focusKey.split('|');
+    const sel = target
+      ? '[data-target="' + CSS.escape(target) + '"]'
+      : '[data-action="' + CSS.escape(action) + '"][data-id="' + CSS.escape(id) + '"]';
+    const back = root.querySelector(sel);
+    if (back && !back.disabled) back.focus({ preventScroll: true });
+  }
+}
+
+function updateSearchCount(text) {
+  const el = document.getElementById('tree-search-count');
+  if (!el) return;
+  el.textContent = text;
+}
+
+/* 搜索命中计数:统计可见页面/分类/站点 */
+function countMatches() {
+  let pages = 0;
+  let cats = 0;
+  let sites = 0;
+  for (const p of state.pages) {
+    const pageHit = matches(p.label);
+    let pageCounted = pageHit;
+    for (const { node: c } of nodeIndex.categories.filter((x) => x.page.id === p.id)) {
+      if (matches(c.label) || pageHit) cats++;
+    }
+    for (const { node: s } of nodeIndex.sites.filter((x) => x.page.id === p.id)) {
+      if (matches(s.name) || matches(s.url) || pageHit) sites++;
+    }
+    if (pageCounted) pages++;
+  }
+  return { pages, cats, sites };
 }
 
 function renderPage(p) {
   const cKey = 'p:' + p.id;
-  const isCollapsed = collapsed.has(cKey);
+  const isCollapsed = !searchTerm && collapsed.has(cKey);
+  const pageMatch = matches(p.label);
+  const body = catList(p, p.categories || [], null, pageMatch);
+  // 搜索过滤:页面自身或子树命中才显示
+  if (searchTerm && !pageMatch && !body) return '';
   return (
     '<section class="page-block" data-type="page" data-id="' +
     esc(p.id) +
@@ -248,17 +327,22 @@ function renderPage(p) {
     (isCollapsed ? ' collapsed' : '') +
     '" data-action="toggle" data-target="' +
     cKey +
-    '" aria-label="折叠"><span class="collapse-caret">▾</span></button>' +
+    '" aria-expanded="' +
+    String(!isCollapsed) +
+    '" aria-label="' +
+    (isCollapsed ? '展开' : '折叠') +
+    ' ' +
+    esc(p.label) +
+    '"><span class="collapse-caret">▾</span></button>' +
     '<span class="page-label">' +
     esc(p.label) +
     '</span>' +
     (p.hidden ? '<span class="badge badge-hidden">隐藏</span>' : '') +
     '<div class="node-actions">' +
-    '<span class="action-label">页面</span>' +
     moveBtns('pages', p, state.pages) +
     '<button type="button" class="btn btn-sm" data-action="add-cat" data-page-id="' +
     esc(p.id) +
-    '">+分类</button>' +
+    '">＋分类</button>' +
     '<button type="button" class="btn btn-sm" data-action="edit-page" data-id="' +
     esc(p.id) +
     '">编辑</button>' +
@@ -267,31 +351,28 @@ function renderPage(p) {
     '">删除</button>' +
     '</div>' +
     '</div>' +
-    (isCollapsed ? '' : catList(p, p.categories || [], null)) +
+    (isCollapsed ? '' : body) +
     '</section>'
   );
 }
 
-function catList(page, cats, parentId) {
-  if (!cats.length) return '';
-  return (
-    '<div class="cat-list">' +
-    cats.map((c) => renderCategory(page, c, parentId)).join('') +
-    '</div>'
-  );
+function catList(page, cats, parentId, forceShow) {
+  const rendered = cats
+    .map((c) => renderCategory(page, c, parentId, forceShow))
+    .filter(Boolean)
+    .join('');
+  if (!rendered) return '';
+  return '<div class="cat-list">' + rendered + '</div>';
 }
 
-function renderCategory(page, c, parentId) {
+function renderCategory(page, c, parentId, forceShow) {
   const cKey = 'c:' + c.id;
-  const isCollapsed = collapsed.has(cKey);
+  const isCollapsed = !searchTerm && collapsed.has(cKey);
+  const catMatch = matches(c.label);
+  const show = forceShow || catMatch;
   const hasKids = (c.categories && c.categories.length > 0) || (c.sites && c.sites.length > 0);
-  const children =
-    catList(page, c.categories || [], c.id) +
-    '<div class="site-list">' +
-    (c.sites && c.sites.length
-      ? c.sites.map((s) => renderSite(c, s)).join('')
-      : '<div class="empty-hint">暂无站点</div>') +
-    '</div>';
+  const childrenInner = catList(page, c.categories || [], c.id, show) + siteList(c, show);
+  if (searchTerm && !show && !childrenInner) return '';
   return (
     '<div class="cat-item" data-type="category" data-id="' +
     esc(c.id) +
@@ -302,23 +383,28 @@ function renderCategory(page, c, parentId) {
         (isCollapsed ? ' collapsed' : '') +
         '" data-action="toggle" data-target="' +
         cKey +
-        '" aria-label="折叠"><span class="collapse-caret">▾</span></button>'
+        '" aria-expanded="' +
+        String(!isCollapsed) +
+        '" aria-label="' +
+        (isCollapsed ? '展开' : '折叠') +
+        ' ' +
+        esc(c.label) +
+        '"><span class="collapse-caret">▾</span></button>'
       : '<span class="collapse-btn" aria-hidden="true" style="visibility:hidden"></span>') +
     '<span class="cat-label">' +
     esc(c.label) +
     '</span>' +
     (c.foldable ? '<span class="badge badge-foldable">可折叠</span>' : '') +
     '<div class="node-actions">' +
-    '<span class="action-label">分类</span>' +
     moveBtns('categories', c, categorySiblings(page, parentId)) +
     '<button type="button" class="btn btn-sm" data-action="add-subcat" data-page-id="' +
     esc(page.id) +
     '" data-parent-id="' +
     esc(c.id) +
-    '">+分类</button>' +
+    '">＋子分类</button>' +
     '<button type="button" class="btn btn-sm" data-action="add-site" data-category-id="' +
     esc(c.id) +
-    '">+站点</button>' +
+    '">＋站点</button>' +
     '<button type="button" class="btn btn-sm" data-action="edit-cat" data-id="' +
     esc(c.id) +
     '" data-page-id="' +
@@ -329,16 +415,24 @@ function renderCategory(page, c, parentId) {
     '">删除</button>' +
     '</div>' +
     '</div>' +
-    (isCollapsed ? '' : children) +
+    (isCollapsed ? '' : childrenInner) +
     '</div>'
   );
+}
+
+function siteList(c, forceShow) {
+  const sites = (c.sites || []).filter((s) => forceShow || matches(s.name) || matches(s.url));
+  if (!c.sites || !c.sites.length)
+    return '<div class="site-list"><div class="empty-hint">暂无站点</div></div>';
+  if (!sites.length && searchTerm) return '';
+  return '<div class="site-list">' + sites.map((s) => renderSite(c, s)).join('') + '</div>';
 }
 
 function renderSite(c, s) {
   return (
     '<div class="site-row" data-type="site" data-id="' +
     esc(s.id) +
-    '">' +
+    '" draggable="true">' +
     faviconHtml(s) +
     '<div class="site-info">' +
     '<div class="site-name">' +
@@ -346,7 +440,7 @@ function renderSite(c, s) {
     '</div>' +
     '<div class="site-url" title="' +
     esc(s.url) +
-    '">' +
+    '" tabindex="0">' +
     esc(s.url) +
     '</div>' +
     '</div>' +
@@ -366,14 +460,18 @@ function renderSite(c, s) {
 
 function faviconHtml(s) {
   const imgSrc = s.faviconUrl || (s.icon && /^https?:/.test(s.icon) ? s.icon : null);
+  const fallback = esc((s.name || '?').charAt(0).toUpperCase());
   if (imgSrc) {
+    // 加载失败时回退到首字母,而不是留下空白方框
     return (
       '<span class="site-favicon"><img src="' +
       esc(imgSrc) +
-      '" alt="" loading="lazy" onerror="this.remove()" /></span>'
+      '" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.dataset.fallback))" data-fallback="' +
+      fallback +
+      '" /></span>'
     );
   }
-  return '<span class="site-favicon">' + esc((s.name || '?').charAt(0).toUpperCase()) + '</span>';
+  return '<span class="site-favicon">' + fallback + '</span>';
 }
 
 /* 上移/下移按钮;list 为同层级节点数组(已保证含 node) */
@@ -387,14 +485,14 @@ function moveBtns(type, node, list) {
     type +
     '" data-id="' +
     esc(node.id) +
-    '" title="上移"' +
+    '" title="上移" aria-label="上移"' +
     (up ? '' : ' disabled') +
     '>↑</button>' +
     '<button type="button" class="btn btn-icon btn-sm" data-action="move-down" data-type="' +
     type +
     '" data-id="' +
     esc(node.id) +
-    '" title="下移"' +
+    '" title="下移" aria-label="下移"' +
     (down ? '' : ' disabled') +
     '>↓</button>'
   );
@@ -419,14 +517,42 @@ async function reorder(type, id, dir) {
   if (idx < 0 || swap < 0 || swap >= list.length) return;
   const next = list.slice();
   [next[idx], next[swap]] = [next[swap], next[idx]];
-  const items = next.map((n, sort) => ({ id: n.id, sort }));
+  await submitOrder(type, next);
+}
+
+/* 一次提交整组顺序(拖拽与上下移共用) */
+async function submitOrder(type, ordered) {
+  const items = ordered.map((n, sort) => ({ id: n.id, sort }));
   const r = await api('POST', '/api/reorder', { type, items });
   if (r.ok) {
     toast('已保存排序', 'success');
-    await loadState();
+    await loadState({ silent: true });
   } else {
     toast(writeErr(r), 'error');
   }
+}
+
+/* 拖拽落位:把 from 移到 to 的位置(同一父级内) */
+async function moveItem(type, fromId, toId) {
+  let list;
+  if (type === 'sites') {
+    const entry = nodeIndex.sites.find((x) => x.node.id === fromId);
+    if (!entry) return;
+    list = siteSiblings(entry.category.id);
+  } else if (type === 'categories') {
+    const entry = nodeIndex.categories.find((x) => x.node.id === fromId);
+    if (!entry) return;
+    list = categorySiblings(entry.page, entry.parent ? entry.parent.id : null);
+  } else {
+    list = state.pages;
+  }
+  const from = list.findIndex((n) => n.id === fromId);
+  const to = list.findIndex((n) => n.id === toId);
+  if (from < 0 || to < 0 || from === to) return;
+  const next = list.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  await submitOrder(type, next);
 }
 
 /* ---------- 弹窗 ---------- */
@@ -442,7 +568,6 @@ function openModal(title, html) {
   modalContent.innerHTML = html;
   modalOverlay.classList.add('open');
   document.querySelector('.admin-shell').inert = true;
-  document.getElementById('theme-toggle').inert = true;
   document.addEventListener('keydown', modalEsc);
   (
     modalContent.querySelector('input:not([type="hidden"]), select, textarea, button') ||
@@ -454,7 +579,6 @@ function closeModal() {
   modalEtag = null;
   modalOverlay.classList.remove('open');
   document.querySelector('.admin-shell').inert = false;
-  document.getElementById('theme-toggle').inert = false;
   document.removeEventListener('keydown', modalEsc);
   if (previousFocus?.isConnected) previousFocus.focus();
 }
@@ -603,25 +727,33 @@ async function submitWithGuard(form, fn) {
   }
 }
 
+/* 规范化站点 URL:缺协议时自动补 https://,减少最常见输入错误 */
+function normalizeUrl(value) {
+  const v = String(value || '').trim();
+  if (!v) return v;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return v; // 已有协议
+  return 'https://' + v.replace(/^\/+/, '');
+}
+
 /* ---------- 页面 CRUD 表单 ---------- */
 function openPageForm(p) {
   const isEdit = !!p;
   openModal(
     isEdit ? '编辑页面' : '新增页面',
-    '<form id="node-form">' +
+    '<form id="node-form" novalidate>' +
       textField('label', '页面名称', p ? p.label : '', '例如:首页', '必填') +
       selectField(
         'template',
         '页面模板',
         [
           { value: '', label: '默认导航页' },
-          { value: 'page', label: '导航页' },
           { value: 'content', label: '正文页' },
           { value: 'bookmarks', label: '书签' },
           { value: 'articles', label: '文章' },
           { value: 'projects', label: '项目' },
         ],
-        p?.template || ''
+        p?.template || '',
+        '「正文页」需要填写下方 Markdown 正文'
       ) +
       textField(
         'title',
@@ -632,23 +764,34 @@ function openPageForm(p) {
       ) +
       textField('subtitle', '页面说明', p?.metadata?.subtitle || '', '') +
       textField('navIcon', '导航图标', p?.navigation?.icon || '', 'fas fa-link') +
+      '<div id="markdown-field">' +
       textareaField(
         'markdown',
         '正文（Markdown）',
         p?.metadata?.content?.markdown || '',
         '',
-        '选择正文页时显示此内容'
+        '正文页会展示此内容'
       ) +
+      '</div>' +
       checkField('hidden', '在导航中隐藏（链接和搜索仍可访问）', p ? !!p.hidden : false) +
       formActions(isEdit ? '保存' : '新增')
   );
   const form = document.getElementById('node-form');
+  const templateSel = document.getElementById('f-template');
+  const markdownField = document.getElementById('markdown-field');
+  // 模板联动:仅「正文页」显示并需要 Markdown
+  const syncMarkdown = () => {
+    const isContent = templateSel.value === 'content';
+    markdownField.style.display = isContent ? '' : 'none';
+  };
+  templateSel.addEventListener('change', syncMarkdown);
+  syncMarkdown();
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
       const payload = {
         label: document.getElementById('f-label').value.trim(),
-        template: document.getElementById('f-template').value,
+        template: templateSel.value,
         hidden: document.getElementById('f-hidden').checked,
         metadata: {
           ...(p?.metadata || {}),
@@ -661,8 +804,16 @@ function openPageForm(p) {
         },
       };
       if (!payload.metadata.title) delete payload.metadata.title;
-      if (payload.template === 'content')
-        payload.metadata.content = { markdown: document.getElementById('f-markdown').value };
+      if (payload.template === 'content') {
+        const markdown = document.getElementById('f-markdown').value;
+        if (!markdown.trim()) {
+          setFormError('正文页必须填写 Markdown 正文');
+          return;
+        }
+        payload.metadata.content = { markdown };
+      } else {
+        delete payload.metadata.content;
+      }
       if (!payload.label) {
         setFormError('页面名称不能为空');
         return;
@@ -673,7 +824,7 @@ function openPageForm(p) {
       if (r.ok) {
         toast(isEdit ? '页面已更新' : '页面已新增', 'success');
         closeModal();
-        await loadState();
+        await loadState({ silent: true });
       } else {
         setFormError(writeErr(r));
       }
@@ -691,7 +842,7 @@ function openCategoryForm(opts) {
     opts.parentId || (isEdit && opts.edit.parent ? opts.edit.parent.id : '') || ''; // 编辑保留原父级,避免扁平化到顶层
   openModal(
     isEdit ? '编辑分类' : '新增分类',
-    '<form id="node-form">' +
+    '<form id="node-form" novalidate>' +
       textField('label', '分类名称', isEdit ? opts.edit.label : '', '例如:开发工具', '必填') +
       selectField(
         'parentId',
@@ -733,7 +884,7 @@ function openCategoryForm(opts) {
       if (r.ok) {
         toast(isEdit ? '分类已更新' : '分类已新增', 'success');
         closeModal();
-        await loadState();
+        await loadState({ silent: true });
       } else {
         setFormError(writeErr(r));
       }
@@ -741,19 +892,20 @@ function openCategoryForm(opts) {
   });
 }
 
-/* 同一页面内的可选父分类(排除自身与子孙,避免循环) */
+/* 同一页面内的可选父分类(排除自身与子孙,避免循环);用缩进表达层级 */
 function buildParentOptions(page, editCat) {
   const excluded = new Set();
   if (editCat) for (const id of descendantIds(editCat)) excluded.add(id);
   const options = [{ value: '', label: '(无 — 顶层)' }];
-  const walk = (cats) => {
+  const walk = (cats, depth) => {
     for (const c of cats) {
       if (excluded.has(c.id)) continue;
-      options.push({ value: c.id, label: c.label });
-      walk(c.categories || []);
+      const prefix = depth > 0 ? '　'.repeat(depth) + '└ ' : '';
+      options.push({ value: c.id, label: prefix + c.label });
+      walk(c.categories || [], depth + 1);
     }
   };
-  walk(page.categories || []);
+  walk(page.categories || [], 0);
   return options;
 }
 
@@ -764,9 +916,15 @@ function openSiteForm(opts) {
   const s = opts.edit;
   openModal(
     isEdit ? '编辑站点' : '新增站点',
-    '<form id="node-form">' +
+    '<form id="node-form" novalidate>' +
       textField('name', '站点名称', s ? s.name : '', '例如:GitHub', '必填') +
-      textField('url', '网址', s ? s.url : '', 'https://…', '必填') +
+      textField(
+        'url',
+        '网址',
+        s ? s.url : '',
+        '例如:https://github.com',
+        '必填,缺少协议会自动补 https://'
+      ) +
       textField('description', '描述', s && s.description ? s.description : '', '一行简介(可选)') +
       textField(
         'faviconUrl',
@@ -779,11 +937,15 @@ function openSiteForm(opts) {
       formActions(isEdit ? '保存' : '新增')
   );
   const form = document.getElementById('node-form');
+  const urlInput = document.getElementById('f-url');
+  urlInput.addEventListener('blur', () => {
+    urlInput.value = normalizeUrl(urlInput.value);
+  });
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
       const name = document.getElementById('f-name').value.trim();
-      const url = document.getElementById('f-url').value.trim();
+      const url = normalizeUrl(document.getElementById('f-url').value);
       if (!name || !url) {
         setFormError('名称与网址都是必填项');
         return;
@@ -802,7 +964,7 @@ function openSiteForm(opts) {
       if (r.ok) {
         toast(isEdit ? '站点已更新' : '站点已新增', 'success');
         closeModal();
-        await loadState();
+        await loadState({ silent: true });
       } else {
         setFormError(writeErr(r));
       }
@@ -819,8 +981,11 @@ function authErr(r) {
 /* 写操作统一的错误呈现:404 → 提示并刷新;409 级联等特殊分支由调用方先行处理 */
 function writeErr(r) {
   if (r.auth || r.status === 0) return authErr(r);
+  if (r.error === 'busy') return '请等待当前保存完成';
   if (r.error === 'revision_conflict')
-    return '内容已在其他窗口更新。本次未保存，请保留输入，关闭弹窗并刷新后重新编辑。';
+    return '内容已在其他窗口更新。可在弹窗内点「载入最新并重试」保留输入后重新保存。';
+  if (r.error === 'unsupported_media_type') return '请求格式不被接受，请刷新页面后重试。';
+  if (r.error === 'payload_too_large') return '数据过大，请缩减后重试。';
   if (r.status === 404) {
     setTimeout(() => loadState(), 1200);
     return '该条目不存在或已被删除，即将刷新';
@@ -830,14 +995,16 @@ function writeErr(r) {
 }
 
 /* ---------- 删除确认(含级联询问) ---------- */
-function openConfirmDialog(message, onConfirm) {
+function openConfirmDialog(message, onConfirm, okText) {
   openModal(
     '确认操作',
-    '<div style="margin-bottom:0.5rem">' +
+    '<div class="confirm-message">' +
       esc(message).replace(/\n/g, '<br>') +
       '</div>' +
       '<div class="form-actions"><button type="button" class="btn" data-action="modal-close">取消</button>' +
-      '<button type="button" class="btn btn-danger" id="confirm-btn">确认删除</button></div>'
+      '<button type="button" class="btn btn-danger" id="confirm-btn">' +
+      esc(okText || '确认删除') +
+      '</button></div>'
   );
   document.getElementById('confirm-btn').addEventListener('click', async () => {
     closeModal();
@@ -852,12 +1019,12 @@ function openConfirmDialog(message, onConfirm) {
 /* 409 级联删除询问(分类/页面) */
 function openCascadeConfirm(r, onForce) {
   const detail = r.detail || {};
-  let msg = '该节点下仍有内容,无法直接删除:';
+  let msg = '该节点下仍有内容，无法直接删除：';
   if (r.count != null) msg += '预计 ' + r.count + ' 个子项。';
-  if (detail.childCount != null) msg += '子分类 ' + detail.childCount + ' 个;';
+  if (detail.childCount != null) msg += '子分类 ' + detail.childCount + ' 个；';
   if (detail.siteCount != null) msg += '直接站点 ' + detail.siteCount + ' 个。';
-  msg += '\n是否级联删除整棵子树(含全部后代与站点)?';
-  openConfirmDialog(msg, onForce);
+  msg += '\n确定要级联删除整棵子树（含全部后代与站点）吗？此操作不可撤销。';
+  openConfirmDialog(msg, onForce, '确认级联删除');
 }
 
 /* ---------- 删除实现 ---------- */
@@ -865,13 +1032,13 @@ async function delPage(id) {
   const r = await api('DELETE', '/api/pages/' + id);
   if (r.ok) {
     toast('页面已删除', 'success');
-    await loadState();
+    await loadState({ silent: true });
   } else if (r.status === 409 && r.count !== undefined) {
     openCascadeConfirm(r, async () => {
       const f = await api('DELETE', '/api/pages/' + id + '?force=1');
       if (f.ok) {
         toast('页面及子树已删除', 'success');
-        await loadState();
+        await loadState({ silent: true });
       } else toast('删除失败:' + writeErr(f), 'error');
     });
   } else {
@@ -883,13 +1050,13 @@ async function delCategory(id) {
   const r = await api('DELETE', '/api/categories/' + id);
   if (r.ok) {
     toast('分类已删除', 'success');
-    await loadState();
+    await loadState({ silent: true });
   } else if (r.status === 409 && r.detail && typeof r.detail === 'object') {
     openCascadeConfirm(r, async () => {
       const f = await api('DELETE', '/api/categories/' + id + '?force=1');
       if (f.ok) {
         toast('分类及子树已删除', 'success');
-        await loadState();
+        await loadState({ silent: true });
       } else toast('删除失败:' + writeErr(f), 'error');
     });
   } else {
@@ -901,7 +1068,7 @@ async function delSite(id) {
   const r = await api('DELETE', '/api/sites/' + id);
   if (r.ok) {
     toast('站点已删除', 'success');
-    await loadState();
+    await loadState({ silent: true });
   } else {
     toast(writeErr(r), 'error');
   }
@@ -935,34 +1102,74 @@ async function publish() {
   }
 }
 
+function relTime(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - Date.parse(iso);
+  if (!Number.isFinite(diff)) return '';
+  const m = Math.round(diff / 60000);
+  if (m < 1) return '刚刚';
+  if (m < 60) return m + ' 分钟前';
+  const h = Math.round(m / 60);
+  if (h < 24) return h + ' 小时前';
+  return Math.round(h / 24) + ' 天前';
+}
+
 async function loadPublishStatus() {
   clearTimeout(statusTimer);
   const panel = document.getElementById('publish-status');
   const r = await api('GET', '/api/publish-status');
   if (!r.ok) {
-    panel.textContent = '发布状态暂不可用：' + writeErr(r);
+    const msg = '发布状态暂不可用：' + writeErr(r);
+    if (panel.dataset.msg !== msg) {
+      panel.dataset.msg = msg;
+      panel.textContent = msg;
+    }
     statusTimer = setTimeout(loadPublishStatus, 15000);
     return;
   }
   const labels = {
     dispatching: '正在创建构建',
-    building: '构建中',
+    building: '正在发布',
     published: '已发布',
     failed: '发布失败',
   };
-  let message = '内容版本 ' + r.revision + ' · 已发布版本 ' + r.publishedRevision;
-  message += r.pending ? ' · 有待发布修改' : ' · 已是最新';
+  // 人类语言:强调「有没有未发布改动」与「正在发布的是不是最新」
+  let message;
+  if (r.job && ['building', 'dispatching'].includes(r.job.status)) {
+    message = r.pending ? '正在发布…（你最近的修改将在下一轮发布）' : '正在发布…';
+  } else if (r.pending) {
+    message = '有未发布的修改';
+  } else {
+    message = '已是最新';
+  }
+  if (r.job && r.job.status === 'failed') message = '发布失败：' + (r.job.error || '请重试');
   if (!r.wired) message += ' · 尚未配置发布服务';
-  if (r.job) message += ' · ' + labels[r.job.status] + (r.job.error ? '：' + r.job.error : '');
-  panel.textContent = message;
-  if (r.job?.status === 'published' && r.job.url) {
+  if (r.reconcileError) message += ' · 状态核对暂时不可用';
+  if (panel.dataset.msg !== message) {
+    panel.dataset.msg = message;
+    panel.textContent = message;
+  }
+  const old = panel.querySelector('.publish-links');
+  if (old) old.remove();
+  const links = document.createElement('span');
+  links.className = 'publish-links';
+  if (r.job?.status === 'failed') {
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'btn btn-sm';
+    retry.dataset.action = 'publish';
+    retry.textContent = '重新发布';
+    links.append(' ', retry);
+  }
+  if (r.job?.url) {
     const link = document.createElement('a');
     link.href = r.job.url;
     link.textContent = '查看本次发布';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    panel.append(' · ', link);
+    links.append(' · ', link);
   }
+  panel.appendChild(links);
   statusTimer = setTimeout(
     loadPublishStatus,
     r.job && ['building', 'dispatching'].includes(r.job.status) ? 10000 : 60000
@@ -983,9 +1190,9 @@ async function openSettings() {
     return;
   }
   openModal(
-    '系统配置',
-    '<p class="field-hint">以下配置来自当前站点数据。导入初始数据会替换全部页面和配置，建议先导出备份。</p>' +
-      '<div class="form-actions"><button type="button" class="btn" data-action="export">导出备份</button><button type="button" class="btn" data-action="seed">导入初始数据</button></div>' +
+    '数据与备份',
+    '<p class="field-hint">以下为当前站点配置。导入备份会替换全部页面、分类、站点与配置，建议先导出备份。</p>' +
+      '<div class="form-actions form-actions-left"><button type="button" class="btn" data-action="export">⤓ 导出备份</button><button type="button" class="btn" data-action="seed">导入备份 JSON（替换全站）</button></div>' +
       '<pre class="settings-json">' +
       esc(JSON.stringify(site, null, 2)) +
       '</pre>'
@@ -1009,18 +1216,19 @@ async function exportSnapshot() {
   link.download = 'menav-backup-v' + revision + '.json';
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('已导出备份 menav-backup-v' + revision + '.json', 'success');
 }
 
 function openSeedImport() {
   const replacing = state.pages.length > 0;
   openModal(
-    '导入初始数据',
-    '<form id="seed-form">' +
-      '<p class="field-hint">选择初始数据 JSON 或此前导出的备份文件（最多 16 MB）。导入成功后需要发布才能更新公开站。</p>' +
+    '导入备份 JSON',
+    '<form id="seed-form" novalidate>' +
+      '<p class="field-hint">选择备份 JSON（最多 16 MB）。这是一次<strong>全站替换</strong>：现有页面、分类、站点与配置都会被覆盖，且不可撤销。导入成功后需发布才会更新公开站。</p>' +
       '<div class="form-field"><label for="seed-file">数据文件</label><input id="seed-file" type="file" accept=".json,application/json" required></div>' +
       '<p id="seed-preview" role="status"></p>' +
-      (replacing ? checkField('reset', '确认替换全部现有页面、站点和配置', false) : '') +
-      formActions('导入') +
+      (replacing ? checkField('reset', '我已确认：替换全部现有页面、站点和配置', false) : '') +
+      formActions('导入并替换') +
       '</form>'
   );
   const form = document.getElementById('seed-form');
@@ -1053,7 +1261,7 @@ function openSeedImport() {
         return;
       }
       if (replacing && !document.getElementById('f-reset').checked) {
-        setFormError('请先确认替换现有数据');
+        setFormError('请先勾选确认替换现有数据');
         return;
       }
       const r = await api('POST', '/api/seed' + (replacing ? '?reset=1' : ''), seed);
@@ -1063,35 +1271,55 @@ function openSeedImport() {
       }
       toast('已导入 ' + r.pages + ' 个页面、' + r.sites + ' 个站点', 'success');
       closeModal();
-      await loadState();
+      await loadState({ silent: true });
     });
   });
 }
 
 /* ---------- 书签导入 ---------- */
+/* 统计 bookmarks 页当前内容,用于导入前的破坏性确认 */
+function bookmarksPageStats() {
+  const page = state.pages.find((p) => p.id === 'bookmarks');
+  if (!page) return { cats: 0, sites: 0 };
+  let cats = 0;
+  let sites = 0;
+  const walk = (list) => {
+    for (const c of list) {
+      cats++;
+      sites += (c.sites || []).length;
+      walk(c.categories || []);
+    }
+  };
+  walk(page.categories || []);
+  return { cats, sites };
+}
+
 function openImport() {
   openModal(
     '导入书签',
-    '<form id="import-form">' +
-      '<div class="import-drop" id="import-drop">📥 点击下方按钮,或拖拽文件到此处</div>' +
-      '<div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">' +
-      '<button type="button" class="btn" id="import-file-btn">选择 .html 文件</button>' +
-      '</div>' +
+    '<form id="import-form" novalidate>' +
+      '<div class="import-drop" id="import-drop" role="button" tabindex="0">📥 点击选择 .html 文件，或拖拽文件到此处</div>' +
       '<input type="file" id="import-file" accept=".html,.htm,text/html" hidden>' +
       textareaField(
         'bookmark',
         '或手动粘贴书签 HTML(Netscape 格式)',
         '',
         '粘贴导出文件内容',
-        '支持 Chrome / Firefox / Safari 导出的书签 HTML，最多 8 MB。导入会替换书签页面现有内容，其他页面保持不变。'
+        '支持 Chrome / Firefox / Safari 导出的书签 HTML，最多 8 MB。导入会<strong>替换「书签」页的现有内容</strong>，其他页面保持不变。'
       ) +
       formActions('开始导入')
   );
   const drop = document.getElementById('import-drop');
   const fileInput = document.getElementById('import-file');
-  const fileBtn = document.getElementById('import-file-btn');
   const textarea = document.getElementById('f-bookmark');
 
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
   drop.addEventListener('dragover', (e) => {
     e.preventDefault();
     drop.classList.add('dragover');
@@ -1102,7 +1330,15 @@ function openImport() {
     drop.classList.remove('dragover');
     if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
   });
-  fileBtn.addEventListener('click', () => fileInput.click());
+  // 全局兜底:吞掉落到窗口其它位置的拖拽,避免浏览器直接打开文件卸载页面
+  const swallow = (e) => e.preventDefault();
+  document.addEventListener('dragover', swallow);
+  document.addEventListener('drop', swallow);
+  document.addEventListener('dragend', () => {
+    document.removeEventListener('dragover', swallow);
+    document.removeEventListener('drop', swallow);
+  });
+
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length) loadFile(fileInput.files[0]);
   });
@@ -1126,25 +1362,42 @@ function openImport() {
     submitWithGuard(importForm, async () => {
       const html = textarea.value.trim();
       if (!html) {
-        toast('请先粘贴书签 HTML 或选择文件', 'error');
+        setFormError('请先粘贴书签 HTML 或选择文件');
         return;
       }
-      const r = await api('POST', '/api/bookmarks', { html });
-      if (r.ok) {
-        // M12:汇报实际导入数量,让用户验证落点;解析为空已被后端 422 拦截
-        let msg =
-          '已导入 ' +
-          (r.categories != null ? r.categories : 0) +
-          ' 个分类、' +
-          (r.sites != null ? r.sites : 0) +
-          ' 个站点';
-        if (r.truncated > 0) msg += '(另有 ' + r.truncated + ' 个超 4 层文件夹被截断)';
-        msg += ',建议「立即发布」使公开站生效';
-        toast(msg, 'success');
+      const stats = bookmarksPageStats();
+      const doImport = async () => {
+        const r = await api('POST', '/api/bookmarks', { html });
+        if (r.ok) {
+          let msg =
+            '已导入 ' +
+            (r.categories != null ? r.categories : 0) +
+            ' 个分类、' +
+            (r.sites != null ? r.sites : 0) +
+            ' 个站点';
+          if (r.truncated > 0) msg += '(另有 ' + r.truncated + ' 个超 4 层文件夹被截断)';
+          msg += ',建议「立即发布」使公开站生效';
+          toast(msg, 'success');
+          closeModal();
+          await loadState({ silent: true });
+        } else {
+          setFormError(writeErr(r));
+        }
+      };
+      // 破坏性替换:先确认当前「书签」页将被清空
+      if (stats.cats > 0 || stats.sites > 0) {
         closeModal();
-        await loadState();
+        openConfirmDialog(
+          '导入会替换「书签」页的现有内容：当前有 ' +
+            stats.cats +
+            ' 个分类、' +
+            stats.sites +
+            ' 个站点将被删除并重建，此操作不可撤销。\n建议先「导出备份」。',
+          doImport,
+          '确认导入并替换'
+        );
       } else {
-        toast(writeErr(r), 'error');
+        await doImport();
       }
     });
   });
@@ -1153,8 +1406,7 @@ function openImport() {
 /* ---------- 主题切换 ---------- */
 function initTheme() {
   const btn = document.getElementById('theme-toggle');
-  const saved = localStorage.getItem('admin-theme');
-  if (saved === 'light') document.documentElement.classList.add('light-theme');
+  // 首帧主题已在 index.html 的内联脚本中落定,这里只同步按钮图标与交互。
   updateThemeIcon();
   btn.addEventListener('click', () => {
     const light = document.documentElement.classList.toggle('light-theme');
@@ -1164,6 +1416,85 @@ function initTheme() {
   function updateThemeIcon() {
     btn.textContent = document.documentElement.classList.contains('light-theme') ? '🌙' : '☀️';
   }
+}
+
+/* ---------- 搜索 ---------- */
+function bindSearch() {
+  const input = document.getElementById('tree-search');
+  const clear = document.getElementById('tree-search-clear');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    searchTerm = input.value.trim().toLowerCase();
+    clear.hidden = !searchTerm;
+    renderTree();
+    if (searchTerm) {
+      const { pages, cats, sites } = countMatches();
+      updateSearchCount(
+        pages + cats + sites === 0
+          ? '无匹配结果'
+          : '匹配 ' + pages + ' 页 / ' + cats + ' 分类 / ' + sites + ' 站点'
+      );
+    } else {
+      updateSearchCount('');
+    }
+  });
+  clear.addEventListener('click', () => {
+    input.value = '';
+    searchTerm = '';
+    clear.hidden = true;
+    updateSearchCount('');
+    renderTree();
+    input.focus();
+  });
+}
+
+/* ---------- 拖拽排序 ---------- */
+function bindDnD() {
+  let dragType = null;
+  let dragId = null;
+  document.addEventListener('dragstart', (e) => {
+    const row = e.target.closest?.(
+      '.site-row[draggable], .cat-item[draggable], .page-block[draggable]'
+    );
+    if (!row) return;
+    dragType =
+      row.dataset.type === 'category'
+        ? 'categories'
+        : row.dataset.type === 'page'
+          ? 'pages'
+          : 'sites';
+    dragId = row.dataset.id;
+    row.classList.add('dragging');
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+  });
+  document.addEventListener('dragend', (e) => {
+    e.target.closest?.('.dragging')?.classList.remove('dragging');
+    document.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
+    dragType = null;
+    dragId = null;
+  });
+  document.addEventListener('dragover', (e) => {
+    if (!dragId) return;
+    const target = e.target.closest?.('[data-type]');
+    if (
+      !target ||
+      target.dataset.type !==
+        (dragType === 'categories' ? 'category' : dragType === 'pages' ? 'page' : 'site')
+    )
+      return;
+    e.preventDefault();
+    document.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
+    target.classList.add('drop-target');
+  });
+  document.addEventListener('drop', async (e) => {
+    if (!dragId) return;
+    const target = e.target.closest?.('[data-type]');
+    if (!target) return;
+    e.preventDefault();
+    const toId = target.dataset.id;
+    if (toId && toId !== dragId) await moveItem(dragType, dragId, toId);
+    dragId = null;
+  });
 }
 
 /* ---------- 全局事件委托 ---------- */
@@ -1198,11 +1529,12 @@ function bindEvents() {
       case 'open-settings':
         await openSettings();
         break;
+      case 'export':
+      case 'export-backup':
+        await exportSnapshot();
+        break;
       case 'seed':
         openSeedImport();
-        break;
-      case 'export':
-        await exportSnapshot();
         break;
       case 'add-page':
         openPageForm(null);
@@ -1211,10 +1543,12 @@ function bindEvents() {
         openPageForm(state.pages.find((p) => p.id === btn.dataset.id));
         break;
       case 'del-page':
-        {
-          const msg = '确定删除页面及其内容?(若含子项将询问级联)';
-          openConfirmDialog(msg, () => delPage(btn.dataset.id));
-        }
+        openConfirmDialog(
+          '确定删除页面「' +
+            (state.pages.find((p) => p.id === btn.dataset.id)?.label || '') +
+            '」？（若含子项将询问级联）',
+          () => delPage(btn.dataset.id)
+        );
         break;
       case 'add-cat':
         openCategoryForm({ pageId: btn.dataset.pageId });
@@ -1233,10 +1567,9 @@ function bindEvents() {
         break;
       }
       case 'del-cat': {
-        // M10:销毁性操作必须确认(与 del-page 对齐)
         const entry = nodeIndex.categories.find((x) => x.node.id === btn.dataset.id);
         const name = entry ? entry.node.label : '';
-        openConfirmDialog('确定删除分类「' + name + '」?(若含子项将询问级联)', () =>
+        openConfirmDialog('确定删除分类「' + name + '」？（若含子项将询问级联）', () =>
           delCategory(btn.dataset.id)
         );
         break;
@@ -1250,10 +1583,9 @@ function bindEvents() {
         break;
       }
       case 'del-site': {
-        // M10:销毁性操作必须确认(与 del-page 对齐)
         const entry = nodeIndex.sites.find((x) => x.node.id === btn.dataset.id);
         const name = entry ? entry.node.name : '';
-        openConfirmDialog('确定删除站点「' + name + '」?此操作不可撤销', () =>
+        openConfirmDialog('确定删除站点「' + name + '」？此操作不可撤销', () =>
           delSite(btn.dataset.id)
         );
         break;
@@ -1274,6 +1606,8 @@ function bindEvents() {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   bindEvents();
+  bindSearch();
+  bindDnD();
   loadState();
 });
 

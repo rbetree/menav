@@ -3,11 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
     <title>menav · 动态后台</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236a89c9'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E"
     />
+    <script>
+      // 首帧前落定主题,避免浅色用户先看到深色再闪成浅色。
+      (function () {
+        var saved = localStorage.getItem('admin-theme');
+        var light = saved
+          ? saved === 'light'
+          : window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (light) document.documentElement.classList.add('light-theme');
+      })();
+    </script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -22,21 +33,21 @@
           </div>
         </div>
         <nav class="side-nav" aria-label="主导航">
-          <a class="side-link is-active" href="#publish-status">
+          <a class="side-link" href="#publish-status" data-nav="overview">
             <span class="side-icon" aria-hidden="true">◉</span>
             <span>概览</span>
           </a>
-          <a class="side-link" href="#tree-root">
+          <a class="side-link" href="#tree-root" data-nav="pages">
             <span class="side-icon" aria-hidden="true">⊞</span>
             <span>页面管理</span>
           </a>
-          <a class="side-link" data-action="open-import" href="#bookmarks">
+          <a class="side-link" data-action="open-import" href="#tree-root">
             <span class="side-icon" aria-hidden="true">⇪</span>
-            <span>书签导入</span>
+            <span>导入书签</span>
           </a>
-          <a class="side-link" data-action="open-settings" href="#settings">
+          <a class="side-link" data-action="open-settings" href="#publish-status">
             <span class="side-icon" aria-hidden="true">⚙</span>
-            <span>系统配置</span>
+            <span>数据与备份</span>
           </a>
         </nav>
         <div class="sidebar-footer">
@@ -55,8 +66,8 @@
       <div class="admin-main">
         <header class="topbar">
           <div class="topbar-title">
-            <h1>页面管理</h1>
-            <p class="topbar-subtitle">维护导航 · 分类 · 站点，编辑后点击「立即发布」更新公开站</p>
+            <h1>管理台</h1>
+            <p class="topbar-subtitle">修改会在 5 分钟内自动发布；需立即生效请点「立即发布」</p>
           </div>
           <div class="header-actions">
             <button
@@ -68,7 +79,8 @@
             >
               ↻ 刷新
             </button>
-            <button type="button" class="btn" data-action="settings">⚙ 配置</button>
+            <button type="button" class="btn" data-action="settings">⚙ 数据与备份</button>
+            <button type="button" class="btn" data-action="export-backup">⤓ 导出备份</button>
             <button type="button" class="btn" id="btn-import" data-action="import">
               ⇪ 导入书签
             </button>
@@ -79,13 +91,37 @@
           </div>
         </header>
 
+        <!-- 搜索 / 定位 -->
+        <div class="toolbar">
+          <label class="search-box">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              id="tree-search"
+              placeholder="搜索站点 / 分类 / 页面…"
+              autocomplete="off"
+              aria-label="搜索站点、分类或页面"
+            />
+            <button
+              type="button"
+              class="search-clear"
+              id="tree-search-clear"
+              aria-label="清空搜索"
+              hidden
+            >
+              ×
+            </button>
+          </label>
+          <span class="search-count" id="tree-search-count" role="status" aria-live="polite"></span>
+        </div>
+
         <!-- 发布状态 -->
         <section class="publish-status" role="status" aria-live="polite" id="publish-status">
           正在读取发布状态…
         </section>
 
         <!-- 加载中 / 脱机 / 错误 / 空数据 -->
-        <div id="status" class="status-notice" hidden>
+        <div id="status" class="status-notice" role="status" aria-live="polite" hidden>
           <span class="status-icon"></span>
           <span class="status-text"></span>
         </div>
@@ -99,7 +135,7 @@
     <div id="modal-overlay" class="modal-overlay">
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-header">
-          <h3 id="modal-title"></h3>
+          <h2 id="modal-title"></h2>
           <button type="button" class="modal-close" data-action="modal-close" aria-label="关闭">
             ×
           </button>
@@ -111,7 +147,7 @@
     </div>
 
     <!-- Toast 容器 -->
-    <div id="toast-container" class="toast-container"></div>
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <script src="./app.js"></script>
   </body>
