@@ -1245,6 +1245,20 @@ svg {
 }
 
 /* ==================== 表单 ==================== */
+.form-group-title {
+  margin: var(--s-5) 0 var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
+
+.form-group-title:first-of-type {
+  margin-top: var(--s-2);
+}
+
 .form-field {
   margin-bottom: var(--s-4);
 }

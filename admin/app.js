@@ -1312,6 +1312,228 @@ async function loadPublishStatus() {
   );
 }
 
+/* 表单分组标题 */
+function groupTitle(text) {
+  return '<h3 class="form-group-title">' + esc(text) + '</h3>';
+}
+
+/* 数字字段(留空表示不修改) */
+function numberField(name, label, value, placeholder, hint) {
+  return (
+    '<div class="form-field"><label for="f-' +
+    name +
+    '">' +
+    label +
+    '</label><input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="number" min="0" value="' +
+    esc(value == null ? '' : value) +
+    '" placeholder="' +
+    esc(placeholder || '') +
+    '">' +
+    (hint ? '<div class="field-hint">' + hint + '</div>' : '') +
+    '</div>'
+  );
+}
+
+/* 站点级配置(身份/外观/字体/资料/社交/安全/RSS/GitHub)的可视化编辑。 */
+async function openSiteConfig() {
+  const r = await api('GET', '/api/settings');
+  if (!r.ok) {
+    toast(writeErr(r), 'error');
+    return;
+  }
+  let site = {};
+  let assets = {};
+  try {
+    site = JSON.parse(r.site || '{}');
+  } catch {
+    site = {};
+  }
+  try {
+    assets = JSON.parse(r.assets || '{}');
+  } catch {
+    assets = {};
+  }
+  const theme = site.theme || {};
+  const icons = site.icons || {};
+  const profile = site.profile || {};
+  const fonts = site.fonts || {};
+  const security = site.security || {};
+  const rss = site.rss || {};
+  const rssArticles = rss.articles || {};
+  const gh = site.github || {};
+  const social = Array.isArray(site.social) ? site.social : [];
+  const schemes = Array.isArray(security.allowedSchemes) ? security.allowedSchemes : [];
+  const faviconOptions = [{ value: '', label: '(默认 / 不设置)' }].concat(
+    Object.keys(assets).map((key) => ({ value: key, label: key }))
+  );
+
+  openModal(
+    '站点设置',
+    '<form id="site-config-form" novalidate>' +
+      '<p class="field-hint">站点级配置。保存后最多 5 分钟自动发布，或点「立即发布」立即生效。</p>' +
+      groupTitle('站点身份') +
+      textField('sc-title', '站点标题', site.title, '例如：我的导航') +
+      textField('sc-description', '站点描述', site.description, 'meta description') +
+      textField('sc-author', '作者', site.author, '') +
+      textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
+      selectField(
+        'sc-favicon',
+        '站点图标',
+        faviconOptions,
+        site.favicon || '',
+        '只能选择站点已有的图片资源（避免发布后 404）'
+      ) +
+      groupTitle('外观') +
+      selectField(
+        'sc-theme',
+        '默认外观',
+        [
+          { value: 'system', label: '跟随系统' },
+          { value: 'dark', label: '深色' },
+          { value: 'light', label: '浅色' },
+        ],
+        theme.mode || 'system'
+      ) +
+      selectField(
+        'sc-icons-mode',
+        '卡片图标模式',
+        [
+          { value: 'favicon', label: '自动获取 favicon' },
+          { value: 'manual', label: '手动图标' },
+        ],
+        icons.mode || 'favicon',
+        '自动模式会请求外部 favicon 服务'
+      ) +
+      selectField(
+        'sc-icons-region',
+        'favicon 服务区域',
+        [
+          { value: 'com', label: '国外（优先 gstatic.com）' },
+          { value: 'cn', label: '国内（优先 gstatic.cn）' },
+        ],
+        icons.region || 'com'
+      ) +
+      groupTitle('个人资料（首页）') +
+      textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
+      textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '') +
+      groupTitle('字体') +
+      selectField(
+        'sc-fonts-source',
+        '字体来源',
+        [
+          { value: 'system', label: '系统字体' },
+          { value: 'css', label: '自定义 CSS' },
+          { value: 'google', label: 'Google Fonts' },
+        ],
+        fonts.source || 'system'
+      ) +
+      textField(
+        'sc-fonts-css-url',
+        '字体 CSS 地址',
+        fonts.cssUrl,
+        'https://…',
+        '来源为 CSS 时使用'
+      ) +
+      textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
+      textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
+      checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true) +
+      groupTitle('社交链接') +
+      textareaField(
+        'sc-social',
+        '每行一个：名称 | URL | 图标',
+        social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
+        'GitHub | https://github.com/me | fab fa-github'
+      ) +
+      groupTitle('外链安全') +
+      textField(
+        'sc-schemes',
+        '允许的链接协议（逗号分隔）',
+        schemes.join(', '),
+        'https, http, mailto',
+        '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄'
+      ) +
+      groupTitle('RSS 文章') +
+      checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true) +
+      numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
+      numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
+      numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认') +
+      groupTitle('GitHub 贡献图') +
+      textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
+      textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）') +
+      formActions('保存设置') +
+      '</form>'
+  );
+
+  const form = document.getElementById('site-config-form');
+  const val = (name) => {
+    const el = document.getElementById('f-' + name);
+    return el ? el.value.trim() : '';
+  };
+  const checked = (name) => document.getElementById('f-' + name).checked;
+  const numOrUndef = (name) => (val(name) === '' ? undefined : Number(val(name)));
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitWithGuard(form, async () => {
+      const socialItems = val('sc-social')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [name, url, icon] = line.split('|').map((part) => (part || '').trim());
+          return icon ? { name, url, icon } : { name, url };
+        });
+      const allowedSchemes = val('sc-schemes')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const perSite = numOrUndef('sc-rss-per-site');
+      const total = numOrUndef('sc-rss-total');
+      const summaryMaxLength = numOrUndef('sc-rss-summary');
+      const patch = {
+        title: val('sc-title'),
+        description: val('sc-description'),
+        author: val('sc-author'),
+        logo_text: val('sc-logo-text'),
+        theme: { mode: val('sc-theme') },
+        icons: { mode: val('sc-icons-mode'), region: val('sc-icons-region') },
+        profile: { title: val('sc-profile-title'), subtitle: val('sc-profile-subtitle') },
+        fonts: {
+          source: val('sc-fonts-source'),
+          cssUrl: val('sc-fonts-css-url'),
+          family: val('sc-fonts-family'),
+          weight: val('sc-fonts-weight'),
+          preload: checked('sc-fonts-preload'),
+        },
+        social: socialItems,
+        security: { allowedSchemes },
+        rss: {
+          enabled: checked('sc-rss-enabled'),
+          articles: {
+            ...(perSite !== undefined ? { perSite } : {}),
+            ...(total !== undefined ? { total } : {}),
+            ...(summaryMaxLength !== undefined ? { summaryMaxLength } : {}),
+          },
+        },
+        github: { username: val('sc-gh-username'), heatmapColor: val('sc-gh-color') },
+      };
+      const favicon = val('sc-favicon');
+      if (favicon) patch.favicon = favicon;
+      const res = await api('PUT', '/api/settings/site', patch);
+      if (res.ok) {
+        toast('站点设置已保存', 'success');
+        closeModal();
+      } else {
+        setFormError(writeErr(res));
+      }
+    });
+  });
+}
+
 async function openSettings() {
   const r = await api('GET', '/api/settings');
   if (!r.ok) {
@@ -1695,6 +1917,10 @@ function bindEvents() {
       case 'import':
       case 'open-import':
         openImport();
+        break;
+      case 'site-config':
+      case 'open-site-config':
+        await openSiteConfig();
         break;
       case 'settings':
       case 'open-settings':
