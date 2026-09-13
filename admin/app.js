@@ -18,6 +18,30 @@ let statusTimer;
 let searchTerm = ''; // 当前搜索关键词
 const collapsed = new Set(); // 'p:<id>' / 'c:<id>',折叠状态记忆
 const nodeIndex = { pages: [], categories: [], sites: [] };
+let booted = false; // 入场动画只在首帧播放一次
+
+/* ---------- 图标(内联 SVG,不依赖任何网络字体/图标库) ---------- */
+const ICON = {
+  loader:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" opacity=".28"/><path d="M21 12a9 9 0 0 0-9-9"/></svg>',
+  alert:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 20h18L12 4Z"/><path d="M12 10v4.5"/><path d="M12 17.4h.01"/></svg>',
+  cloudOff:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 4 16 16"/><path d="M8.6 18H7a4 4 0 0 1-.7-7.9"/><path d="M9.9 6.3A5.5 5.5 0 0 1 18 11h1a3.5 3.5 0 0 1 2.2 6.2"/></svg>',
+  folder:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2.5h7A1.5 1.5 0 0 1 19 10v7a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 3 17V7.5Z"/></svg>',
+  layers:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 8l-9 5-9-5 9-5Z"/><path d="m3 13.5 9 5 9-5"/></svg>',
+  search:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.2"/><path d="m20 20-3.6-3.6"/></svg>',
+  info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.8h.01"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2M12 19.4v2M4.7 4.7l1.4 1.4M17.9 17.9l1.4 1.4M2.6 12h2M19.4 12h2M4.7 19.3 6.1 17.9M17.9 6.1l1.4-1.4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.8A8.6 8.6 0 0 1 9.2 3.5a8.7 8.7 0 1 0 11.3 11.3Z"/></svg>',
+  arrowUp:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6"/><path d="m6.5 11.5 5.5-5.5 5.5 5.5"/></svg>',
+  arrowDown:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13"/><path d="m6.5 12.5 5.5 5.5 5.5-5.5"/></svg>',
+};
 
 /* ---------- 小工具 ---------- */
 function esc(v) {
@@ -51,22 +75,39 @@ function toast(msg, kind = 'info') {
   close.className = 'toast-close';
   close.setAttribute('aria-label', '关闭提示');
   close.textContent = '×';
-  close.addEventListener('click', () => el.remove());
   el.appendChild(close);
   box.appendChild(el);
   // 文案越长停留越久,避免长提示读不完。
   const duration = Math.min(3000 + msg.length * 70, 9000);
-  const timer = setTimeout(() => el.remove(), duration);
-  close.addEventListener('click', () => clearTimeout(timer), { once: true });
+  const timer = setTimeout(dismiss, duration);
+  close.addEventListener(
+    'click',
+    () => {
+      clearTimeout(timer);
+      dismiss();
+    },
+    { once: true }
+  );
+  // 淡出后再移除,避免提示突然消失
+  function dismiss() {
+    if (el.classList.contains('is-leaving')) return;
+    el.classList.add('is-leaving');
+    setTimeout(() => el.remove(), 240);
+  }
 }
 
 function showStatus(kind, text, opts) {
   const el = document.getElementById('status');
   const icon = el.querySelector('.status-icon');
   const txt = el.querySelector('.status-text');
-  el.className = 'status-notice' + (kind === 'error' ? ' is-error' : '');
-  const icons = { loading: '⏳', error: '⚠️', empty: '🗂️', offline: '📡' };
-  icon.textContent = icons[kind] || 'ℹ️';
+  el.className = 'status-notice is-' + kind;
+  const icons = {
+    loading: ICON.loader,
+    error: ICON.alert,
+    empty: ICON.folder,
+    offline: ICON.cloudOff,
+  };
+  icon.innerHTML = icons[kind] || ICON.info;
   txt.textContent = text;
   // 错误/脱机态附「重试」入口,替代只让用户手动刷新
   const retryBtn = el.querySelector('.status-retry');
@@ -253,6 +294,51 @@ function descendantIds(rootCat) {
 }
 
 /* ---------- 渲染 ---------- */
+/* 空树 / 搜索无结果的引导态:说明下一步该做什么,而不只是宣告「没有数据」 */
+function emptyTreeHtml() {
+  if (searchTerm) {
+    // 回显用户原始输入(搜索词内部按小写比较)
+    const shown = document.getElementById('tree-search')?.value.trim() || searchTerm;
+    return (
+      '<div class="tree-empty">' +
+      '<span class="tree-empty-icon">' +
+      ICON.search +
+      '</span>' +
+      '<p class="tree-empty-title">没有匹配的结果</p>' +
+      '<p class="tree-empty-text">没有页面、分类或站点匹配「' +
+      esc(shown) +
+      '」。换个关键词,或清空搜索回到完整结构。</p>' +
+      '<button type="button" class="btn" data-action="clear-search">清空搜索</button>' +
+      '</div>'
+    );
+  }
+  return (
+    '<div class="tree-empty">' +
+    '<span class="tree-empty-icon">' +
+    ICON.layers +
+    '</span>' +
+    '<p class="tree-empty-title">还没有任何页面</p>' +
+    '<p class="tree-empty-text">页面是导航站的一级结构,例如「首页」或「书签」。创建页面后即可在其中添加分类与站点。</p>' +
+    '<button type="button" class="btn btn-primary" data-action="add-page">新增第一个页面</button>' +
+    '</div>'
+  );
+}
+
+/* 统计一棵分类子树下的分类与站点数 */
+function nodeStats(cats) {
+  let catCount = 0;
+  let siteCount = 0;
+  const walk = (list) => {
+    for (const c of list) {
+      catCount++;
+      siteCount += (c.sites || []).length;
+      walk(c.categories || []);
+    }
+  };
+  walk(cats);
+  return { cats: catCount, sites: siteCount };
+}
+
 function renderTree() {
   const fresh = rebuildIndex();
   nodeIndex.pages = fresh.pages;
@@ -261,27 +347,34 @@ function renderTree() {
 
   // 记录当前焦点(用 data-* 复定位),重渲染后恢复,避免键盘操作被打断。
   const active = document.activeElement;
-  let focusKey = null;
-  if (active && active.dataset && (active.dataset.target || active.dataset.id)) {
-    focusKey =
-      active.dataset.action + '|' + (active.dataset.target || '') + '|' + (active.dataset.id || '');
+  let focusSel = null;
+  if (active && active.dataset) {
+    const { target, id, action } = active.dataset;
+    if (target) focusSel = '[data-target="' + CSS.escape(target) + '"]';
+    else if (id)
+      focusSel =
+        '[data-action="' + CSS.escape(action || '') + '"][data-id="' + CSS.escape(id) + '"]';
+    else if (action) focusSel = '[data-action="' + CSS.escape(action) + '"]';
   }
 
   const root = document.getElementById('tree-root');
-  if (state.pages.length === 0) {
-    root.innerHTML =
-      '<div class="status-notice"><span class="status-icon">🗂️</span><span class="status-text">还没有任何页面，点击「＋ 新增页面」开始。</span></div>';
-    updateSearchCount('');
+  const html = state.pages.map((p) => renderPage(p)).join('');
+  if (!html) {
+    root.innerHTML = emptyTreeHtml();
+    updateSearchCount(searchTerm ? '无匹配结果' : '');
     return;
   }
-  root.innerHTML = state.pages.map((p) => renderPage(p)).join('');
+  root.innerHTML = html;
 
-  if (focusKey) {
-    const [action, target, id] = focusKey.split('|');
-    const sel = target
-      ? '[data-target="' + CSS.escape(target) + '"]'
-      : '[data-action="' + CSS.escape(action) + '"][data-id="' + CSS.escape(id) + '"]';
-    const back = root.querySelector(sel);
+  // 首帧一次性入场,后续重渲染不重复播放
+  if (!booted) {
+    booted = true;
+    root.classList.add('is-entering');
+    setTimeout(() => root.classList.remove('is-entering'), 700);
+  }
+
+  if (focusSel) {
+    const back = root.querySelector(focusSel);
     if (back && !back.disabled) back.focus({ preventScroll: true });
   }
 }
@@ -318,11 +411,14 @@ function renderPage(p) {
   const body = catList(p, p.categories || [], null, pageMatch);
   // 搜索过滤:页面自身或子树命中才显示
   if (searchTerm && !pageMatch && !body) return '';
+  const stats = nodeStats(p.categories || []);
+  const meta = stats.cats || stats.sites ? stats.cats + ' 分类 · ' + stats.sites + ' 站点' : '';
   return (
     '<section class="page-block" data-type="page" data-id="' +
     esc(p.id) +
-    '">' +
+    '" draggable="true">' +
     '<div class="page-header">' +
+    '<span class="drag-grip" aria-hidden="true"></span>' +
     '<button type="button" class="collapse-btn' +
     (isCollapsed ? ' collapsed' : '') +
     '" data-action="toggle" data-target="' +
@@ -333,10 +429,11 @@ function renderPage(p) {
     (isCollapsed ? '展开' : '折叠') +
     ' ' +
     esc(p.label) +
-    '"><span class="collapse-caret">▾</span></button>' +
+    '"><span class="collapse-caret"></span></button>' +
     '<span class="page-label">' +
     esc(p.label) +
     '</span>' +
+    (meta ? '<span class="node-meta">' + meta + '</span>' : '') +
     (p.hidden ? '<span class="badge badge-hidden">隐藏</span>' : '') +
     '<div class="node-actions">' +
     moveBtns('pages', p, state.pages) +
@@ -370,14 +467,16 @@ function renderCategory(page, c, parentId, forceShow) {
   const isCollapsed = !searchTerm && collapsed.has(cKey);
   const catMatch = matches(c.label);
   const show = forceShow || catMatch;
-  const hasKids = (c.categories && c.categories.length > 0) || (c.sites && c.sites.length > 0);
+  const kidCount = (c.categories || []).length + (c.sites || []).length;
+  const hasKids = kidCount > 0;
   const childrenInner = catList(page, c.categories || [], c.id, show) + siteList(c, show);
   if (searchTerm && !show && !childrenInner) return '';
   return (
     '<div class="cat-item" data-type="category" data-id="' +
     esc(c.id) +
-    '">' +
+    '" draggable="true">' +
     '<div class="cat-header">' +
+    '<span class="drag-grip" aria-hidden="true"></span>' +
     (hasKids
       ? '<button type="button" class="collapse-btn' +
         (isCollapsed ? ' collapsed' : '') +
@@ -389,11 +488,12 @@ function renderCategory(page, c, parentId, forceShow) {
         (isCollapsed ? '展开' : '折叠') +
         ' ' +
         esc(c.label) +
-        '"><span class="collapse-caret">▾</span></button>'
-      : '<span class="collapse-btn" aria-hidden="true" style="visibility:hidden"></span>') +
+        '"><span class="collapse-caret"></span></button>'
+      : '<span class="collapse-btn is-placeholder" aria-hidden="true"></span>') +
     '<span class="cat-label">' +
     esc(c.label) +
     '</span>' +
+    (isCollapsed && hasKids ? '<span class="node-meta">' + kidCount + ' 项</span>' : '') +
     (c.foldable ? '<span class="badge badge-foldable">可折叠</span>' : '') +
     '<div class="node-actions">' +
     moveBtns('categories', c, categorySiblings(page, parentId)) +
@@ -422,8 +522,16 @@ function renderCategory(page, c, parentId, forceShow) {
 
 function siteList(c, forceShow) {
   const sites = (c.sites || []).filter((s) => forceShow || matches(s.name) || matches(s.url));
-  if (!c.sites || !c.sites.length)
-    return '<div class="site-list"><div class="empty-hint">暂无站点</div></div>';
+  // 搜索态下,未命中的空分类不应该把整棵树"撑"出来
+  if (!c.sites || !c.sites.length) {
+    if (searchTerm && !forceShow) return '';
+    return (
+      '<div class="site-list"><div class="empty-hint"><span>暂无站点</span>' +
+      '<button type="button" class="btn btn-sm" data-action="add-site" data-category-id="' +
+      esc(c.id) +
+      '">添加站点</button></div></div>'
+    );
+  }
   if (!sites.length && searchTerm) return '';
   return '<div class="site-list">' + sites.map((s) => renderSite(c, s)).join('') + '</div>';
 }
@@ -433,6 +541,7 @@ function renderSite(c, s) {
     '<div class="site-row" data-type="site" data-id="' +
     esc(s.id) +
     '" draggable="true">' +
+    '<span class="drag-grip" aria-hidden="true"></span>' +
     faviconHtml(s) +
     '<div class="site-info">' +
     '<div class="site-name">' +
@@ -487,14 +596,18 @@ function moveBtns(type, node, list) {
     esc(node.id) +
     '" title="上移" aria-label="上移"' +
     (up ? '' : ' disabled') +
-    '>↑</button>' +
+    '>' +
+    ICON.arrowUp +
+    '</button>' +
     '<button type="button" class="btn btn-icon btn-sm" data-action="move-down" data-type="' +
     type +
     '" data-id="' +
     esc(node.id) +
     '" title="下移" aria-label="下移"' +
     (down ? '' : ' disabled') +
-    '>↓</button>'
+    '>' +
+    ICON.arrowDown +
+    '</button>'
   );
 }
 
@@ -1321,7 +1434,11 @@ function openImport() {
   openModal(
     '导入书签',
     '<form id="import-form" novalidate>' +
-      '<div class="import-drop" id="import-drop" role="button" tabindex="0">📥 点击选择 .html 文件，或拖拽文件到此处</div>' +
+      '<div class="import-drop" id="import-drop" role="button" tabindex="0">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>' +
+      '<span class="import-drop-title">拖拽书签文件到这里</span>' +
+      '<span class="import-drop-sub">或点击选择 .html 文件</span>' +
+      '</div>' +
       '<input type="file" id="import-file" accept=".html,.htm,text/html" hidden>' +
       textareaField(
         'bookmark',
@@ -1429,19 +1546,54 @@ function openImport() {
 /* ---------- 主题切换 ---------- */
 function initTheme() {
   const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
   // 首帧主题已在 index.html 的内联脚本中落定,这里只同步按钮图标与交互。
-  updateThemeIcon();
+  syncIcon();
   btn.addEventListener('click', () => {
     const light = document.documentElement.classList.toggle('light-theme');
     localStorage.setItem('admin-theme', light ? 'light' : 'dark');
-    updateThemeIcon();
+    syncIcon();
   });
-  function updateThemeIcon() {
-    btn.textContent = document.documentElement.classList.contains('light-theme') ? '🌙' : '☀️';
+  function syncIcon() {
+    const light = document.documentElement.classList.contains('light-theme');
+    // 图标表达「点击后会切到哪一侧」,而非当前主题
+    btn.innerHTML = light ? ICON.moon : ICON.sun;
+    const label = light ? '切换到深色主题' : '切换到浅色主题';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
   }
 }
 
+/* ---------- 侧栏导航高亮(跟随滚动位置) ---------- */
+function initNavSpy() {
+  const items = Array.from(document.querySelectorAll('.side-link[data-nav]'))
+    .map((link) => ({ link, target: document.querySelector(link.getAttribute('href')) }))
+    .filter((item) => item.target);
+  if (!items.length) return;
+  const sync = () => {
+    let current = items[0].target;
+    for (const item of items) {
+      if (item.target.getBoundingClientRect().top <= 140) current = item.target;
+    }
+    for (const item of items) item.link.classList.toggle('is-active', item.target === current);
+  };
+  sync();
+  window.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('resize', sync, { passive: true });
+}
+
 /* ---------- 搜索 ---------- */
+function clearSearch() {
+  const input = document.getElementById('tree-search');
+  const clear = document.getElementById('tree-search-clear');
+  if (input) input.value = '';
+  searchTerm = '';
+  if (clear) clear.hidden = true;
+  updateSearchCount('');
+  renderTree();
+  input?.focus();
+}
+
 function bindSearch() {
   const input = document.getElementById('tree-search');
   const clear = document.getElementById('tree-search-clear');
@@ -1461,14 +1613,7 @@ function bindSearch() {
       updateSearchCount('');
     }
   });
-  clear.addEventListener('click', () => {
-    input.value = '';
-    searchTerm = '';
-    clear.hidden = true;
-    updateSearchCount('');
-    renderTree();
-    input.focus();
-  });
+  clear.addEventListener('click', clearSearch);
 }
 
 /* ---------- 拖拽排序 ---------- */
@@ -1540,6 +1685,9 @@ function bindEvents() {
       }
       case 'refresh':
         await loadState();
+        break;
+      case 'clear-search':
+        clearSearch();
         break;
       case 'publish':
         await publish();
@@ -1628,6 +1776,7 @@ function bindEvents() {
 /* ---------- 启动 ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initNavSpy();
   bindEvents();
   bindSearch();
   bindDnD();

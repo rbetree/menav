@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark light" />
-    <title>menav · 动态后台</title>
+    <title>MeNav · 动态后台</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236a89c9'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236a89c9'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%230e0f11'/%3E%3C/svg%3E"
     />
     <script>
       // 首帧前落定主题,避免浅色用户先看到深色再闪成浅色。
@@ -23,35 +23,68 @@
   </head>
   <body>
     <div class="admin-shell">
+      <a class="skip-link" href="#tree-root">跳到页面结构</a>
+
       <!-- ==================== 侧边栏 ==================== -->
       <aside class="sidebar">
         <div class="brand">
-          <span class="brand-mark">M</span>
-          <div class="brand-text">
-            <span class="brand-name">menav</span>
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.4l2.77 6.83L21.6 12l-6.83 2.77L12 21.6l-2.77-6.83L2.4 12l6.83-2.77z" />
+            </svg>
+          </span>
+          <span class="brand-text">
+            <span class="brand-name">MeNav</span>
             <span class="brand-tag">动态后台</span>
-          </div>
+          </span>
         </div>
+
         <nav class="side-nav" aria-label="主导航">
           <a class="side-link" href="#publish-status" data-nav="overview">
-            <span class="side-icon" aria-hidden="true">◉</span>
-            <span>概览</span>
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12h3.6l2.2-6 3.4 12 2.4-6H21" />
+            </svg>
+            <span>发布状态</span>
           </a>
           <a class="side-link" href="#tree-root" data-nav="pages">
-            <span class="side-icon" aria-hidden="true">⊞</span>
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3 21 8l-9 5-9-5 9-5Z" />
+              <path d="m3 13.5 9 5 9-5" />
+            </svg>
             <span>页面管理</span>
           </a>
-          <a class="side-link" data-action="open-import" href="#tree-root">
-            <span class="side-icon" aria-hidden="true">⇪</span>
-            <span>导入书签</span>
-          </a>
-          <a class="side-link" data-action="open-settings" href="#publish-status">
-            <span class="side-icon" aria-hidden="true">⚙</span>
-            <span>数据与备份</span>
-          </a>
         </nav>
+
+        <div class="side-group">
+          <p class="side-group-title">快捷操作</p>
+          <button type="button" class="side-link" data-action="open-import">
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15V3.5" />
+              <path d="m7.5 8 4.5-4.5L16.5 8" />
+              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+            </svg>
+            <span>导入书签</span>
+          </button>
+          <button type="button" class="side-link" data-action="open-settings">
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <ellipse cx="12" cy="5.5" rx="7" ry="2.8" />
+              <path d="M5 5.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+              <path d="M5 11.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+            </svg>
+            <span>数据与备份</span>
+          </button>
+          <button type="button" class="side-link" data-action="export-backup">
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5V15" />
+              <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+            </svg>
+            <span>导出备份</span>
+          </button>
+        </div>
+
         <div class="sidebar-footer">
-          <span class="sidebar-hint">由 Cloudflare Access 保护</span>
+          <span class="sidebar-hint">Cloudflare Access 保护</span>
           <button
             type="button"
             class="theme-toggle"
@@ -66,68 +99,113 @@
       <div class="admin-main">
         <header class="topbar">
           <div class="topbar-title">
-            <h1>管理台</h1>
+            <h1>页面管理</h1>
             <p class="topbar-subtitle">修改会在 5 分钟内自动发布；需立即生效请点「立即发布」</p>
           </div>
+
           <div class="header-actions">
             <button
               type="button"
-              class="btn"
+              class="btn btn-quiet"
               id="btn-refresh"
               data-action="refresh"
               title="重新加载数据"
             >
-              ↻ 刷新
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+                <path d="M20.8 3.7v5.6h-5.6" />
+              </svg>
+              <span>刷新</span>
             </button>
-            <button type="button" class="btn" data-action="settings">⚙ 数据与备份</button>
-            <button type="button" class="btn" data-action="export-backup">⤓ 导出备份</button>
-            <button type="button" class="btn" id="btn-import" data-action="import">
-              ⇪ 导入书签
+            <button type="button" class="btn btn-quiet" id="btn-import" data-action="import">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15V3.5" />
+                <path d="m7.5 8 4.5-4.5L16.5 8" />
+                <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+              <span>导入书签</span>
             </button>
-            <button type="button" class="btn" data-action="add-page">＋ 新增页面</button>
+            <button type="button" class="btn btn-quiet" data-action="settings">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <ellipse cx="12" cy="5.5" rx="7" ry="2.8" />
+                <path d="M5 5.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+                <path d="M5 11.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+              </svg>
+              <span>数据与备份</span>
+            </button>
+            <button type="button" class="btn btn-quiet" data-action="export-backup">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3.5V15" />
+                <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+                <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+              <span>导出备份</span>
+            </button>
+
+            <span class="action-split" aria-hidden="true"></span>
+
+            <button type="button" class="btn" data-action="add-page">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              <span>新增页面</span>
+            </button>
             <button type="button" class="btn btn-primary" id="btn-publish" data-action="publish">
               立即发布
             </button>
           </div>
         </header>
 
-        <!-- 搜索 / 定位 -->
-        <div class="toolbar">
-          <label class="search-box">
-            <span class="search-icon" aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              id="tree-search"
-              placeholder="搜索站点 / 分类 / 页面…"
-              autocomplete="off"
-              aria-label="搜索站点、分类或页面"
-            />
-            <button
-              type="button"
-              class="search-clear"
-              id="tree-search-clear"
-              aria-label="清空搜索"
-              hidden
-            >
-              ×
-            </button>
-          </label>
-          <span class="search-count" id="tree-search-count" role="status" aria-live="polite"></span>
+        <!-- 搜索 / 发布状态 -->
+        <div class="subbar">
+          <div class="toolbar">
+            <label class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.2" />
+                <path d="m20 20-3.6-3.6" />
+              </svg>
+              <input
+                type="search"
+                id="tree-search"
+                placeholder="搜索站点 / 分类 / 页面"
+                autocomplete="off"
+                aria-label="搜索站点、分类或页面"
+              />
+              <button
+                type="button"
+                class="search-clear"
+                id="tree-search-clear"
+                aria-label="清空搜索"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 6l12 12" />
+                  <path d="M18 6 6 18" />
+                </svg>
+              </button>
+            </label>
+            <span
+              class="search-count"
+              id="tree-search-count"
+              role="status"
+              aria-live="polite"
+            ></span>
+          </div>
+
+          <section class="publish-status" role="status" aria-live="polite" id="publish-status">
+            正在读取发布状态…
+          </section>
         </div>
 
-        <!-- 发布状态 -->
-        <section class="publish-status" role="status" aria-live="polite" id="publish-status">
-          正在读取发布状态…
-        </section>
-
-        <!-- 加载中 / 脱机 / 错误 / 空数据 -->
+        <!-- 加载中 / 脱机 / 错误 -->
         <div id="status" class="status-notice" role="status" aria-live="polite" hidden>
           <span class="status-icon"></span>
           <span class="status-text"></span>
         </div>
 
         <!-- 树根：由 app.js 渲染 页面 → 分类 → 站点 -->
-        <main id="tree-root" class="tree-root"></main>
+        <main id="tree-root" class="tree-root" aria-label="页面结构"></main>
       </div>
     </div>
 
@@ -137,7 +215,10 @@
         <div class="modal-header">
           <h2 id="modal-title"></h2>
           <button type="button" class="modal-close" data-action="modal-close" aria-label="关闭">
-            ×
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12" />
+              <path d="M18 6 6 18" />
+            </svg>
           </button>
         </div>
         <div class="modal-body">
