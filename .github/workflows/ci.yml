@@ -67,3 +67,40 @@ jobs:
       - name: Browser contract
         if: ${{ github.repository == 'rbetree/menav' && (steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract)) }}
         run: npm run check:browser
+
+  backend_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.1'
+          cache: 'npm'
+          # 同时缓存根目录与 workers 子目录的依赖
+          cache-dependency-path: |
+            package-lock.json
+            workers/package-lock.json
+
+      - name: Install workers dependencies
+        run: npm --prefix workers ci
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Workers type check
+        run: npm --prefix workers run check
+
+      - name: Workers integration tests
+        run: npm run backend:test
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Admin browser contract
+        run: npm --prefix workers run test:browser
+
+      - name: Snapshot build contract
+        run: node workers/test/snapshot-build.mjs

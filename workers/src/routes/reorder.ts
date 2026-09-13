@@ -1,37 +1,56 @@
 import { Hono } from 'hono';
-import type { Env } from '../types';
-import { markDirty } from '../db/dirty';
+import { commitEdit, type AdminEnv } from '../db/revision';
+import { object, text, sortValue } from '../validation';
+import { ApiError } from '../errors';
 
-/**
- * 排序维护(技术方案「五、API 层」/api/reorder):批量更新同层级兄弟的 sort,事务提交。
- *
- * body: { type: 'pages' | 'categories' | 'sites', items: [{ id, sort }] }
- * 调用方负责传入同一父级(同页面 / 同父分类 / 同分类)下的兄弟节点及其新 sort。
- */
-export const reorderRoutes = new Hono<{ Bindings: Env }>();
+export const reorderRoutes = new Hono<AdminEnv>();
 
+/** 同一个父级的一组唯一条目；用单条 JSON 更新，所有 sort 和版本一起提交。 */
 reorderRoutes.post('/', async (c) => {
-  const body = await c.req.json<{ type?: string; items?: { id: string; sort: number }[] }>();
+  const body = object(await c.req.json());
   const table = body.type;
-  const items = Array.isArray(body.items) ? body.items : [];
-  if (table !== 'pages' && table !== 'categories' && table !== 'sites') {
-    return c.json({ ok: false, error: 'invalid type' }, 400);
+  if (table !== 'pages' && table !== 'categories' && table !== 'sites')
+    throw new ApiError(400, '排序类型无效');
+  if (!Array.isArray(body.items) || !body.items.length)
+    throw new ApiError(400, 'items 必须是非空数组');
+  const items = body.items.map((value) => {
+    const item = object(value, '排序条目');
+    return { id: text(item.id, 'id'), sort: sortValue(item.sort) };
+  });
+  if (
+    new Set(items.map((item) => item.id)).size !== items.length ||
+    new Set(items.map((item) => item.sort)).size !== items.length
+  ) {
+    throw new ApiError(400, '排序条目的 id 和 sort 不能重复');
   }
-  if (items.length === 0) return c.json({ ok: false, error: 'items required' }, 400);
-
-  // M6:先预检所有 id 存在,避免「部分更新已落库却因个别 id 无效不置 dirty」的快照静默过期
-  const placeholders = items.map(() => '?').join(',');
-  const found = await c.env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE id IN (${placeholders})`)
-    .bind(...items.map((it) => it.id))
-    .first<{ n: number }>();
-  if (Number(found?.n ?? 0) !== items.length) {
-    return c.json({ ok: false, error: '部分 id 不存在,排序未保存' }, 400);
-  }
-
-  const stmts = items.map((it) =>
-    c.env.DB.prepare(`UPDATE ${table} SET sort = ? WHERE id = ?`).bind(it.sort, it.id),
-  );
-  await c.env.DB.batch(stmts);
-  await markDirty(c.env.DB);
+  const json = JSON.stringify(items);
+  if (new TextEncoder().encode(json).length > 900_000) throw new ApiError(413, '排序条目过多');
+  const parent =
+    table === 'categories'
+      ? 'json_array(page_id, parent_id)'
+      : table === 'sites'
+        ? 'category_id'
+        : "'pages'";
+  const rows = await c.env.DB.prepare(
+    'SELECT id, ' +
+      parent +
+      ' AS parent FROM ' +
+      table +
+      " WHERE id IN (SELECT json_extract(value, '$.id') FROM json_each(?))"
+  )
+    .bind(json)
+    .all<{ id: string; parent: string }>();
+  if (rows.results.length !== items.length) throw new ApiError(400, '部分条目不存在，排序未保存');
+  if (new Set(rows.results.map((row) => row.parent)).size !== 1)
+    throw new ApiError(400, '只能对同一父级的条目排序');
+  await commitEdit(c, [
+    c.env.DB.prepare(
+      "WITH updates AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.sort') AS sort FROM json_each(?)) UPDATE " +
+        table +
+        ' SET sort = (SELECT sort FROM updates WHERE updates.id = ' +
+        table +
+        '.id) WHERE id IN (SELECT id FROM updates)'
+    ).bind(json),
+  ]);
   return c.json({ ok: true, count: items.length });
 });

@@ -3,25 +3,28 @@
   "name": "menav-backend",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-01",
-  // 快照定时聚合重建(定案 T-2=B):每 5 分钟触发 scheduled;仅 dirty 时才真正重建。
+  "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+  // 每 5 分钟检查发布状态；仅有未发布内容版本时创建构建。
   "triggers": {
-    "crons": ["*/5 * * * *"]
+    "crons": ["*/5 * * * *"],
   },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "menav-backend",
-      "database_id": "__PLACEHOLDER__" // 本地 wrangler dev 用 miniflare 无需真实 id;部署前 wrangler d1 create menav-backend 后替换
-    }
+      "database_name": "menav-test",
+      "database_id": "81fdec81-8765-4a10-9263-8d435f858410", // 独立测试库 menav-test(uuid)；正式部署前再确认
+      "remote": true, // wrangler dev 本地跑 worker、D1 连远端测试库
+    },
   ],
   "vars": {
-    "TEAM_DOMAIN": "", // Cloudflare Access team domain,如 https://<team>.cloudflareaccess.com（真实部署必配，鉴权强制）
-    "POLICY_AUD": "", // Access 应用 AUD tag（真实部署必配，鉴权强制）
-    "BUILD_HOOK_URL": "" // 快照构建执行体回调 URL（定案 T-1=A,部署侧）;为空则 rebuild 仅消费 dirty 不发外部构建
-    // 注意:ALLOW_INSECURE_DEV 不入 vars(M9)——随部署产物携带会在线上误开「全站后台公开可写」;
-    // 仅可在本地 .dev.vars(已 gitignore)设 '1' 放行本地开发/冒烟。
+    "TEAM_DOMAIN": "https://rzlnb.cloudflareaccess.com", // Cloudflare Access team domain
+    "POLICY_AUD": "ad393a62d5fb8e5f813aead98aa78d5caa2a28f5c6ca80a74ff83587052884bf", // Access 应用 AUD tag
+    "CF_ACCOUNT_ID": "deaeb6843e567453c653af211554ee25", // Pages 所属 Cloudflare 账号
+    "CF_PAGES_PROJECT": "menav-web-test", // 独立的动态公开站 Pages 项目
+    // CF_API_TOKEN（Pages Write）和 BUILD_TOKEN 用 wrangler secret 设置。
+    // ALLOW_INSECURE_DEV 仅在本地 .dev.vars（已 gitignore）设为 '1'，不写入部署配置。
   },
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }

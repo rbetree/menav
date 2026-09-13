@@ -1,166 +1,195 @@
 import { Hono } from 'hono';
-import type { Env } from '../types';
-import { markDirty } from '../db/dirty';
-import { sanitizeHttpUrl } from '../safe-url';
-import { BOOKMARKS_PAGE_ID } from '../bookmarks/import';
+import { commitEdit, type AdminEnv } from '../db/revision';
+import { insertRows } from '../db/bulk';
+import { sanitizeSiteUrl, sanitizeIconUrl } from '../safe-url';
+import {
+  object,
+  text,
+  bool,
+  templateValue,
+  pageMetadata,
+  navigationMetadata,
+  categoryMetadata,
+  siteMetadata,
+  requireContent,
+} from '../validation';
+import { getPageIdIssue } from '../../../src/lib/config/page-id';
+import { siteConfigSchema } from '../../../src/lib/config/schema/site';
+import { ApiError } from '../errors';
+import { isSnapshotAssetPath, isSnapshotAssetData } from '../../../src/shared/snapshot-assets';
 
-/**
- * 种子导入(需求 R3,引导式隔离):一次性把仓库 YAML 产出的站点模型写入 D1。
- *
- * 解析在 Node 侧复用根 `loadConfig`(scripts/generate-seed.ts),产出层级 SeedInput;
- * 本路由把它扁平化并**事务级重建**(清空 + 重插)。这是初始引导而非增量同步,
- * 故 page 用 navigation id、category/site 用随机 uuid——不依赖幂等 id,且 uuid 无
- * 特殊字符,可直接作为路由 :id 路径参数。
- *
- * M5:语义为「一次性整库重置」——重复导入会覆盖后台在线编辑。因此当数据库已含非书签
- * 页面数据时,需显式 `?reset=1` 才执行清空重建;首次引导(空库)无需开关。
- */
+type Row = (string | number | null)[];
 
-interface SeedSiteNode {
-  name?: string;
-  url?: string;
-  description?: string;
-  icon?: string;
-  faviconUrl?: string;
-  external?: boolean;
-}
-interface SeedCategoryNode {
-  label?: string;
-  foldable?: boolean;
-  sites?: SeedSiteNode[];
-  categories?: SeedCategoryNode[];
-}
-interface SeedPage {
-  id?: string;
-  label?: string;
-  template?: string;
-  hidden?: boolean;
-  categories?: SeedCategoryNode[];
-}
-interface SeedInput {
-  settings?: Record<string, string>;
-  pages?: SeedPage[];
-}
-
-type SiteRow = [string, string, string, string, string | null, string | null, string | null, number, number];
-type CatRow = [string, string, string | null, string, number, number];
-type PageRow = [string, string, number, number, string | null];
-
-export const seedRoutes = new Hono<{ Bindings: Env }>();
+/** 种子是一次性整体替换；只要已有业务数据，再导入就必须显式 reset=1。 */
+export const seedRoutes = new Hono<AdminEnv>();
 
 seedRoutes.post('/', async (c) => {
-  const body = await c.req.json<SeedInput>();
-  const reset = c.req.query('reset') === '1';
-
-  // M5:清空重建会覆盖后台在线编辑——非首次(已有非书签页面数据)必须显式 ?reset=1
-  if (!reset) {
-    const row = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM pages WHERE id != ?')
-      .bind(BOOKMARKS_PAGE_ID)
-      .first<{ n: number }>();
-    if (Number(row?.n ?? 0) > 0) {
-      return c.json(
-        { ok: false, error: '数据库已包含数据,清空重建将覆盖在线编辑;如确实需要请以 ?reset=1 调用' },
-        409,
-      );
-    }
+  const body = object(await c.req.json());
+  if (!Array.isArray(body.pages) || body.pages.length === 0)
+    throw new ApiError(400, 'pages 必须是非空数组');
+  const existing = await c.env.DB.prepare('SELECT id FROM pages LIMIT 1').first();
+  if (existing && c.req.query('reset') !== '1') {
+    throw new ApiError(409, '数据库已包含数据；清空重建需显式使用 ?reset=1', 'reset_required');
   }
 
-  const pageRows: PageRow[] = [];
-  const catRows: CatRow[] = [];
-  const siteRows: SiteRow[] = [];
-
-  (body.pages ?? []).forEach((p, pi) => {
-    const pageId = ((p.id ?? p.label ?? `page-${pi}`) || '').trim();
-    const label = ((p.label ?? pageId) || '未命名').trim();
-    pageRows.push([pageId, label, pi, p.hidden ? 1 : 0, p.template ?? null]);
-    if (Array.isArray(p.categories)) {
-      walkCategory(pageId, null, p.categories, catRows, siteRows);
+  const settings = body.settings === undefined ? {} : object(body.settings, 'settings');
+  const settingRows: Row[] = [];
+  let allowedSchemes: unknown;
+  for (const [key, value] of Object.entries(settings)) {
+    if (!['site', 'externalData', 'assets'].includes(key))
+      throw new ApiError(400, '不支持的配置键：' + key);
+    if (typeof value !== 'string') throw new ApiError(400, 'settings 的值必须是 JSON 字符串');
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      throw new ApiError(400, key + ' 不是有效 JSON');
     }
+    object(parsed, key);
+    if (key === 'site' && !siteConfigSchema.safeParse(parsed).success)
+      throw new ApiError(400, '站点配置不符合现有配置格式');
+    if (key === 'site')
+      allowedSchemes = (parsed as { security?: { allowedSchemes?: unknown } }).security
+        ?.allowedSchemes;
+    if (key === 'assets') {
+      for (const [asset, data] of Object.entries(parsed as Record<string, unknown>)) {
+        if (!isSnapshotAssetPath(asset) || !isSnapshotAssetData(data))
+          throw new ApiError(400, '种子图片路径或数据无效：' + asset);
+      }
+    }
+    settingRows.push([key, value]);
+  }
+
+  const pages: Row[] = [];
+  const categories: Row[] = [];
+  const sites: Row[] = [];
+  const seen = new Set<string>();
+
+  function walk(pageId: string, parentId: string | null, nodes: unknown[], depth: number): void {
+    if (depth > 4 && nodes.length) throw new ApiError(400, '分类最多支持 4 层');
+    nodes.forEach((raw, sort) => {
+      const node = object(raw, '分类');
+      const id = crypto.randomUUID();
+      const metadata = categoryMetadata(node.metadata ?? {});
+      const kind =
+        node.kind ?? (depth <= 2 ? 'subcategories' : depth === 3 ? 'groups' : 'subgroups');
+      if (!['subcategories', 'groups', 'subgroups'].includes(String(kind)))
+        throw new ApiError(400, '分类 kind 无效');
+      categories.push([
+        id,
+        pageId,
+        parentId,
+        text(node.label ?? '未命名', '分类名称'),
+        sort,
+        node.foldable === undefined ? 1 : Number(bool(node.foldable, 'foldable')),
+        metadata,
+        String(kind),
+      ]);
+      if (node.sites !== undefined && !Array.isArray(node.sites))
+        throw new ApiError(400, 'sites 必须是数组');
+      ((node.sites as unknown[]) ?? []).forEach((rawSite, siteSort) => {
+        const site = object(rawSite, '站点');
+        const url = sanitizeSiteUrl(site.url, allowedSchemes);
+        if (url === null) throw new ApiError(400, '站点链接无效或使用不安全的协议');
+        const favicon =
+          site.faviconUrl == null || site.faviconUrl === ''
+            ? null
+            : sanitizeIconUrl(site.faviconUrl);
+        if (site.faviconUrl && favicon === null) throw new ApiError(400, 'faviconUrl 无效');
+        const siteKind = site.kind ?? 'sites';
+        if (siteKind !== 'sites' && siteKind !== 'items') throw new ApiError(400, '站点 kind 无效');
+        sites.push([
+          crypto.randomUUID(),
+          id,
+          text(site.name, '站点名称'),
+          url,
+          site.description == null ? null : text(site.description, 'description', false),
+          site.icon == null ? null : text(site.icon, 'icon', false),
+          favicon,
+          site.external === undefined ? 1 : Number(bool(site.external, 'external')),
+          siteSort,
+          siteMetadata(site.metadata ?? {}),
+          siteKind,
+        ]);
+      });
+      if (node.categories !== undefined && !Array.isArray(node.categories))
+        throw new ApiError(400, 'categories 必须是数组');
+      walk(pageId, id, (node.categories as unknown[]) ?? [], depth + 1);
+    });
+  }
+
+  body.pages.forEach((raw, sort) => {
+    const page = object(raw, '页面');
+    const id = text(page.id, '页面 id');
+    const issue = getPageIdIssue(id);
+    if (issue) throw new ApiError(400, issue);
+    if (seen.has(id)) throw new ApiError(400, '重复页面 id：' + id);
+    seen.add(id);
+    requireContent(
+      page.template === undefined ? null : templateValue(page.template),
+      id,
+      pageMetadata(page.metadata ?? {})
+    );
+    pages.push([
+      id,
+      text(page.label ?? id, '页面名称'),
+      sort,
+      page.hidden === undefined ? 0 : Number(bool(page.hidden, 'hidden')),
+      page.template === undefined ? null : templateValue(page.template),
+      pageMetadata(page.metadata ?? {}),
+      navigationMetadata(page.navigation ?? {}),
+    ]);
+    if (page.categories !== undefined && !Array.isArray(page.categories))
+      throw new ApiError(400, 'categories 必须是数组');
+    walk(id, null, (page.categories as unknown[]) ?? [], 1);
   });
 
-  const stmts: ReturnType<typeof c.env.DB.prepare>[] = [
-    c.env.DB.prepare('DELETE FROM sites'),
-    c.env.DB.prepare('DELETE FROM categories'),
-    c.env.DB.prepare('DELETE FROM pages'),
+  const db = c.env.DB;
+  const statements = [
+    db.prepare('DELETE FROM sites'),
+    db.prepare('DELETE FROM categories'),
+    db.prepare('DELETE FROM pages'),
+    db.prepare('DELETE FROM settings'),
+    ...insertRows(
+      db,
+      'pages',
+      ['id', 'label', 'sort', 'hidden', 'template', 'metadata', 'navigation'],
+      pages
+    ),
+    ...insertRows(
+      db,
+      'categories',
+      ['id', 'page_id', 'parent_id', 'label', 'sort', 'foldable', 'metadata', 'kind'],
+      categories
+    ),
+    ...insertRows(
+      db,
+      'sites',
+      [
+        'id',
+        'category_id',
+        'name',
+        'url',
+        'description',
+        'icon',
+        'favicon_url',
+        'external',
+        'sort',
+        'metadata',
+        'kind',
+      ],
+      sites
+    ),
+    ...insertRows(db, 'settings', ['key', 'value'], settingRows),
   ];
-  for (const r of siteRows) {
-    stmts.push(
-      c.env.DB.prepare(
-        'INSERT INTO sites (id, category_id, name, url, description, icon, favicon_url, external, sort) VALUES (?,?,?,?,?,?,?,?,?)',
-      ).bind(...r),
-    );
-  }
-  for (const r of catRows) {
-    stmts.push(
-      c.env.DB.prepare(
-        'INSERT INTO categories (id, page_id, parent_id, label, sort, foldable) VALUES (?,?,?,?,?,?)',
-      ).bind(...r),
-    );
-  }
-  for (const r of pageRows) {
-    stmts.push(
-      c.env.DB.prepare('INSERT INTO pages (id, label, sort, hidden, template) VALUES (?,?,?,?,?)').bind(
-        ...r,
-      ),
-    );
-  }
-  for (const [k, v] of Object.entries(body.settings ?? {})) {
-    stmts.push(
-      c.env.DB.prepare(
-        'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
-      ).bind(k, v),
-    );
-  }
-
-  // M7:≤100 条/批分片提交(D1 batch 上限);首批为 3 条 DELETE + 首个插入批,保证「清空重建」原子生效
-  const BATCH_LIMIT = 100;
-  for (let i = 0; i < stmts.length; i += BATCH_LIMIT) {
-    await c.env.DB.batch(stmts.slice(i, i + BATCH_LIMIT));
-  }
-  await markDirty(c.env.DB);
+  // 留出版本检查等查询余量，避免突破 D1 Free 单请求查询配额。
+  if (statements.length > 24) throw new ApiError(413, '种子过大，无法在一个事务内导入');
+  await commitEdit(c, statements);
   return c.json({
     ok: true,
-    reset: true, // M5:显式声明该调用为整库重置
-    pages: pageRows.length,
-    categories: catRows.length,
-    sites: siteRows.length,
+    reset: true,
+    pages: pages.length,
+    categories: categories.length,
+    sites: sites.length,
   });
 });
-
-function walkCategory(
-  pageId: string,
-  parentId: string | null,
-  cats: SeedCategoryNode[],
-  catRows: CatRow[],
-  siteRows: SiteRow[],
-): void {
-  cats.forEach((cat, idx) => {
-    const label = ((cat.label ?? '未命名') || '').trim();
-    const catId = crypto.randomUUID();
-    catRows.push([catId, pageId, parentId, label, idx, cat.foldable ? 1 : 0]);
-
-    const sites = Array.isArray(cat.sites) ? cat.sites : [];
-    sites.forEach((s, si) => {
-      const name = ((s.name ?? '') as string).trim();
-      const url = sanitizeHttpUrl(s.url ?? '');
-      // M1:非 http(s) scheme 的 url 不落库
-      if (!name || url === null) return;
-      const faviconUrl = s.faviconUrl == null ? null : sanitizeHttpUrl(s.faviconUrl);
-      siteRows.push([
-        crypto.randomUUID(),
-        catId,
-        name,
-        url,
-        s.description ?? null,
-        s.icon ?? null,
-        faviconUrl,
-        s.external === false ? 0 : 1,
-        si,
-      ]);
-    });
-
-    if (Array.isArray(cat.categories) && cat.categories.length > 0) {
-      walkCategory(pageId, catId, cat.categories, catRows, siteRows);
-    }
-  });
-}

@@ -5,14 +5,13 @@ import type { D1Database } from '@cloudflare/workers-types';
  *
  * 领域定案(见技术方案「四、数据层」与《动态后台能力-架构决策记录.md》):
  * D1 是现有 CategoryItem/SiteItem 类型结构(src/types/page.ts / site.ts)的持久化投影,
- * 非第二套领域模型。categories.parent_id 自引用用于把「任意深度嵌套分类树」
- * 无损编码进关系表(与现有 GroupItem = CategoryItem 同构)。
+ * categories.parent_id 表达分类树，写入层限制最多四层。
  *
  * 所有建表语句皆幂等(CREATE TABLE/INDEX IF NOT EXISTS),支持增量演进。
  * 每次引入新列/新表时应在此追加一条带版本注释的语句,而非改写历史表。
  */
 
-// TABLES:顺序执行(外键引用先建父表)。不做依赖顺序问题——此处无跨表级联约束。
+// 按页面、分类、站点顺序建表，归属校验与级联删除由写入事务负责。
 const TABLES = [
   // settings:site.yml 级配置(site_name/theme/icons/…) 的 kv 化
   `CREATE TABLE IF NOT EXISTS settings (
@@ -29,7 +28,7 @@ const TABLES = [
     template TEXT                       -- page/projects/articles/bookmarks
   )`,
 
-  // categories:任意深度嵌套分类树。parent_id=NULL 为顶层;子分类/分组/子群=子树节点。
+  // categories:分类树。parent_id=NULL 为顶层；子分类、分组、子群均为子树节点。
   `CREATE TABLE IF NOT EXISTS categories (
     id         TEXT PRIMARY KEY,
     page_id    TEXT NOT NULL,           -- 所属页面(树根归属)
@@ -60,7 +59,58 @@ const TABLES = [
 
 /** 幂等建表。每次请求入口调用,module 级缓存避免重复执行。 */
 export async function applySchema(db: D1Database): Promise<void> {
-  for (const stmt of TABLES) {
-    await db.prepare(stmt).run();
+  await db.batch(TABLES.map((stmt) => db.prepare(stmt)));
+
+  // 升级已有数据库时只追加列；不重建或清空业务表。
+  for (const [table, columns] of Object.entries({
+    pages: { metadata: "TEXT NOT NULL DEFAULT '{}'", navigation: "TEXT NOT NULL DEFAULT '{}'" },
+    categories: {
+      metadata: "TEXT NOT NULL DEFAULT '{}'",
+      kind: "TEXT NOT NULL DEFAULT 'subcategories'",
+    },
+    sites: { metadata: "TEXT NOT NULL DEFAULT '{}'", kind: "TEXT NOT NULL DEFAULT 'sites'" },
+  })) {
+    const existing = await db.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>();
+    const names = new Set(existing.results.map((column) => column.name));
+    for (const [column, definition] of Object.entries(columns)) {
+      if (names.has(column)) continue;
+      try {
+        await db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
+      } catch (error) {
+        // 不同 isolate 可能同时完成探测；只接受另一个迁移已成功添加同名列的情况。
+        if (!String(error).includes('duplicate column name: ' + column)) throw error;
+      }
+    }
   }
+
+  await db.batch([
+    db.prepare(`CREATE TABLE IF NOT EXISTS content_state (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      revision INTEGER NOT NULL CONSTRAINT revision_conflict CHECK(revision >= 0),
+      published_revision INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    )`),
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO content_state (id, revision, published_revision, updated_at)
+      SELECT 1, CASE WHEN EXISTS(SELECT 1 FROM pages) THEN 1 ELSE 0 END, 0, ?`
+      )
+      .bind(new Date().toISOString()),
+    db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
+    db.prepare(`CREATE TABLE IF NOT EXISTS publication (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      job_id TEXT NOT NULL,
+      revision INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      deployment_id TEXT,
+      deployment_url TEXT,
+      error TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS snapshot_chunks (
+      part INTEGER PRIMARY KEY,
+      data TEXT NOT NULL
+    )`),
+  ]);
 }

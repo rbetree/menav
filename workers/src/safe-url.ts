@@ -1,25 +1,36 @@
-// 站点/图标 URL 写入口白名单(M1:与根 sanitize 防线同语义,工作在数据面)。
-//
-// 与 src/shared/sanitize-url.ts 的关系:那是面向 HTML 内容的通用消毒(放行相对链接,
-// 供静态站点渲染);本模块面向「D1 中存储的站点链接数据」,语义更严格——站点/图标
-// 必须是绝对 http/https URL(相对链接在公开快照与 favicon 渲染中无意义)。二者互补,
-// 不重复实现解析;仅对 URL scheme 做白名单判定,返回 null 表示需拒绝/过滤。
-//
-// 写入面统一调用点:sites.ts(POST/PUT)、seed.ts(walkCategory)、bookmarks/import.ts。
+import { sanitizeUrl } from '../../src/shared/sanitize-url';
 
-/** 剥离控制字符并对 scheme 做 http/https 白名单判定。绝对 http(s) 返回原文,否则 null。 */
-export function sanitizeHttpUrl(raw: unknown): string | null {
-  if (raw === undefined || raw === null) return null;
-  const value = String(raw)
+/** 在线数据与静态站共用安全协议，允许站内链接、邮箱和电话。 */
+export function sanitizeSiteUrl(raw: unknown, allowedSchemes?: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const compact = raw
     .trim()
-    .replace(/[\t\n\r\f]/g, '');
-  if (!value) return null;
-  // 防协议相对与反斜杠 authority 绕过(与根 sanitize 判定一致)
-  if (value.startsWith('//') || value.startsWith('/\\')) return null;
+    .replace(/[\t\n\r\f]/g, '')
+    .toLowerCase();
+  if (/^(?:javascript|vbscript|data|file|blob):/.test(compact)) return null;
+  return sanitizeUrl(raw, { allowedSchemes });
+}
+
+/** 浏览器书签只导入有效的绝对 HTTP(S) 地址。 */
+export function sanitizeHttpUrl(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const safe = sanitizeUrl(raw, { allowedSchemes: ['http', 'https'] });
+  if (safe === null) return null;
   try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? value : null;
+    const url = new URL(safe);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? safe : null;
   } catch {
     return null;
   }
+}
+
+/** 图标支持 HTTP(S) 和公开静态资源路径。 */
+export function sanitizeIconUrl(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const value = raw.trim();
+  if (/^(?:\.\/|\/)?assets\/[^\s\\]+$/u.test(value)) {
+    const normalized = new URL(value, 'https://local.invalid/').pathname;
+    if (normalized.startsWith('/assets/')) return value;
+  }
+  return sanitizeHttpUrl(value);
 }
