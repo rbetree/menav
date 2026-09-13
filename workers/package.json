@@ -6,7 +6,7 @@
   "description": "MeNav 形态二动态后台(Cloudflare Worker + D1 + Access)",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --env staging",
     "check": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
     "test:browser": "node test/admin.browser.mjs"
