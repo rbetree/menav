@@ -41,7 +41,7 @@ categoriesRoutes.post('/', async (c) => {
   const kind = depth < 2 ? 'subcategories' : depth === 2 ? 'groups' : 'subgroups';
   await commitEdit(c, [
     c.env.DB.prepare(
-      'INSERT INTO categories (id, page_id, parent_id, label, sort, foldable, kind) VALUES (?, ?, ?, ?, COALESCE(?, (SELECT COALESCE(MAX(sort), -1) + 1 FROM categories WHERE page_id = ? AND parent_id IS ?)), ?, ?)'
+      'INSERT INTO categories (id, page_id, parent_id, label, sort, foldable, kind, metadata) VALUES (?, ?, ?, ?, COALESCE(?, (SELECT COALESCE(MAX(sort), -1) + 1 FROM categories WHERE page_id = ? AND parent_id IS ?)), ?, ?, ?)'
     ).bind(
       id,
       pageId,
@@ -51,7 +51,8 @@ categoriesRoutes.post('/', async (c) => {
       pageId,
       parentId,
       b.foldable === undefined ? 1 : Number(bool(b.foldable, 'foldable')),
-      kind
+      kind,
+      b.metadata === undefined ? '{}' : categoryMetadata(b.metadata)
     ),
   ]);
   return c.json({ ok: true, data: { id } }, 201);

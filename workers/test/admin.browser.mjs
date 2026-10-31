@@ -52,6 +52,15 @@ try {
   await page.waitForFunction(() => document.querySelector('.site-name')?.textContent === 'Two');
   await page.locator('[data-action="edit-site"]').last().click();
   await page.locator('#f-description').fill('');
+  // 图标来源切到图标库，走一遍可视化选择器
+  await page.locator('.segmented label', { hasText: '图标库' }).click();
+  await page.locator('[data-icon-pick="icon"]').click();
+  await page.waitForSelector('.mip-overlay.is-open');
+  await page.waitForSelector('.mip-icon');
+  const pickedIcon = await page.locator('.mip-icon').first().getAttribute('data-value');
+  await page.locator('.mip-icon').first().click();
+  await page.waitForFunction(() => !document.querySelector('.mip-overlay'));
+  assert.equal(await page.locator('#f-icon').inputValue(), pickedIcon);
   await page.locator('#node-form button[type="submit"]').click();
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
@@ -62,8 +71,9 @@ try {
     .categories.find((c) => c.label === 'A')
     .sites.find((s) => s.name === 'One');
   assert.equal(one.description, undefined);
-  assert.equal(one.faviconUrl, 'https://example.com/favicon.ico');
-  assert.equal(one.icon, 'fas fa-link');
+  assert.equal(one.faviconUrl, undefined);
+  assert.equal(one.icon, pickedIcon);
+  assert.equal(one.metadata.forceIconMode, 'manual');
   await page.locator('[data-action="data-page"]').click();
   await page.waitForFunction(() => !document.querySelector('#data-page').hidden);
   await page.locator('[data-action="settings"]').click();

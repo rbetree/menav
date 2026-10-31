@@ -568,6 +568,11 @@ function renderSite(c, s) {
 }
 
 function faviconHtml(s) {
+  // 手动图标优先展示图标库结果，与公开站卡片一致。
+  if (s.metadata?.forceIconMode === 'manual' && s.icon) {
+    iconPicker.preload();
+    return '<span class="site-favicon"><i class="' + esc(s.icon) + '"></i></span>';
+  }
   const imgSrc = s.faviconUrl || (s.icon && /^https?:/.test(s.icon) ? s.icon : null);
   const fallback = esc((s.name || '?').charAt(0).toUpperCase());
   if (imgSrc) {
@@ -843,6 +848,58 @@ function formActions(okText) {
   );
 }
 
+/* ---------- 图标选择 ---------- */
+const iconPicker = new MenavIconPicker({
+  sources: [
+    { label: '实心', url: './icons/fa6-solid.json' },
+    { label: '常规', url: './icons/fa6-regular.json' },
+    { label: '品牌', url: './icons/fa6-brands.json' },
+  ],
+});
+
+function iconField(name, label, value, placeholder, hint) {
+  return (
+    '<div class="form-field form-field--wide"><label for="f-' +
+    name +
+    '">' +
+    label +
+    '</label><div class="icon-input-row">' +
+    '<span class="icon-input-preview" id="preview-' +
+    name +
+    '" aria-hidden="true"></span>' +
+    '<input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="text" value="' +
+    esc(value || '') +
+    '" placeholder="' +
+    esc(placeholder || 'fas fa-link') +
+    '">' +
+    '<button type="button" class="btn" data-icon-pick="' +
+    name +
+    '">选择图标</button>' +
+    '</div>' +
+    (hint ? '<div class="field-hint">' + hint + '</div>' : '') +
+    '</div>'
+  );
+}
+
+/* 预览随输入即时更新；只有真的用到图标时才加载字体 */
+function bindIconField(name) {
+  const input = document.getElementById('f-' + name);
+  const preview = document.getElementById('preview-' + name);
+  const button = document.querySelector('[data-icon-pick="' + name + '"]');
+  const sync = () => {
+    const value = input.value.trim();
+    preview.innerHTML = value ? '<i class="' + esc(value) + '"></i>' : '<span>—</span>';
+    if (value) iconPicker.preload();
+  };
+  input.addEventListener('input', sync);
+  button.addEventListener('click', () => iconPicker.open(input, { title: '选择图标' }));
+  sync();
+}
+
 function setFormError(msg) {
   const el = document.getElementById('form-error');
   el.textContent = msg;
@@ -929,7 +986,13 @@ function openPageForm(p) {
         '首页标题由站点个人资料设置决定'
       ) +
       textField('subtitle', '页面说明', p?.metadata?.subtitle || '', '') +
-      textField('navIcon', '导航图标', p?.navigation?.icon || '', 'fas fa-link') +
+      iconField(
+        'navIcon',
+        '导航图标',
+        p?.navigation?.icon || '',
+        'fas fa-link',
+        '显示在侧边栏导航中，留空使用默认图标'
+      ) +
       '<div id="markdown-field">' +
       textareaField(
         'markdown',
@@ -952,6 +1015,7 @@ function openPageForm(p) {
   };
   templateSel.addEventListener('change', syncMarkdown);
   syncMarkdown();
+  bindIconField('navIcon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
@@ -1010,6 +1074,13 @@ function openCategoryForm(opts) {
     isEdit ? '编辑分类' : '新增分类',
     '<form id="node-form" novalidate>' +
       textField('label', '分类名称', isEdit ? opts.edit.label : '', '例如:开发工具', '必填') +
+      iconField(
+        'icon',
+        '分类图标',
+        isEdit ? opts.edit.metadata?.icon || '' : '',
+        'fas fa-folder',
+        '显示在分类标题前，留空不显示'
+      ) +
       selectField(
         'parentId',
         '父分类',
@@ -1021,12 +1092,17 @@ function openCategoryForm(opts) {
       formActions(isEdit ? '保存' : '新增')
   );
   const form = document.getElementById('node-form');
+  bindIconField('icon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
       const label = document.getElementById('f-label').value.trim();
       const parentVal = document.getElementById('f-parentId').value;
       const foldable = document.getElementById('f-foldable').checked;
+      const icon = document.getElementById('f-icon').value.trim();
+      const metadata = { ...((isEdit && opts.edit.metadata) || {}) };
+      if (icon) metadata.icon = icon;
+      else delete metadata.icon;
       if (!label) {
         setFormError('分类名称不能为空');
         return;
@@ -1037,6 +1113,7 @@ function openCategoryForm(opts) {
         r = await api('PUT', '/api/categories/' + opts.edit.id, {
           label,
           foldable,
+          metadata,
           parentId: parentVal === '' ? null : parentVal,
         });
       } else {
@@ -1045,6 +1122,7 @@ function openCategoryForm(opts) {
           parentId: parentVal === '' ? null : parentVal,
           label,
           foldable,
+          metadata,
         });
       }
       if (r.ok) {
@@ -1092,6 +1170,31 @@ function openSiteForm(opts) {
         '必填,缺少协议会自动补 https://'
       ) +
       textField('description', '描述', s && s.description ? s.description : '', '一行简介(可选)') +
+      '<div class="form-field form-field--wide"><label>图标来源</label>' +
+      '<div class="segmented" role="radiogroup" aria-label="图标来源">' +
+      '<label><input type="radio" name="iconMode" value="auto"><span>自动网站图标</span></label>' +
+      '<label><input type="radio" name="iconMode" value="library"><span>图标库</span></label>' +
+      '<label><input type="radio" name="iconMode" value="image"><span>图片地址</span></label>' +
+      '</div><div class="field-hint" id="icon-mode-hint"></div></div>' +
+      '<div id="icon-library-row" hidden>' +
+      iconField(
+        'icon',
+        '图标',
+        s?.icon || '',
+        'fas fa-link',
+        '点击「选择图标」，也可以直接填写图标类名'
+      ) +
+      '</div>' +
+      '<div id="icon-image-row" hidden>' +
+      textField(
+        'faviconUrl',
+        '图片地址',
+        s?.faviconUrl || '',
+        'https://example.com/logo.png',
+        '支持绝对地址或 assets/ 下的资源路径',
+        true
+      ) +
+      '</div>' +
       selectField(
         'style',
         '卡片样式',
@@ -1118,6 +1221,32 @@ function openSiteForm(opts) {
   urlInput.addEventListener('blur', () => {
     urlInput.value = normalizeUrl(urlInput.value);
   });
+  const iconModeRadios = form.querySelectorAll('input[name="iconMode"]');
+  const libraryRow = document.getElementById('icon-library-row');
+  const imageRow = document.getElementById('icon-image-row');
+  const modeHint = document.getElementById('icon-mode-hint');
+  const meta = s?.metadata || {};
+  // 旧站点没有 forceIconMode 时按 favicon 地址推断；残留的 icon 保留为回退图标。
+  const initialMode =
+    meta.forceIconMode === 'manual' ? 'library' : s?.faviconUrl ? 'image' : 'auto';
+  iconModeRadios.forEach((radio) => {
+    radio.checked = radio.value === initialMode;
+    radio.addEventListener('change', syncIconMode);
+  });
+  function syncIconMode() {
+    const mode = form.querySelector('input[name="iconMode"]:checked').value;
+    libraryRow.hidden = mode !== 'library';
+    imageRow.hidden = mode !== 'image';
+    modeHint.textContent =
+      mode === 'auto'
+        ? '按站点网址自动获取 favicon，获取失败时显示内置图标'
+        : mode === 'library'
+          ? '从图标库中选择，也可以直接填写 Font Awesome 类名'
+          : '使用自定义图片作为站点图标';
+    if (mode === 'library') iconPicker.preload();
+  }
+  syncIconMode();
+  bindIconField('icon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
@@ -1136,6 +1265,17 @@ function openSiteForm(opts) {
         if (value) metadata[key] = value;
         else delete metadata[key];
       }
+      const mode = form.querySelector('input[name="iconMode"]:checked').value;
+      const iconValue = document.getElementById('f-icon').value.trim();
+      const imageValue = document.getElementById('f-faviconUrl').value.trim();
+      if (mode === 'library' && !iconValue) {
+        setFormError('请选择一个图标');
+        return;
+      }
+      if (mode === 'image' && !imageValue) {
+        setFormError('请填写图标图片地址');
+        return;
+      }
       const payload = {
         name,
         url,
@@ -1143,6 +1283,17 @@ function openSiteForm(opts) {
         external: document.getElementById('f-external').checked,
         metadata,
       };
+      if (mode === 'library') {
+        payload.icon = iconValue;
+        payload.faviconUrl = null;
+        metadata.forceIconMode = 'manual';
+      } else if (mode === 'image') {
+        payload.faviconUrl = imageValue;
+        metadata.forceIconMode = 'favicon';
+      } else {
+        payload.faviconUrl = null;
+        metadata.forceIconMode = 'favicon';
+      }
       const r = isEdit
         ? await api('PUT', '/api/sites/' + s.id, payload)
         : await api('POST', '/api/sites', { categoryId: opts.categoryId, ...payload });

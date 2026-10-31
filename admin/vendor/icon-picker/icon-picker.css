@@ -1,0 +1,225 @@
+/* 图标选择器：样式跟随管理台主题变量，独立于第三方主题。 */
+.mip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5, 1.25rem);
+  background: var(--scrim, rgb(0 0 0 / 0.6));
+  opacity: 0;
+  transition: opacity var(--t-base, 200ms) ease;
+}
+
+.mip-overlay.is-open {
+  opacity: 1;
+}
+
+.mip-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 52rem;
+  height: min(82dvh, 42rem);
+  overflow: hidden;
+  border: 1px solid var(--line-2, #3a3d45);
+  border-radius: var(--r-lg, 14px);
+  background: var(--panel, #1b1d21);
+  box-shadow: var(--shadow-lg, 0 30px 70px -18px rgb(0 0 0 / 0.66));
+  color: var(--text, #f1f2f4);
+}
+
+.mip-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1.15rem;
+  border-bottom: 1px solid var(--line, rgb(255 255 255 / 0.09));
+}
+
+.mip-header h2 {
+  font-size: 1rem;
+  font-weight: 640;
+  letter-spacing: -0.012em;
+}
+
+.mip-close {
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: var(--r-sm, 8px);
+  color: var(--text-3, #9aa0aa);
+}
+
+.mip-close svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.mip-close:hover {
+  background: var(--panel-2, #26282d);
+  color: var(--text, #f1f2f4);
+}
+
+.mip-toolbar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid var(--line, rgb(255 255 255 / 0.09));
+}
+
+.mip-search {
+  flex: 1 1 14rem;
+  min-width: 10rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line-2, #3a3d45);
+  border-radius: var(--r-sm, 8px);
+  background: var(--field, #17181b);
+  color: var(--text, #f1f2f4);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.mip-search::placeholder {
+  color: var(--text-3, #9aa0aa);
+}
+
+.mip-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: var(--r-sm, 8px);
+  background: var(--panel-2, #26282d);
+}
+
+.mip-tab {
+  padding: 0.32rem 0.7rem;
+  border-radius: calc(var(--r-sm, 8px) - 2px);
+  color: var(--text-2, #b9bec7);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.mip-tab:hover {
+  color: var(--text, #f1f2f4);
+}
+
+.mip-tab.is-active {
+  background: var(--accent, #6a89c9);
+  color: var(--accent-ink, #0e0f11);
+}
+
+.mip-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));
+  align-content: start;
+  gap: 0.3rem;
+  padding: 0.85rem 1.15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mip-icon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm, 8px);
+  color: var(--text-2, #b9bec7);
+  font-size: 1.15rem;
+}
+
+.mip-icon:hover {
+  border-color: var(--line-2, #3a3d45);
+  background: var(--panel-2, #26282d);
+  color: var(--text, #f1f2f4);
+}
+
+.mip-icon.is-selected {
+  border-color: var(--accent, #6a89c9);
+  background: color-mix(in oklab, var(--accent, #6a89c9) 22%, transparent);
+  color: var(--accent-hi, #8fa6da);
+}
+
+.mip-empty,
+.mip-error {
+  grid-column: 1 / -1;
+  padding: 2rem 0;
+  color: var(--text-3, #9aa0aa);
+  text-align: center;
+}
+
+.mip-error {
+  padding: 1.2rem 1.15rem;
+  text-align: left;
+}
+
+.mip-footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1.15rem;
+  border-top: 1px solid var(--line, rgb(255 255 255 / 0.09));
+}
+
+.mip-current {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-2, #b9bec7);
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mip-current.is-empty {
+  color: var(--text-3, #9aa0aa);
+}
+
+.mip-footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mip-btn {
+  padding: 0.38rem 0.8rem;
+  border: 1px solid var(--line-2, #3a3d45);
+  border-radius: var(--r-sm, 8px);
+  background: var(--panel-2, #26282d);
+  color: var(--text-2, #b9bec7);
+  font-size: 0.84rem;
+}
+
+.mip-btn:hover {
+  color: var(--text, #f1f2f4);
+}
+
+.mip-btn-primary {
+  border-color: transparent;
+  background: var(--accent, #6a89c9);
+  color: var(--accent-ink, #0e0f11);
+  font-weight: 600;
+}
+
+.mip-btn-primary:hover {
+  background: var(--accent-hi, #8fa6da);
+  color: var(--accent-ink, #0e0f11);
+}
+
+@media (max-width: 640px) {
+  .mip-panel {
+    height: 90dvh;
+  }
+
+  .mip-grid {
+    grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr));
+  }
+}

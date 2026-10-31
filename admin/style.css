@@ -1058,6 +1058,11 @@ svg {
   object-fit: contain;
 }
 
+.site-favicon i {
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
 /* ---- 拖拽把手 / 节点元信息 ---- */
 .drag-grip {
   flex: none;
@@ -1464,6 +1469,76 @@ input[type='file']::file-selector-button {
 .field-hint strong {
   color: var(--text-2);
   font-weight: 600;
+}
+
+/* 图标来源切换：三选一，选中态用强调色块 */
+.segmented {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+}
+
+.segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented span {
+  display: block;
+  padding: 0.34rem 0.75rem;
+  border-radius: calc(var(--r-md) - 2px);
+  color: var(--text-2);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.segmented input:checked + span {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 图标输入：预览方块 + 文本框 + 选择按钮 */
+.icon-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-input-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.icon-input-preview {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--field);
+  color: var(--text-2);
+  font-size: 1rem;
+}
+
+.icon-input-preview span {
+  color: var(--text-3);
 }
 
 .form-check {
