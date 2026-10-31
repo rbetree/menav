@@ -715,9 +715,15 @@ function modalEsc(e) {
 }
 
 /* 表单字段辅助 */
-function textField(name, label, value, placeholder, hint) {
+function formFieldClass(wide) {
+  return 'form-field' + (wide ? ' form-field--wide' : '');
+}
+
+function textField(name, label, value, placeholder, hint, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -735,9 +741,11 @@ function textField(name, label, value, placeholder, hint) {
   );
 }
 
-function textareaField(name, label, value, placeholder, hint) {
+function textareaField(name, label, value, placeholder, hint, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -755,7 +763,7 @@ function textareaField(name, label, value, placeholder, hint) {
   );
 }
 
-function selectField(name, label, options, selected, hint) {
+function selectField(name, label, options, selected, hint, wide) {
   const opts = options
     .map(
       (o) =>
@@ -769,7 +777,9 @@ function selectField(name, label, options, selected, hint) {
     )
     .join('');
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -785,9 +795,11 @@ function selectField(name, label, options, selected, hint) {
   );
 }
 
-function checkField(name, label, checked) {
+function checkField(name, label, checked, wide) {
   return (
-    '<div class="form-field form-check"><input id="f-' +
+    '<div class="form-field form-check' +
+    (wide ? ' form-field--wide' : '') +
+    '"><input id="f-' +
     name +
     '" name="' +
     name +
@@ -1312,15 +1324,27 @@ async function loadPublishStatus() {
   );
 }
 
-/* 表单分组标题 */
-function groupTitle(text) {
-  return '<h3 class="form-group-title">' + esc(text) + '</h3>';
+/* 站点设置的分组卡片：短字段自动并排，长字段占满一行。 */
+function settingsCard(title, body, columns) {
+  return (
+    '<section class="settings-card">' +
+    '<header class="settings-card-head"><h3>' +
+    esc(title) +
+    '</h3></header>' +
+    '<div class="settings-grid' +
+    (columns === 3 ? ' settings-grid--three' : '') +
+    '">' +
+    body +
+    '</div></section>'
+  );
 }
 
 /* 数字字段(留空表示不修改) */
-function numberField(name, label, value, placeholder, hint) {
+function numberField(name, label, value, placeholder, hint, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -1385,91 +1409,119 @@ async function openSiteConfig() {
 
   document.getElementById('site-config-content').innerHTML =
     '<form id="site-config-form" novalidate>' +
-    '<p class="field-hint">站点级配置。保存后需点「立即发布」才会更新公开站。</p>' +
-    groupTitle('站点身份') +
-    textField('sc-title', '站点标题', site.title, '例如：我的导航') +
-    textField('sc-description', '站点描述', site.description, 'meta description') +
-    textField('sc-author', '作者', site.author, '') +
-    textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
-    selectField(
-      'sc-favicon',
-      '站点图标',
-      faviconOptions,
-      site.favicon || '',
-      '只能选择站点已有的图片资源（避免发布后 404）'
+    settingsCard(
+      '站点身份',
+      textField('sc-title', '站点标题', site.title, '例如：我的导航') +
+        textField('sc-author', '作者', site.author, '') +
+        textField('sc-description', '站点描述', site.description, 'meta description', '', true) +
+        textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
+        selectField(
+          'sc-favicon',
+          '站点图标',
+          faviconOptions,
+          site.favicon || '',
+          '只能选择站点已有的图片资源（避免发布后 404）'
+        )
     ) +
-    groupTitle('外观') +
-    selectField(
-      'sc-theme',
-      '默认外观',
-      [
-        { value: 'system', label: '跟随系统' },
-        { value: 'dark', label: '深色' },
-        { value: 'light', label: '浅色' },
-      ],
-      theme.mode || 'system'
+    settingsCard(
+      '外观',
+      selectField(
+        'sc-theme',
+        '默认外观',
+        [
+          { value: 'system', label: '跟随系统' },
+          { value: 'dark', label: '深色' },
+          { value: 'light', label: '浅色' },
+        ],
+        theme.mode || 'system'
+      ) +
+        selectField(
+          'sc-icons-mode',
+          '卡片图标模式',
+          [
+            { value: 'favicon', label: '自动获取 favicon' },
+            { value: 'manual', label: '手动图标' },
+          ],
+          icons.mode || 'favicon',
+          '自动模式会请求外部 favicon 服务'
+        ) +
+        selectField(
+          'sc-icons-region',
+          'favicon 服务区域',
+          [
+            { value: 'com', label: '国外（优先 gstatic.com）' },
+            { value: 'cn', label: '国内（优先 gstatic.cn）' },
+          ],
+          icons.region || 'com'
+        ),
+      3
     ) +
-    selectField(
-      'sc-icons-mode',
-      '卡片图标模式',
-      [
-        { value: 'favicon', label: '自动获取 favicon' },
-        { value: 'manual', label: '手动图标' },
-      ],
-      icons.mode || 'favicon',
-      '自动模式会请求外部 favicon 服务'
+    settingsCard(
+      '个人资料（首页）',
+      textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
+        textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '')
     ) +
-    selectField(
-      'sc-icons-region',
-      'favicon 服务区域',
-      [
-        { value: 'com', label: '国外（优先 gstatic.com）' },
-        { value: 'cn', label: '国内（优先 gstatic.cn）' },
-      ],
-      icons.region || 'com'
+    settingsCard(
+      '字体',
+      selectField(
+        'sc-fonts-source',
+        '字体来源',
+        [
+          { value: 'system', label: '系统字体' },
+          { value: 'css', label: '自定义 CSS' },
+          { value: 'google', label: 'Google Fonts' },
+        ],
+        fonts.source || 'system'
+      ) +
+        textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
+        textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
+        textField(
+          'sc-fonts-css-url',
+          '字体 CSS 地址',
+          fonts.cssUrl,
+          'https://…',
+          '来源为 CSS 时使用',
+          true
+        ) +
+        checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true, true),
+      3
     ) +
-    groupTitle('个人资料（首页）') +
-    textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
-    textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '') +
-    groupTitle('字体') +
-    selectField(
-      'sc-fonts-source',
-      '字体来源',
-      [
-        { value: 'system', label: '系统字体' },
-        { value: 'css', label: '自定义 CSS' },
-        { value: 'google', label: 'Google Fonts' },
-      ],
-      fonts.source || 'system'
+    settingsCard(
+      '社交链接',
+      textareaField(
+        'sc-social',
+        '每行一个：名称 | URL | 图标',
+        social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
+        'GitHub | https://github.com/me | fab fa-github',
+        '',
+        true
+      )
     ) +
-    textField('sc-fonts-css-url', '字体 CSS 地址', fonts.cssUrl, 'https://…', '来源为 CSS 时使用') +
-    textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
-    textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
-    checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true) +
-    groupTitle('社交链接') +
-    textareaField(
-      'sc-social',
-      '每行一个：名称 | URL | 图标',
-      social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
-      'GitHub | https://github.com/me | fab fa-github'
+    settingsCard(
+      '外链安全',
+      textField(
+        'sc-schemes',
+        '允许的链接协议（逗号分隔）',
+        schemes.join(', '),
+        'https, http, mailto',
+        '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄',
+        true
+      )
     ) +
-    groupTitle('外链安全') +
-    textField(
-      'sc-schemes',
-      '允许的链接协议（逗号分隔）',
-      schemes.join(', '),
-      'https, http, mailto',
-      '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄'
+    settingsCard(
+      'RSS 文章',
+      checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true, true) +
+        numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
+        numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
+        numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认'),
+      3
     ) +
-    groupTitle('RSS 文章') +
-    checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true) +
-    numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
-    numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
-    numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认') +
-    groupTitle('GitHub 贡献图') +
-    textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
-    textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）') +
-    formActions('保存设置') +
+    settingsCard(
+      'GitHub 贡献图',
+      textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
+        textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）')
+    ) +
+    '<div class="form-error" id="form-error" hidden></div>' +
     '</form>';
 
   showSiteConfigPage();
@@ -1557,8 +1609,8 @@ function showPage(page) {
   dataPage.hidden = page !== 'data';
   siteConfigPage.hidden = page !== 'site-config';
   setSideNav(page === 'tree' ? 'show-tree' : page === 'data' ? 'data-page' : 'open-site-config');
-  if (page === 'data') dataPage.querySelector('h2')?.focus();
-  else if (page === 'site-config') siteConfigPage.querySelector('h2')?.focus();
+  if (page === 'data') dataPage.querySelector('h1')?.focus();
+  else if (page === 'site-config') siteConfigPage.querySelector('h1')?.focus();
   else document.getElementById('tree-search')?.focus();
 }
 
@@ -1965,6 +2017,15 @@ function bindEvents() {
         showDataPage();
         break;
       case 'show-tree':
+        showTreePage();
+        break;
+      case 'save-site-config': {
+        const form = document.getElementById('site-config-form');
+        if (form) form.requestSubmit();
+        else toast('站点配置还在加载，请稍候', 'error');
+        break;
+      }
+      case 'cancel-site-config':
         showTreePage();
         break;
       case 'settings':

@@ -226,36 +226,11 @@ svg {
 }
 
 /* ==================== 数据与备份页 ==================== */
-.data-page {
-  padding-top: var(--s-6);
-}
-
-.data-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--s-4);
-  padding-bottom: var(--s-5);
-  border-bottom: 1px solid var(--line);
-}
-
-.data-header h2 {
-  margin: 0 0 var(--s-2);
-  font-size: 1.15rem;
-  font-weight: 650;
-}
-
-.data-header p {
-  margin: 0;
-  color: var(--text-3);
-  font-size: 0.86rem;
-}
-
 .data-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s-4);
-  padding-top: var(--s-5);
+  padding-top: var(--s-4);
 }
 
 .data-card {
@@ -287,8 +262,51 @@ svg {
 }
 
 .site-config-content {
-  max-width: 720px;
-  padding-top: var(--s-5);
+  max-width: 980px;
+  padding-top: var(--s-4);
+}
+
+.settings-card {
+  margin-bottom: var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel);
+}
+
+.settings-card-head {
+  margin-bottom: var(--s-3);
+}
+
+.settings-card-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 620;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) var(--s-4);
+}
+
+.settings-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-field--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-grid textarea {
+  min-height: 8rem;
+}
+
+@media (max-width: 720px) {
+  .settings-grid,
+  .settings-grid--three {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -296,7 +314,8 @@ svg {
     grid-template-columns: 1fr;
   }
 
-  .data-header {
+  .view-header {
+    align-items: flex-start;
     flex-direction: column;
   }
 }
@@ -453,8 +472,8 @@ svg {
   color: var(--text);
 }
 
-/* ==================== 顶栏 ==================== */
-.topbar {
+/* ==================== 页面头部 ==================== */
+.view-header {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -467,7 +486,7 @@ svg {
   background: var(--bg);
 }
 
-.topbar::after {
+.view-header::after {
   content: '';
   position: absolute;
   inset: auto 0 0;
@@ -475,20 +494,20 @@ svg {
   background: var(--line);
 }
 
-.topbar-title h1 {
+.view-heading h1 {
   font-size: 1.3rem;
   font-weight: 650;
   letter-spacing: -0.018em;
   line-height: 1.25;
 }
 
-.topbar-subtitle {
+.view-heading p {
   margin-top: 2px;
   font-size: 0.8rem;
   color: var(--text-3);
 }
 
-.header-actions {
+.view-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1776,12 +1795,12 @@ input[type='file']::file-selector-button {
     display: none;
   }
 
-  .topbar {
+  .view-header {
     align-items: flex-start;
     padding-top: var(--s-4);
   }
 
-  .header-actions {
+  .view-actions {
     width: 100%;
   }
 

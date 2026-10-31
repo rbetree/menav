@@ -97,7 +97,7 @@ try {
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
   );
-  await page.locator('#data-page [data-action="show-tree"]').click();
+  await page.locator('[data-action="show-tree"]').click();
   await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
   await page.waitForSelector('.page-block');
   assert.deepEqual(await labels(), ['其他', '首页']);
@@ -121,8 +121,8 @@ try {
   await page.locator('[data-action="open-site-config"]').click();
   await page.waitForFunction(() => !document.querySelector('#site-config-page').hidden);
   await page.waitForSelector('#site-config-form');
-  assert.match(await page.locator('#site-config-page h2').textContent(), /站点设置/);
-  await page.locator('#site-config-page [data-action="show-tree"]').click();
+  assert.match(await page.locator('#site-config-page h1').textContent(), /站点设置/);
+  await page.locator('[data-action="cancel-site-config"]').click();
   await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
 
   // 真实服务器 HTML 500 不应误报会话失效。
