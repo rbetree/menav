@@ -12,7 +12,7 @@
 
 📋 静态一键部署 | ⚡ 自动化构建 | 🔖 支持书签导入
 
-> MeNav 是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。无需数据库和后端服务，完全静态部署，支持一键 Fork 部署到 GitHub Pages，还可以从浏览器书签一键导入网站。配合 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展，可将书签 HTML 推送到仓库的 `bookmarks/` 目录， MeNav 会自动导入并重新构建站点。
+> MeNav 是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。默认形态无需数据库和后端服务，完全静态部署，支持一键 Fork 部署到 GitHub Pages，还可以从浏览器书签一键导入网站。配合 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展，可将书签 HTML 推送到仓库的 `bookmarks/` 目录， MeNav 会自动导入并重新构建站点。
 
 如果觉得项目有用，欢迎 Star/Fork 支持，谢谢！
 
@@ -405,6 +405,37 @@ Vercel 部署:
 无论选择哪种部署方式，请确保创建并使用您自己的配置文件，而不是直接修改默认配置。
 
 </details>
+
+## 动态后端形态（形态二，可选）
+
+MeNav 提供两种形态，同一套代码按需选择：
+
+- **形态一（静态，默认推荐）**：即上文全部部署方式。数据来自 `config/` 下的 YAML，无需数据库与后端服务，适合大多数个人导航站。
+- **形态二（动态后端）**：`workers/` 子项目（Cloudflare Worker + D1 + Access）提供在线后台，配合 `admin/` 管理控制台在线编辑页面/分类/站点并导入书签；公开站仍为静态快照（D1 数据经构建导出），运行期不读取仓库 YAML、不写回仓库。
+
+简单自托管选形态一；确需在线编辑后台、且接受 Cloudflare 依赖与额外维护成本时再选形态二。
+
+> 本仓库只作为模板与示例站，示例内容来自 `config/_default`。个人使用建议放在独立仓库，避免自己的配置和内容覆盖示例站。动态后台配置提交的是 `workers/wrangler.example.jsonc`，真实 D1、Access 与 Pages 资源值不要提交。
+
+动态后台已包含页面、正文、分类和站点编辑、同级排序、四层分类维护、书签上传、备份恢复、系统配置查看与发布状态。`hidden` 仅隐藏导航，链接和搜索仍可访问。
+
+公开构建使用专属 Cloudflare Pages Git 项目，允许获取应用源码；导航、正文、配置和本地图片来自 D1 快照。每次构建会按 D1 配置刷新 RSS、GitHub 项目统计和贡献图，失败来源回退到 D1 保存的数据，不读取仓库缓存。
+
+发布通过 Pages API 创建部署，仅由管理员在后台点击“立即发布”触发。后台核对生产部署及产物版本后才显示“已发布”；构建失败或期间发生新编辑时，待发布版本会保留。
+
+完整的首次部署、Access 路径配置、凭证、种子导入与升级说明见 [`workers/README.md`](workers/README.md)。需要分别准备 D1、Worker、Access 与 Pages 资源。生产 Access 登录和线上发布时延需在自己的 Cloudflare 项目中验收。
+
+```bash
+npm ci
+npm --prefix workers ci
+# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
+npm run backend:seed   # 生成 workers/.seed.json，在后台“系统配置”中导入
+npm run backend:dev    # 本地 Worker 与管理台
+npm run backend:check
+npm run backend:test   # 使用隔离 D1，不改动已部署的数据
+```
+
+本地开发需要在 `workers/.dev.vars` 中设置 `ALLOW_INSECURE_DEV=1`；该文件不提交，放行仅对本机地址有效。`workers/wrangler.jsonc` 与 `workers/wrangler.test.jsonc` 都不入库，前者从示例复制，后者用于本机测试环境。
 
 ## 设置配置文件
 

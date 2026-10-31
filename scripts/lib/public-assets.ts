@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { collectSitesRecursively } from '../../src/lib/site-data/sites.ts';
+import { isSnapshotAssetPath, isSnapshotAssetData } from '../../src/shared/snapshot-assets.ts';
 
 type PublicAssetsLogger = {
   warn: (message: string, meta?: Record<string, unknown>) => void;
@@ -28,6 +29,7 @@ type ConfigLike = {
   site?: SiteLike;
   navigation?: NavigationItemLike[];
   pages?: Record<string, PageConfigLike | unknown>;
+  snapshot?: { assets: Record<string, string> };
   [key: string]: unknown;
 };
 
@@ -223,6 +225,25 @@ function copySiteFavicon(config: ConfigLike, log: PublicAssetsLogger): void {
 }
 
 function prepareIconAssets(config: ConfigLike, log: PublicAssetsLogger): void {
+  if (config.snapshot) {
+    for (const [relative, data] of Object.entries(config.snapshot.assets)) {
+      if (!isSnapshotAssetPath(relative)) {
+        throw new Error('快照图片路径无效：' + relative);
+      }
+      if (!isSnapshotAssetData(data)) throw new Error('快照图片数据无效');
+    }
+    // 先落清单，写入中断后下次构建也能清理已生成的图片。
+    fs.writeFileSync(
+      path.resolve('public', '.menav-snapshot-assets.json'),
+      JSON.stringify(Object.keys(config.snapshot.assets))
+    );
+    for (const [relative, data] of Object.entries(config.snapshot.assets)) {
+      const destination = path.resolve('public', relative);
+      ensureDir(path.dirname(destination));
+      fs.writeFileSync(destination, Buffer.from(data, 'base64'));
+    }
+    return;
+  }
   copyLocalFaviconUrls(config, log);
   copySiteFavicon(config, log);
 }

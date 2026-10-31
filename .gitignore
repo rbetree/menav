@@ -14,6 +14,7 @@ public/menav-config.json
 public/search-index.json
 public/menav.svg
 public/favicon.ico
+public/.menav-snapshot-assets.json
 
 # IDE/编辑器配置
 .vscode/
@@ -62,6 +63,3 @@ REVIEW.md
 
 # Playwright MCP 运行产物
 /.playwright-mcp/
-
-# 动态后端本地调试目录
-/workers/

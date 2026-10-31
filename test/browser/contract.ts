@@ -293,7 +293,12 @@ async function main() {
   let browser;
 
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH
+        ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
+        : {}),
+    });
     const page = await browser.newPage();
     page.on('console', (message) => {
       messages.push({ type: message.type(), text: message.text() });

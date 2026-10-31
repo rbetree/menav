@@ -1,0 +1,55 @@
+// MeNav 形态二动态后台 — wrangler 配置示例
+// 复制为 wrangler.jsonc 后填写自己的 Cloudflare 资源；该文件不要提交。
+// 测试环境配置可复制为 wrangler.test.jsonc，配合 deploy:test 使用。
+// 注意:vars / bindings 在命名环境间不可继承,每个 env 必须完整重写。
+{
+  "name": "menav-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+  // 发布由管理员手动触发；显式空数组用于清除历史定时触发器。
+  "triggers": { "crons": [] },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "menav-db",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      // 本地 `wrangler dev` 让 Worker 跑在本地、D1 连远端库(会写真实数据,谨慎使用)。
+      "remote": true,
+    },
+  ],
+  "vars": {
+    "TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
+    "POLICY_AUD": "REPLACE_WITH_ACCESS_AUD",
+    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    "CF_PAGES_PROJECT": "menav-web",
+    // CF_API_TOKEN(Pages 发布) 与 BUILD_TOKEN 用 wrangler secret 设置,不写在此处。
+  },
+  "observability": {
+    "enabled": true,
+  },
+
+  "env": {
+    "staging": {
+      "name": "menav-backend-test",
+      "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+      "triggers": { "crons": [] },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "menav-db",
+          "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+        },
+      ],
+      "vars": {
+        "TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
+        "POLICY_AUD": "REPLACE_WITH_ACCESS_AUD",
+        "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+        "CF_PAGES_PROJECT": "menav-web",
+      },
+      "observability": {
+        "enabled": true,
+      },
+    },
+  },
+}

@@ -25,6 +25,7 @@
     "clean": "node -r ./scripts/register-ts.cjs ./scripts/clean.ts",
     "build:lib": "node -r ./scripts/register-ts.cjs ./scripts/build-lib.ts",
     "build": "node -r ./scripts/register-ts.cjs ./scripts/build.ts",
+    "build:snapshot": "node -r ./scripts/register-ts.cjs ./scripts/build-snapshot.ts",
     "sync": "node -r ./scripts/register-ts.cjs ./scripts/sync.ts",
     "sync-articles": "node -r ./scripts/register-ts.cjs ./scripts/sync-articles.ts",
     "sync-projects": "node -r ./scripts/register-ts.cjs ./scripts/sync-projects.ts",
@@ -40,6 +41,10 @@
     "prepare": "husky",
     "dev:astro": "node -r ./scripts/register-ts.cjs ./scripts/dev-astro.ts",
     "test:browser": "node -r ./scripts/register-ts.cjs ./scripts/test-browser.ts",
+    "backend:dev": "npm --prefix workers run dev",
+    "backend:check": "npm --prefix workers run check",
+    "backend:test": "npm --prefix workers test",
+    "backend:seed": "node -r ./scripts/register-ts.cjs ./scripts/generate-seed.ts --output workers/.seed.json",
     "prepack": "npm run build:lib"
   },
   "keywords": [
@@ -50,10 +55,10 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "js-yaml": "^4.3.1",
-    "markdown-it": "^14.2.0",
+    "js-yaml": "^4.3.2",
+    "markdown-it": "^14.3.3",
     "rss-parser": "^3.13.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
@@ -71,7 +76,7 @@
   "overrides": {
     "brace-expansion": "1.1.18",
     "esbuild": "$esbuild",
-    "fast-uri": "3.1.5",
+    "fast-uri": "3.1.6",
     "linkify-it": "5.0.2",
     "nanoid": "3.3.18",
     "sharp": "0.35.0",

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { createLogger } from '../src/lib/logging/logger.ts';
+import { isSnapshotAssetPath } from '../src/shared/snapshot-assets.ts';
 
 const log = createLogger('clean');
 
@@ -18,6 +19,17 @@ const generatedPublicPaths = [
 ];
 
 try {
+  const manifest = path.join(publicPath, '.menav-snapshot-assets.json');
+  if (fs.existsSync(manifest)) {
+    const assets: unknown = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    if (
+      !Array.isArray(assets) ||
+      assets.some((asset) => typeof asset !== 'string' || !isSnapshotAssetPath(asset))
+    )
+      throw new Error('快照资源清单无效');
+    for (const asset of assets) fs.rmSync(path.join(publicPath, asset), { force: true });
+    fs.rmSync(manifest, { force: true });
+  }
   fs.rmSync(distPath, { recursive: true, force: true });
   log.ok('删除 dist 目录', { path: distPath });
 

@@ -5,6 +5,7 @@ import SiteCard from './SiteCard.astro';
 import type { CategoryItem } from '../types/page';
 import type { RenderContext } from '../types/render';
 import { DEFAULT_RENDER_CONTEXT } from '../lib/view-data/render-context.ts';
+import { getCategoryChildren } from '../lib/site-data/categories.ts';
 
 interface Props {
   category?: CategoryItem;
@@ -17,13 +18,17 @@ const categoryLevel = category.level || level || 1;
 const headingLevel = Math.min(categoryLevel + 1, 6);
 const HeadingTag = `h${headingLevel}`;
 const id = category.slug || category.name;
-const subcategories = Array.isArray(category.subcategories) ? category.subcategories : [];
-const groups = Array.isArray(category.groups) ? category.groups : [];
+const children = getCategoryChildren(category);
+const childRuns: { kind: (typeof children)[number]['kind']; nodes: CategoryItem[] }[] = [];
+for (const { kind, node } of children) {
+  const last = childRuns.at(-1);
+  if (last?.kind === kind) last.nodes.push(node);
+  else childRuns.push({ kind, nodes: [node] });
+}
 const cards = Array.isArray(category.cards) ? category.cards : [];
-const hasSubcategories = subcategories.length > 0;
-const hasGroups = groups.length > 0;
+const hasChildren = children.length > 0;
 const hasCards = cards.length > 0;
-const isToggleable = hasSubcategories || hasGroups || hasCards;
+const isToggleable = category.foldable !== false && (hasChildren || hasCards);
 ---
 
 <section
@@ -52,27 +57,21 @@ const isToggleable = hasSubcategories || hasGroups || hasCards;
 
   <div class="category-content">
     {
-      hasSubcategories && (
-        <div class="subcategories-container" data-container="subcategories">
-          {subcategories.map((subCategory) => (
-            <Category
-              category={subCategory}
-              level={categoryLevel + 1}
-              renderContext={renderContext}
-            />
-          ))}
+      childRuns.map(({ kind, nodes }) => (
+        <div class={`${kind}-container`} data-container={kind}>
+          {nodes.map((node) =>
+            kind === 'subcategories' ? (
+              <Category category={node} level={categoryLevel + 1} renderContext={renderContext} />
+            ) : (
+              <Group
+                group={node}
+                level={kind === 'subgroups' ? 4 : 3}
+                renderContext={renderContext}
+              />
+            )
+          )}
         </div>
-      )
-    }
-
-    {
-      hasGroups && (
-        <div class="groups-container" data-container="groups">
-          {groups.map((group) => (
-            <Group group={group} renderContext={renderContext} />
-          ))}
-        </div>
-      )
+      ))
     }
 
     {
@@ -85,6 +84,6 @@ const isToggleable = hasSubcategories || hasGroups || hasCards;
       )
     }
 
-    {!hasSubcategories && !hasGroups && !hasCards && <p class="empty-content">暂无内容</p>}
+    {!hasChildren && !hasCards && <p class="empty-content">暂无内容</p>}
   </div>
 </section>

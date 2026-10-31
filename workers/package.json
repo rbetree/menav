@@ -1,0 +1,29 @@
+{
+  "name": "@menav/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MeNav 形态二动态后台(Cloudflare Worker + D1 + Access)",
+  "scripts": {
+    "dev": "node scripts/check-config.mjs wrangler.jsonc && wrangler dev",
+    "dev:test": "node scripts/check-config.mjs wrangler.test.jsonc && wrangler dev --config wrangler.test.jsonc",
+    "deploy": "node scripts/check-config.mjs wrangler.jsonc && wrangler deploy",
+    "deploy:test": "node scripts/check-config.mjs wrangler.test.jsonc && wrangler deploy --config wrangler.test.jsonc --env staging",
+    "check": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node test/admin.browser.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "jose": "^5.9.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20260820.0-alpha",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.125.0"
+  }
+}
