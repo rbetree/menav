@@ -30,9 +30,9 @@ ALLOW_INSECURE_DEV=1
 
 使用独立的后台域名和公开站 Pages 项目，避免影响已有静态站。以下命令会创建或更新真实云资源，应在确认目标账号后执行。
 
-在 `workers/` 目录运行 `npx wrangler d1 create menav-test`，把返回的 `database_id` 填入 `wrangler.jsonc` 的 `env.staging.d1_databases`（本地开发用顶层同名绑定）。Worker 首次运行自动创建或增量升级表，不清空业务数据。
+在 `workers/` 目录运行 `npx wrangler d1 create menav-db`，把返回的 `database_id` 填入 `wrangler.jsonc`（或本地测试配置 `wrangler.test.jsonc`）的对应绑定。Worker 首次运行自动创建或增量升级表，不清空业务数据。
 
-> 本仓库测试环境的实测值供对照：Worker 名 `menav-backend-test`（`wrangler deploy --env staging`）、`TEAM_DOMAIN=https://rzlnb.cloudflareaccess.com`、`CF_PAGES_PROJECT=menav-web-test`、D1 名 `menav-test`（id `81fdec81-8765-4a10-9263-8d435f858410`）。
+> `wrangler.jsonc` 只保留占位符。本机测试环境的真实资源值保存在不入库的 `workers/wrangler.test.jsonc`，部署测试环境使用 `npm --prefix workers run deploy:test`。
 
 | 位置 | 配置 | 用途 |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ npx wrangler secret put BUILD_TOKEN
 2. 管理台 `/`、`/index.html`、`/app.js`、`/style.css` 和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间；从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
 3. `/build/snapshot` 需要独立 Bearer 凭证到达 Worker。实测可行做法：在 Access 应用内新增一条 **Service Auth（`decision: non_identity`）** 策略，Include 选 `Any Access Service Token`；再建一个 Service Token，把其 Client ID/Secret 配到 Pages 构建环境（`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET`），`build-snapshot` 会在请求里带上这两个头。Worker 仍执行构建 Token 校验。注意：Access 策略的 `exclude` 语义是「拒绝」而非「放行」，且 `allow` 策略即使带 Service Token 也会要求登录——必须用 Service Auth 才能让服务身份免登录通过。
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
-5. 在仓库根目录执行 `npm --prefix workers run deploy`（脚本已指向 `wrangler deploy --env staging`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，`run_worker_first` 保证资源返回前先鉴权。
+5. 在仓库根目录执行 `npm --prefix workers run deploy`（使用填好的 `wrangler.jsonc`）；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，`run_worker_first` 保证资源返回前先鉴权。
 
 不要把完整 `/api/*` 设为 Bypass。`GET /api/nav` 是实时只读树，包含隐藏导航的页面和未发布编辑；本期没有私密内容功能。生产公开站始终消费已构建的静态产物。
 
@@ -134,16 +134,18 @@ npm run test:browser
 3. Access Service Token（到期前重建，把新 Client ID/Secret 配到 Pages）。
 
 ```bash
-npx wrangler secret put BUILD_TOKEN --env staging
-npx wrangler secret put CF_API_TOKEN --env staging
+npx wrangler secret put BUILD_TOKEN
+npx wrangler secret put CF_API_TOKEN
 ```
+
+测试环境通过本地配置设置：`npx wrangler secret put BUILD_TOKEN --config wrangler.test.jsonc --env staging`，`CF_API_TOKEN` 同理。
 
 `wrangler secret bulk` 可用一份 JSON/`.env` 批量更新。切勿把 Token 提交进仓库或写入文档。
 
 ### 故障恢复
 
-- 查看日志：`npx wrangler tail --name menav-backend-test`。
+- 查看日志：`npx wrangler tail --name <worker-name>`。
 - 发布状态：`GET /api/publish-status` 返回 `wired / revision / publishedRevision / pending / job`（`job.status`：dispatching/building/published/failed）。
 - 构建失败：后台状态栏显示失败原因并提供「重新发布」；冻结快照在重试时重新写入，不会部分残留。
-- D1 恢复：`npx wrangler d1 time-travel info menav-test` / `restore`（Free 保留 7 天）；`restore` 为破坏性原地覆盖，先导出备份。
-- 备份：`npx wrangler d1 export menav-test --remote --output=backup.sql`（导出期间会阻塞其他数据库请求，安排在低峰）。
+- D1 恢复：`npx wrangler d1 time-travel info <d1-name>` / `restore`（Free 保留 7 天）；`restore` 为破坏性原地覆盖，先导出备份。
+- 备份：`npx wrangler d1 export <d1-name> --remote --output=backup.sql`（导出期间会阻塞其他数据库请求，安排在低峰）。

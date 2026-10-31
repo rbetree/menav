@@ -1,5 +1,6 @@
-// MeNav 形态二动态后台 — wrangler 配置
-// 顶层为本地开发/默认;测试部署使用命名环境:`wrangler deploy --env staging`。
+// MeNav 形态二动态后台 — wrangler 配置模板
+// 将占位符替换为你自己的 Cloudflare 资源后再部署。
+// 本机测试环境的真实值放在不入库的 wrangler.test.jsonc。
 // 注意:vars / bindings / triggers 在命名环境间不可继承,每个 env 必须完整重写。
 {
   "name": "menav-backend",
@@ -9,17 +10,17 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "menav-test",
-      "database_id": "81fdec81-8765-4a10-9263-8d435f858410",
+      "database_name": "menav-db",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
       // 本地 `wrangler dev` 让 Worker 跑在本地、D1 连远端库(会写真实数据,谨慎使用)。
       "remote": true,
     },
   ],
   "vars": {
-    "TEAM_DOMAIN": "https://rzlnb.cloudflareaccess.com",
-    "POLICY_AUD": "ad393a62d5fb8e5f813aead98aa78d5caa2a28f5c6ca80a74ff83587052884bf",
-    "CF_ACCOUNT_ID": "deaeb6843e567453c653af211554ee25",
-    "CF_PAGES_PROJECT": "menav-web-test",
+    "TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
+    "POLICY_AUD": "REPLACE_WITH_ACCESS_AUD",
+    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    "CF_PAGES_PROJECT": "menav-web",
     // CF_API_TOKEN(Pages 发布) 与 BUILD_TOKEN 用 wrangler secret 设置,不写在此处。
   },
   "observability": {
@@ -33,15 +34,15 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "menav-test",
-          "database_id": "81fdec81-8765-4a10-9263-8d435f858410",
+          "database_name": "menav-db",
+          "database_id": "REPLACE_WITH_D1_DATABASE_ID",
         },
       ],
       "vars": {
-        "TEAM_DOMAIN": "https://rzlnb.cloudflareaccess.com",
-        "POLICY_AUD": "ad393a62d5fb8e5f813aead98aa78d5caa2a28f5c6ca80a74ff83587052884bf",
-        "CF_ACCOUNT_ID": "deaeb6843e567453c653af211554ee25",
-        "CF_PAGES_PROJECT": "menav-web-test",
+        "TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
+        "POLICY_AUD": "REPLACE_WITH_ACCESS_AUD",
+        "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+        "CF_PAGES_PROJECT": "menav-web",
       },
       "observability": {
         "enabled": true,
