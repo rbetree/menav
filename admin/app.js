@@ -135,13 +135,13 @@ function isNotFound(r) {
   return !r.ok && !r.auth && r.status === 404;
 }
 
-async function api(method, path, body) {
+async function api(method, path, body, etagOverride) {
   const opts = { method, credentials: 'include', headers: {} };
   const mutation = method !== 'GET' && path !== '/api/rebuild';
   if (mutation && mutationPending)
     return { ok: false, status: 409, error: 'busy', detail: '请等待当前保存完成' };
   if (mutation) {
-    const etag = modalEtag || stateEtag;
+    const etag = etagOverride || modalEtag || stateEtag;
     if (!etag)
       return { ok: false, status: 409, error: 'revision_conflict', detail: '请先刷新数据后再编辑' };
     opts.headers['If-Match'] = etag;
@@ -1421,11 +1421,15 @@ function numberField(name, label, value, placeholder, hint, wide) {
 
 /* 站点级配置(身份/外观/字体/资料/社交/安全/RSS/GitHub)的可视化编辑。 */
 let settingsCache = null;
+let settingsEtag = null;
 
-async function loadSettings() {
-  if (settingsCache) return settingsCache;
+async function loadSettings(force = false) {
+  if (settingsCache && !force) return settingsCache;
   const r = await api('GET', '/api/settings');
-  if (r.ok) settingsCache = r;
+  if (r.ok) {
+    settingsCache = r;
+    settingsEtag = r.etag || null;
+  }
   return r;
 }
 
@@ -1433,7 +1437,7 @@ async function openSiteConfig() {
   showSiteConfigPage();
   const content = document.getElementById('site-config-content');
   content.innerHTML = '<p class="field-hint">正在加载站点配置…</p>';
-  const r = await loadSettings();
+  const r = await loadSettings(true);
   if (!r.ok) {
     content.innerHTML = '<p class="form-error">' + esc(writeErr(r)) + '</p>';
     return;
@@ -1443,12 +1447,14 @@ async function openSiteConfig() {
   try {
     site = JSON.parse(r.site || '{}');
   } catch {
-    site = {};
+    content.innerHTML = '<p class="form-error">站点配置格式损坏，请先导出备份并修复后再保存。</p>';
+    return;
   }
   try {
     assets = JSON.parse(r.assets || '{}');
   } catch {
-    assets = {};
+    content.innerHTML = '<p class="form-error">图片资源格式损坏，请先导出备份并修复后再保存。</p>';
+    return;
   }
   const theme = site.theme || {};
   const icons = site.icons || {};
@@ -1461,9 +1467,9 @@ async function openSiteConfig() {
   const gh = site.github || {};
   const social = Array.isArray(site.social) ? site.social : [];
   const schemes = Array.isArray(security.allowedSchemes) ? security.allowedSchemes : [];
-  const faviconOptions = [{ value: '', label: '(默认 / 不设置)' }].concat(
-    Object.keys(assets).map((key) => ({ value: key, label: key }))
-  );
+  const assetOptions = Object.keys(assets).map((key) => ({ value: key, label: key }));
+  const faviconOptions = [{ value: '', label: '(使用默认 menav.svg)' }].concat(assetOptions);
+  const logoOptions = [{ value: '', label: '(不设置)' }].concat(assetOptions);
 
   document.getElementById('site-config-content').innerHTML =
     '<form id="site-config-form" novalidate>' +
@@ -1483,9 +1489,9 @@ async function openSiteConfig() {
         selectField(
           'sc-logo',
           'Logo 图片',
-          faviconOptions,
+          logoOptions,
           site.logo || '',
-          '侧栏品牌图片，只能选择已有资源'
+          '侧栏品牌图，优先于站点图标；只能选择已有资源'
         )
     ) +
     settingsCard(
@@ -1679,11 +1685,14 @@ async function openSiteConfig() {
         },
         github: { username: val('sc-gh-username'), heatmapColor: val('sc-gh-color') },
       };
-      const favicon = val('sc-favicon');
-      if (favicon) patch.favicon = favicon;
-      const res = await api('PUT', '/api/settings/site', patch);
+      patch.favicon = val('sc-favicon');
+      const res = await api('PUT', '/api/settings/site', patch, settingsEtag);
       if (res.ok) {
         settingsCache = null;
+        if (res.etag) {
+          settingsEtag = res.etag;
+          stateEtag = res.etag;
+        }
         toast('站点设置已保存', 'success');
       } else {
         setFormError(writeErr(res));
@@ -1820,6 +1829,9 @@ function openSeedImport() {
         return;
       }
       toast('已导入 ' + r.pages + ' 个页面、' + r.sites + ' 个站点', 'success');
+      settingsCache = null;
+      settingsEtag = null;
+      if (r.etag) stateEtag = r.etag;
       closeModal();
       await loadState({ silent: true });
     });

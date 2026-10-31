@@ -74,10 +74,15 @@ settingsRoutes.put('/site', async (c) => {
     }
   }
   for (const key of ['favicon', 'logo'] as const) {
-    const value = (parsed.data as Record<string, unknown>)[key];
-    if (!value) continue;
-    if (typeof value !== 'string' || !isSnapshotAssetPath(value) || !keys.includes(value))
+    if (!(key in patch)) continue;
+    const raw = patch[key];
+    if (raw === '' || raw === null) continue;
+    // 未改动的旧值可能来自迁移资源，放行以免任何保存都被历史路径挡住。
+    if (raw === current[key]) continue;
+    const value = String(raw).replace(/^\.?\//, '');
+    if (!isSnapshotAssetPath(value) || !keys.includes(value))
       throw new ApiError(400, `${key} 必须是已存在的图片资源`, `invalid_${key}`);
+    (parsed.data as Record<string, unknown>)[key] = value;
   }
 
   await commitEdit(c, [
