@@ -1,7 +1,7 @@
-// MeNav 形态二动态后台 — wrangler 配置模板
-// 将占位符替换为你自己的 Cloudflare 资源后再部署。
-// 本机测试环境的真实值放在不入库的 wrangler.test.jsonc。
-// 注意:vars / bindings / triggers 在命名环境间不可继承,每个 env 必须完整重写。
+// MeNav 形态二动态后台 — wrangler 配置示例
+// 复制为 wrangler.jsonc 后填写自己的 Cloudflare 资源；该文件不要提交。
+// 测试环境配置可复制为 wrangler.test.jsonc，配合 deploy:test 使用。
+// 注意:vars / bindings 在命名环境间不可继承,每个 env 必须完整重写。
 {
   "name": "menav-backend",
   "main": "src/index.ts",

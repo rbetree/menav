@@ -3,6 +3,21 @@ name: Build and Deploy Site
 on:
   push:
     branches: [main]
+    paths:
+      - 'config/**'
+      - 'content/**'
+      - 'bookmarks/**'
+      - 'public/**'
+      - 'assets/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'docker/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      - 'tsconfig.json'
+      - '.nvmrc'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
   schedule:
     # 定时刷新 RSS / projects 仓库元信息（GitHub Actions 的 cron 使用 UTC 时区）

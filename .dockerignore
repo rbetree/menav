@@ -10,6 +10,10 @@ dev
 coverage
 .nyc_output
 
+# 动态后台代码与本地 Cloudflare 配置不进入静态镜像
+workers
+admin
+
 docs
 *.log
 npm-debug.log*

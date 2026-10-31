@@ -11,6 +11,7 @@
 ```bash
 npm ci
 npm --prefix workers ci
+# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
 npm run backend:seed
 ```
 
@@ -22,7 +23,7 @@ ALLOW_INSECURE_DEV=1
 
 访问 Wrangler 输出的本地地址，打开“数据与备份 → 导入备份 JSON”，选择 `workers/.seed.json`。该鉴权放行仅接受 localhost、127.0.0.1、IPv6 本机地址，以及 `wrangler dev` 暴露的 `.workers.dev` 主机（新版 Wrangler 下 `c.req.url` 的 host 是 workers.dev 域名）；生产不要设置。
 
-> ⚠️ `wrangler.jsonc` 的 D1 绑定带 `remote: true`，本地 `wrangler dev` 会**连接远端库并写入真实数据**。仅做只读调试可直接运行；需要在本地撰写数据时，先 `npx wrangler d1 export` 备份，或用一份独立 D1。
+> ⚠️ `wrangler.jsonc`（从示例复制）的 D1 绑定带 `remote: true`，本地 `wrangler dev` 会**连接远端库并写入真实数据**。仅做只读调试可直接运行；需要在本地撰写数据时，先 `npx wrangler d1 export` 备份，或用一份独立 D1。
 
 种子读取当前配置目录的导航、主题、字体、Markdown 正文、本地图片以及已有文章和项目数据。后续动态构建不读取这些仓库业务文件。后台的配置展示为只读；页面、正文、分类与站点可直接编辑。
 
@@ -30,9 +31,9 @@ ALLOW_INSECURE_DEV=1
 
 使用独立的后台域名和公开站 Pages 项目，避免影响已有静态站。以下命令会创建或更新真实云资源，应在确认目标账号后执行。
 
-在 `workers/` 目录运行 `npx wrangler d1 create menav-db`，把返回的 `database_id` 填入 `wrangler.jsonc`（或本地测试配置 `wrangler.test.jsonc`）的对应绑定。Worker 首次运行自动创建或增量升级表，不清空业务数据。
+在 `workers/` 目录运行 `npx wrangler d1 create menav-db`，把返回的 `database_id` 填入本地 `wrangler.jsonc`（从 `wrangler.example.jsonc` 复制）或 `wrangler.test.jsonc` 的对应绑定。Worker 首次运行自动创建或增量升级表，不清空业务数据。
 
-> `wrangler.jsonc` 只保留占位符。本机测试环境的真实资源值保存在不入库的 `workers/wrangler.test.jsonc`，部署测试环境使用 `npm --prefix workers run deploy:test`。
+> 仓库只提交 `wrangler.example.jsonc`。`wrangler.jsonc`、`wrangler.local.jsonc` 与 `wrangler.test.jsonc` 都不入库；部署前脚本会检查占位符。测试环境部署使用 `npm --prefix workers run deploy:test`。
 
 | 位置 | 配置 | 用途 |
 | --- | --- | --- |
@@ -109,19 +110,21 @@ npm run test:browser
 
 最后两个构建/浏览器命令会使用根目录 `dist/`，不要与其他构建并行。若使用本机 Chrome，可通过 `PLAYWRIGHT_EXECUTABLE_PATH` 指定其绝对路径。测试只使用临时 D1；外部刷新集成测试运行真实同步脚本并提供可控外站响应，不能替代 Cloudflare 线上验收。
 
-## 七、自动部署与运维
+## 七、部署与运维
 
 ### 代码更新后的部署
 
-- **Worker**：推送涉及 `workers/`、`admin/`、`src/`、`scripts/` 的提交会触发 `.github/workflows/backend-deploy.yml`，自动跑类型检查、集成测试并执行 `wrangler deploy --env staging`。需在仓库 Secrets 配置 `CLOUDFLARE_API_TOKEN`（Account → Workers Scripts → Edit）与 `CLOUDFLARE_ACCOUNT_ID`。
-- **公开站源码**：Worker 发起的 ad_hoc 构建取 Pages 项目生产分支的 HEAD，因此 push 到该分支后，**下一次发布即带上新代码**，无需额外操作。
-- **公开站重建**：普通发布仅在内容版本变化时触发。代码变化不改变 `revision`，需要**强制重建**：`POST /api/rebuild?force=1`。CI 可在部署后用 Service Token 调用该端点，让新代码立即上线。
+仓库不配置自动部署，Worker 由维护者手动发布：
+
+1. 在 `workers/` 下执行 `npm run deploy`；测试环境执行 `npm run deploy:test`。部署前脚本会检查配置，发现占位符或缺少本地配置时直接退出。
+2. 公开站源码由 Pages 项目的生产分支提供。代码变化不改变 `revision`，需要**强制重建**：`POST /api/rebuild?force=1`，让新代码进入公开站。
+3. 确认 Pages 项目的 Git 自动部署已关闭。本设计通过 Worker 创建部署，Git push 触发的构建不会被发布任务认领。
 
 > 不要依赖 Pages 控制台的 Git 自动部署：本设计的快照授权依据是「部署 URL 等于当前发布任务的部署」，Git push 触发的构建 URL 与之不符，必然失败。Git 仅作为源码提供方。
 
 ### 回滚
 
-- **Worker**：`npx wrangler versions list --env staging` 查看历史，`npx wrangler rollback <version-id> --env staging` 回退。
+- **Worker**：`npx wrangler versions list` 查看历史，`npx wrangler rollback <version-id>` 回退。测试环境使用本地配置时补 `--config wrangler.test.jsonc --env staging`。
 - **Pages**：`POST /accounts/{id}/pages/projects/{project}/deployments/{deployment_id}/rollback`，或控制台操作。
 - ⚠️ Pages 回滚会移动 `canonical_deployment`，而 D1 的 `published_revision` 单调递增、**不会回退**，回滚后后台显示的「已发布」会与实际不一致，且若有在途任务会以「未成为当前生产版本」失败。建议回滚后同步用 D1 Time Travel 恢复到对应时间点，再重新发布一次以对齐版本标记。
 

@@ -5,4 +5,6 @@ dist/
 *.log
 .seed.json
 .seed.err
+wrangler.jsonc
+wrangler.local.jsonc
 wrangler.test.jsonc

@@ -52,7 +52,13 @@ jobs:
               - 'src/lib/search-index/**'
               - 'src/runtime/**'
               - 'src/lib/site-model/**'
+              - 'src/lib/site-data/**'
+              - 'src/lib/config/**'
+              - 'src/lib/bookmarks/**'
               - 'src/lib/view-data/**'
+              - 'src/types/**'
+              - 'src/shared/**'
+              - 'content/**'
               - 'scripts/lib/public-assets.ts'
               - 'scripts/lib/runtime-bundle.ts'
               - 'scripts/lib/search-index-assets.ts'
@@ -90,17 +96,48 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Workers dependency audit
+        run: npm --prefix workers audit --audit-level=high
+
       - name: Workers type check
         run: npm --prefix workers run check
 
       - name: Workers integration tests
         run: npm run backend:test
 
+      - name: Detect backend paths
+        id: backend_paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'workers/**'
+              - 'admin/**'
+              - 'src/lib/config/**'
+              - 'src/lib/bookmarks/**'
+              - 'src/lib/security/**'
+              - 'src/shared/**'
+              - 'src/types/**'
+              - 'scripts/build-snapshot.ts'
+              - 'scripts/generate-seed.ts'
+              - 'scripts/lib/seed.ts'
+              - 'config/_default/**'
+              - 'content/**'
+              - 'assets/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'workers/package.json'
+              - 'workers/package-lock.json'
+              - '.github/workflows/ci.yml'
+
       - name: Install Playwright browser
+        if: steps.backend_paths.outputs.backend == 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Admin browser contract
+        if: steps.backend_paths.outputs.backend == 'true'
         run: npm --prefix workers run test:browser
 
       - name: Snapshot build contract
+        if: steps.backend_paths.outputs.backend == 'true'
         run: node workers/test/snapshot-build.mjs

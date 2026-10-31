@@ -21,6 +21,27 @@ updates:
         patterns:
           - '*'
 
+  - package-ecosystem: npm
+    directory: /workers
+    target-branch: main
+    schedule:
+      interval: monthly
+      time: '09:30'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 0
+    labels:
+      - dependencies
+      - npm
+      - workers
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
   - package-ecosystem: github-actions
     directory: /
     target-branch: main

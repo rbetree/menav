@@ -5,10 +5,10 @@
   "type": "module",
   "description": "MeNav 形态二动态后台(Cloudflare Worker + D1 + Access)",
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:test": "wrangler dev --config wrangler.test.jsonc",
-    "deploy": "wrangler deploy",
-    "deploy:test": "wrangler deploy --config wrangler.test.jsonc --env staging",
+    "dev": "node scripts/check-config.mjs wrangler.jsonc && wrangler dev",
+    "dev:test": "node scripts/check-config.mjs wrangler.test.jsonc && wrangler dev --config wrangler.test.jsonc",
+    "deploy": "node scripts/check-config.mjs wrangler.jsonc && wrangler deploy",
+    "deploy:test": "node scripts/check-config.mjs wrangler.test.jsonc && wrangler deploy --config wrangler.test.jsonc --env staging",
     "check": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
     "test:browser": "node test/admin.browser.mjs"
