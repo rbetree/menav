@@ -225,6 +225,42 @@ svg {
   padding: 0 var(--s-6) var(--s-7);
 }
 
+/* ==================== 卡片 ==================== */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel);
+}
+
+/* 标题与正文之间用分隔线拉开层级，避免标题只是加粗的一段文字 */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.card-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.card-desc {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 /* ==================== 数据与备份页 ==================== */
 .data-grid {
   display: grid;
@@ -234,31 +270,12 @@ svg {
 }
 
 .data-card {
-  display: flex;
-  flex-direction: column;
   gap: var(--s-2);
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--panel);
-}
-
-.data-card h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 620;
-}
-
-.data-card p {
-  margin: 0;
-  color: var(--text-3);
-  font-size: 0.82rem;
-  line-height: 1.55;
 }
 
 .data-card .btn {
   align-self: flex-start;
-  margin-top: var(--s-2);
+  margin-top: auto;
 }
 
 .site-config-content {
@@ -268,20 +285,6 @@ svg {
 
 .settings-card {
   margin-bottom: var(--s-4);
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--panel);
-}
-
-.settings-card-head {
-  margin-bottom: var(--s-3);
-}
-
-.settings-card-head h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 620;
 }
 
 .settings-grid {

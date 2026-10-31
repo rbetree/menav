@@ -1515,8 +1515,8 @@ async function loadPublishStatus() {
 /* 站点设置的分组卡片：短字段自动并排，长字段占满一行。 */
 function settingsCard(title, body, columns) {
   return (
-    '<section class="settings-card">' +
-    '<header class="settings-card-head"><h3>' +
+    '<section class="card settings-card">' +
+    '<header class="card-head"><h3 class="card-title">' +
     esc(title) +
     '</h3></header>' +
     '<div class="settings-grid' +
