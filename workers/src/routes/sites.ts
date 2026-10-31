@@ -36,7 +36,7 @@ sitesRoutes.post('/', async (c) => {
   const id = crypto.randomUUID();
   await commitEdit(c, [
     c.env.DB.prepare(
-      'INSERT INTO sites (id, category_id, name, url, description, icon, favicon_url, external, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, (SELECT COALESCE(MAX(sort), -1) + 1 FROM sites WHERE category_id = ?)))'
+      'INSERT INTO sites (id, category_id, name, url, description, icon, favicon_url, external, sort, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, (SELECT COALESCE(MAX(sort), -1) + 1 FROM sites WHERE category_id = ?)), ?)'
     ).bind(
       id,
       categoryId,
@@ -47,7 +47,8 @@ sitesRoutes.post('/', async (c) => {
       b.faviconUrl === undefined ? null : faviconUrl(b.faviconUrl),
       b.external === undefined ? 1 : Number(bool(b.external, 'external')),
       b.sort === undefined ? null : sortValue(b.sort),
-      categoryId
+      categoryId,
+      b.metadata === undefined ? '{}' : siteMetadata(b.metadata)
     ),
   ]);
   return c.json({ ok: true, data: { id } }, 201);

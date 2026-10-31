@@ -1099,6 +1099,34 @@ function openSiteForm(opts) {
         'https://…/favicon.ico(可选)'
       ) +
       textField('icon', '图标(类/emoji)', s && s.icon ? s.icon : '', '可选') +
+      selectField(
+        'forceIconMode',
+        '图标模式',
+        [
+          { value: '', label: '跟随全局设置' },
+          { value: 'favicon', label: '优先自动 favicon' },
+          { value: 'manual', label: '固定手动图标' },
+        ],
+        s?.metadata?.forceIconMode || ''
+      ) +
+      selectField(
+        'style',
+        '卡片样式',
+        [
+          { value: '', label: '普通站点' },
+          { value: 'repo', label: '仓库卡片' },
+        ],
+        s?.metadata?.style || ''
+      ) +
+      selectField(
+        'type',
+        '卡片类型',
+        [
+          { value: '', label: '普通站点' },
+          { value: 'article', label: '文章卡片' },
+        ],
+        s?.metadata?.type || ''
+      ) +
       checkField('external', '外部链接(新标签页打开)', s ? !!s.external : true) +
       formActions(isEdit ? '保存' : '新增')
   );
@@ -1116,6 +1144,16 @@ function openSiteForm(opts) {
         setFormError('名称与网址都是必填项');
         return;
       }
+      const metadata = { ...(s?.metadata || {}) };
+      for (const [key, id] of [
+        ['forceIconMode', 'f-forceIconMode'],
+        ['style', 'f-style'],
+        ['type', 'f-type'],
+      ]) {
+        const value = document.getElementById(id).value;
+        if (value) metadata[key] = value;
+        else delete metadata[key];
+      }
       const payload = {
         name,
         url,
@@ -1123,6 +1161,7 @@ function openSiteForm(opts) {
         faviconUrl: document.getElementById('f-faviconUrl').value.trim(),
         icon: document.getElementById('f-icon').value.trim(),
         external: document.getElementById('f-external').checked,
+        metadata,
       };
       const r = isEdit
         ? await api('PUT', '/api/sites/' + s.id, payload)
@@ -1418,6 +1457,7 @@ async function openSiteConfig() {
   const security = site.security || {};
   const rss = site.rss || {};
   const rssArticles = rss.articles || {};
+  const rssFetch = rss.fetch || {};
   const gh = site.github || {};
   const social = Array.isArray(site.social) ? site.social : [];
   const schemes = Array.isArray(security.allowedSchemes) ? security.allowedSchemes : [];
@@ -1547,6 +1587,20 @@ async function openSiteConfig() {
       3
     ) +
     settingsCard(
+      'RSS 抓取参数',
+      numberField('sc-rss-timeout', '单次请求超时（毫秒）', rssFetch.timeoutMs, '默认 10000') +
+        numberField(
+          'sc-rss-total-timeout',
+          '总超时（毫秒）',
+          rssFetch.totalTimeoutMs,
+          '默认 60000'
+        ) +
+        numberField('sc-rss-concurrency', '并发数', rssFetch.concurrency, '默认 5') +
+        numberField('sc-rss-retries', '最大重试次数', rssFetch.maxRetries, '默认 1') +
+        numberField('sc-rss-redirects', '最大重定向', rssFetch.maxRedirects, '默认 3'),
+      3
+    ) +
+    settingsCard(
       'GitHub 贡献图',
       textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
         textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）')
@@ -1581,6 +1635,17 @@ async function openSiteConfig() {
       const perSite = numOrUndef('sc-rss-per-site');
       const total = numOrUndef('sc-rss-total');
       const summaryMaxLength = numOrUndef('sc-rss-summary');
+      const fetchPatch = {};
+      for (const [key, id] of [
+        ['timeoutMs', 'sc-rss-timeout'],
+        ['totalTimeoutMs', 'sc-rss-total-timeout'],
+        ['concurrency', 'sc-rss-concurrency'],
+        ['maxRetries', 'sc-rss-retries'],
+        ['maxRedirects', 'sc-rss-redirects'],
+      ]) {
+        const value = numOrUndef(id);
+        if (value !== undefined) fetchPatch[key] = value;
+      }
       const patch = {
         title: val('sc-title'),
         description: val('sc-description'),
@@ -1608,6 +1673,9 @@ async function openSiteConfig() {
             ...(total !== undefined ? { total } : {}),
             ...(summaryMaxLength !== undefined ? { summaryMaxLength } : {}),
           },
+          ...(Object.keys(fetchPatch).length
+            ? { fetch: { ...(site.rss?.fetch || {}), ...fetchPatch } }
+            : {}),
         },
         github: { username: val('sc-gh-username'), heatmapColor: val('sc-gh-color') },
       };

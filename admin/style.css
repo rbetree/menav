@@ -1369,6 +1369,7 @@ svg {
 
 input[type='text'],
 input[type='search'],
+input[type='number'],
 input[type='file'],
 select,
 textarea {
@@ -1422,6 +1423,17 @@ textarea:focus {
   outline: none;
   border-color: color-mix(in oklab, var(--accent) 65%, var(--line));
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input[type='file'] {
