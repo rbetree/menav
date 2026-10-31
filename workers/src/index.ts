@@ -15,7 +15,7 @@ import { seedRoutes } from './routes/seed';
 import { settingsRoutes } from './routes/settings';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { rebuildRoutes } from './routes/rebuild';
-import { rebuildSnapshot, publishStatus, reconcilePublication, buildSnapshot } from './rebuild';
+import { publishStatus, reconcilePublication, buildSnapshot } from './rebuild';
 
 const app = new Hono<{ Bindings: Env }>();
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -190,23 +190,7 @@ app.get('*', async (c) => {
   return c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.notFound();
 });
 
-// 定时检查待发布版本，复用手动发布流程。cron 见 wrangler.jsonc triggers。
-export async function scheduled(
-  _controller: ScheduledController,
-  env: Env,
-  _ctx: ExecutionContext
-): Promise<void> {
-  try {
-    await ensureSchema(env);
-    await rebuildSnapshot(env.DB, env);
-  } catch (e) {
-    // 构建失败不会推进已发布版本，下次定时或手动发布可重试。
-    console.error('scheduled rebuild failed', e);
-  }
-}
-
-// Cloudflare Worker 默认导出需带 fetch + scheduled;Hono app.fetch 即 fetch handler。
+// 发布只由管理员通过 /api/rebuild 手动触发，不注册定时任务。
 export default {
   fetch: app.fetch,
-  scheduled,
 };

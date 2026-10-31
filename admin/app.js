@@ -1374,7 +1374,7 @@ async function openSiteConfig() {
   openModal(
     '站点设置',
     '<form id="site-config-form" novalidate>' +
-      '<p class="field-hint">站点级配置。保存后最多 5 分钟自动发布，或点「立即发布」立即生效。</p>' +
+      '<p class="field-hint">站点级配置。保存后需点「立即发布」才会更新公开站。</p>' +
       groupTitle('站点身份') +
       textField('sc-title', '站点标题', site.title, '例如：我的导航') +
       textField('sc-description', '站点描述', site.description, 'meta description') +
