@@ -1534,6 +1534,32 @@ async function openSiteConfig() {
   });
 }
 
+const treePage = document.getElementById('tree-page');
+const dataPage = document.getElementById('data-page');
+
+function setSideNav(action) {
+  document.querySelectorAll('.side-link').forEach((link) => {
+    const active = link.dataset.action === action;
+    link.classList.toggle('is-active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+}
+
+function showDataPage() {
+  treePage.hidden = true;
+  dataPage.hidden = false;
+  setSideNav('data-page');
+  dataPage.querySelector('h2')?.focus();
+}
+
+function showTreePage() {
+  dataPage.hidden = true;
+  treePage.hidden = false;
+  setSideNav('show-tree');
+  document.getElementById('tree-search')?.focus();
+}
+
 async function openSettings() {
   const r = await api('GET', '/api/settings');
   if (!r.ok) {
@@ -1548,9 +1574,8 @@ async function openSettings() {
     return;
   }
   openModal(
-    '数据与备份',
-    '<p class="field-hint">以下为当前站点配置。导入备份会替换全部页面、分类、站点与配置，建议先导出备份。</p>' +
-      '<div class="form-actions form-actions-left"><button type="button" class="btn" data-action="export">⤓ 导出备份</button><button type="button" class="btn" data-action="seed">导入备份 JSON（替换全站）</button></div>' +
+    '当前配置',
+    '<p class="field-hint">以下为当前生效的站点配置。</p>' +
       '<pre class="settings-json">' +
       esc(JSON.stringify(site, null, 2)) +
       '</pre>'
@@ -1921,6 +1946,12 @@ function bindEvents() {
       case 'site-config':
       case 'open-site-config':
         await openSiteConfig();
+        break;
+      case 'data-page':
+        showDataPage();
+        break;
+      case 'show-tree':
+        showTreePage();
         break;
       case 'settings':
       case 'open-settings':

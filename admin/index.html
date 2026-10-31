@@ -41,13 +41,19 @@
 
         <div class="side-group">
           <p class="side-group-title">快捷操作</p>
-          <button type="button" class="side-link" id="btn-import" data-action="import">
+          <button
+            type="button"
+            class="side-link is-active"
+            data-action="show-tree"
+            aria-current="page"
+          >
             <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 15V3.5" />
-              <path d="m7.5 8 4.5-4.5L16.5 8" />
-              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              <rect x="4" y="4" width="6" height="6" rx="1.2" />
+              <rect x="14" y="4" width="6" height="6" rx="1.2" />
+              <rect x="4" y="14" width="6" height="6" rx="1.2" />
+              <rect x="14" y="14" width="6" height="6" rx="1.2" />
             </svg>
-            <span>导入书签</span>
+            <span>页面管理</span>
           </button>
           <button type="button" class="side-link" data-action="open-site-config">
             <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -58,21 +64,13 @@
             </svg>
             <span>站点设置</span>
           </button>
-          <button type="button" class="side-link" data-action="settings">
+          <button type="button" class="side-link" data-action="data-page">
             <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
               <ellipse cx="12" cy="5.5" rx="7" ry="2.8" />
               <path d="M5 5.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
               <path d="M5 11.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
             </svg>
             <span>数据与备份</span>
-          </button>
-          <button type="button" class="side-link" data-action="export-backup">
-            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3.5V15" />
-              <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
-              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-            </svg>
-            <span>导出备份</span>
           </button>
         </div>
 
@@ -90,90 +88,125 @@
 
       <!-- ==================== 主区域 ==================== -->
       <div class="admin-main">
-        <header class="topbar">
-          <div class="topbar-title">
-            <h1>页面管理</h1>
-            <p class="topbar-subtitle">修改后需点「立即发布」才会更新公开站</p>
-          </div>
+        <div id="tree-page">
+          <header class="topbar">
+            <div class="topbar-title">
+              <h1>页面管理</h1>
+              <p class="topbar-subtitle">修改后需点「立即发布」才会更新公开站</p>
+            </div>
 
-          <div class="header-actions">
-            <button
-              type="button"
-              class="btn btn-quiet"
-              id="btn-refresh"
-              data-action="refresh"
-              title="重新加载数据"
-            >
-              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
-                <path d="M20.8 3.7v5.6h-5.6" />
-              </svg>
-              <span>刷新</span>
-            </button>
-            <span class="action-split" aria-hidden="true"></span>
-
-            <button type="button" class="btn" data-action="add-page">
-              <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
-              <span>新增页面</span>
-            </button>
-            <button type="button" class="btn btn-primary" id="btn-publish" data-action="publish">
-              立即发布
-            </button>
-          </div>
-        </header>
-
-        <!-- 搜索 / 发布状态 -->
-        <div class="subbar">
-          <div class="toolbar">
-            <label class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="11" cy="11" r="6.2" />
-                <path d="m20 20-3.6-3.6" />
-              </svg>
-              <input
-                type="search"
-                id="tree-search"
-                placeholder="搜索站点 / 分类 / 页面"
-                autocomplete="off"
-                aria-label="搜索站点、分类或页面"
-              />
+            <div class="header-actions">
               <button
                 type="button"
-                class="search-clear"
-                id="tree-search-clear"
-                aria-label="清空搜索"
-                hidden
+                class="btn btn-quiet"
+                id="btn-refresh"
+                data-action="refresh"
+                title="重新加载数据"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 6l12 12" />
-                  <path d="M18 6 6 18" />
+                <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+                  <path d="M20.8 3.7v5.6h-5.6" />
                 </svg>
+                <span>刷新</span>
               </button>
-            </label>
-            <span
-              class="search-count"
-              id="tree-search-count"
-              role="status"
-              aria-live="polite"
-            ></span>
+              <span class="action-split" aria-hidden="true"></span>
+
+              <button type="button" class="btn" data-action="add-page">
+                <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                <span>新增页面</span>
+              </button>
+              <button type="button" class="btn btn-primary" id="btn-publish" data-action="publish">
+                立即发布
+              </button>
+            </div>
+          </header>
+
+          <!-- 搜索 / 发布状态 -->
+          <div class="subbar">
+            <div class="toolbar">
+              <label class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.2" />
+                  <path d="m20 20-3.6-3.6" />
+                </svg>
+                <input
+                  type="search"
+                  id="tree-search"
+                  placeholder="搜索站点 / 分类 / 页面"
+                  autocomplete="off"
+                  aria-label="搜索站点、分类或页面"
+                />
+                <button
+                  type="button"
+                  class="search-clear"
+                  id="tree-search-clear"
+                  aria-label="清空搜索"
+                  hidden
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12" />
+                    <path d="M18 6 6 18" />
+                  </svg>
+                </button>
+              </label>
+              <span
+                class="search-count"
+                id="tree-search-count"
+                role="status"
+                aria-live="polite"
+              ></span>
+            </div>
+
+            <section class="publish-status" role="status" aria-live="polite" id="publish-status">
+              正在读取发布状态…
+            </section>
           </div>
 
-          <section class="publish-status" role="status" aria-live="polite" id="publish-status">
-            正在读取发布状态…
-          </section>
+          <!-- 加载中 / 脱机 / 错误 -->
+          <div id="status" class="status-notice" role="status" aria-live="polite" hidden>
+            <span class="status-icon"></span>
+            <span class="status-text"></span>
+          </div>
+
+          <!-- 树根：由 app.js 渲染 页面 → 分类 → 站点 -->
+          <main id="tree-root" class="tree-root" aria-label="页面结构"></main>
         </div>
 
-        <!-- 加载中 / 脱机 / 错误 -->
-        <div id="status" class="status-notice" role="status" aria-live="polite" hidden>
-          <span class="status-icon"></span>
-          <span class="status-text"></span>
-        </div>
+        <section id="data-page" class="data-page" hidden aria-label="数据与备份">
+          <header class="data-header">
+            <div>
+              <h2 tabindex="-1">数据与备份</h2>
+              <p>导出、导入和书签统一在这里操作，具体操作会在弹窗中完成。</p>
+            </div>
+            <button type="button" class="btn" data-action="show-tree">返回页面管理</button>
+          </header>
 
-        <!-- 树根：由 app.js 渲染 页面 → 分类 → 站点 -->
-        <main id="tree-root" class="tree-root" aria-label="页面结构"></main>
+          <div class="data-grid">
+            <article class="data-card">
+              <h3>导出备份</h3>
+              <p>下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
+              <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+            </article>
+            <article class="data-card">
+              <h3>导入备份</h3>
+              <p>用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
+              <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+            </article>
+            <article class="data-card">
+              <h3>导入书签</h3>
+              <p>从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。</p>
+              <button type="button" class="btn" data-action="import">导入书签</button>
+            </article>
+            <article class="data-card">
+              <h3>当前配置</h3>
+              <p>只读查看当前生效的站点配置。</p>
+              <button type="button" class="btn" data-action="settings">查看配置</button>
+            </article>
+          </div>
+        </section>
       </div>
     </div>
 

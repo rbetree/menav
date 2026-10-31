@@ -66,11 +66,14 @@ try {
   assert.equal(one.description, undefined);
   assert.equal(one.faviconUrl, undefined);
   assert.equal(one.icon, undefined);
+  await page.locator('[data-action="data-page"]').click();
+  await page.waitForFunction(() => !document.querySelector('#data-page').hidden);
   await page.locator('[data-action="settings"]').click();
   await page.waitForSelector('.settings-json');
   assert.match(await page.locator('.settings-json').textContent(), /浏览器测试站点/);
+  await page.locator('[data-action="modal-close"]').last().click();
   const downloadPromise = page.waitForEvent('download');
-  await page.locator('[data-action="export"]').click();
+  await page.locator('[data-action="export-backup"]').click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   let backupText = '';
@@ -94,6 +97,8 @@ try {
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
   );
+  await page.locator('#data-page [data-action="show-tree"]').click();
+  await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
   await page.waitForSelector('.page-block');
   assert.deepEqual(await labels(), ['其他', '首页']);
   await page.locator('[data-action="edit-page"]').first().click();
