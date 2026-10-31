@@ -7,6 +7,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-01",
   "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+  // 发布由管理员手动触发；显式空数组用于清除历史定时触发器。
+  "triggers": { "crons": [] },
   "d1_databases": [
     {
       "binding": "DB",
@@ -31,6 +33,7 @@
     "staging": {
       "name": "menav-backend-test",
       "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+      "triggers": { "crons": [] },
       "d1_databases": [
         {
           "binding": "DB",
