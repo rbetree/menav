@@ -229,21 +229,21 @@ svg {
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
-  padding: var(--s-4);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--panel);
+  overflow: hidden;
 }
 
-/* 标题与正文之间用分隔线拉开层级，避免标题只是加粗的一段文字 */
+/* 标题栏通栏着色并压一条分隔线，和页面管理页的页面块头部对齐 */
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
-  padding-bottom: var(--s-2);
+  padding: 0.55rem var(--s-4);
   border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--accent) 6%, var(--panel));
 }
 
 .card-title {
@@ -252,6 +252,14 @@ svg {
   font-size: 0.92rem;
   font-weight: 650;
   letter-spacing: -0.01em;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
 }
 
 .card-desc {
@@ -269,7 +277,7 @@ svg {
   padding-top: var(--s-4);
 }
 
-.data-card {
+.data-card .card-body {
   gap: var(--s-2);
 }
 

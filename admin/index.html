@@ -186,23 +186,33 @@
           <div class="data-grid">
             <article class="card data-card">
               <header class="card-head"><h3 class="card-title">导出备份</h3></header>
-              <p class="card-desc">下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
-              <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+              <div class="card-body">
+                <p class="card-desc">下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
+                <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+              </div>
             </article>
             <article class="card data-card">
               <header class="card-head"><h3 class="card-title">导入备份</h3></header>
-              <p class="card-desc">用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
-              <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+              <div class="card-body">
+                <p class="card-desc">用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
+                <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+              </div>
             </article>
             <article class="card data-card">
               <header class="card-head"><h3 class="card-title">导入书签</h3></header>
-              <p class="card-desc">从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。</p>
-              <button type="button" class="btn" data-action="import">导入书签</button>
+              <div class="card-body">
+                <p class="card-desc">
+                  从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。
+                </p>
+                <button type="button" class="btn" data-action="import">导入书签</button>
+              </div>
             </article>
             <article class="card data-card">
               <header class="card-head"><h3 class="card-title">当前配置</h3></header>
-              <p class="card-desc">只读查看当前生效的站点配置。</p>
-              <button type="button" class="btn" data-action="settings">查看配置</button>
+              <div class="card-body">
+                <p class="card-desc">只读查看当前生效的站点配置。</p>
+                <button type="button" class="btn" data-action="settings">查看配置</button>
+              </div>
             </article>
           </div>
         </section>

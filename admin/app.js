@@ -1519,11 +1519,11 @@ function settingsCard(title, body, columns) {
     '<header class="card-head"><h3 class="card-title">' +
     esc(title) +
     '</h3></header>' +
-    '<div class="settings-grid' +
+    '<div class="card-body"><div class="settings-grid' +
     (columns === 3 ? ' settings-grid--three' : '') +
     '">' +
     body +
-    '</div></section>'
+    '</div></div></section>'
   );
 }
 
