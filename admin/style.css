@@ -225,65 +225,99 @@ svg {
   padding: 0 var(--s-6) var(--s-7);
 }
 
-/* ==================== 数据与备份页 ==================== */
-.data-page {
-  padding-top: var(--s-6);
-}
-
-.data-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--s-4);
-  padding-bottom: var(--s-5);
-  border-bottom: 1px solid var(--line);
-}
-
-.data-header h2 {
-  margin: 0 0 var(--s-2);
-  font-size: 1.15rem;
-  font-weight: 650;
-}
-
-.data-header p {
-  margin: 0;
-  color: var(--text-3);
-  font-size: 0.86rem;
-}
-
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-4);
-  padding-top: var(--s-5);
-}
-
-.data-card {
+/* ==================== 卡片 ==================== */
+.card {
   display: flex;
   flex-direction: column;
-  gap: var(--s-2);
-  padding: var(--s-4);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--panel);
+  overflow: hidden;
 }
 
-.data-card h3 {
+/* 标题栏通栏着色并压一条分隔线，和页面管理页的页面块头部对齐 */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: 0.55rem var(--s-4);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--accent) 6%, var(--panel));
+}
+
+.card-title {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 620;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
-.data-card p {
+.card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+}
+
+.card-desc {
   margin: 0;
   color: var(--text-3);
   font-size: 0.82rem;
   line-height: 1.55;
 }
 
+/* ==================== 数据与备份页 ==================== */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+  padding-top: var(--s-4);
+}
+
+.data-card .card-body {
+  gap: var(--s-2);
+}
+
 .data-card .btn {
   align-self: flex-start;
-  margin-top: var(--s-2);
+  margin-top: auto;
+}
+
+.site-config-content {
+  max-width: 980px;
+  padding-top: var(--s-4);
+}
+
+.settings-card {
+  margin-bottom: var(--s-4);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) var(--s-4);
+}
+
+.settings-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-field--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-grid textarea {
+  min-height: 8rem;
+}
+
+@media (max-width: 720px) {
+  .settings-grid,
+  .settings-grid--three {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -291,7 +325,8 @@ svg {
     grid-template-columns: 1fr;
   }
 
-  .data-header {
+  .view-header {
+    align-items: flex-start;
     flex-direction: column;
   }
 }
@@ -448,8 +483,8 @@ svg {
   color: var(--text);
 }
 
-/* ==================== 顶栏 ==================== */
-.topbar {
+/* ==================== 页面头部 ==================== */
+.view-header {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -462,7 +497,7 @@ svg {
   background: var(--bg);
 }
 
-.topbar::after {
+.view-header::after {
   content: '';
   position: absolute;
   inset: auto 0 0;
@@ -470,20 +505,20 @@ svg {
   background: var(--line);
 }
 
-.topbar-title h1 {
+.view-heading h1 {
   font-size: 1.3rem;
   font-weight: 650;
   letter-spacing: -0.018em;
   line-height: 1.25;
 }
 
-.topbar-subtitle {
+.view-heading p {
   margin-top: 2px;
   font-size: 0.8rem;
   color: var(--text-3);
 }
 
-.header-actions {
+.view-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1034,6 +1069,11 @@ svg {
   object-fit: contain;
 }
 
+.site-favicon i {
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
 /* ---- 拖拽把手 / 节点元信息 ---- */
 .drag-grip {
   flex: none;
@@ -1345,6 +1385,7 @@ svg {
 
 input[type='text'],
 input[type='search'],
+input[type='number'],
 input[type='file'],
 select,
 textarea {
@@ -1400,6 +1441,17 @@ textarea:focus {
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 input[type='file'] {
   padding: 0.4rem 0.5rem;
   font-size: 0.82rem;
@@ -1430,6 +1482,76 @@ input[type='file']::file-selector-button {
   font-weight: 600;
 }
 
+/* 图标来源切换：三选一，选中态用强调色块 */
+.segmented {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+}
+
+.segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented span {
+  display: block;
+  padding: 0.34rem 0.75rem;
+  border-radius: calc(var(--r-md) - 2px);
+  color: var(--text-2);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.segmented input:checked + span {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 图标输入：预览方块 + 文本框 + 选择按钮 */
+.icon-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-input-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.icon-input-preview {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--field);
+  color: var(--text-2);
+  font-size: 1rem;
+}
+
+.icon-input-preview span {
+  color: var(--text-3);
+}
+
 .form-check {
   display: flex;
   align-items: flex-start;
@@ -1458,6 +1580,63 @@ input[type='file']::file-selector-button {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--bg-deep);
+}
+
+.form-switch {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+}
+
+.form-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-switch label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 2.2rem;
+  height: 1.25rem;
+  border-radius: var(--r-full);
+  background: var(--panel-3);
+  transition: background-color var(--t-fast);
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--t-fast);
+}
+
+.form-switch input:checked + label .switch-track {
+  background: var(--accent);
+}
+
+.form-switch input:checked + label .switch-track::after {
+  transform: translateX(0.95rem);
+}
+
+.form-switch input:focus-visible + label .switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .form-error {
@@ -1771,12 +1950,12 @@ input[type='file']::file-selector-button {
     display: none;
   }
 
-  .topbar {
+  .view-header {
     align-items: flex-start;
     padding-top: var(--s-4);
   }
 
-  .header-actions {
+  .view-actions {
     width: 100%;
   }
 

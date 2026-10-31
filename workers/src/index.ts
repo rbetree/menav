@@ -45,7 +45,12 @@ function ensureSchema(env: Env): Promise<void> {
   });
   return schemaReady;
 }
-app.use('*', async (c, next) => {
+// 静态资源不需要数据库；只在 API 与构建读取时确保表结构。
+app.use('/api/*', async (c, next) => {
+  await ensureSchema(c.env);
+  return next();
+});
+app.use('/build/*', async (c, next) => {
   await ensureSchema(c.env);
   return next();
 });
@@ -76,7 +81,9 @@ admin.use('*', async (c, next) => {
   await next();
   // ASSETS 会返回自身的缓存头，必须在最终响应上覆盖；
   // 管理台承载 Access 会话,补齐安全响应头抵御点击劫持与 MIME 嗅探。
-  c.header('Cache-Control', 'no-store');
+  const path = c.req.path;
+  const cacheable = path.endsWith('.js') || path.endsWith('.css');
+  c.header('Cache-Control', cacheable ? 'private, max-age=300' : 'no-store');
   c.header('X-Content-Type-Options', 'nosniff');
   c.header('X-Frame-Options', 'DENY');
   c.header('Referrer-Policy', 'no-referrer');

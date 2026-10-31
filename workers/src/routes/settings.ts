@@ -59,22 +59,30 @@ settingsRoutes.put('/site', async (c) => {
     );
   }
 
-  // favicon 只能指向已存在的快照资源,否则校验通过但发布后 404。
-  const favicon = (parsed.data as { favicon?: string }).favicon;
-  if (favicon) {
-    const assetsRow = await c.env.DB.prepare("SELECT value FROM settings WHERE key = 'assets'").first<{
-      value: string;
-    }>();
-    let keys: string[] = [];
-    if (assetsRow?.value) {
-      try {
-        keys = Object.keys(object(JSON.parse(assetsRow.value), 'settings.assets'));
-      } catch {
-        keys = [];
-      }
+  // 图片字段只能指向已存在的快照资源,否则校验通过但发布后 404。
+  const assetsRow = await c.env.DB.prepare(
+    "SELECT value FROM settings WHERE key = 'assets'"
+  ).first<{
+    value: string;
+  }>();
+  let keys: string[] = [];
+  if (assetsRow?.value) {
+    try {
+      keys = Object.keys(object(JSON.parse(assetsRow.value), 'settings.assets'));
+    } catch {
+      keys = [];
     }
-    if (!isSnapshotAssetPath(favicon) || !keys.includes(favicon))
-      throw new ApiError(400, 'favicon 必须是已存在的图片资源', 'invalid_favicon');
+  }
+  for (const key of ['favicon', 'logo'] as const) {
+    if (!(key in patch)) continue;
+    const raw = patch[key];
+    if (raw === '' || raw === null) continue;
+    // 未改动的旧值可能来自迁移资源，放行以免任何保存都被历史路径挡住。
+    if (raw === current[key]) continue;
+    const value = String(raw).replace(/^\.?\//, '');
+    if (!isSnapshotAssetPath(value) || !keys.includes(value))
+      throw new ApiError(400, `${key} 必须是已存在的图片资源`, `invalid_${key}`);
+    (parsed.data as Record<string, unknown>)[key] = value;
   }
 
   await commitEdit(c, [

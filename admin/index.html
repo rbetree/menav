@@ -40,7 +40,7 @@
         </div>
 
         <div class="side-group">
-          <p class="side-group-title">快捷操作</p>
+          <p class="side-group-title">页面</p>
           <button
             type="button"
             class="side-link is-active"
@@ -88,14 +88,14 @@
 
       <!-- ==================== 主区域 ==================== -->
       <div class="admin-main">
-        <div id="tree-page">
-          <header class="topbar">
-            <div class="topbar-title">
+        <div id="tree-page" class="page">
+          <header class="view-header">
+            <div class="view-heading">
               <h1>页面管理</h1>
-              <p class="topbar-subtitle">修改后需点「立即发布」才会更新公开站</p>
+              <p>修改后需点「立即发布」才会更新公开站</p>
             </div>
 
-            <div class="header-actions">
+            <div class="view-actions">
               <button
                 type="button"
                 class="btn btn-quiet"
@@ -175,37 +175,62 @@
           <main id="tree-root" class="tree-root" aria-label="页面结构"></main>
         </div>
 
-        <section id="data-page" class="data-page" hidden aria-label="数据与备份">
-          <header class="data-header">
-            <div>
-              <h2 tabindex="-1">数据与备份</h2>
+        <section id="data-page" class="page" hidden aria-label="数据与备份">
+          <header class="view-header">
+            <div class="view-heading">
+              <h1 tabindex="-1">数据与备份</h1>
               <p>导出、导入和书签统一在这里操作，具体操作会在弹窗中完成。</p>
             </div>
-            <button type="button" class="btn" data-action="show-tree">返回页面管理</button>
           </header>
 
           <div class="data-grid">
-            <article class="data-card">
-              <h3>导出备份</h3>
-              <p>下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
-              <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导出备份</h3></header>
+              <div class="card-body">
+                <p class="card-desc">下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
+                <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+              </div>
             </article>
-            <article class="data-card">
-              <h3>导入备份</h3>
-              <p>用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
-              <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导入备份</h3></header>
+              <div class="card-body">
+                <p class="card-desc">用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
+                <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+              </div>
             </article>
-            <article class="data-card">
-              <h3>导入书签</h3>
-              <p>从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。</p>
-              <button type="button" class="btn" data-action="import">导入书签</button>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导入书签</h3></header>
+              <div class="card-body">
+                <p class="card-desc">
+                  从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。
+                </p>
+                <button type="button" class="btn" data-action="import">导入书签</button>
+              </div>
             </article>
-            <article class="data-card">
-              <h3>当前配置</h3>
-              <p>只读查看当前生效的站点配置。</p>
-              <button type="button" class="btn" data-action="settings">查看配置</button>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">当前配置</h3></header>
+              <div class="card-body">
+                <p class="card-desc">只读查看当前生效的站点配置。</p>
+                <button type="button" class="btn" data-action="settings">查看配置</button>
+              </div>
             </article>
           </div>
+        </section>
+
+        <section id="site-config-page" class="page" hidden aria-label="站点设置">
+          <header class="view-header">
+            <div class="view-heading">
+              <h1 tabindex="-1">站点设置</h1>
+              <p>站点级配置，保存后需要发布才会更新公开站。</p>
+            </div>
+            <div class="view-actions">
+              <button type="button" class="btn" data-action="cancel-site-config">取消</button>
+              <button type="button" class="btn btn-primary" data-action="save-site-config">
+                保存
+              </button>
+            </div>
+          </header>
+          <div id="site-config-content" class="site-config-content"></div>
         </section>
       </div>
     </div>
@@ -231,6 +256,7 @@
     <!-- Toast 容器 -->
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
+    <script src="./vendor/icon-picker/icon-picker.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

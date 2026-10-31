@@ -135,13 +135,13 @@ function isNotFound(r) {
   return !r.ok && !r.auth && r.status === 404;
 }
 
-async function api(method, path, body) {
+async function api(method, path, body, etagOverride) {
   const opts = { method, credentials: 'include', headers: {} };
   const mutation = method !== 'GET' && path !== '/api/rebuild';
   if (mutation && mutationPending)
     return { ok: false, status: 409, error: 'busy', detail: '请等待当前保存完成' };
   if (mutation) {
-    const etag = modalEtag || stateEtag;
+    const etag = etagOverride || modalEtag || stateEtag;
     if (!etag)
       return { ok: false, status: 409, error: 'revision_conflict', detail: '请先刷新数据后再编辑' };
     opts.headers['If-Match'] = etag;
@@ -244,7 +244,7 @@ async function loadState(opts = {}) {
   const scrollY = window.scrollY;
   renderTree();
   if (silent) window.scrollTo(0, scrollY);
-  await loadPublishStatus();
+  void loadPublishStatus();
 }
 
 /* ---------- 节点索引:定位节点 + 兄弟列表 ---------- */
@@ -568,6 +568,11 @@ function renderSite(c, s) {
 }
 
 function faviconHtml(s) {
+  // 手动图标优先展示图标库结果，与公开站卡片一致。
+  if (s.metadata?.forceIconMode === 'manual' && s.icon) {
+    iconPicker.preload();
+    return '<span class="site-favicon"><i class="' + esc(s.icon) + '"></i></span>';
+  }
   const imgSrc = s.faviconUrl || (s.icon && /^https?:/.test(s.icon) ? s.icon : null);
   const fallback = esc((s.name || '?').charAt(0).toUpperCase());
   if (imgSrc) {
@@ -715,9 +720,15 @@ function modalEsc(e) {
 }
 
 /* 表单字段辅助 */
-function textField(name, label, value, placeholder, hint) {
+function formFieldClass(wide) {
+  return 'form-field' + (wide ? ' form-field--wide' : '');
+}
+
+function textField(name, label, value, placeholder, hint, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -735,9 +746,29 @@ function textField(name, label, value, placeholder, hint) {
   );
 }
 
-function textareaField(name, label, value, placeholder, hint) {
+function switchField(name, label, checked, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="form-field form-switch' +
+    (wide ? ' form-field--wide' : '') +
+    '"><input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="checkbox"' +
+    (checked ? ' checked' : '') +
+    '><label for="f-' +
+    name +
+    '"><span class="switch-track" aria-hidden="true"></span><span>' +
+    label +
+    '</span></label></div>'
+  );
+}
+
+function textareaField(name, label, value, placeholder, hint, wide) {
+  return (
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -755,7 +786,7 @@ function textareaField(name, label, value, placeholder, hint) {
   );
 }
 
-function selectField(name, label, options, selected, hint) {
+function selectField(name, label, options, selected, hint, wide) {
   const opts = options
     .map(
       (o) =>
@@ -769,7 +800,9 @@ function selectField(name, label, options, selected, hint) {
     )
     .join('');
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -785,9 +818,11 @@ function selectField(name, label, options, selected, hint) {
   );
 }
 
-function checkField(name, label, checked) {
+function checkField(name, label, checked, wide) {
   return (
-    '<div class="form-field form-check"><input id="f-' +
+    '<div class="form-field form-check' +
+    (wide ? ' form-field--wide' : '') +
+    '"><input id="f-' +
     name +
     '" name="' +
     name +
@@ -811,6 +846,58 @@ function formActions(okText) {
     '</button>' +
     '</div>'
   );
+}
+
+/* ---------- 图标选择 ---------- */
+const iconPicker = new MenavIconPicker({
+  sources: [
+    { label: '实心', url: './icons/fa6-solid.json' },
+    { label: '常规', url: './icons/fa6-regular.json' },
+    { label: '品牌', url: './icons/fa6-brands.json' },
+  ],
+});
+
+function iconField(name, label, value, placeholder, hint) {
+  return (
+    '<div class="form-field form-field--wide"><label for="f-' +
+    name +
+    '">' +
+    label +
+    '</label><div class="icon-input-row">' +
+    '<span class="icon-input-preview" id="preview-' +
+    name +
+    '" aria-hidden="true"></span>' +
+    '<input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="text" value="' +
+    esc(value || '') +
+    '" placeholder="' +
+    esc(placeholder || 'fas fa-link') +
+    '">' +
+    '<button type="button" class="btn" data-icon-pick="' +
+    name +
+    '">选择图标</button>' +
+    '</div>' +
+    (hint ? '<div class="field-hint">' + hint + '</div>' : '') +
+    '</div>'
+  );
+}
+
+/* 预览随输入即时更新；只有真的用到图标时才加载字体 */
+function bindIconField(name) {
+  const input = document.getElementById('f-' + name);
+  const preview = document.getElementById('preview-' + name);
+  const button = document.querySelector('[data-icon-pick="' + name + '"]');
+  const sync = () => {
+    const value = input.value.trim();
+    preview.innerHTML = value ? '<i class="' + esc(value) + '"></i>' : '<span>—</span>';
+    if (value) iconPicker.preload();
+  };
+  input.addEventListener('input', sync);
+  button.addEventListener('click', () => iconPicker.open(input, { title: '选择图标' }));
+  sync();
 }
 
 function setFormError(msg) {
@@ -899,7 +986,13 @@ function openPageForm(p) {
         '首页标题由站点个人资料设置决定'
       ) +
       textField('subtitle', '页面说明', p?.metadata?.subtitle || '', '') +
-      textField('navIcon', '导航图标', p?.navigation?.icon || '', 'fas fa-link') +
+      iconField(
+        'navIcon',
+        '导航图标',
+        p?.navigation?.icon || '',
+        'fas fa-link',
+        '显示在侧边栏导航中，留空使用默认图标'
+      ) +
       '<div id="markdown-field">' +
       textareaField(
         'markdown',
@@ -922,6 +1015,7 @@ function openPageForm(p) {
   };
   templateSel.addEventListener('change', syncMarkdown);
   syncMarkdown();
+  bindIconField('navIcon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
@@ -980,6 +1074,13 @@ function openCategoryForm(opts) {
     isEdit ? '编辑分类' : '新增分类',
     '<form id="node-form" novalidate>' +
       textField('label', '分类名称', isEdit ? opts.edit.label : '', '例如:开发工具', '必填') +
+      iconField(
+        'icon',
+        '分类图标',
+        isEdit ? opts.edit.metadata?.icon || '' : '',
+        'fas fa-folder',
+        '显示在分类标题前，留空不显示'
+      ) +
       selectField(
         'parentId',
         '父分类',
@@ -991,12 +1092,17 @@ function openCategoryForm(opts) {
       formActions(isEdit ? '保存' : '新增')
   );
   const form = document.getElementById('node-form');
+  bindIconField('icon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
       const label = document.getElementById('f-label').value.trim();
       const parentVal = document.getElementById('f-parentId').value;
       const foldable = document.getElementById('f-foldable').checked;
+      const icon = document.getElementById('f-icon').value.trim();
+      const metadata = { ...((isEdit && opts.edit.metadata) || {}) };
+      if (icon) metadata.icon = icon;
+      else delete metadata.icon;
       if (!label) {
         setFormError('分类名称不能为空');
         return;
@@ -1007,6 +1113,7 @@ function openCategoryForm(opts) {
         r = await api('PUT', '/api/categories/' + opts.edit.id, {
           label,
           foldable,
+          metadata,
           parentId: parentVal === '' ? null : parentVal,
         });
       } else {
@@ -1015,6 +1122,7 @@ function openCategoryForm(opts) {
           parentId: parentVal === '' ? null : parentVal,
           label,
           foldable,
+          metadata,
         });
       }
       if (r.ok) {
@@ -1062,13 +1170,49 @@ function openSiteForm(opts) {
         '必填,缺少协议会自动补 https://'
       ) +
       textField('description', '描述', s && s.description ? s.description : '', '一行简介(可选)') +
+      '<div class="form-field form-field--wide"><label>图标来源</label>' +
+      '<div class="segmented" role="radiogroup" aria-label="图标来源">' +
+      '<label><input type="radio" name="iconMode" value="auto"><span>自动网站图标</span></label>' +
+      '<label><input type="radio" name="iconMode" value="library"><span>图标库</span></label>' +
+      '<label><input type="radio" name="iconMode" value="image"><span>图片地址</span></label>' +
+      '</div><div class="field-hint" id="icon-mode-hint"></div></div>' +
+      '<div id="icon-library-row" hidden>' +
+      iconField(
+        'icon',
+        '图标',
+        s?.icon || '',
+        'fas fa-link',
+        '点击「选择图标」，也可以直接填写图标类名'
+      ) +
+      '</div>' +
+      '<div id="icon-image-row" hidden>' +
       textField(
         'faviconUrl',
-        '图标地址',
-        s && s.faviconUrl ? s.faviconUrl : '',
-        'https://…/favicon.ico(可选)'
+        '图片地址',
+        s?.faviconUrl || '',
+        'https://example.com/logo.png',
+        '支持绝对地址或 assets/ 下的资源路径',
+        true
       ) +
-      textField('icon', '图标(类/emoji)', s && s.icon ? s.icon : '', '可选') +
+      '</div>' +
+      selectField(
+        'style',
+        '卡片样式',
+        [
+          { value: '', label: '普通站点' },
+          { value: 'repo', label: '仓库卡片' },
+        ],
+        s?.metadata?.style || ''
+      ) +
+      selectField(
+        'type',
+        '卡片类型',
+        [
+          { value: '', label: '普通站点' },
+          { value: 'article', label: '文章卡片' },
+        ],
+        s?.metadata?.type || ''
+      ) +
       checkField('external', '外部链接(新标签页打开)', s ? !!s.external : true) +
       formActions(isEdit ? '保存' : '新增')
   );
@@ -1077,6 +1221,32 @@ function openSiteForm(opts) {
   urlInput.addEventListener('blur', () => {
     urlInput.value = normalizeUrl(urlInput.value);
   });
+  const iconModeRadios = form.querySelectorAll('input[name="iconMode"]');
+  const libraryRow = document.getElementById('icon-library-row');
+  const imageRow = document.getElementById('icon-image-row');
+  const modeHint = document.getElementById('icon-mode-hint');
+  const meta = s?.metadata || {};
+  // 旧站点没有 forceIconMode 时按 favicon 地址推断；残留的 icon 保留为回退图标。
+  const initialMode =
+    meta.forceIconMode === 'manual' ? 'library' : s?.faviconUrl ? 'image' : 'auto';
+  iconModeRadios.forEach((radio) => {
+    radio.checked = radio.value === initialMode;
+    radio.addEventListener('change', syncIconMode);
+  });
+  function syncIconMode() {
+    const mode = form.querySelector('input[name="iconMode"]:checked').value;
+    libraryRow.hidden = mode !== 'library';
+    imageRow.hidden = mode !== 'image';
+    modeHint.textContent =
+      mode === 'auto'
+        ? '按站点网址自动获取 favicon，获取失败时显示内置图标'
+        : mode === 'library'
+          ? '从图标库中选择，也可以直接填写 Font Awesome 类名'
+          : '使用自定义图片作为站点图标';
+    if (mode === 'library') iconPicker.preload();
+  }
+  syncIconMode();
+  bindIconField('icon');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
@@ -1086,14 +1256,44 @@ function openSiteForm(opts) {
         setFormError('名称与网址都是必填项');
         return;
       }
+      const metadata = { ...(s?.metadata || {}) };
+      for (const [key, id] of [
+        ['style', 'f-style'],
+        ['type', 'f-type'],
+      ]) {
+        const value = document.getElementById(id).value;
+        if (value) metadata[key] = value;
+        else delete metadata[key];
+      }
+      const mode = form.querySelector('input[name="iconMode"]:checked').value;
+      const iconValue = document.getElementById('f-icon').value.trim();
+      const imageValue = document.getElementById('f-faviconUrl').value.trim();
+      if (mode === 'library' && !iconValue) {
+        setFormError('请选择一个图标');
+        return;
+      }
+      if (mode === 'image' && !imageValue) {
+        setFormError('请填写图标图片地址');
+        return;
+      }
       const payload = {
         name,
         url,
         description: document.getElementById('f-description').value.trim(),
-        faviconUrl: document.getElementById('f-faviconUrl').value.trim(),
-        icon: document.getElementById('f-icon').value.trim(),
         external: document.getElementById('f-external').checked,
+        metadata,
       };
+      if (mode === 'library') {
+        payload.icon = iconValue;
+        payload.faviconUrl = null;
+        metadata.forceIconMode = 'manual';
+      } else if (mode === 'image') {
+        payload.faviconUrl = imageValue;
+        metadata.forceIconMode = 'favicon';
+      } else {
+        payload.faviconUrl = null;
+        metadata.forceIconMode = 'favicon';
+      }
       const r = isEdit
         ? await api('PUT', '/api/sites/' + s.id, payload)
         : await api('POST', '/api/sites', { categoryId: opts.categoryId, ...payload });
@@ -1312,15 +1512,27 @@ async function loadPublishStatus() {
   );
 }
 
-/* 表单分组标题 */
-function groupTitle(text) {
-  return '<h3 class="form-group-title">' + esc(text) + '</h3>';
+/* 站点设置的分组卡片：短字段自动并排，长字段占满一行。 */
+function settingsCard(title, body, columns) {
+  return (
+    '<section class="card settings-card">' +
+    '<header class="card-head"><h3 class="card-title">' +
+    esc(title) +
+    '</h3></header>' +
+    '<div class="card-body"><div class="settings-grid' +
+    (columns === 3 ? ' settings-grid--three' : '') +
+    '">' +
+    body +
+    '</div></div></section>'
+  );
 }
 
 /* 数字字段(留空表示不修改) */
-function numberField(name, label, value, placeholder, hint) {
+function numberField(name, label, value, placeholder, hint, wide) {
   return (
-    '<div class="form-field"><label for="f-' +
+    '<div class="' +
+    formFieldClass(wide) +
+    '"><label for="f-' +
     name +
     '">' +
     label +
@@ -1339,10 +1551,26 @@ function numberField(name, label, value, placeholder, hint) {
 }
 
 /* 站点级配置(身份/外观/字体/资料/社交/安全/RSS/GitHub)的可视化编辑。 */
-async function openSiteConfig() {
+let settingsCache = null;
+let settingsEtag = null;
+
+async function loadSettings(force = false) {
+  if (settingsCache && !force) return settingsCache;
   const r = await api('GET', '/api/settings');
+  if (r.ok) {
+    settingsCache = r;
+    settingsEtag = r.etag || null;
+  }
+  return r;
+}
+
+async function openSiteConfig() {
+  showSiteConfigPage();
+  const content = document.getElementById('site-config-content');
+  content.innerHTML = '<p class="field-hint">正在加载站点配置…</p>';
+  const r = await loadSettings(true);
   if (!r.ok) {
-    toast(writeErr(r), 'error');
+    content.innerHTML = '<p class="form-error">' + esc(writeErr(r)) + '</p>';
     return;
   }
   let site = {};
@@ -1350,12 +1578,14 @@ async function openSiteConfig() {
   try {
     site = JSON.parse(r.site || '{}');
   } catch {
-    site = {};
+    content.innerHTML = '<p class="form-error">站点配置格式损坏，请先导出备份并修复后再保存。</p>';
+    return;
   }
   try {
     assets = JSON.parse(r.assets || '{}');
   } catch {
-    assets = {};
+    content.innerHTML = '<p class="form-error">图片资源格式损坏，请先导出备份并修复后再保存。</p>';
+    return;
   }
   const theme = site.theme || {};
   const icons = site.icons || {};
@@ -1364,30 +1594,44 @@ async function openSiteConfig() {
   const security = site.security || {};
   const rss = site.rss || {};
   const rssArticles = rss.articles || {};
+  const rssFetch = rss.fetch || {};
   const gh = site.github || {};
   const social = Array.isArray(site.social) ? site.social : [];
   const schemes = Array.isArray(security.allowedSchemes) ? security.allowedSchemes : [];
-  const faviconOptions = [{ value: '', label: '(默认 / 不设置)' }].concat(
-    Object.keys(assets).map((key) => ({ value: key, label: key }))
-  );
+  const assetOptions = Object.keys(assets).map((key) => ({ value: key, label: key }));
+  const faviconOptions = [{ value: '', label: '(使用默认 menav.svg)' }].concat(assetOptions);
+  const logoOptions = [{ value: '', label: '(不设置)' }].concat(assetOptions);
 
-  openModal(
-    '站点设置',
+  document.getElementById('site-config-content').innerHTML =
     '<form id="site-config-form" novalidate>' +
-      '<p class="field-hint">站点级配置。保存后需点「立即发布」才会更新公开站。</p>' +
-      groupTitle('站点身份') +
+    settingsCard(
+      '站点身份',
       textField('sc-title', '站点标题', site.title, '例如：我的导航') +
-      textField('sc-description', '站点描述', site.description, 'meta description') +
-      textField('sc-author', '作者', site.author, '') +
-      textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
-      selectField(
-        'sc-favicon',
-        '站点图标',
-        faviconOptions,
-        site.favicon || '',
-        '只能选择站点已有的图片资源（避免发布后 404）'
-      ) +
-      groupTitle('外观') +
+        textField('sc-author', '作者', site.author, '') +
+        textField('sc-description', '站点描述', site.description, 'meta description', '', true) +
+        textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '', '', true) +
+        selectField(
+          'sc-favicon',
+          '站点图标',
+          faviconOptions,
+          site.favicon || '',
+          '只能选择站点已有的图片资源（避免发布后 404）'
+        ) +
+        selectField(
+          'sc-logo',
+          'Logo 图片',
+          logoOptions,
+          site.logo || '',
+          '侧栏品牌图，优先于站点图标；只能选择已有资源'
+        )
+    ) +
+    settingsCard(
+      'SEO 与页脚',
+      textField('sc-keywords', '关键词', site.keywords, 'meta keywords，逗号分隔') +
+        textField('sc-footer', '页脚文字', site.footer, '显示在侧栏底部')
+    ) +
+    settingsCard(
+      '外观',
       selectField(
         'sc-theme',
         '默认外观',
@@ -1398,29 +1642,25 @@ async function openSiteConfig() {
         ],
         theme.mode || 'system'
       ) +
-      selectField(
-        'sc-icons-mode',
-        '卡片图标模式',
-        [
-          { value: 'favicon', label: '自动获取 favicon' },
-          { value: 'manual', label: '手动图标' },
-        ],
-        icons.mode || 'favicon',
-        '自动模式会请求外部 favicon 服务'
-      ) +
-      selectField(
-        'sc-icons-region',
-        'favicon 服务区域',
-        [
-          { value: 'com', label: '国外（优先 gstatic.com）' },
-          { value: 'cn', label: '国内（优先 gstatic.cn）' },
-        ],
-        icons.region || 'com'
-      ) +
-      groupTitle('个人资料（首页）') +
+        selectField(
+          'sc-icons-region',
+          'favicon 服务区域',
+          [
+            { value: 'com', label: '国外（优先 gstatic.com）' },
+            { value: 'cn', label: '国内（优先 gstatic.cn）' },
+          ],
+          icons.region || 'com',
+          '自动获取 favicon，失败时使用内置图标'
+        ),
+      2
+    ) +
+    settingsCard(
+      '个人资料（首页）',
       textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
-      textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '') +
-      groupTitle('字体') +
+        textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '')
+    ) +
+    settingsCard(
+      '字体',
       selectField(
         'sc-fonts-source',
         '字体来源',
@@ -1431,43 +1671,72 @@ async function openSiteConfig() {
         ],
         fonts.source || 'system'
       ) +
-      textField(
-        'sc-fonts-css-url',
-        '字体 CSS 地址',
-        fonts.cssUrl,
-        'https://…',
-        '来源为 CSS 时使用'
-      ) +
-      textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
-      textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
-      checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true) +
-      groupTitle('社交链接') +
+        textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
+        textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
+        textField(
+          'sc-fonts-css-url',
+          '字体 CSS 地址',
+          fonts.cssUrl,
+          'https://…',
+          '来源为 CSS 时使用',
+          true
+        ) +
+        switchField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true, true),
+      3
+    ) +
+    settingsCard(
+      '社交链接',
       textareaField(
         'sc-social',
         '每行一个：名称 | URL | 图标',
         social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
-        'GitHub | https://github.com/me | fab fa-github'
-      ) +
-      groupTitle('外链安全') +
+        'GitHub | https://github.com/me | fab fa-github',
+        '',
+        true
+      )
+    ) +
+    settingsCard(
+      '外链安全',
       textField(
         'sc-schemes',
         '允许的链接协议（逗号分隔）',
         schemes.join(', '),
         'https, http, mailto',
-        '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄'
-      ) +
-      groupTitle('RSS 文章') +
-      checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true) +
-      numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
-      numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
-      numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认') +
-      groupTitle('GitHub 贡献图') +
+        '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄',
+        true
+      )
+    ) +
+    settingsCard(
+      'RSS 文章',
+      switchField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true, true) +
+        numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
+        numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
+        numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认'),
+      3
+    ) +
+    settingsCard(
+      'RSS 抓取参数',
+      numberField('sc-rss-timeout', '单次请求超时（毫秒）', rssFetch.timeoutMs, '默认 10000') +
+        numberField(
+          'sc-rss-total-timeout',
+          '总超时（毫秒）',
+          rssFetch.totalTimeoutMs,
+          '默认 60000'
+        ) +
+        numberField('sc-rss-concurrency', '并发数', rssFetch.concurrency, '默认 5') +
+        numberField('sc-rss-retries', '最大重试次数', rssFetch.maxRetries, '默认 1') +
+        numberField('sc-rss-redirects', '最大重定向', rssFetch.maxRedirects, '默认 3'),
+      3
+    ) +
+    settingsCard(
+      'GitHub 贡献图',
       textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
-      textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）') +
-      formActions('保存设置') +
-      '</form>'
-  );
+        textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）')
+    ) +
+    '<div class="form-error" id="form-error" hidden></div>' +
+    '</form>';
 
+  showSiteConfigPage();
   const form = document.getElementById('site-config-form');
   const val = (name) => {
     const el = document.getElementById('f-' + name);
@@ -1494,13 +1763,27 @@ async function openSiteConfig() {
       const perSite = numOrUndef('sc-rss-per-site');
       const total = numOrUndef('sc-rss-total');
       const summaryMaxLength = numOrUndef('sc-rss-summary');
+      const fetchPatch = {};
+      for (const [key, id] of [
+        ['timeoutMs', 'sc-rss-timeout'],
+        ['totalTimeoutMs', 'sc-rss-total-timeout'],
+        ['concurrency', 'sc-rss-concurrency'],
+        ['maxRetries', 'sc-rss-retries'],
+        ['maxRedirects', 'sc-rss-redirects'],
+      ]) {
+        const value = numOrUndef(id);
+        if (value !== undefined) fetchPatch[key] = value;
+      }
       const patch = {
         title: val('sc-title'),
         description: val('sc-description'),
         author: val('sc-author'),
         logo_text: val('sc-logo-text'),
+        keywords: val('sc-keywords'),
+        footer: val('sc-footer'),
+        logo: val('sc-logo') || null,
         theme: { mode: val('sc-theme') },
-        icons: { mode: val('sc-icons-mode'), region: val('sc-icons-region') },
+        icons: { mode: 'favicon', region: val('sc-icons-region') },
         profile: { title: val('sc-profile-title'), subtitle: val('sc-profile-subtitle') },
         fonts: {
           source: val('sc-fonts-source'),
@@ -1518,15 +1801,21 @@ async function openSiteConfig() {
             ...(total !== undefined ? { total } : {}),
             ...(summaryMaxLength !== undefined ? { summaryMaxLength } : {}),
           },
+          ...(Object.keys(fetchPatch).length
+            ? { fetch: { ...(site.rss?.fetch || {}), ...fetchPatch } }
+            : {}),
         },
         github: { username: val('sc-gh-username'), heatmapColor: val('sc-gh-color') },
       };
-      const favicon = val('sc-favicon');
-      if (favicon) patch.favicon = favicon;
-      const res = await api('PUT', '/api/settings/site', patch);
+      patch.favicon = val('sc-favicon');
+      const res = await api('PUT', '/api/settings/site', patch, settingsEtag);
       if (res.ok) {
+        settingsCache = null;
+        if (res.etag) {
+          settingsEtag = res.etag;
+          stateEtag = res.etag;
+        }
         toast('站点设置已保存', 'success');
-        closeModal();
       } else {
         setFormError(writeErr(res));
       }
@@ -1536,6 +1825,7 @@ async function openSiteConfig() {
 
 const treePage = document.getElementById('tree-page');
 const dataPage = document.getElementById('data-page');
+const siteConfigPage = document.getElementById('site-config-page');
 
 function setSideNav(action) {
   document.querySelectorAll('.side-link').forEach((link) => {
@@ -1546,18 +1836,26 @@ function setSideNav(action) {
   });
 }
 
+function showPage(page) {
+  treePage.hidden = page !== 'tree';
+  dataPage.hidden = page !== 'data';
+  siteConfigPage.hidden = page !== 'site-config';
+  setSideNav(page === 'tree' ? 'show-tree' : page === 'data' ? 'data-page' : 'open-site-config');
+  if (page === 'data') dataPage.querySelector('h1')?.focus();
+  else if (page === 'site-config') siteConfigPage.querySelector('h1')?.focus();
+  else document.getElementById('tree-search')?.focus();
+}
+
 function showDataPage() {
-  treePage.hidden = true;
-  dataPage.hidden = false;
-  setSideNav('data-page');
-  dataPage.querySelector('h2')?.focus();
+  showPage('data');
 }
 
 function showTreePage() {
-  dataPage.hidden = true;
-  treePage.hidden = false;
-  setSideNav('show-tree');
-  document.getElementById('tree-search')?.focus();
+  showPage('tree');
+}
+
+function showSiteConfigPage() {
+  showPage('site-config');
 }
 
 async function openSettings() {
@@ -1653,6 +1951,9 @@ function openSeedImport() {
         return;
       }
       toast('已导入 ' + r.pages + ' 个页面、' + r.sites + ' 个站点', 'success');
+      settingsCache = null;
+      settingsEtag = null;
+      if (r.etag) stateEtag = r.etag;
       closeModal();
       await loadState({ silent: true });
     });
@@ -1953,6 +2254,15 @@ function bindEvents() {
       case 'show-tree':
         showTreePage();
         break;
+      case 'save-site-config': {
+        const form = document.getElementById('site-config-form');
+        if (form) form.requestSubmit();
+        else toast('站点配置还在加载，请稍候', 'error');
+        break;
+      }
+      case 'cancel-site-config':
+        showTreePage();
+        break;
       case 'settings':
       case 'open-settings':
         await openSettings();
@@ -2038,6 +2348,9 @@ document.addEventListener('DOMContentLoaded', () => {
   bindSearch();
   bindDnD();
   loadState();
+  setTimeout(() => {
+    void loadSettings();
+  }, 1200);
 });
 
 // 便于调试:控制台访问当前树

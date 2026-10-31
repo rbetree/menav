@@ -175,6 +175,13 @@
   margin: 0;
 }
 
+.sidebar-footer .site-footer-text {
+  margin: 0 0 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .sidebar.collapsed .sidebar-social {
   padding: 0.2rem 0.5rem 0.8rem;
   flex-direction: column;

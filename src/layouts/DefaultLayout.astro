@@ -36,6 +36,7 @@ const {
 const site = config.site || {};
 const themeMode = site.theme?.mode || 'dark';
 const favicon = site.favicon || 'menav.svg';
+const brandImage = (site.logo || site.favicon || '').replace(/^\.?\//, '');
 const fontAwesomeCssUrl =
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
 const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="style" onload="this.onload=null;this.rel='stylesheet'" />`;
@@ -53,6 +54,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
     <title data-editable="site-title">{site.title}</title>
     <meta name="description" content={site.description} data-editable="site-description" />
     <meta name="author" content={site.author} data-editable="site-author" />
+    {site.keywords && <meta name="keywords" content={site.keywords} />}
     <link rel="icon" href={`./${favicon}`} type="image/x-icon" />
     <link rel="shortcut icon" href={`./${favicon}`} type="image/x-icon" />
     <Fragment set:html={fontLinks} />
@@ -82,10 +84,10 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         <div class="logo">
           <div class="logo-brand">
             {
-              site.favicon && (
+              brandImage && (
                 <img
                   class="logo-image"
-                  src={`./${site.favicon}`}
+                  src={`./${brandImage}`}
                   alt={`${site.title} logo`}
                   width="26"
                   height="26"
@@ -115,6 +117,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         </div>
 
         <div class="sidebar-footer">
+          {site.footer && <p class="site-footer-text">{site.footer}</p>}
           <div class="copyright">
             <p>
               © {currentYear}

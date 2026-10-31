@@ -52,8 +52,15 @@ try {
   await page.waitForFunction(() => document.querySelector('.site-name')?.textContent === 'Two');
   await page.locator('[data-action="edit-site"]').last().click();
   await page.locator('#f-description').fill('');
-  await page.locator('#f-faviconUrl').fill('');
-  await page.locator('#f-icon').fill('');
+  // 图标来源切到图标库，走一遍可视化选择器
+  await page.locator('.segmented label', { hasText: '图标库' }).click();
+  await page.locator('[data-icon-pick="icon"]').click();
+  await page.waitForSelector('.mip-overlay.is-open');
+  await page.waitForSelector('.mip-icon');
+  const pickedIcon = await page.locator('.mip-icon').first().getAttribute('data-value');
+  await page.locator('.mip-icon').first().click();
+  await page.waitForFunction(() => !document.querySelector('.mip-overlay'));
+  assert.equal(await page.locator('#f-icon').inputValue(), pickedIcon);
   await page.locator('#node-form button[type="submit"]').click();
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
@@ -65,7 +72,8 @@ try {
     .sites.find((s) => s.name === 'One');
   assert.equal(one.description, undefined);
   assert.equal(one.faviconUrl, undefined);
-  assert.equal(one.icon, undefined);
+  assert.equal(one.icon, pickedIcon);
+  assert.equal(one.metadata.forceIconMode, 'manual');
   await page.locator('[data-action="data-page"]').click();
   await page.waitForFunction(() => !document.querySelector('#data-page').hidden);
   await page.locator('[data-action="settings"]').click();
@@ -97,7 +105,7 @@ try {
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
   );
-  await page.locator('#data-page [data-action="show-tree"]').click();
+  await page.locator('[data-action="show-tree"]').click();
   await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
   await page.waitForSelector('.page-block');
   assert.deepEqual(await labels(), ['其他', '首页']);
@@ -117,6 +125,13 @@ try {
     document.querySelector('#publish-status').textContent.includes('尚未配置')
   );
   assert.deepEqual(errors, []);
+
+  await page.locator('[data-action="open-site-config"]').click();
+  await page.waitForFunction(() => !document.querySelector('#site-config-page').hidden);
+  await page.waitForSelector('#site-config-form');
+  assert.match(await page.locator('#site-config-page h1').textContent(), /站点设置/);
+  await page.locator('[data-action="cancel-site-config"]').click();
+  await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
 
   // 真实服务器 HTML 500 不应误报会话失效。
   await page.route('**/api/state', (route) =>
