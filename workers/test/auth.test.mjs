@@ -3,7 +3,7 @@ import test from 'node:test';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import { createBackend } from './helpers.mjs';
 
-test('生产缺少 Access 配置时拒绝后台，公开导航仍可读', async (t) => {
+test('生产缺少 Access 配置时拒绝后台', async (t) => {
   const app = await createBackend({ bindings: { ALLOW_INSECURE_DEV: '' } });
   t.after(() => app.dispose());
   for (const path of ['/', '/app.js', '/api/state', '/api/settings', '/api/export']) {
@@ -12,7 +12,6 @@ test('生产缺少 Access 配置时拒绝后台，公开导航仍可读', async 
     assert.equal(response.headers.get('cache-control'), 'no-store', path);
   }
   assert.equal((await app.request('POST', '/api/pages', { label: '未授权' })).status, 503);
-  assert.equal((await app.request('GET', '/api/nav')).status, 200);
 });
 
 test('Access 校验签名、受众与过期时间；构建 Token 不能写管理 API', async (t) => {

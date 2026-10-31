@@ -13,6 +13,7 @@
 - 分类子节点跨 subcategories/groups/subgroups 按 `sort` 合并，`sites` 与 `items` 合并收集；同时使用这些字段的旧配置输出会变化，升级前请对照现有配置
 - 新增 `build:snapshot`，D1 JSON 复用现有 Astro 渲染；Pages 可读取 Git 应用代码，业务数据不读取仓库 YAML、Markdown 或缓存
 - 动态后台配置改为 `wrangler.example.jsonc`，真实 D1、Access 与 Pages 资源值不入库；主仓库定位为模板与示例站，个人使用建议独立仓库
+- 移除公开的 `/api/nav` 实时树接口；它没有消费者，且会带出隐藏页和未发布内容
 - 构建按 D1 配置刷新文章、GitHub 统计与贡献图，使用独立临时缓存；部分刷新失败保留对应来源的 D1 数据
 - Pages API 发布冻结版本，核对生产部署及产物标记后才推进已发布版本；发布仅由后台手动触发，构建期间编辑与失败重试不丢更新
 - 新增隔离 D1 集成测试、管理台浏览器测试与完整快照构建对比，接入 CI；生产 Access 和线上发布时延仍需部署后验收

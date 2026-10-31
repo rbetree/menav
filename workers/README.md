@@ -66,7 +66,7 @@ npx wrangler secret put BUILD_TOKEN
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
 5. 在仓库根目录执行 `npm --prefix workers run deploy`（使用填好的 `wrangler.jsonc`）；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，`run_worker_first` 保证资源返回前先鉴权。
 
-不要把完整 `/api/*` 设为 Bypass。`GET /api/nav` 是实时只读树，包含隐藏导航的页面和未发布编辑；本期没有私密内容功能。生产公开站始终消费已构建的静态产物。
+不要把完整 `/api/*` 设为 Bypass。后台与写 API 都经过 Access；公开站始终消费已构建的静态产物。
 
 ## 四、Pages 与首次发布顺序
 

@@ -6,7 +6,6 @@ import { loadSnapshot, loadSettings } from './db/site-model';
 import { editRevision, revisionTag, type AdminEnv } from './db/revision';
 import { ApiError } from './errors';
 import { authMiddleware } from './auth';
-import { navRoutes } from './routes/nav';
 import { reorderRoutes } from './routes/reorder';
 import { pagesRoutes } from './routes/pages';
 import { categoriesRoutes } from './routes/categories';
@@ -50,9 +49,6 @@ app.use('*', async (c, next) => {
   await ensureSchema(c.env);
   return next();
 });
-
-// 匿名实时页面树；构建读取使用独立的冻结快照端点。
-app.route('/api/nav', navRoutes);
 
 app.get('/build/snapshot', async (c) => {
   const provided = c.req.header('authorization') ?? '';
