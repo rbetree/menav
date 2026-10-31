@@ -1371,103 +1371,96 @@ async function openSiteConfig() {
     Object.keys(assets).map((key) => ({ value: key, label: key }))
   );
 
-  openModal(
-    '站点设置',
+  document.getElementById('site-config-content').innerHTML =
     '<form id="site-config-form" novalidate>' +
-      '<p class="field-hint">站点级配置。保存后需点「立即发布」才会更新公开站。</p>' +
-      groupTitle('站点身份') +
-      textField('sc-title', '站点标题', site.title, '例如：我的导航') +
-      textField('sc-description', '站点描述', site.description, 'meta description') +
-      textField('sc-author', '作者', site.author, '') +
-      textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
-      selectField(
-        'sc-favicon',
-        '站点图标',
-        faviconOptions,
-        site.favicon || '',
-        '只能选择站点已有的图片资源（避免发布后 404）'
-      ) +
-      groupTitle('外观') +
-      selectField(
-        'sc-theme',
-        '默认外观',
-        [
-          { value: 'system', label: '跟随系统' },
-          { value: 'dark', label: '深色' },
-          { value: 'light', label: '浅色' },
-        ],
-        theme.mode || 'system'
-      ) +
-      selectField(
-        'sc-icons-mode',
-        '卡片图标模式',
-        [
-          { value: 'favicon', label: '自动获取 favicon' },
-          { value: 'manual', label: '手动图标' },
-        ],
-        icons.mode || 'favicon',
-        '自动模式会请求外部 favicon 服务'
-      ) +
-      selectField(
-        'sc-icons-region',
-        'favicon 服务区域',
-        [
-          { value: 'com', label: '国外（优先 gstatic.com）' },
-          { value: 'cn', label: '国内（优先 gstatic.cn）' },
-        ],
-        icons.region || 'com'
-      ) +
-      groupTitle('个人资料（首页）') +
-      textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
-      textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '') +
-      groupTitle('字体') +
-      selectField(
-        'sc-fonts-source',
-        '字体来源',
-        [
-          { value: 'system', label: '系统字体' },
-          { value: 'css', label: '自定义 CSS' },
-          { value: 'google', label: 'Google Fonts' },
-        ],
-        fonts.source || 'system'
-      ) +
-      textField(
-        'sc-fonts-css-url',
-        '字体 CSS 地址',
-        fonts.cssUrl,
-        'https://…',
-        '来源为 CSS 时使用'
-      ) +
-      textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
-      textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
-      checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true) +
-      groupTitle('社交链接') +
-      textareaField(
-        'sc-social',
-        '每行一个：名称 | URL | 图标',
-        social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
-        'GitHub | https://github.com/me | fab fa-github'
-      ) +
-      groupTitle('外链安全') +
-      textField(
-        'sc-schemes',
-        '允许的链接协议（逗号分隔）',
-        schemes.join(', '),
-        'https, http, mailto',
-        '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄'
-      ) +
-      groupTitle('RSS 文章') +
-      checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true) +
-      numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
-      numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
-      numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认') +
-      groupTitle('GitHub 贡献图') +
-      textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
-      textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）') +
-      formActions('保存设置') +
-      '</form>'
-  );
+    '<p class="field-hint">站点级配置。保存后需点「立即发布」才会更新公开站。</p>' +
+    groupTitle('站点身份') +
+    textField('sc-title', '站点标题', site.title, '例如：我的导航') +
+    textField('sc-description', '站点描述', site.description, 'meta description') +
+    textField('sc-author', '作者', site.author, '') +
+    textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
+    selectField(
+      'sc-favicon',
+      '站点图标',
+      faviconOptions,
+      site.favicon || '',
+      '只能选择站点已有的图片资源（避免发布后 404）'
+    ) +
+    groupTitle('外观') +
+    selectField(
+      'sc-theme',
+      '默认外观',
+      [
+        { value: 'system', label: '跟随系统' },
+        { value: 'dark', label: '深色' },
+        { value: 'light', label: '浅色' },
+      ],
+      theme.mode || 'system'
+    ) +
+    selectField(
+      'sc-icons-mode',
+      '卡片图标模式',
+      [
+        { value: 'favicon', label: '自动获取 favicon' },
+        { value: 'manual', label: '手动图标' },
+      ],
+      icons.mode || 'favicon',
+      '自动模式会请求外部 favicon 服务'
+    ) +
+    selectField(
+      'sc-icons-region',
+      'favicon 服务区域',
+      [
+        { value: 'com', label: '国外（优先 gstatic.com）' },
+        { value: 'cn', label: '国内（优先 gstatic.cn）' },
+      ],
+      icons.region || 'com'
+    ) +
+    groupTitle('个人资料（首页）') +
+    textField('sc-profile-title', '首页主标题', profile.title, '会覆盖首页页面标题') +
+    textField('sc-profile-subtitle', '首页副标题', profile.subtitle, '') +
+    groupTitle('字体') +
+    selectField(
+      'sc-fonts-source',
+      '字体来源',
+      [
+        { value: 'system', label: '系统字体' },
+        { value: 'css', label: '自定义 CSS' },
+        { value: 'google', label: 'Google Fonts' },
+      ],
+      fonts.source || 'system'
+    ) +
+    textField('sc-fonts-css-url', '字体 CSS 地址', fonts.cssUrl, 'https://…', '来源为 CSS 时使用') +
+    textField('sc-fonts-family', '字体族', fonts.family, '例如：Inter') +
+    textField('sc-fonts-weight', '字重', fonts.weight, '例如：400') +
+    checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true) +
+    groupTitle('社交链接') +
+    textareaField(
+      'sc-social',
+      '每行一个：名称 | URL | 图标',
+      social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
+      'GitHub | https://github.com/me | fab fa-github'
+    ) +
+    groupTitle('外链安全') +
+    textField(
+      'sc-schemes',
+      '允许的链接协议（逗号分隔）',
+      schemes.join(', '),
+      'https, http, mailto',
+      '留空或不含 http 会让公开站的链接降级为 #，请谨慎收窄'
+    ) +
+    groupTitle('RSS 文章') +
+    checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true) +
+    numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
+    numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
+    numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认') +
+    groupTitle('GitHub 贡献图') +
+    textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
+    textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）') +
+    formActions('保存设置') +
+    '</form>';
 
+  showSiteConfigPage();
   const form = document.getElementById('site-config-form');
   const val = (name) => {
     const el = document.getElementById('f-' + name);
@@ -1526,7 +1519,6 @@ async function openSiteConfig() {
       const res = await api('PUT', '/api/settings/site', patch);
       if (res.ok) {
         toast('站点设置已保存', 'success');
-        closeModal();
       } else {
         setFormError(writeErr(res));
       }
@@ -1536,6 +1528,7 @@ async function openSiteConfig() {
 
 const treePage = document.getElementById('tree-page');
 const dataPage = document.getElementById('data-page');
+const siteConfigPage = document.getElementById('site-config-page');
 
 function setSideNav(action) {
   document.querySelectorAll('.side-link').forEach((link) => {
@@ -1546,18 +1539,26 @@ function setSideNav(action) {
   });
 }
 
+function showPage(page) {
+  treePage.hidden = page !== 'tree';
+  dataPage.hidden = page !== 'data';
+  siteConfigPage.hidden = page !== 'site-config';
+  setSideNav(page === 'tree' ? 'show-tree' : page === 'data' ? 'data-page' : 'open-site-config');
+  if (page === 'data') dataPage.querySelector('h2')?.focus();
+  else if (page === 'site-config') siteConfigPage.querySelector('h2')?.focus();
+  else document.getElementById('tree-search')?.focus();
+}
+
 function showDataPage() {
-  treePage.hidden = true;
-  dataPage.hidden = false;
-  setSideNav('data-page');
-  dataPage.querySelector('h2')?.focus();
+  showPage('data');
 }
 
 function showTreePage() {
-  dataPage.hidden = true;
-  treePage.hidden = false;
-  setSideNav('show-tree');
-  document.getElementById('tree-search')?.focus();
+  showPage('tree');
+}
+
+function showSiteConfigPage() {
+  showPage('site-config');
 }
 
 async function openSettings() {

@@ -286,6 +286,11 @@ svg {
   margin-top: var(--s-2);
 }
 
+.site-config-content {
+  max-width: 720px;
+  padding-top: var(--s-5);
+}
+
 @media (max-width: 720px) {
   .data-grid {
     grid-template-columns: 1fr;

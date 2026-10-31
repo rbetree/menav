@@ -118,6 +118,13 @@ try {
   );
   assert.deepEqual(errors, []);
 
+  await page.locator('[data-action="open-site-config"]').click();
+  await page.waitForFunction(() => !document.querySelector('#site-config-page').hidden);
+  await page.waitForSelector('#site-config-form');
+  assert.match(await page.locator('#site-config-page h2').textContent(), /站点设置/);
+  await page.locator('#site-config-page [data-action="show-tree"]').click();
+  await page.waitForFunction(() => !document.querySelector('#tree-page').hidden);
+
   // 真实服务器 HTML 500 不应误报会话失效。
   await page.route('**/api/state', (route) =>
     route.fulfill({ status: 500, contentType: 'text/html', body: '<h1>server error</h1>' })
