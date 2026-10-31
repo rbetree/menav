@@ -1484,6 +1484,63 @@ input[type='file']::file-selector-button {
   background: var(--bg-deep);
 }
 
+.form-switch {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+}
+
+.form-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-switch label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 2.2rem;
+  height: 1.25rem;
+  border-radius: var(--r-full);
+  background: var(--panel-3);
+  transition: background-color var(--t-fast);
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--t-fast);
+}
+
+.form-switch input:checked + label .switch-track {
+  background: var(--accent);
+}
+
+.form-switch input:checked + label .switch-track::after {
+  transform: translateX(0.95rem);
+}
+
+.form-switch input:focus-visible + label .switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .form-error {
   margin: var(--s-3) 0;
   padding: 0.5rem 0.7rem;

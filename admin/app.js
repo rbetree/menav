@@ -741,6 +741,24 @@ function textField(name, label, value, placeholder, hint, wide) {
   );
 }
 
+function switchField(name, label, checked, wide) {
+  return (
+    '<div class="form-field form-switch' +
+    (wide ? ' form-field--wide' : '') +
+    '"><input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="checkbox"' +
+    (checked ? ' checked' : '') +
+    '><label for="f-' +
+    name +
+    '"><span class="switch-track" aria-hidden="true"></span><span>' +
+    label +
+    '</span></label></div>'
+  );
+}
+
 function textareaField(name, label, value, placeholder, hint, wide) {
   return (
     '<div class="' +
@@ -1414,14 +1432,26 @@ async function openSiteConfig() {
       textField('sc-title', '站点标题', site.title, '例如：我的导航') +
         textField('sc-author', '作者', site.author, '') +
         textField('sc-description', '站点描述', site.description, 'meta description', '', true) +
-        textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '') +
+        textField('sc-logo-text', '侧栏 Logo 文字', site.logo_text, '', '', true) +
         selectField(
           'sc-favicon',
           '站点图标',
           faviconOptions,
           site.favicon || '',
           '只能选择站点已有的图片资源（避免发布后 404）'
+        ) +
+        selectField(
+          'sc-logo',
+          'Logo 图片',
+          faviconOptions,
+          site.logo || '',
+          '侧栏品牌图片，只能选择已有资源'
         )
+    ) +
+    settingsCard(
+      'SEO 与页脚',
+      textField('sc-keywords', '关键词', site.keywords, 'meta keywords，逗号分隔') +
+        textField('sc-footer', '页脚文字', site.footer, '显示在侧栏底部')
     ) +
     settingsCard(
       '外观',
@@ -1483,7 +1513,7 @@ async function openSiteConfig() {
           '来源为 CSS 时使用',
           true
         ) +
-        checkField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true, true),
+        switchField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true, true),
       3
     ) +
     settingsCard(
@@ -1510,7 +1540,7 @@ async function openSiteConfig() {
     ) +
     settingsCard(
       'RSS 文章',
-      checkField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true, true) +
+      switchField('sc-rss-enabled', '启用 RSS 抓取', rss.enabled === true, true) +
         numberField('sc-rss-per-site', '每源文章数', rssArticles.perSite, '留空用默认') +
         numberField('sc-rss-total', '文章总数上限', rssArticles.total, '留空用默认') +
         numberField('sc-rss-summary', '摘要最大长度', rssArticles.summaryMaxLength, '留空用默认'),
@@ -1556,6 +1586,9 @@ async function openSiteConfig() {
         description: val('sc-description'),
         author: val('sc-author'),
         logo_text: val('sc-logo-text'),
+        keywords: val('sc-keywords'),
+        footer: val('sc-footer'),
+        logo: val('sc-logo') || null,
         theme: { mode: val('sc-theme') },
         icons: { mode: val('sc-icons-mode'), region: val('sc-icons-region') },
         profile: { title: val('sc-profile-title'), subtitle: val('sc-profile-subtitle') },
