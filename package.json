@@ -55,10 +55,10 @@
   "author": "Your Name",
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "js-yaml": "^4.3.1",
-    "markdown-it": "^14.2.0",
+    "js-yaml": "^4.3.2",
+    "markdown-it": "^14.3.3",
     "rss-parser": "^3.13.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

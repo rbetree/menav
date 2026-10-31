@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Dependency audit
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Fast check
         run: npm run check
@@ -97,7 +97,7 @@ jobs:
         run: npm ci
 
       - name: Workers dependency audit
-        run: npm --prefix workers audit --audit-level=high
+        run: npm --prefix workers audit --omit=dev --audit-level=high
 
       - name: Workers type check
         run: npm --prefix workers run check

@@ -16,7 +16,7 @@
   "dependencies": {
     "hono": "^4.6.0",
     "jose": "^5.9.6",
-    "zod": "4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",
