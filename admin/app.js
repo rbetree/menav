@@ -244,7 +244,7 @@ async function loadState(opts = {}) {
   const scrollY = window.scrollY;
   renderTree();
   if (silent) window.scrollTo(0, scrollY);
-  await loadPublishStatus();
+  void loadPublishStatus();
 }
 
 /* ---------- 节点索引:定位节点 + 兄弟列表 ---------- */
@@ -1339,10 +1339,22 @@ function numberField(name, label, value, placeholder, hint) {
 }
 
 /* 站点级配置(身份/外观/字体/资料/社交/安全/RSS/GitHub)的可视化编辑。 */
-async function openSiteConfig() {
+let settingsCache = null;
+
+async function loadSettings() {
+  if (settingsCache) return settingsCache;
   const r = await api('GET', '/api/settings');
+  if (r.ok) settingsCache = r;
+  return r;
+}
+
+async function openSiteConfig() {
+  showSiteConfigPage();
+  const content = document.getElementById('site-config-content');
+  content.innerHTML = '<p class="field-hint">正在加载站点配置…</p>';
+  const r = await loadSettings();
   if (!r.ok) {
-    toast(writeErr(r), 'error');
+    content.innerHTML = '<p class="form-error">' + esc(writeErr(r)) + '</p>';
     return;
   }
   let site = {};
@@ -1518,6 +1530,7 @@ async function openSiteConfig() {
       if (favicon) patch.favicon = favicon;
       const res = await api('PUT', '/api/settings/site', patch);
       if (res.ok) {
+        settingsCache = null;
         toast('站点设置已保存', 'success');
       } else {
         setFormError(writeErr(res));
@@ -2039,6 +2052,9 @@ document.addEventListener('DOMContentLoaded', () => {
   bindSearch();
   bindDnD();
   loadState();
+  setTimeout(() => {
+    void loadSettings();
+  }, 1200);
 });
 
 // 便于调试:控制台访问当前树
