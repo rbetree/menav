@@ -1092,23 +1092,6 @@ function openSiteForm(opts) {
         '必填,缺少协议会自动补 https://'
       ) +
       textField('description', '描述', s && s.description ? s.description : '', '一行简介(可选)') +
-      textField(
-        'faviconUrl',
-        '图标地址',
-        s && s.faviconUrl ? s.faviconUrl : '',
-        'https://…/favicon.ico(可选)'
-      ) +
-      textField('icon', '图标(类/emoji)', s && s.icon ? s.icon : '', '可选') +
-      selectField(
-        'forceIconMode',
-        '图标模式',
-        [
-          { value: '', label: '跟随全局设置' },
-          { value: 'favicon', label: '优先自动 favicon' },
-          { value: 'manual', label: '固定手动图标' },
-        ],
-        s?.metadata?.forceIconMode || ''
-      ) +
       selectField(
         'style',
         '卡片样式',
@@ -1146,7 +1129,6 @@ function openSiteForm(opts) {
       }
       const metadata = { ...(s?.metadata || {}) };
       for (const [key, id] of [
-        ['forceIconMode', 'f-forceIconMode'],
         ['style', 'f-style'],
         ['type', 'f-type'],
       ]) {
@@ -1158,8 +1140,6 @@ function openSiteForm(opts) {
         name,
         url,
         description: document.getElementById('f-description').value.trim(),
-        faviconUrl: document.getElementById('f-faviconUrl').value.trim(),
-        icon: document.getElementById('f-icon').value.trim(),
         external: document.getElementById('f-external').checked,
         metadata,
       };
@@ -1512,25 +1492,16 @@ async function openSiteConfig() {
         theme.mode || 'system'
       ) +
         selectField(
-          'sc-icons-mode',
-          '卡片图标模式',
-          [
-            { value: 'favicon', label: '自动获取 favicon' },
-            { value: 'manual', label: '手动图标' },
-          ],
-          icons.mode || 'favicon',
-          '自动模式会请求外部 favicon 服务'
-        ) +
-        selectField(
           'sc-icons-region',
           'favicon 服务区域',
           [
             { value: 'com', label: '国外（优先 gstatic.com）' },
             { value: 'cn', label: '国内（优先 gstatic.cn）' },
           ],
-          icons.region || 'com'
+          icons.region || 'com',
+          '自动获取 favicon，失败时使用内置图标'
         ),
-      3
+      2
     ) +
     settingsCard(
       '个人资料（首页）',
@@ -1661,7 +1632,7 @@ async function openSiteConfig() {
         footer: val('sc-footer'),
         logo: val('sc-logo') || null,
         theme: { mode: val('sc-theme') },
-        icons: { mode: val('sc-icons-mode'), region: val('sc-icons-region') },
+        icons: { mode: 'favicon', region: val('sc-icons-region') },
         profile: { title: val('sc-profile-title'), subtitle: val('sc-profile-subtitle') },
         fonts: {
           source: val('sc-fonts-source'),

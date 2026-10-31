@@ -52,8 +52,6 @@ try {
   await page.waitForFunction(() => document.querySelector('.site-name')?.textContent === 'Two');
   await page.locator('[data-action="edit-site"]').last().click();
   await page.locator('#f-description').fill('');
-  await page.locator('#f-faviconUrl').fill('');
-  await page.locator('#f-icon').fill('');
   await page.locator('#node-form button[type="submit"]').click();
   await page.waitForFunction(
     () => !document.querySelector('#modal-overlay').classList.contains('open')
@@ -64,8 +62,8 @@ try {
     .categories.find((c) => c.label === 'A')
     .sites.find((s) => s.name === 'One');
   assert.equal(one.description, undefined);
-  assert.equal(one.faviconUrl, undefined);
-  assert.equal(one.icon, undefined);
+  assert.equal(one.faviconUrl, 'https://example.com/favicon.ico');
+  assert.equal(one.icon, 'fas fa-link');
   await page.locator('[data-action="data-page"]').click();
   await page.waitForFunction(() => !document.querySelector('#data-page').hidden);
   await page.locator('[data-action="settings"]').click();
