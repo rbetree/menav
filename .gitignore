@@ -59,3 +59,9 @@ AGENTS.md
 /.claude
 /discord-style-navstation
 REVIEW.md
+
+# Playwright MCP 运行产物
+/.playwright-mcp/
+
+# 动态后端本地调试目录
+/workers/
