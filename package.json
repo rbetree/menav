@@ -42,6 +42,8 @@
     "dev:astro": "node -r ./scripts/register-ts.cjs ./scripts/dev-astro.ts",
     "test:browser": "node -r ./scripts/register-ts.cjs ./scripts/test-browser.ts",
     "backend:dev": "npm --prefix workers run dev",
+    "backend:init": "node -r ./scripts/register-ts.cjs ./scripts/backend-init.ts",
+    "backend:doctor": "node -r ./scripts/register-ts.cjs ./scripts/backend-doctor.ts",
     "backend:check": "npm --prefix workers run check",
     "backend:test": "npm --prefix workers test",
     "backend:seed": "node -r ./scripts/register-ts.cjs ./scripts/generate-seed.ts --output workers/.seed.json",
