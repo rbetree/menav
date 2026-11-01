@@ -17,6 +17,8 @@ permissions:
 jobs:
   analyze:
     name: Analyze JavaScript and TypeScript
+    # 私有配置仓库没有 GitHub Advanced Security，跳过后避免同步后每次失败。
+    if: github.repository == 'rbetree/menav'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

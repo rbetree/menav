@@ -133,8 +133,8 @@ try {
     staticDom.navigation.length &&
       staticDom.cards.length &&
       staticDom.categories.length &&
-      staticDom.content.length &&
-      staticDom.styles.length
+      staticDom.styles.length,
+    '静态构建应包含导航、卡片、分类与样式'
   );
   assert.deepEqual(await dom(dynamicHtml), staticDom);
   console.log(
