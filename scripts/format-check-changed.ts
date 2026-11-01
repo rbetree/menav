@@ -160,8 +160,11 @@ function collectWorkingTreeChangedFiles(repoRoot: string): string[] {
   const staged = runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMR'], repoRoot, {
     allowFailure: true,
   });
+  const untracked = runGit(['ls-files', '--others', '--exclude-standard'], repoRoot, {
+    allowFailure: true,
+  });
 
-  [unstaged, staged].forEach((block) => {
+  [unstaged, staged, untracked].forEach((block) => {
     if (!block) return;
     block
       .split('\n')
@@ -176,13 +179,13 @@ function collectWorkingTreeChangedFiles(repoRoot: string): string[] {
 function shouldCheckFile(filePath: string): boolean {
   const normalized = filePath.split(path.sep).join('/');
 
-  if (normalized === 'package-lock.json') return false;
+  if (normalized.endsWith('package-lock.json')) return false;
 
   // 这些文件历史上未统一为 Prettier 风格；避免为了启用检查产生巨量格式化 diff
   if (normalized === 'src/runtime/index.js') return false;
 
   // 与现有 npm scripts 的检查范围对齐：不检查 docs/
-  const allowedRoots = ['src/', 'scripts/', 'test/', '.github/', 'config/'];
+  const allowedRoots = ['src/', 'scripts/', 'test/', '.github/', 'config/', 'admin/', 'workers/'];
   const isRootFile = !normalized.includes('/');
   const hasAllowedRoot = allowedRoots.some((prefix) => normalized.startsWith(prefix));
 
@@ -192,13 +195,26 @@ function shouldCheckFile(filePath: string): boolean {
   if (!isAllowedPath) return false;
 
   const ext = path.extname(normalized).toLowerCase();
-  return ['.astro', '.js', '.json', '.md', '.yml', '.yaml'].includes(ext);
+  return [
+    '.astro',
+    '.ts',
+    '.js',
+    '.mjs',
+    '.cjs',
+    '.css',
+    '.html',
+    '.json',
+    '.jsonc',
+    '.md',
+    '.yml',
+    '.yaml',
+  ].includes(ext);
 }
 
 function resolvePrettierBin(repoRoot: string): string | null {
-  const base = path.join(repoRoot, 'node_modules', '.bin', 'prettier');
-  if (fs.existsSync(base)) return base;
-  if (fs.existsSync(`${base}.cmd`)) return `${base}.cmd`;
+  // Windows 上 Node 22 禁止 spawn .cmd（CVE-2024-27980），与 format.ts 一致改用 JS 入口
+  const cli = path.join(repoRoot, 'node_modules', 'prettier', 'bin', 'prettier.cjs');
+  if (fs.existsSync(cli)) return cli;
   return null;
 }
 
@@ -235,7 +251,10 @@ function main() {
   }
 
   try {
-    execFileSync(prettierBin, ['--check', ...filesToCheck], { cwd: repoRoot, stdio: 'inherit' });
+    execFileSync(process.execPath, [prettierBin, '--check', ...filesToCheck], {
+      cwd: repoRoot,
+      stdio: 'inherit',
+    });
     log.ok('通过', { ms: elapsedMs(), files: filesToCheck.length });
   } catch (error) {
     log.error('未通过', {

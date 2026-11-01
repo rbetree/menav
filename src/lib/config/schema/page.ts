@@ -8,6 +8,7 @@ export type CategoryNode = {
   icon?: string;
   slug?: string;
   level?: number;
+  foldable?: boolean;
   items?: SiteItem[];
   sites?: SiteItem[];
   subcategories?: CategoryNode[];
@@ -22,6 +23,7 @@ const categoryNodeSchema: ZodType<CategoryNode> = z.lazy(() =>
     icon: z.string({ error: 'icon 必须是字符串' }).trim().optional(),
     slug: z.string({ error: 'slug 必须是字符串' }).trim().optional(),
     level: z.number({ error: 'level 必须是数字' }).optional(),
+    foldable: z.boolean({ error: 'foldable 必须是布尔值' }).optional(),
     items: z.array(siteItemSchema, { error: 'items 必须是数组' }).optional(),
     sites: z.array(siteItemSchema, { error: 'sites 必须是数组' }).optional(),
     subcategories: z.array(categoryNodeSchema, { error: 'subcategories 必须是数组' }).optional(),
@@ -32,6 +34,7 @@ const categoryNodeSchema: ZodType<CategoryNode> = z.lazy(() =>
 
 const contentPageSchema = z.looseObject({
   file: z.string({ error: 'file 必须是字符串' }).trim().optional(),
+  markdown: z.string({ error: 'markdown 必须是字符串' }).optional(),
 });
 
 const pageConfigSchema = z.strictObject({

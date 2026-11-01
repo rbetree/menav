@@ -6,6 +6,7 @@ import { sanitizeContributionsHtml } from '../github/contributions.ts';
 import { createLogger } from '../logging/logger.ts';
 
 type RenderConfigLike = {
+  snapshot?: { cacheDir?: string };
   site?: {
     github?: {
       username?: unknown;
@@ -63,6 +64,7 @@ type CategoryNode = CategoryItem & {
 const log = createLogger('cache:projects');
 
 function getProjectsCacheDir(config: RenderConfigLike | null | undefined): string {
+  if (config?.snapshot?.cacheDir) return config.snapshot.cacheDir;
   const cacheDirFromEnv = process.env.PROJECTS_CACHE_DIR
     ? String(process.env.PROJECTS_CACHE_DIR)
     : '';
@@ -188,8 +190,9 @@ function applyRepoMetaToCategories(
     if (Array.isArray(node.groups)) node.groups.forEach(walk);
     if (Array.isArray(node.subgroups)) node.subgroups.forEach(walk);
 
-    if (Array.isArray(node.sites)) {
-      node.sites.forEach((site) => {
+    for (const key of ['sites', 'items'] as const) {
+      if (!Array.isArray(node[key])) continue;
+      node[key].forEach((site) => {
         if (!site || typeof site !== 'object' || !site.url) return;
         const canonical = normalizeGithubRepoUrl(site.url);
         if (!canonical) return;

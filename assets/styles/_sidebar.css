@@ -211,15 +211,16 @@
   display: none;
 }
 
-/* 侧边栏：页面分类面板（容器本身可滚动，隐藏滚动条） */
+/* 侧边栏：页面分类面板（标题固定，分类列表独立滚动） */
 .sidebar-submenu-panel {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 0 0 0.6rem;
   /* 移除顶部 padding，避免标题上方出现缝隙 */
-  scrollbar-width: none;
-  /* Firefox 隐藏滚动条 */
+  display: flex;
+  flex-direction: column;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -241,19 +242,50 @@
     visibility 0s linear 0s;
 }
 
-.sidebar-submenu-panel::-webkit-scrollbar {
-  display: none;
-  /* Webkit 浏览器隐藏滚动条 */
-}
-
-/* 面板内的 submenu 始终可见（不依赖 wrapper.expanded） */
+/* 面板内的 submenu 始终可见（不依赖 wrapper.expanded），并承担滚动 */
 .sidebar-submenu-panel .submenu {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: none;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
   opacity: 1;
   visibility: visible;
   margin-left: 0;
   transition: none;
+  /* 原生滚动条在部分 Chromium 上会画箭头且无法定制，统一隐藏后由面板自绘指示条 */
+  scrollbar-width: none;
+  /* 底部渐隐提示下方还有内容，滚到底后由 is-scroll-at-end 取消 */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2rem), transparent);
+}
+
+.sidebar-submenu-panel .submenu::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-submenu-panel .submenu.is-scroll-at-end {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* 自绘滚动指示条：位置由 JS 写入的变量控制，悬停面板时显现 */
+.sidebar-submenu-panel::after {
+  content: '';
+  position: absolute;
+  top: var(--submenu-thumb-top, 0px);
+  right: 2px;
+  width: 3px;
+  height: var(--submenu-thumb-height, 0px);
+  border-radius: var(--radius-full);
+  background-color: var(--scrollbar-color);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.sidebar-submenu-panel:hover::after {
+  opacity: 1;
 }
 
 /* 折叠状态下的内容区域调整 */
@@ -297,19 +329,16 @@
   opacity: 0.8;
 }
 
-/* 当子菜单在面板中显示时：显示标题并固定在顶部 */
-.sidebar-submenu-panel .submenu-header {
+/* 面板内的标题留在滚动区外，滚动条从标题下方开始 */
+.sidebar-submenu-panel > .submenu-header {
   display: block;
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   margin-top: 0;
   margin-bottom: 0.2rem;
   /* 覆盖基础样式的 margin-bottom */
   background-color: var(--sidebar-bg);
   opacity: 1;
   /* 覆盖基础样式的半透明，确保背景完全不透明 */
-  z-index: 1;
-  /* 确保标题在滚动时覆盖下方内容 */
 }
 
 /* 子菜单项样式优化 */

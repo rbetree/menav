@@ -24,6 +24,10 @@ package-lock.json
 *.tmp
 *.temp
 
+# 第三方资源与生成的图标清单（保持原样，避免无意义 diff）
+admin/vendor/fontawesome/
+admin/icons/
+
 # 文档文件（保留排版灵活性，避免代码示例被格式化）
 **/README.md
 src/**/*.md

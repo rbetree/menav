@@ -3,6 +3,7 @@ type SiteNode = {
   groups?: unknown[];
   subgroups?: unknown[];
   sites?: unknown[];
+  items?: unknown[];
 };
 
 function normalizeUrlKey(input: unknown): string {
@@ -36,8 +37,9 @@ function collectSitesRecursively(node: unknown, output: unknown[]): void {
     typedNode.subgroups.forEach((child: unknown) => collectSitesRecursively(child, output));
   }
 
-  if (Array.isArray(typedNode.sites)) {
-    typedNode.sites.forEach((site: unknown) => {
+  for (const key of ['sites', 'items'] as const) {
+    if (!Array.isArray(typedNode[key])) continue;
+    typedNode[key].forEach((site: unknown) => {
       if (site && typeof site === 'object') output.push(site);
     });
   }

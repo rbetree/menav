@@ -135,6 +135,50 @@ module.exports = function initRouting(
 
     const isSidebarCollapsed = () => Boolean(sidebar && sidebar.classList.contains('collapsed'));
 
+    const updateSubmenuScrollState = (list: HTMLElement): void => {
+      const maxScroll = list.scrollHeight - list.clientHeight;
+      list.classList.toggle('is-scroll-at-end', list.scrollTop >= maxScroll - 1);
+
+      if (!submenuPanel) return;
+
+      const trackHeight = list.clientHeight;
+      if (maxScroll <= 0 || trackHeight <= 0) {
+        submenuPanel.style.setProperty('--submenu-thumb-height', '0px');
+        return;
+      }
+
+      const thumbHeight = Math.min(
+        trackHeight,
+        Math.max(24, (trackHeight * trackHeight) / list.scrollHeight)
+      );
+      const thumbTop = (list.scrollTop / maxScroll) * (trackHeight - thumbHeight);
+      // 指示条从标题下方开始，偏移量相对面板顶边
+      const listOffsetTop =
+        list.getBoundingClientRect().top - submenuPanel.getBoundingClientRect().top;
+
+      submenuPanel.style.setProperty('--submenu-thumb-height', `${thumbHeight}px`);
+      submenuPanel.style.setProperty('--submenu-thumb-top', `${listOffsetTop + thumbTop}px`);
+    };
+
+    if (submenuPanel) {
+      // scroll 不冒泡，用捕获阶段统一处理面板内列表的滚动状态
+      submenuPanel.addEventListener(
+        'scroll',
+        (event) => {
+          const target = event.target;
+          if (target instanceof HTMLElement && target.classList.contains('submenu')) {
+            updateSubmenuScrollState(target);
+          }
+        },
+        { passive: true, capture: true }
+      );
+
+      window.addEventListener('resize', () => {
+        const list = submenuPanel.querySelector('.submenu');
+        if (list instanceof HTMLElement) updateSubmenuScrollState(list);
+      });
+    }
+
     const clearSubmenuPanel = () => {
       if (!submenuPanel) return;
 
@@ -142,6 +186,9 @@ module.exports = function initRouting(
       if (pageId) {
         const entry = submenuByPageId.get(pageId);
         if (entry && entry.wrapper && entry.submenu) {
+          // 标题先放回 submenu，否则会被下面的清空操作一并移除
+          const header = submenuPanel.querySelector(':scope > .submenu-header');
+          if (header) entry.submenu.insertBefore(header, entry.submenu.firstChild);
           entry.wrapper.appendChild(entry.submenu);
         }
       }
@@ -183,7 +230,13 @@ module.exports = function initRouting(
 
       clearSubmenuPanel();
       submenuPanel.appendChild(entry.submenu);
+
+      // 标题留在滚动区外，滚动条只覆盖分类列表
+      const header = entry.submenu.querySelector('.submenu-header');
+      if (header) submenuPanel.insertBefore(header, entry.submenu);
+
       submenuPanelPageId = id;
+      updateSubmenuScrollState(entry.submenu);
     };
 
     // 监听侧边栏折叠状态变化：折叠时归还子菜单；展开时渲染当前页子菜单

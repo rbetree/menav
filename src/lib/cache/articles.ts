@@ -6,6 +6,7 @@ import { createLogger } from '../logging/logger.ts';
 import { collectSitesRecursively, normalizeUrlKey } from '../site-data/sites.ts';
 
 type RenderConfigLike = {
+  snapshot?: { cacheDir?: string };
   site?: {
     rss?: {
       cacheDir?: unknown;
@@ -28,8 +29,10 @@ type ArticlesFeedCachePayload = {
   generatedAt?: unknown;
   stats?: {
     totalArticles?: unknown;
+    successSites?: unknown;
   };
   articles?: CacheArticleInput[];
+  sites?: Array<{ url?: unknown; status?: unknown }>;
 };
 
 type ArticleItem = SiteItem & {
@@ -49,6 +52,8 @@ type ArticlesFeedCache = {
     pageId: unknown;
     generatedAt: unknown;
     total: unknown;
+    successSites?: unknown;
+    successfulSourceUrls?: string[];
   };
 };
 
@@ -61,6 +66,7 @@ type ArticleCategory = {
 const log = createLogger('cache:articles');
 
 function getArticlesCacheDir(config: RenderConfigLike | null | undefined): string {
+  if (config?.snapshot?.cacheDir) return config.snapshot.cacheDir;
   const cacheDirFromEnv = process.env.RSS_CACHE_DIR ? String(process.env.RSS_CACHE_DIR) : '';
   const cacheDirFromConfig = config?.site?.rss?.cacheDir ? String(config.site.rss.cacheDir) : '';
   return cacheDirFromEnv || cacheDirFromConfig || 'dev';
@@ -109,6 +115,16 @@ function tryLoadArticlesFeedCache(
       meta: {
         pageId: parsed.pageId || pageId,
         generatedAt: parsed.generatedAt || '',
+        ...(parsed.stats?.successSites !== undefined
+          ? { successSites: parsed.stats.successSites }
+          : {}),
+        ...(Array.isArray(parsed.sites)
+          ? {
+              successfulSourceUrls: parsed.sites
+                .filter((site) => site.status === 'success' && typeof site.url === 'string')
+                .map((site) => String(site.url)),
+            }
+          : {}),
         total:
           parsed.stats && Number.isFinite(parsed.stats.totalArticles)
             ? parsed.stats.totalArticles

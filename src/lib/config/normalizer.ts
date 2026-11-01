@@ -12,6 +12,7 @@ type CategoryLike = MutableRecord & {
 };
 type NodeWithChildren = MutableRecord & {
   sites?: unknown;
+  items?: unknown;
   subcategories?: unknown;
   groups?: unknown;
   subgroups?: unknown;
@@ -83,8 +84,9 @@ export function ensureConfigDefaults(config: MutableRecord | null | undefined): 
 
     const typedNode = node as NodeWithChildren;
 
-    if (Array.isArray(typedNode.sites)) {
-      typedNode.sites.forEach((siteItem: unknown) => {
+    for (const key of ['sites', 'items'] as const) {
+      if (!Array.isArray(typedNode[key])) continue;
+      typedNode[key].forEach((siteItem: unknown) => {
         if (isRecord(siteItem)) processSiteDefaults(siteItem as SiteLike);
       });
     }

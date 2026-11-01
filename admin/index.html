@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>MeNav · 动态后台</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236a89c9'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%230e0f11'/%3E%3C/svg%3E"
+    />
+    <script>
+      // 首帧前落定主题,避免浅色用户先看到深色再闪成浅色。
+      (function () {
+        var saved = localStorage.getItem('admin-theme');
+        var light = saved
+          ? saved === 'light'
+          : window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (light) document.documentElement.classList.add('light-theme');
+      })();
+    </script>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <a class="skip-link" href="#tree-root">跳到页面结构</a>
+
+      <!-- ==================== 侧边栏 ==================== -->
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.4l2.77 6.83L21.6 12l-6.83 2.77L12 21.6l-2.77-6.83L2.4 12l6.83-2.77z" />
+            </svg>
+          </span>
+          <span class="brand-text">
+            <span class="brand-name">MeNav</span>
+            <span class="brand-tag">动态后台</span>
+          </span>
+        </div>
+
+        <div class="side-group">
+          <p class="side-group-title">页面</p>
+          <button
+            type="button"
+            class="side-link is-active"
+            data-action="show-tree"
+            aria-current="page"
+          >
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="4" width="6" height="6" rx="1.2" />
+              <rect x="14" y="4" width="6" height="6" rx="1.2" />
+              <rect x="4" y="14" width="6" height="6" rx="1.2" />
+              <rect x="14" y="14" width="6" height="6" rx="1.2" />
+            </svg>
+            <span>页面管理</span>
+          </button>
+          <button type="button" class="side-link" data-action="open-site-config">
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3.2" />
+              <path
+                d="M12 2.8v2.4M12 18.8v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"
+              />
+            </svg>
+            <span>站点设置</span>
+          </button>
+          <button type="button" class="side-link" data-action="data-page">
+            <svg class="side-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <ellipse cx="12" cy="5.5" rx="7" ry="2.8" />
+              <path d="M5 5.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+              <path d="M5 11.5v6c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6" />
+            </svg>
+            <span>数据与备份</span>
+          </button>
+        </div>
+
+        <div class="sidebar-footer">
+          <span class="sidebar-hint">Cloudflare Access 保护</span>
+          <button
+            type="button"
+            class="theme-toggle"
+            id="theme-toggle"
+            aria-label="切换主题"
+            title="切换主题"
+          ></button>
+        </div>
+      </aside>
+
+      <!-- ==================== 主区域 ==================== -->
+      <div class="admin-main">
+        <div id="tree-page" class="page">
+          <header class="view-header">
+            <div class="view-heading">
+              <h1>页面管理</h1>
+              <p>修改后需点「立即发布」才会更新公开站</p>
+            </div>
+
+            <div class="view-actions">
+              <button
+                type="button"
+                class="btn btn-quiet"
+                id="btn-refresh"
+                data-action="refresh"
+                title="重新加载数据"
+              >
+                <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+                  <path d="M20.8 3.7v5.6h-5.6" />
+                </svg>
+                <span>刷新</span>
+              </button>
+              <span class="action-split" aria-hidden="true"></span>
+
+              <button type="button" class="btn" data-action="add-page">
+                <svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                <span>新增页面</span>
+              </button>
+              <button type="button" class="btn btn-primary" id="btn-publish" data-action="publish">
+                立即发布
+              </button>
+            </div>
+          </header>
+
+          <!-- 搜索 / 发布状态 -->
+          <div class="subbar">
+            <div class="toolbar">
+              <label class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.2" />
+                  <path d="m20 20-3.6-3.6" />
+                </svg>
+                <input
+                  type="search"
+                  id="tree-search"
+                  placeholder="搜索站点 / 分类 / 页面"
+                  autocomplete="off"
+                  aria-label="搜索站点、分类或页面"
+                />
+                <button
+                  type="button"
+                  class="search-clear"
+                  id="tree-search-clear"
+                  aria-label="清空搜索"
+                  hidden
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12" />
+                    <path d="M18 6 6 18" />
+                  </svg>
+                </button>
+              </label>
+              <span
+                class="search-count"
+                id="tree-search-count"
+                role="status"
+                aria-live="polite"
+              ></span>
+            </div>
+
+            <section class="publish-status" role="status" aria-live="polite" id="publish-status">
+              正在读取发布状态…
+            </section>
+          </div>
+
+          <!-- 加载中 / 脱机 / 错误 -->
+          <div id="status" class="status-notice" role="status" aria-live="polite" hidden>
+            <span class="status-icon"></span>
+            <span class="status-text"></span>
+          </div>
+
+          <!-- 树根：由 app.js 渲染 页面 → 分类 → 站点 -->
+          <main id="tree-root" class="tree-root" aria-label="页面结构"></main>
+        </div>
+
+        <section id="data-page" class="page" hidden aria-label="数据与备份">
+          <header class="view-header">
+            <div class="view-heading">
+              <h1 tabindex="-1">数据与备份</h1>
+              <p>导出、导入和书签统一在这里操作，具体操作会在弹窗中完成。</p>
+            </div>
+          </header>
+
+          <div class="data-grid">
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导出备份</h3></header>
+              <div class="card-body">
+                <p class="card-desc">下载当前全部页面、分类、站点和配置，导入前建议先导出。</p>
+                <button type="button" class="btn" data-action="export-backup">导出备份 JSON</button>
+              </div>
+            </article>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导入备份</h3></header>
+              <div class="card-body">
+                <p class="card-desc">用备份文件替换全站数据。导入成功后需要发布才会更新公开站。</p>
+                <button type="button" class="btn" data-action="seed">导入备份 JSON</button>
+              </div>
+            </article>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">导入书签</h3></header>
+              <div class="card-body">
+                <p class="card-desc">
+                  从 Chrome、Firefox 或 Safari 导出的 HTML 替换「书签」页内容。
+                </p>
+                <button type="button" class="btn" data-action="import">导入书签</button>
+              </div>
+            </article>
+            <article class="card data-card">
+              <header class="card-head"><h3 class="card-title">当前配置</h3></header>
+              <div class="card-body">
+                <p class="card-desc">只读查看当前生效的站点配置。</p>
+                <button type="button" class="btn" data-action="settings">查看配置</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="site-config-page" class="page" hidden aria-label="站点设置">
+          <header class="view-header">
+            <div class="view-heading">
+              <h1 tabindex="-1">站点设置</h1>
+              <p>站点级配置，保存后需要发布才会更新公开站。</p>
+            </div>
+            <div class="view-actions">
+              <button type="button" class="btn" data-action="cancel-site-config">取消</button>
+              <button type="button" class="btn btn-primary" data-action="save-site-config">
+                保存
+              </button>
+            </div>
+          </header>
+          <div id="site-config-content" class="site-config-content"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 通用弹窗(新增/编辑站点·分类·页面 / 删除确认 / 书签导入) -->
+    <div id="modal-overlay" class="modal-overlay">
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <h2 id="modal-title"></h2>
+          <button type="button" class="modal-close" data-action="modal-close" aria-label="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12" />
+              <path d="M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+    <script src="./vendor/icon-picker/icon-picker.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
