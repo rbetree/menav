@@ -8,6 +8,10 @@ author: rbetree
 favicon: menav.svg
 logo_text: MeNav
 
+# 后台入口（可选）：静态形态手动填写后台地址，配置后公开站侧边栏显示「管理」入口。
+# 动态形态由构建自动使用 MENAV_BACKEND_URL，无需在此配置。
+# admin_url: https://menav-backend.example.workers.dev
+
 icons:
   # 站点卡片图标模式：
   # - favicon：自动根据 URL 加载站点 favicon（失败时回退到 Font Awesome 图标）

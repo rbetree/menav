@@ -1,0 +1,7 @@
+# 本地开发环境变量示例（可提交）。复制为 .dev.vars 后使用，勿提交填写后的 .dev.vars。
+# 允许本地开发跳过 Access 鉴权；仅对本机地址和 wrangler dev 的 workers.dev 主机生效，生产不要设置。
+ALLOW_INSECURE_DEV=1
+
+# Access 配置通常只在生产环境设置；本地需要验证 JWT 时再填。
+# TEAM_DOMAIN=https://<team>.cloudflareaccess.com
+# POLICY_AUD=<access-application-aud>

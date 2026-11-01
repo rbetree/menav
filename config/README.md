@@ -95,11 +95,12 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
 
 ### site.yml 常用字段
 
-`site.yml` 会经过 `src/lib/config/schema/site.ts` 校验；字段类型与可选值以 schema 和默认配置保持一致。schema 覆盖的顶层字段包括：`title`、`description`、`keywords`、`author`、`favicon`、`logo_text`、`logo`、`footer`、`icons`、`security`、`theme`、`fonts`、`profile`、`rss`、`github`、`social`、`navigation`。常用项如下：
+`site.yml` 会经过 `src/lib/config/schema/site.ts` 校验；字段类型与可选值以 schema 和默认配置保持一致。schema 覆盖的顶层字段包括：`title`、`description`、`keywords`、`author`、`favicon`、`logo_text`、`logo`、`footer`、`admin_url`、`icons`、`security`、`theme`、`fonts`、`profile`、`rss`、`github`、`social`、`navigation`。常用项如下：
 
 1. **基础信息**
    - `title`、`description`、`keywords`、`author`：字符串，用于站点标题、描述、关键词与署名
    - `favicon`、`logo_text`、`logo`、`footer`：字符串（`logo` 也可为 `null`），用于站点图标、Logo 文本和页脚
+   - `admin_url`：可选的 http/https 完整地址；静态形态配置后公开站侧边栏显示「管理」入口，动态形态由构建自动使用 `MENAV_BACKEND_URL`
 
 2. **图标模式（隐私相关）**
    - `icons.mode: favicon | manual`

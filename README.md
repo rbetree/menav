@@ -72,6 +72,7 @@ menav/
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
 - 源码结构（架构边界、SiteModel、脚本职责）：[`src/README.md`](src/README.md)
 - 静态资源（样式/图片等）：[`assets/README.md`](assets/README.md)
+- 动态后台部署与维护（Cloudflare Worker + D1 + Access）：[`workers/README.md`](workers/README.md)
 
 ## 快速开始
 
@@ -428,12 +429,17 @@ MeNav 提供两种形态，同一套代码按需选择：
 ```bash
 npm ci
 npm --prefix workers ci
-# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
-npm run backend:seed   # 生成 workers/.seed.json，在后台“数据与备份”中导入
-npm run backend:dev    # 本地 Worker 与管理台
+npm run backend:init    # 从示例生成 workers/wrangler.jsonc
+# 填写 D1 database_id、TEAM_DOMAIN、POLICY_AUD、CF_ACCOUNT_ID、CF_PAGES_PROJECT
+npm run backend:doctor  # 部署前自检
+npm run backend:seed    # 生成 workers/.seed.json，在后台“数据与备份”中导入
+npm run backend:dev     # 本地 Worker 与管理台
 npm run backend:check
-npm run backend:test   # 使用隔离 D1，不改动已部署的数据
+npm run backend:test    # 使用隔离 D1，不改动已部署的数据
+npm run backend:deploy  # 自检通过后部署 Worker
 ```
+
+动态形态构建时自动把 `MENAV_BACKEND_URL` 写入公开站侧边栏的「管理」入口，无需在 `site.yml` 另配。
 
 本地开发需要在 `workers/.dev.vars` 中设置 `ALLOW_INSECURE_DEV=1`；该文件不提交，放行仅对本机地址有效。`workers/wrangler.jsonc` 与 `workers/wrangler.test.jsonc` 都不入库，前者从示例复制，后者用于本机测试环境。
 
