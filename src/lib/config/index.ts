@@ -11,6 +11,20 @@ import { loadSnapshotConfig } from './snapshot.ts';
 
 type ConfigRecord = ResolvedConfig & Record<string, unknown>;
 
+/** 动态形态的后台地址就是构建时访问的 Worker；未显式配置时自动写入公开站入口。 */
+function applyBackendAdminUrl(config: ConfigRecord): void {
+  const endpoint = process.env.MENAV_BACKEND_URL?.trim();
+  if (!endpoint || config.site.admin_url) return;
+  try {
+    const parsed = new URL(endpoint);
+    const allowed =
+      parsed.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (allowed) config.site.admin_url = endpoint.replace(/\/$/, '');
+  } catch {
+    // 无效地址不显示入口，由访问后端的请求本身报错。
+  }
+}
+
 export function loadConfig(): ConfigRecord {
   const snapshotFile = process.env.MENAV_SNAPSHOT_FILE?.trim();
   let config = snapshotFile
@@ -25,6 +39,7 @@ export function loadConfig(): ConfigRecord {
   }
 
   config = ensureConfigDefaults(config) as ConfigRecord;
+  applyBackendAdminUrl(config);
   config.homePageId =
     Array.isArray(config.navigation) && config.navigation[0]
       ? String(config.navigation[0].id).trim()

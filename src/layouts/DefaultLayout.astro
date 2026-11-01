@@ -8,6 +8,7 @@ import ThemePreloadScript from '../components/ThemePreloadScript.astro';
 import type { NavigationItem, ResolvedConfig } from '../types/config';
 import type { PageEntry } from '../types/page';
 import type { RenderContext } from '../types/render';
+import { getSafeUrl } from '../lib/view-data/view-utils.ts';
 
 interface Props {
   config: ResolvedConfig;
@@ -34,6 +35,7 @@ const {
 } = Astro.props;
 
 const site = config.site || {};
+const adminUrl = site.admin_url ? getSafeUrl(site.admin_url, renderContext?.allowedSchemes) : '';
 const themeMode = site.theme?.mode || 'dark';
 const favicon = site.favicon || 'menav.svg';
 const brandImage = (site.logo || site.favicon || '').replace(/^\.?\//, '');
@@ -117,6 +119,14 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         </div>
 
         <div class="sidebar-footer">
+          {
+            adminUrl && adminUrl !== '#' && (
+              <a class="sidebar-admin" href={adminUrl} target="_blank" rel="noopener">
+                <i class="fas fa-sliders-h" aria-hidden="true" />
+                <span>管理</span>
+              </a>
+            )
+          }
           {site.footer && <p class="site-footer-text">{site.footer}</p>}
           <div class="copyright">
             <p>

@@ -22,6 +22,13 @@ const siteConfigSchema = z.strictObject({
   logo_text: z.string({ error: 'logo_text 必须是字符串' }).trim().optional(),
   logo: z.string({ error: 'logo 必须是字符串' }).nullable().optional(),
   footer: z.string({ error: 'footer 必须是字符串' }).optional(),
+  admin_url: z
+    .string({ error: 'admin_url 必须是字符串' })
+    .trim()
+    .refine((value) => value === '' || /^https?:\/\//i.test(value), {
+      error: 'admin_url 只支持 http/https 完整地址',
+    })
+    .optional(),
   icons: iconsSchema.optional(),
   security: securitySchema.optional(),
   theme: themeSchema.optional(),
