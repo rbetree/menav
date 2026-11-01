@@ -4,30 +4,25 @@
 
 本地 API、真实 SQLite/D1 事务、JWT、管理台浏览器、HTTP 领取冻结快照和 D1 → Astro 构建均有自动化验证。真实 Access 登录、Cloudflare 账号配额和线上发布时间需要部署后验收。
 
-## 一、本地运行
+> 部署顺序：资源与凭证 → Worker → Access → Pages → 首次发布。当前提供 Wrangler CLI 部署路径；Cloudflare 控制台路径尚未验证，不要照搬其他项目的控制台步骤。
 
-在仓库根目录执行：
+## 一、前置条件
 
-```bash
-npm ci
-npm --prefix workers ci
-# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
-npm run backend:seed
-```
+| 类别 | 需要准备 | 说明 |
+| --- | --- | --- |
+| 账号 | Cloudflare 账号 | 需要 Workers、D1、Pages、Access；免费计划可起步，配额以官方定价页为准 |
+| 仓库 | GitHub 仓库 | Pages 项目从 Git 获取应用源码，不读取业务数据 |
+| 本地 | Node.js >= 22.23.4 | 与 `package.json` 的 `engines` 一致 |
+| 本地 | npm | 已完成 `npm ci` 与 `npm --prefix workers ci` |
+| 资源 | D1 数据库 | 保存页面、分类、站点与发布状态 |
+| 资源 | Worker | 提供后台与管理 API |
+| 资源 | Access 应用 | 保护后台域名 |
+| 资源 | Pages Git 项目 | 运行 `npm run build:snapshot` 生成公开站 |
+| 资源 | Access Service Token | 让 Pages 构建领取冻结快照 |
 
-复制 `workers/.dev.vars.example` 为 `workers/.dev.vars`，然后执行 `npm run backend:dev`：
+首次部署需要创建五类资源，并配置两个 Worker secret、五个 Pages 环境变量。完整清单见下一节。
 
-```dotenv
-ALLOW_INSECURE_DEV=1
-```
-
-访问 Wrangler 输出的本地地址，打开“数据与备份 → 导入备份 JSON”，选择 `workers/.seed.json`。该鉴权放行仅接受 localhost、127.0.0.1、IPv6 本机地址，以及 `wrangler dev` 暴露的 `.workers.dev` 主机（新版 Wrangler 下 `c.req.url` 的 host 是 workers.dev 域名）；生产不要设置。
-
-> ⚠️ `wrangler.jsonc`（从示例复制）的 D1 绑定带 `remote: true`，本地 `wrangler dev` 会**连接远端库并写入真实数据**。仅做只读调试可直接运行；需要在本地撰写数据时，先 `npx wrangler d1 export` 备份，或用一份独立 D1。
-
-种子读取当前配置目录的导航、主题、字体、Markdown 正文、本地图片以及已有文章和项目数据。后续动态构建不读取这些仓库业务文件。后台的配置展示为只读；页面、正文、分类与站点可直接编辑。
-
-## 二、Cloudflare 资源与凭证
+## 二、资源与凭证
 
 使用独立的后台域名和公开站 Pages 项目，避免影响已有静态站。以下命令会创建或更新真实云资源，应在确认目标账号后执行。
 
@@ -49,7 +44,7 @@ ALLOW_INSECURE_DEV=1
 | Pages 生产环境 secret | `CF_ACCESS_CLIENT_SECRET` | 对应 Service Token 的 Client Secret |
 | Pages 生产环境 | `NODE_VERSION=24` | 与仓库 CI 一致的 Node 版本 |
 
-Worker 密钥在 `workers/` 下通过交互输入保存，勿写入源码：
+Pages 环境变量可复制 `workers/pages.env.example` 逐项填写。Worker 密钥在 `workers/` 下通过交互输入保存，勿写入源码：
 
 ```bash
 npx wrangler secret put CF_API_TOKEN
@@ -58,17 +53,28 @@ npx wrangler secret put BUILD_TOKEN
 
 `CF_PAGES_URL` 是 Pages 自动提供的本次部署 URL，不手工填写。构建 Token 只能领取当前部署的冻结快照，不能写管理 API。Cloudflare API Token 始终保留在 Worker，不进入快照。
 
-## 三、Access 与管理台
+## 三、部署 Worker
+
+1. 复制 `workers/wrangler.example.jsonc` 为 `workers/wrangler.jsonc`。
+2. 填入 D1 的 `database_id`，以及 `TEAM_DOMAIN`、`POLICY_AUD`、`CF_ACCOUNT_ID`、`CF_PAGES_PROJECT`。
+3. 按上一节设置 `CF_API_TOKEN` 与 `BUILD_TOKEN` 两个 secret。
+4. 在仓库根目录执行 `npm --prefix workers run deploy`；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。
+5. 部署前脚本会检查配置，发现占位符或缺少本地配置时直接退出。
+
+`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，包括图标选择器依赖的 Font Awesome 字体与图标清单；`run_worker_first` 保证资源返回前先鉴权。
+
+> ⚠️ `wrangler.jsonc`（从示例复制）的 D1 绑定带 `remote: true`，本地 `wrangler dev` 会**连接远端库并写入真实数据**。仅做只读调试可直接运行；需要在本地撰写数据时，先 `npx wrangler d1 export` 备份，或用一份独立 D1。
+
+## 四、Access 与管理台
 
 1. 为后台域名创建 Access Self-hosted 应用，策略仅允许管理员身份。
 2. 管理台全部静态资源（`/`、`/index.html`、`/app.js`、`/style.css`、`/vendor/*`、`/icons/*`）和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间；从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
 3. `/build/snapshot` 需要独立 Bearer 凭证到达 Worker。实测可行做法：在 Access 应用内新增一条 **Service Auth（`decision: non_identity`）** 策略，Include 选 `Any Access Service Token`；再建一个 Service Token，把其 Client ID/Secret 配到 Pages 构建环境（`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET`），`build-snapshot` 会在请求里带上这两个头。Worker 仍执行构建 Token 校验。注意：Access 策略的 `exclude` 语义是「拒绝」而非「放行」，且 `allow` 策略即使带 Service Token 也会要求登录——必须用 Service Auth 才能让服务身份免登录通过。
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
-5. 在仓库根目录执行 `npm --prefix workers run deploy`（使用填好的 `wrangler.jsonc`）；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，包括图标选择器依赖的 Font Awesome 字体与图标清单；`run_worker_first` 保证资源返回前先鉴权。
 
 不要把完整 `/api/*` 设为 Bypass。后台与写 API 都经过 Access；公开站始终消费已构建的静态产物。
 
-## 四、Pages 与首次发布顺序
+## 五、Pages 与首次发布
 
 1. 创建连接本仓库的 **Pages Git 项目**，选择包含动态后台代码的生产分支。根目录为仓库根目录，构建命令 `npm run build:snapshot`，输出目录 `dist`。
 2. 配置上一节的 Pages 生产环境变量和密钥，可复制 `workers/pages.env.example` 逐项填写；关闭 Git 提交触发的生产自动部署及预览分支自动部署。保留 Git 源码访问，部署由 Worker 调用 Pages API 发起。
@@ -81,7 +87,41 @@ npx wrangler secret put BUILD_TOKEN
 
 发布创建 API 返回成功只代表受理。Worker 必须确认部署达到 `deploy/success`、成为项目当前生产部署，且产物 `menav-build.json` 的任务 id 和版本匹配，才推进已发布版本。构建失败保留原静态站和待发布内容；修好配置后在后台重试。请求结果不确定时先按任务标识恢复已有部署，避免重复构建。
 
-## 五、数据契约与升级
+## 六、部署后检查清单
+
+| 检查项 | 方法 | 预期 |
+| --- | --- | --- |
+| Worker 可访问 | 打开 Worker 域名 | 跳转 Access 登录 |
+| 管理员登录 | 使用 Access 允许的账号 | 进入管理台 |
+| 后台数据 | 打开“数据与备份” | 可导出、可导入 |
+| 种子导入 | 导入 `workers/.seed.json` | 页面、分类、站点出现 |
+| Pages 环境变量 | Pages 项目设置 | 五个变量与两个 secret 齐全 |
+| 首次发布 | 后台点击“立即发布” | 状态依次到「已发布」 |
+| 产物版本 | 访问 `/menav-build.json` | `revision` 等于后台已发布版本 |
+| 公开站匿名访问 | 退出登录后打开 Pages 域名 | 正常显示，不要求登录 |
+
+## 七、本地开发
+
+在仓库根目录执行：
+
+```bash
+npm ci
+npm --prefix workers ci
+# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
+npm run backend:seed
+```
+
+复制 `workers/.dev.vars.example` 为 `workers/.dev.vars`，然后执行 `npm run backend:dev`：
+
+```dotenv
+ALLOW_INSECURE_DEV=1
+```
+
+访问 Wrangler 输出的本地地址，打开“数据与备份 → 导入备份 JSON”，选择 `workers/.seed.json`。该鉴权放行仅接受 localhost、127.0.0.1、IPv6 本机地址，以及 `wrangler dev` 暴露的 `.workers.dev` 主机（新版 Wrangler 下 `c.req.url` 的 host 是 workers.dev 域名）；生产不要设置。
+
+种子读取当前配置目录的导航、主题、字体、Markdown 正文、本地图片以及已有文章和项目数据。后续动态构建不读取这些仓库业务文件。后台的配置展示为只读；页面、正文、分类与站点可直接编辑。
+
+## 八、数据契约与升级
 
 - `GET /api/state` 返回页面数组和 `ETag`；后台保存发送 `If-Match`。其他窗口已修改时返回 409 并保留当前输入。
 - `GET /api/export` 导出 `{ schemaVersion, revision, updatedAt, settings, pages }`；可在“数据与备份”下载备份或导回。
@@ -93,7 +133,7 @@ npx wrangler secret put BUILD_TOKEN
 - 表升级只追加 metadata、navigation、kind 等列及版本/发布表。升级前先做 D1 导出备份，必要时用 D1 Time Travel 恢复（保留期以账号计划为准）。旧版本已丢失的正文、标题或图片无法由迁移凭空恢复，应从原种子重新导入或在后台补齐。
 - 早期版本可能产生数字开头的 UUID 页面 id。发布会明确拒绝这类旧标识，数据仍保留并可导出。备份后将页面 id 改为 `page-<原 UUID>`，并修正指向 `?page=<原 id>` 的站内链接，再通过显式替换导入；不会自动改链接。
 
-## 六、构建与验证
+## 九、构建与验证
 
 从后台下载备份后，可用 `MENAV_SNAPSHOT_FILE` 指定本地 JSON，再运行 `npm run build:snapshot`。默认按快照中的地址刷新 RSS、GitHub 仓库统计与贡献图；每次构建使用独立临时缓存，失败来源保留 D1 中的数据。`npm run build:snapshot -- --offline` 只使用快照基线，适合复现产物差异。
 
@@ -110,7 +150,7 @@ npm run test:browser
 
 最后两个构建/浏览器命令会使用根目录 `dist/`，不要与其他构建并行。若使用本机 Chrome，可通过 `PLAYWRIGHT_EXECUTABLE_PATH` 指定其绝对路径。测试只使用临时 D1；外部刷新集成测试运行真实同步脚本并提供可控外站响应，不能替代 Cloudflare 线上验收。
 
-## 七、部署与运维
+## 十、部署与运维
 
 ### 代码更新后的部署
 
@@ -152,3 +192,15 @@ npx wrangler secret put CF_API_TOKEN
 - 构建失败：后台状态栏显示失败原因并提供「重新发布」；冻结快照在重试时重新写入，不会部分残留。
 - D1 恢复：`npx wrangler d1 time-travel info <d1-name>` / `restore`（Free 保留 7 天）；`restore` 为破坏性原地覆盖，先导出备份。
 - 备份：`npx wrangler d1 export <d1-name> --remote --output=backup.sql`（导出期间会阻塞其他数据库请求，安排在低峰）。
+
+## 十一、常见问题
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 本地 `wrangler dev` 改动了线上数据 | D1 绑定带 `remote: true` | 先导出备份，或改用独立 D1 |
+| 登录后台一直要求登录 | Access 的 `allow` 策略不认 Service Token | 为构建路径使用 Service Auth（`decision: non_identity`） |
+| 首次发布失败 | Pages 环境变量或 Service Token 未配齐 | 对照第六节检查清单逐项核对 |
+| 发布后公开站没变化 | 只改了 D1，没有新发布 | 在后台点击「立即发布」；代码变化需强制重建 |
+| 部署前检查报占位符 | `wrangler.jsonc` 仍是示例值 | 填入真实 D1 id、团队地址、AUD、账号与项目名 |
+| Pages 构建提示 Node 版本不符 | 未设置 `NODE_VERSION` | 在 Pages 环境变量中设置 `NODE_VERSION=24` |
+| 后台看不到未发布状态 | 发布完成后关闭了后台 | 下次打开后台会自动核对并更新 |
