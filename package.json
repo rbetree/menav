@@ -44,6 +44,8 @@
     "backend:dev": "npm --prefix workers run dev",
     "backend:init": "node -r ./scripts/register-ts.cjs ./scripts/backend-init.ts",
     "backend:doctor": "node -r ./scripts/register-ts.cjs ./scripts/backend-doctor.ts",
+    "backend:deploy": "npm run backend:doctor && npm --prefix workers run deploy",
+    "backend:deploy:test": "npm run backend:doctor -- --config wrangler.test.jsonc && npm --prefix workers run deploy:test",
     "backend:check": "npm --prefix workers run check",
     "backend:test": "npm --prefix workers test",
     "backend:seed": "node -r ./scripts/register-ts.cjs ./scripts/generate-seed.ts --output workers/.seed.json",

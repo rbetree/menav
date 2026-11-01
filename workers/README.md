@@ -55,11 +55,11 @@ npx wrangler secret put BUILD_TOKEN
 
 ## 三、部署 Worker
 
-1. 复制 `workers/wrangler.example.jsonc` 为 `workers/wrangler.jsonc`。
+1. 在仓库根目录执行 `npm run backend:init`，从示例生成 `workers/wrangler.jsonc`。
 2. 填入 D1 的 `database_id`，以及 `TEAM_DOMAIN`、`POLICY_AUD`、`CF_ACCOUNT_ID`、`CF_PAGES_PROJECT`。
-3. 按上一节设置 `CF_API_TOKEN` 与 `BUILD_TOKEN` 两个 secret。
-4. 在仓库根目录执行 `npm --prefix workers run deploy`；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。
-5. 部署前脚本会检查配置，发现占位符或缺少本地配置时直接退出。
+3. 执行 `npm run backend:doctor`，确认没有占位符。
+4. 按上一节设置 `CF_API_TOKEN` 与 `BUILD_TOKEN` 两个 secret。
+5. 执行 `npm run backend:deploy`（先自检再部署）；测试环境使用 `npm run backend:deploy:test`（读取本机 `wrangler.test.jsonc`）。
 
 `admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，包括图标选择器依赖的 Font Awesome 字体与图标清单；`run_worker_first` 保证资源返回前先鉴权。
 
@@ -107,7 +107,7 @@ npx wrangler secret put BUILD_TOKEN
 ```bash
 npm ci
 npm --prefix workers ci
-# 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
+npm run backend:init  # 生成 workers/wrangler.jsonc，再填写自己的 Cloudflare 资源
 npm run backend:seed
 ```
 
@@ -156,7 +156,7 @@ npm run test:browser
 
 仓库不配置自动部署，Worker 由维护者手动发布：
 
-1. 在 `workers/` 下执行 `npm run deploy`；测试环境执行 `npm run deploy:test`。部署前脚本会检查配置，发现占位符或缺少本地配置时直接退出。
+1. 在仓库根目录执行 `npm run backend:deploy`；测试环境执行 `npm run backend:deploy:test`。命令会先运行 `backend:doctor`，占位符未填时不会部署。
 2. 公开站源码由 Pages 项目的生产分支提供。代码变化不改变 `revision`，需要**强制重建**：`POST /api/rebuild?force=1`，让新代码进入公开站。
 3. 确认 Pages 项目的 Git 自动部署已关闭。本设计通过 Worker 创建部署，Git push 触发的构建不会被发布任务认领。
 
@@ -201,6 +201,6 @@ npx wrangler secret put CF_API_TOKEN
 | 登录后台一直要求登录 | Access 的 `allow` 策略不认 Service Token | 为构建路径使用 Service Auth（`decision: non_identity`） |
 | 首次发布失败 | Pages 环境变量或 Service Token 未配齐 | 对照第六节检查清单逐项核对 |
 | 发布后公开站没变化 | 只改了 D1，没有新发布 | 在后台点击「立即发布」；代码变化需强制重建 |
-| 部署前检查报占位符 | `wrangler.jsonc` 仍是示例值 | 填入真实 D1 id、团队地址、AUD、账号与项目名 |
+| 部署前检查报占位符 | `wrangler.jsonc` 仍是示例值 | 填入真实 D1 id、团队地址、AUD、账号与项目名，再运行 `npm run backend:doctor` |
 | Pages 构建提示 Node 版本不符 | 未设置 `NODE_VERSION` | 在 Pages 环境变量中设置 `NODE_VERSION=24` |
 | 后台看不到未发布状态 | 发布完成后关闭了后台 | 下次打开后台会自动核对并更新 |

@@ -96,7 +96,14 @@ async function main() {
   }
 
   const workersDir = path.join(repoRoot, 'workers');
-  const configPath = path.join(workersDir, 'wrangler.jsonc');
+  const configArgIndex = process.argv.indexOf('--config');
+  const configName = configArgIndex >= 0 ? process.argv[configArgIndex + 1] : 'wrangler.jsonc';
+  const configPath = path.resolve(workersDir, configName);
+  if (!configPath.startsWith(workersDir + path.sep)) {
+    log.error('--config 只能指向 workers/ 目录内的配置文件');
+    process.exitCode = 1;
+    return;
+  }
   const checks: CheckResult[] = [];
 
   const check = (ok: boolean, okMessage: string, failMessage: string) => {
@@ -106,7 +113,7 @@ async function main() {
   };
 
   if (!fs.existsSync(configPath)) {
-    log.error('缺少 workers/wrangler.jsonc，先运行 npm run backend:init');
+    log.error(`缺少 workers/${configName}，先运行 npm run backend:init 或从示例复制`);
     process.exitCode = 1;
     return;
   }
