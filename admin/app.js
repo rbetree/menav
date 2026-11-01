@@ -1195,24 +1195,6 @@ function openSiteForm(opts) {
         true
       ) +
       '</div>' +
-      selectField(
-        'style',
-        '卡片样式',
-        [
-          { value: '', label: '普通站点' },
-          { value: 'repo', label: '仓库卡片' },
-        ],
-        s?.metadata?.style || ''
-      ) +
-      selectField(
-        'type',
-        '卡片类型',
-        [
-          { value: '', label: '普通站点' },
-          { value: 'article', label: '文章卡片' },
-        ],
-        s?.metadata?.type || ''
-      ) +
       checkField('external', '外部链接(新标签页打开)', s ? !!s.external : true) +
       formActions(isEdit ? '保存' : '新增')
   );
@@ -1257,14 +1239,9 @@ function openSiteForm(opts) {
         return;
       }
       const metadata = { ...(s?.metadata || {}) };
-      for (const [key, id] of [
-        ['style', 'f-style'],
-        ['type', 'f-type'],
-      ]) {
-        const value = document.getElementById(id).value;
-        if (value) metadata[key] = value;
-        else delete metadata[key];
-      }
+      // 普通站点不再提供卡片样式与类型；清掉旧数据里残留的值。
+      delete metadata.style;
+      delete metadata.type;
       const mode = form.querySelector('input[name="iconMode"]:checked').value;
       const iconValue = document.getElementById('f-icon').value.trim();
       const imageValue = document.getElementById('f-faviconUrl').value.trim();
@@ -1643,6 +1620,16 @@ async function openSiteConfig() {
         theme.mode || 'system'
       ) +
         selectField(
+          'sc-icons-mode',
+          '站点图标模式',
+          [
+            { value: 'favicon', label: '自动获取网站图标' },
+            { value: 'manual', label: '仅使用手动图标' },
+          ],
+          icons.mode || 'favicon',
+          '手动模式不请求第三方 favicon 服务'
+        ) +
+        selectField(
           'sc-icons-region',
           'favicon 服务区域',
           [
@@ -1783,7 +1770,10 @@ async function openSiteConfig() {
         footer: val('sc-footer'),
         logo: val('sc-logo') || null,
         theme: { mode: val('sc-theme') },
-        icons: { mode: 'favicon', region: val('sc-icons-region') },
+        icons: {
+          mode: val('sc-icons-mode') || site.icons?.mode || 'favicon',
+          region: val('sc-icons-region'),
+        },
         profile: { title: val('sc-profile-title'), subtitle: val('sc-profile-subtitle') },
         fonts: {
           source: val('sc-fonts-source'),
