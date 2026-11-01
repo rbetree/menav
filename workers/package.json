@@ -14,16 +14,16 @@
     "test:browser": "node test/admin.browser.mjs"
   },
   "dependencies": {
-    "hono": "^4.6.0",
+    "hono": "^4.13.16",
     "jose": "^5.9.6",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260820.1",
+    "@cloudflare/workers-types": "^5.20261101.1",
     "esbuild": "0.28.2",
-    "miniflare": "5.20260820.0-alpha",
+    "miniflare": "^5.20261023.3-beta",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.156.0"
   }
 }

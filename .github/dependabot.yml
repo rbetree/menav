@@ -3,7 +3,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
-    target-branch: main
+    target-branch: dev
     schedule:
       interval: monthly
       time: '09:00'
@@ -23,7 +23,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /workers
-    target-branch: main
+    target-branch: dev
     schedule:
       interval: monthly
       time: '09:30'
@@ -44,7 +44,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
-    target-branch: main
+    target-branch: dev
     schedule:
       interval: monthly
       time: '09:15'
