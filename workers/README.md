@@ -61,10 +61,10 @@ npx wrangler secret put BUILD_TOKEN
 ## 三、Access 与管理台
 
 1. 为后台域名创建 Access Self-hosted 应用，策略仅允许管理员身份。
-2. 管理台 `/`、`/index.html`、`/app.js`、`/style.css` 和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间；从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
+2. 管理台全部静态资源（`/`、`/index.html`、`/app.js`、`/style.css`、`/vendor/*`、`/icons/*`）和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间；从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
 3. `/build/snapshot` 需要独立 Bearer 凭证到达 Worker。实测可行做法：在 Access 应用内新增一条 **Service Auth（`decision: non_identity`）** 策略，Include 选 `Any Access Service Token`；再建一个 Service Token，把其 Client ID/Secret 配到 Pages 构建环境（`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET`），`build-snapshot` 会在请求里带上这两个头。Worker 仍执行构建 Token 校验。注意：Access 策略的 `exclude` 语义是「拒绝」而非「放行」，且 `allow` 策略即使带 Service Token 也会要求登录——必须用 Service Auth 才能让服务身份免登录通过。
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
-5. 在仓库根目录执行 `npm --prefix workers run deploy`（使用填好的 `wrangler.jsonc`）；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，`run_worker_first` 保证资源返回前先鉴权。
+5. 在仓库根目录执行 `npm --prefix workers run deploy`（使用填好的 `wrangler.jsonc`）；测试环境使用 `npm --prefix workers run deploy:test`（读取本机 `wrangler.test.jsonc`）。`admin/` 静态资源通过 Wrangler ASSETS 随 Worker 一起部署，包括图标选择器依赖的 Font Awesome 字体与图标清单；`run_worker_first` 保证资源返回前先鉴权。
 
 不要把完整 `/api/*` 设为 Bypass。后台与写 API 都经过 Access；公开站始终消费已构建的静态产物。
 
@@ -73,7 +73,7 @@ npx wrangler secret put BUILD_TOKEN
 1. 创建连接本仓库的 **Pages Git 项目**，选择包含动态后台代码的生产分支。根目录为仓库根目录，构建命令 `npm run build:snapshot`，输出目录 `dist`。
 2. 配置上一节的 Pages 生产环境变量和密钥，关闭 Git 提交触发的生产自动部署及预览分支自动部署。保留 Git 源码访问，部署由 Worker 调用 Pages API 发起。
 3. 项目创建时的自动首构建没有对应发布任务，会因缺少快照失败；不会更新公开内容。完成配置后通过后台发起首次发布，不使用 Pages 控制台的重试按钮代替。
-4. 登录已部署的后台，打开“系统配置 → 导入初始数据”，选择本地生成的种子。已有页面时，先“导出备份”，再确认替换。
+4. 登录已部署的后台，打开“数据与备份 → 导入备份 JSON”，选择本地生成的种子。已有页面时，先“导出备份”，再确认替换。
 5. 点击“立即发布”。状态会依次显示正在创建构建、构建中、已发布；页面提供该次部署链接。
 6. 核对 Pages 生产地址和 `menav-build.json`，其中 `revision` 应等于后台“已发布版本”。在构建期间继续编辑，成功后新编辑仍应显示待发布。
 
@@ -84,7 +84,7 @@ npx wrangler secret put BUILD_TOKEN
 ## 五、数据契约与升级
 
 - `GET /api/state` 返回页面数组和 `ETag`；后台保存发送 `If-Match`。其他窗口已修改时返回 409 并保留当前输入。
-- `GET /api/export` 导出 `{ schemaVersion, revision, updatedAt, settings, pages }`；可在“系统配置”下载备份或导回。
+- `GET /api/export` 导出 `{ schemaVersion, revision, updatedAt, settings, pages }`；可在“数据与备份”下载备份或导回。
 - `POST /api/seed` 整体替换页面、分类、站点和配置。只要已有页面，必须 `?reset=1`，包括只有书签页面的情况。原备份的 revision 不会倒退当前库版本；恢复作为一次新编辑提交。
 - `POST /api/bookmarks` 接收 `{ html }`。有效导入整体替换固定 `bookmarks` 页的分类和站点；其他页面保留。空或全为不安全 URL 的输入返回 422，原数据不变。MarksVault Service Token 直推不在本期范围。
 - `hidden` 只隐藏导航，链接与搜索仍可访问。`foldable=false` 禁止收起该分类，未指定时保持静态站默认的可折叠行为。

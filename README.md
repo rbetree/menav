@@ -417,7 +417,7 @@ MeNav 提供两种形态，同一套代码按需选择：
 
 > 本仓库只作为模板与示例站，示例内容来自 `config/_default`。个人使用建议放在独立仓库，避免自己的配置和内容覆盖示例站。动态后台配置提交的是 `workers/wrangler.example.jsonc`，真实 D1、Access 与 Pages 资源值不要提交。
 
-动态后台已包含页面、正文、分类和站点编辑、同级排序、四层分类维护、书签上传、备份恢复、系统配置查看与发布状态。`hidden` 仅隐藏导航，链接和搜索仍可访问。
+动态后台已包含页面、正文、分类和站点编辑、同级排序、四层分类维护、图标选择、书签上传、备份恢复、站点设置查看与发布状态。站点图标可选自动 favicon、图标库或图片地址，页面导航与分类图标同样支持可视化选择。`hidden` 仅隐藏导航，链接和搜索仍可访问。
 
 公开构建使用专属 Cloudflare Pages Git 项目，允许获取应用源码；导航、正文、配置和本地图片来自 D1 快照。每次构建会按 D1 配置刷新 RSS、GitHub 项目统计和贡献图，失败来源回退到 D1 保存的数据，不读取仓库缓存。
 
@@ -429,7 +429,7 @@ MeNav 提供两种形态，同一套代码按需选择：
 npm ci
 npm --prefix workers ci
 # 复制 workers/wrangler.example.jsonc 为 workers/wrangler.jsonc，并填写自己的 Cloudflare 资源
-npm run backend:seed   # 生成 workers/.seed.json，在后台“系统配置”中导入
+npm run backend:seed   # 生成 workers/.seed.json，在后台“数据与备份”中导入
 npm run backend:dev    # 本地 Worker 与管理台
 npm run backend:check
 npm run backend:test   # 使用隔离 D1，不改动已部署的数据
