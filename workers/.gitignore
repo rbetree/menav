@@ -1,6 +1,7 @@
 node_modules/
 .wrangler/
 .dev.vars
+pages.env
 dist/
 *.log
 .seed.json

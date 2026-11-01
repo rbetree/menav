@@ -15,7 +15,7 @@ npm --prefix workers ci
 npm run backend:seed
 ```
 
-在 `workers/.dev.vars` 中写入以下本地配置，然后执行 `npm run backend:dev`：
+复制 `workers/.dev.vars.example` 为 `workers/.dev.vars`，然后执行 `npm run backend:dev`：
 
 ```dotenv
 ALLOW_INSECURE_DEV=1
@@ -47,7 +47,7 @@ ALLOW_INSECURE_DEV=1
 | Pages 生产环境 secret | `MENAV_BUILD_TOKEN` | 对应 Worker `BUILD_TOKEN` |
 | Pages 生产环境 | `CF_ACCESS_CLIENT_ID` | Access Service Token 的 Client ID（若后台启用 Access） |
 | Pages 生产环境 secret | `CF_ACCESS_CLIENT_SECRET` | 对应 Service Token 的 Client Secret |
-| Pages 生产环境 | `NODE_VERSION=22.22.1` | 与仓库 CI 一致的 Node 版本 |
+| Pages 生产环境 | `NODE_VERSION=24` | 与仓库 CI 一致的 Node 版本 |
 
 Worker 密钥在 `workers/` 下通过交互输入保存，勿写入源码：
 
@@ -71,7 +71,7 @@ npx wrangler secret put BUILD_TOKEN
 ## 四、Pages 与首次发布顺序
 
 1. 创建连接本仓库的 **Pages Git 项目**，选择包含动态后台代码的生产分支。根目录为仓库根目录，构建命令 `npm run build:snapshot`，输出目录 `dist`。
-2. 配置上一节的 Pages 生产环境变量和密钥，关闭 Git 提交触发的生产自动部署及预览分支自动部署。保留 Git 源码访问，部署由 Worker 调用 Pages API 发起。
+2. 配置上一节的 Pages 生产环境变量和密钥，可复制 `workers/pages.env.example` 逐项填写；关闭 Git 提交触发的生产自动部署及预览分支自动部署。保留 Git 源码访问，部署由 Worker 调用 Pages API 发起。
 3. 项目创建时的自动首构建没有对应发布任务，会因缺少快照失败；不会更新公开内容。完成配置后通过后台发起首次发布，不使用 Pages 控制台的重试按钮代替。
 4. 登录已部署的后台，打开“数据与备份 → 导入备份 JSON”，选择本地生成的种子。已有页面时，先“导出备份”，再确认替换。
 5. 点击“立即发布”。状态会依次显示正在创建构建、构建中、已发布；页面提供该次部署链接。

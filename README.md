@@ -72,6 +72,7 @@ menav/
 - 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
 - 源码结构（架构边界、SiteModel、脚本职责）：[`src/README.md`](src/README.md)
 - 静态资源（样式/图片等）：[`assets/README.md`](assets/README.md)
+- 动态后台部署与维护（Cloudflare Worker + D1 + Access）：[`workers/README.md`](workers/README.md)
 
 ## 快速开始
 
