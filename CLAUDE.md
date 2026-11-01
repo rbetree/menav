@@ -15,5 +15,6 @@
 
 ## 依赖与安全
 
-- 依赖升级优先通过 Dependabot PR 进入 `dev`；需要手动升级时同样走分支 → `dev`。
+- 版本更新通过 Dependabot PR 进入 `dev`；需要手动升级时同样走分支 → `dev`。
+- Dependabot 安全更新只能指向仓库默认分支 `main`，属于流程例外；合并前确认 CI 通过，无法自动修复时在 `dev` 手动处理。
 - 安全告警修复后复查 `npm audit --omit=dev --audit-level=high` 和 `npm --prefix workers audit --omit=dev --audit-level=high`。
