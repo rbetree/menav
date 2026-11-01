@@ -14,7 +14,7 @@
     "dist-node"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.23.4"
   },
   "homepage": "https://rbetree.github.io/menav",
   "scripts": {
