@@ -93,6 +93,11 @@
   font-size: 18px;
 }
 
+.admin-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* 全局样式 */
 * {
   margin: 0;

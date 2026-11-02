@@ -1304,9 +1304,17 @@ function openSiteForm(opts) {
   const imageRow = document.getElementById('icon-image-row');
   const modeHint = document.getElementById('icon-mode-hint');
   const meta = s?.metadata || {};
-  // 旧站点没有 forceIconMode 时按 favicon 地址推断；残留的 icon 保留为回退图标。
+  // 旧站点没有 forceIconMode 时按已有字段推断：有图标视为手动，有图片地址视为图片。
   const initialMode =
-    meta.forceIconMode === 'manual' ? 'library' : s?.faviconUrl ? 'image' : 'auto';
+    meta.forceIconMode === 'manual'
+      ? 'library'
+      : meta.forceIconMode === 'favicon'
+        ? 'auto'
+        : s?.faviconUrl
+          ? 'image'
+          : s?.icon
+            ? 'library'
+            : 'auto';
   iconModeRadios.forEach((radio) => {
     radio.checked = radio.value === initialMode;
     radio.addEventListener('change', syncIconMode);
