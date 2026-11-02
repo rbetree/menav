@@ -2,9 +2,33 @@
 const { heatmap = {} } = Astro.props;
 const username = heatmap.username || '';
 const html = heatmap.html || '';
+
+// 热力图颜色来自站点配置；用内联变量覆盖主题默认色阶。
+const color = String(heatmap.color || '')
+  .trim()
+  .replace(/^#/, '');
+const rgb = /^[0-9a-f]{6}$/i.test(color)
+  ? [
+      parseInt(color.slice(0, 2), 16),
+      parseInt(color.slice(2, 4), 16),
+      parseInt(color.slice(4, 6), 16),
+    ]
+  : null;
+const heatmapStyle = rgb
+  ? [
+      `--gh-level-1: rgba(${rgb.join(',')}, 0.35)`,
+      `--gh-level-2: rgba(${rgb.join(',')}, 0.55)`,
+      `--gh-level-3: rgba(${rgb.join(',')}, 0.75)`,
+      `--gh-level-4: rgba(${rgb.join(',')}, 0.95)`,
+    ].join('; ')
+  : undefined;
 ---
 
-<section class="category category-level-1 gh-heatmap-category" data-type="heatmap">
+<section
+  class="category category-level-1 gh-heatmap-category"
+  data-type="heatmap"
+  style={heatmapStyle}
+>
   <div class="category-header">
     <div class="gh-heatmap-header">
       <h2>

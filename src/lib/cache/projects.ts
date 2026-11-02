@@ -230,6 +230,7 @@ function buildProjectsMeta(config: RenderConfigLike | null | undefined): {
     username: string;
     profileUrl: string;
     imageUrl: string;
+    color: string;
     html?: string;
     generatedAt?: unknown;
     sourceUrl?: unknown;
@@ -245,6 +246,7 @@ function buildProjectsMeta(config: RenderConfigLike | null | undefined): {
       username,
       profileUrl: `https://github.com/${username}`,
       imageUrl: `https://ghchart.rshah.org/${color}/${username}`,
+      color,
     },
   };
 }
