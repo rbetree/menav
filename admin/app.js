@@ -900,6 +900,102 @@ function bindIconField(name) {
   sync();
 }
 
+function socialRow(item = {}) {
+  return (
+    '<div class="social-row" data-social-row>' +
+    '<input class="social-name" type="text" value="' +
+    esc(item.name || '') +
+    '" placeholder="名称">' +
+    '<input class="social-url" type="text" value="' +
+    esc(item.url || '') +
+    '" placeholder="https://example.com">' +
+    '<input class="social-icon" type="text" value="' +
+    esc(item.icon || '') +
+    '" placeholder="fab fa-github">' +
+    '<button type="button" class="btn btn-sm" data-social-icon>图标</button>' +
+    '<button type="button" class="btn btn-sm" data-social-remove>删除</button>' +
+    '</div>'
+  );
+}
+
+function socialEditor(items) {
+  const list = Array.isArray(items) ? items : [];
+  return (
+    '<div class="form-field form-field--wide"><label>社交链接</label>' +
+    '<div class="social-editor" id="social-editor">' +
+    list.map((item) => socialRow(item)).join('') +
+    '</div>' +
+    '<div class="field-actions"><button type="button" class="btn btn-sm" id="social-add">添加链接</button></div>' +
+    '<div class="field-hint">名称、链接和图标分别填写；图标可点「图标」选择。</div></div>'
+  );
+}
+
+function bindSocialEditor() {
+  const editor = document.getElementById('social-editor');
+  if (!editor) return;
+  document.getElementById('social-add')?.addEventListener('click', () => {
+    editor.insertAdjacentHTML('beforeend', socialRow());
+  });
+  editor.addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-social-remove]');
+    if (remove) {
+      remove.closest('[data-social-row]').remove();
+      return;
+    }
+    const pick = event.target.closest('[data-social-icon]');
+    if (pick) {
+      const input = pick.closest('[data-social-row]').querySelector('.social-icon');
+      iconPicker.open(input, { title: '选择图标' });
+    }
+  });
+}
+
+function colorField(name, label, value, hint) {
+  const normalized = String(value || '')
+    .trim()
+    .replace(/^#/, '');
+  const safe = /^[0-9a-f]{6}$/i.test(normalized) ? normalized : '339af0';
+  return (
+    '<div class="' +
+    formFieldClass() +
+    '"><label for="f-' +
+    name +
+    '">' +
+    label +
+    '</label><div class="color-field">' +
+    '<input type="color" id="f-' +
+    name +
+    '-picker" value="#' +
+    safe +
+    '" aria-label="' +
+    esc(label) +
+    '">' +
+    '<input id="f-' +
+    name +
+    '" name="' +
+    name +
+    '" type="text" value="' +
+    esc(normalized) +
+    '" placeholder="如 4f8ff7（不带 #）" maxlength="7">' +
+    '</div>' +
+    (hint ? '<div class="field-hint">' + hint + '</div>' : '') +
+    '</div>'
+  );
+}
+
+function bindColorField(name) {
+  const picker = document.getElementById('f-' + name + '-picker');
+  const input = document.getElementById('f-' + name);
+  if (!picker || !input) return;
+  picker.addEventListener('input', () => {
+    input.value = picker.value.replace(/^#/, '');
+  });
+  input.addEventListener('input', () => {
+    const value = input.value.trim().replace(/^#/, '');
+    if (/^[0-9a-f]{6}$/i.test(value)) picker.value = '#' + value;
+  });
+}
+
 function setFormError(msg) {
   const el = document.getElementById('form-error');
   el.textContent = msg;
@@ -1671,17 +1767,7 @@ async function openSiteConfig() {
         switchField('sc-fonts-preload', '预加载字体 CSS（非阻塞）', fonts.preload === true, true),
       3
     ) +
-    settingsCard(
-      '社交链接',
-      textareaField(
-        'sc-social',
-        '每行一个：名称 | URL | 图标',
-        social.map((s) => [s.name || '', s.url || '', s.icon || ''].join(' | ')).join('\n'),
-        'GitHub | https://github.com/me | fab fa-github',
-        '',
-        true
-      )
-    ) +
+    settingsCard('社交链接', socialEditor(social)) +
     settingsCard(
       '外链安全',
       textField(
@@ -1718,7 +1804,7 @@ async function openSiteConfig() {
     settingsCard(
       'GitHub 贡献图',
       textField('sc-gh-username', 'GitHub 用户名', gh.username, '用于贡献热力图') +
-        textField('sc-gh-color', '热力图主题色', gh.heatmapColor, '如 4f8ff7（不带 #）')
+        colorField('sc-gh-color', '热力图主题色', gh.heatmapColor, '选择颜色，或填写 6 位色值')
     ) +
     '<div class="form-error" id="form-error" hidden></div>' +
     '</form>';
@@ -1732,17 +1818,20 @@ async function openSiteConfig() {
   const checked = (name) => document.getElementById('f-' + name).checked;
   const numOrUndef = (name) => (val(name) === '' ? undefined : Number(val(name)));
 
+  bindSocialEditor();
+  bindColorField('sc-gh-color');
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitWithGuard(form, async () => {
-      const socialItems = val('sc-social')
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const [name, url, icon] = line.split('|').map((part) => (part || '').trim());
+      const socialItems = [...document.querySelectorAll('[data-social-row]')]
+        .map((row) => {
+          const name = row.querySelector('.social-name').value.trim();
+          const url = row.querySelector('.social-url').value.trim();
+          const icon = row.querySelector('.social-icon').value.trim();
           return icon ? { name, url, icon } : { name, url };
-        });
+        })
+        .filter((item) => item.name || item.url);
       const allowedSchemes = val('sc-schemes')
         .split(',')
         .map((s) => s.trim())
@@ -1795,7 +1884,10 @@ async function openSiteConfig() {
             ? { fetch: { ...(site.rss?.fetch || {}), ...fetchPatch } }
             : {}),
         },
-        github: { username: val('sc-gh-username'), heatmapColor: val('sc-gh-color') },
+        github: {
+          username: val('sc-gh-username'),
+          heatmapColor: val('sc-gh-color').replace(/^#/, ''),
+        },
       };
       patch.favicon = val('sc-favicon');
       const res = await api('PUT', '/api/settings/site', patch, settingsEtag);
