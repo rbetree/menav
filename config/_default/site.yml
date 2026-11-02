@@ -8,7 +8,7 @@ author: rbetree
 favicon: menav.svg
 logo_text: MeNav
 
-# 后台入口（可选）：静态形态手动填写后台地址，配置后公开站侧边栏显示「管理」入口。
+# 后台入口（可选）：静态形态手动填写后台地址，配置后公开站右下角显示「管理」悬浮按钮。
 # 动态形态由构建自动使用 MENAV_BACKEND_URL，无需在此配置。
 # admin_url: https://menav-backend.example.workers.dev
 

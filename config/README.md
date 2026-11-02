@@ -100,7 +100,7 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
 1. **基础信息**
    - `title`、`description`、`keywords`、`author`：字符串，用于站点标题、描述、关键词与署名
    - `favicon`、`logo_text`、`logo`、`footer`：字符串（`logo` 也可为 `null`），用于站点图标、Logo 文本和页脚
-   - `admin_url`：可选的 http/https 完整地址；静态形态配置后公开站侧边栏显示「管理」入口，动态形态由构建自动使用 `MENAV_BACKEND_URL`
+   - `admin_url`：可选的 http/https 完整地址；静态形态配置后公开站右下角显示「管理」悬浮按钮，动态形态由构建自动使用 `MENAV_BACKEND_URL`
 
 2. **图标模式（隐私相关）**
    - `icons.mode: favicon | manual`
