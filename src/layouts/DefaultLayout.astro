@@ -119,14 +119,6 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         </div>
 
         <div class="sidebar-footer">
-          {
-            adminUrl && adminUrl !== '#' && (
-              <a class="sidebar-admin" href={adminUrl} target="_blank" rel="noopener">
-                <i class="fas fa-sliders-h" aria-hidden="true" />
-                <span>管理</span>
-              </a>
-            )
-          }
           {site.footer && <p class="site-footer-text">{site.footer}</p>}
           <div class="copyright">
             <p>
@@ -155,6 +147,20 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
           ))
         }
       </main>
+
+      {
+        adminUrl && adminUrl !== '#' && (
+          <a
+            class="admin-toggle"
+            href={adminUrl}
+            target="_blank"
+            rel="noopener"
+            aria-label="管理后台"
+          >
+            <i class="fas fa-sliders-h" aria-hidden="true" />
+          </a>
+        )
+      }
 
       <button class="category-toggle" id="category-toggle" aria-label="展开/收起分类">
         <i class="fas fa-angle-double-down"></i>

@@ -34,6 +34,7 @@
 
   /* 移动端：右下角磁贴与侧边栏按钮磁贴统一风格 */
   .theme-toggle,
+  .admin-toggle,
   .category-toggle {
     width: var(--mobile-top-button-size);
     height: var(--mobile-top-button-size);
@@ -48,6 +49,7 @@
   }
 
   .theme-toggle:hover,
+  .admin-toggle:hover,
   .category-toggle:hover {
     transform: translateY(-2px);
     background: var(--surface-frosted-hover);
@@ -56,6 +58,7 @@
   }
 
   .theme-toggle:active,
+  .admin-toggle:active,
   .category-toggle:active {
     transform: translateY(0);
     box-shadow: 0 2px 8px var(--shadow-color);
@@ -295,6 +298,14 @@
   .theme-toggle {
     bottom: 1rem;
     bottom: calc(env(safe-area-inset-bottom) + 1rem);
+    right: 1rem;
+    right: calc(env(safe-area-inset-right) + 1rem);
+  }
+
+  /* 管理入口位于分类切换按钮上方 */
+  .admin-toggle {
+    bottom: 8rem;
+    bottom: calc(env(safe-area-inset-bottom) + 8rem);
     right: 1rem;
     right: calc(env(safe-area-inset-right) + 1rem);
   }

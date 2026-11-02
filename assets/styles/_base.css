@@ -54,6 +54,45 @@
   font-size: 18px;
 }
 
+/* 管理后台入口：位于右下角两个按钮上方 */
+.admin-toggle {
+  position: fixed;
+  bottom: 8rem;
+  right: var(--spacing-xl);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-frosted);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  transition-timing-function: var(--transition-bounce);
+  z-index: 100;
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.admin-toggle:hover {
+  transform: translateY(-2px);
+  background: var(--surface-frosted-hover);
+  box-shadow: 0 6px 20px var(--shadow-color);
+  color: var(--accent-color);
+}
+
+.admin-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.admin-toggle i {
+  font-size: 18px;
+}
+
 /* 全局样式 */
 * {
   margin: 0;
@@ -72,6 +111,7 @@
 .submenu-item:focus-visible,
 .site-card:focus-visible,
 .theme-toggle:focus-visible,
+.admin-toggle:focus-visible,
 .category-toggle:focus-visible,
 .menu-toggle:focus-visible,
 .search-toggle:focus-visible {
