@@ -67,7 +67,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^26.0.0",
-    "astro": "^7.4.4",
+    "astro": "^7.4.7",
     "esbuild": "^0.28.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
