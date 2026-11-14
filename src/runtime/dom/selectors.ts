@@ -1,5 +1,6 @@
 const SELECTORS = {
   metaVersion: 'meta[name="menav-version"]',
+  themeColorMeta: 'menav-theme-color',
   runtimeConfigData: 'menav-runtime-config',
   searchInput: 'search',
   searchBox: '.search-box',

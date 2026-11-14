@@ -15,7 +15,7 @@ interface Props {
 
 const { group = {}, level = 3, renderContext = DEFAULT_RENDER_CONTEXT } = Astro.props;
 const groupLevel = group.level || level || 3;
-const headingLevel = Math.min(groupLevel + 1, 6);
+const headingLevel = Math.min(groupLevel, 6);
 const HeadingTag = `h${headingLevel}`;
 const children = getCategoryChildren(group);
 const cards = Array.isArray(group.cards) ? group.cards : [];

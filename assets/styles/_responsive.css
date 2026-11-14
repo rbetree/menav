@@ -131,7 +131,7 @@
     width: var(--sidebar-width);
   }
 
-  .sidebar.collapsed .logo h1,
+  .sidebar.collapsed .logo-text,
   .sidebar.collapsed .nav-item .nav-text,
   .sidebar.collapsed .nav-item .external-icon {
     opacity: 1;
@@ -206,7 +206,7 @@
     padding: 0 0.6rem;
   }
 
-  .sidebar .logo h1,
+  .sidebar .logo-text,
   .sidebar .nav-item span {
     opacity: 1;
     display: block;

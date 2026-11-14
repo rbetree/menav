@@ -1,6 +1,6 @@
-/* 分类样式 */
+/* 分类样式：弱化容器，让内部站点卡片成为主要层级 */
 .category {
-  background: linear-gradient(145deg, var(--card-bg-gradient-1), var(--card-bg-gradient-2));
+  background: var(--surface-subtle);
   border-radius: var(--radius-xl);
   padding: 1rem;
   margin: 0 auto 1.2rem auto;
@@ -9,11 +9,8 @@
   position: relative;
   z-index: 1;
   opacity: 1;
-  box-shadow: 0 4px 20px var(--shadow-color);
   border: 1px solid var(--border-color);
-  transition:
-    background var(--transition-normal),
-    box-shadow var(--transition-normal);
+  transition: background var(--transition-normal);
 }
 
 /* 分类标题容器 */
@@ -171,7 +168,7 @@
   background: none;
 }
 
-.group-level-3 .group-header h4,
+.group-level-3 .group-header h3,
 .category-level-3 .category-header h4 {
   font-size: 1rem;
   font-weight: 500;
@@ -181,7 +178,7 @@
   gap: 0.6rem;
 }
 
-.group-level-3 .group-header h4 i,
+.group-level-3 .group-header h3 i,
 .category-level-3 .category-header h4 i {
   color: var(--text-muted);
   font-size: 1rem;
@@ -219,7 +216,7 @@
   background: none;
 }
 
-.group-level-4 .group-header h5,
+.group-level-4 .group-header h4,
 .category-level-4 .category-header h5 {
   font-size: 0.9rem;
   font-weight: 500;
@@ -229,7 +226,7 @@
   gap: 0.5rem;
 }
 
-.group-level-4 .group-header h5 i,
+.group-level-4 .group-header h4 i,
 .category-level-4 .category-header h5 i {
   font-size: 0.9rem;
   opacity: 0.7;
@@ -237,9 +234,9 @@
 
 /* 移除悬停时的缩放效果，保持简洁 */
 .category-level-2 .category-header:hover h3 > i,
-.group-level-3 .group-header:hover h4 i,
+.group-level-3 .group-header:hover h3 i,
 .category-level-3 .category-header:hover h4 i,
-.group-level-4 .group-header:hover h5 i,
+.group-level-4 .group-header:hover h4 i,
 .category-level-4 .category-header:hover h5 i {
   transform: none;
 }

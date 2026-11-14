@@ -20,6 +20,11 @@
       }
     }
 
+    var themeColorMeta = document.getElementById('menav-theme-color');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', shouldUseLight ? '#e0e0d8' : '#0d0c0b');
+    }
+
     if (shouldUseLight) {
       document.documentElement.classList.add('theme-preload');
     }

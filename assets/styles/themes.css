@@ -9,39 +9,39 @@
 :root {
   color-scheme: dark;
 
-  /* 默认深色主题 */
-  --bg-color: #000000;
-  --sidebar-bg: #1c1c1e;
-  --secondary-bg: #2c2c2e;
+  /* 默认深色主题：暖炭黑，与浅色暖灰纸质主题保持同一色温 */
+  --bg-color: #0d0c0b;
+  --sidebar-bg: #1e1c1a;
+  --secondary-bg: #2d2a27;
 
-  --card-bg-gradient-1: #1c1c1e;
-  --card-bg-gradient-2: #1c1c1e;
+  --card-bg-gradient-1: #1e1c1a;
+  --card-bg-gradient-2: #1e1c1a;
 
-  --site-card-bg-gradient-1: #2c2c2e;
-  --site-card-bg-gradient-2: #2c2c2e;
-  --site-card-hover-bg: #303032;
+  --site-card-bg-gradient-1: #2d2a27;
+  --site-card-bg-gradient-2: #2d2a27;
+  --site-card-hover-bg: #35312c;
 
-  --text-color: #ffffff;
-  --text-muted: #8e8e93;
-  --text-bright: #ffffff;
+  --text-color: #f4f1ea;
+  --text-muted: #a49d92;
+  --text-bright: #faf7f0;
 
-  --border-color: rgba(255, 255, 255, 0.12);
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --border-color: rgba(244, 241, 234, 0.14);
+  --shadow-color: rgba(0, 0, 0, 0.35);
 
   --highlight-bg: rgba(var(--accent-rgb), 0.3);
-  --scrollbar-color: rgba(255, 255, 255, 0.2);
-  --scrollbar-hover-color: rgba(255, 255, 255, 0.3);
+  --scrollbar-color: rgba(244, 241, 234, 0.2);
+  --scrollbar-hover-color: rgba(244, 241, 234, 0.3);
 
   --accent-color: #7694b9;
   --accent-hover: #6684a9;
   --accent-rgb: 118, 148, 185;
 
-  --nav-item-color: #98989d;
+  --nav-item-color: #b0a99e;
   --success-color: #30d158;
   --error-color: #ff453a;
   --white-color: #ffffff;
 
-  --card-bg-rgb: 28, 28, 30;
+  --card-bg-rgb: 30, 28, 26;
   --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
   --surface-frosted-hover: rgba(var(--card-bg-rgb), 0.75);
   --surface-subtle: rgba(var(--card-bg-rgb), 0.35);
@@ -51,7 +51,7 @@
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: rgba(255, 255, 255, 0.08);
+  --gh-level-0-token: rgba(244, 241, 234, 0.08);
   --gh-level-1-token: rgba(55, 178, 77, 0.35);
   --gh-level-2-token: rgba(55, 178, 77, 0.55);
   --gh-level-3-token: rgba(55, 178, 77, 0.75);
@@ -60,10 +60,10 @@
   /* 深色主题：语义 token */
   --hierarchy-hover-bg: linear-gradient(
     145deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
+    rgba(244, 241, 234, 0.03),
+    rgba(244, 241, 234, 0.015)
   );
-  --repo-stat-divider: rgba(255, 255, 255, 0.06);
+  --repo-stat-divider: rgba(244, 241, 234, 0.06);
   --neutral-code-bg: rgba(127, 127, 127, 0.15);
   --neutral-code-block-bg: rgba(127, 127, 127, 0.08);
   --neutral-table-alt-bg: rgba(127, 127, 127, 0.04);

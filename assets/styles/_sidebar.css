@@ -77,8 +77,6 @@
   /* 固定高度 60px */
   margin-bottom: 0.8rem;
   /* 与下方按钮区域拉开间距 */
-  transition: padding 0.3s ease;
-  /* 添加padding过渡，避免突变 */
 }
 
 .logo-brand {
@@ -91,7 +89,7 @@
   /* 预留右侧折叠按钮空间 */
 }
 
-.logo-brand h1 {
+.logo-brand .logo-text {
   padding-left: 0;
 }
 
@@ -105,7 +103,7 @@
   display: none;
 }
 
-.logo h1 {
+.logo-text {
   font-size: 1.4rem;
   color: var(--text-bright);
   margin-bottom: 0;
@@ -415,7 +413,7 @@
 }
 
 /* 折叠状态下的Logo文本 */
-.sidebar.collapsed .logo h1 {
+.sidebar.collapsed .logo-text {
   opacity: 0;
   transform: translateX(-20px);
   width: 0;
@@ -548,7 +546,6 @@
   justify-content: center;
   align-items: center;
   margin-right: var(--spacing-md);
-  transition: margin var(--transition-normal);
 }
 
 .nav-item .nav-text {
@@ -650,18 +647,13 @@ body main.content.expanded {
   width: calc(100vw - var(--sidebar-collapsed-width));
 }
 
-/* 仅在交互时启用布局相关过渡，避免首帧闪烁 */
+/* 折叠会改变可用宽度，必然重排；只过渡颜色，避免动画布局属性 */
 .with-anim .sidebar {
-  transition:
-    width 0.3s ease,
-    background-color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .with-anim main.content {
-  transition:
-    background-color 0.3s ease,
-    margin-left 0.3s ease,
-    width 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 /* 低高度视口：侧栏内容整体可滚动，保证靠后的导航项可达；分类面板仍独立滚动 */
@@ -693,7 +685,7 @@ html.sidebar-collapsed-preload .sidebar .logo {
 }
 
 html.sidebar-collapsed-preload .sidebar .logo-image,
-html.sidebar-collapsed-preload .sidebar .logo h1,
+html.sidebar-collapsed-preload .sidebar .logo-text,
 html.sidebar-collapsed-preload .sidebar .nav-item .nav-text,
 html.sidebar-collapsed-preload .sidebar .nav-item .external-icon,
 html.sidebar-collapsed-preload .sidebar .sidebar-footer,

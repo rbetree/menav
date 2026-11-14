@@ -1,6 +1,7 @@
 import type { RuntimeDom, RuntimeState, RuntimeUiApi } from '../types';
 
-const { qsa } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+const { SELECTORS, byId, qsa } =
+  require('../dom/selectors.ts') as typeof import('../dom/selectors');
 
 module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeUiApi {
   const {
@@ -74,6 +75,11 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     const nextIsLight = Boolean(isLight);
     state.isLightTheme = nextIsLight;
     document.documentElement.classList.toggle('light-theme', nextIsLight);
+
+    const themeColorMeta = byId<HTMLMetaElement>(SELECTORS.themeColorMeta);
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', nextIsLight ? '#e0e0d8' : '#0d0c0b');
+    }
 
     if (nextIsLight) {
       themeIconElement.classList.remove('fa-moon');

@@ -53,6 +53,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
       document.documentElement.classList.remove('no-js');
     </script>
     <meta name="menav-version" content={version} />
+    <meta name="theme-color" id="menav-theme-color" content="#0d0c0b" />
     <title data-editable="site-title">{site.title}</title>
     <meta name="description" content={site.description} data-editable="site-description" />
     <meta name="author" content={site.author} data-editable="site-author" />
@@ -88,34 +89,33 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 
       <div class="overlay"></div>
 
-      <nav class="sidebar" id="sidebar">
-        <div class="logo">
+      <aside class="sidebar" id="sidebar" aria-label="站点侧栏">
+        <header class="logo">
           <div class="logo-brand">
             {
               brandImage && (
-                <img
-                  class="logo-image"
-                  src={`./${brandImage}`}
-                  alt={`${site.title} logo`}
-                  width="26"
-                  height="26"
-                />
+                <img class="logo-image" src={`./${brandImage}`} alt="" width="26" height="26" />
               )
             }
-            <h1 data-editable="logo-text">{site.logo_text}</h1>
+            <span class="logo-text" data-editable="logo-text">{site.logo_text}</span>
           </div>
           <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
             <i class="fas fa-chevron-left toggle-icon"></i>
           </button>
-        </div>
+        </header>
 
-        <div class="sidebar-content">
+        <nav class="sidebar-content" aria-label="页面导航">
           <div class="nav-section">
             <Navigation navigation={navigationData} />
           </div>
-          <div class="sidebar-submenu-panel" aria-label="页面分类" data-container="sidebar-submenu">
+          <div
+            class="sidebar-submenu-panel"
+            role="group"
+            aria-label="页面分类"
+            data-container="sidebar-submenu"
+          >
           </div>
-        </div>
+        </nav>
 
         <div class="sidebar-social" data-container="social-links">
           <SocialLinks
@@ -124,7 +124,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
           />
         </div>
 
-        <div class="sidebar-footer">
+        <footer class="sidebar-footer">
           {site.footer && <p class="site-footer-text">{site.footer}</p>}
           <div class="copyright">
             <p>
@@ -135,8 +135,8 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
               by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a>
             </p>
           </div>
-        </div>
-      </nav>
+        </footer>
+      </aside>
 
       <main class="content" id="content" tabindex="-1">
         <SearchBar />

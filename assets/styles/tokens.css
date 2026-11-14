@@ -45,15 +45,11 @@
   --accent-glow-medium: rgba(var(--accent-rgb), 0.35);
   --accent-glow-strong: rgba(var(--accent-rgb), 0.4);
 
-  --brand-secondary-rgb: 168, 85, 247;
-  --brand-secondary-glow-soft: rgba(var(--brand-secondary-rgb), 0.2);
-  --brand-secondary-glow-strong: rgba(var(--brand-secondary-rgb), 0.4);
-
   /* Semantic utility tokens */
   --overlay-backdrop: rgba(0, 0, 0, 0.5);
   --overlay-backdrop-strong: rgba(0, 0, 0, 0.6);
   --dashboard-light-card-shadow: rgba(0, 0, 0, 0.08);
-  --dashboard-block-shadow-dark: rgba(255, 255, 255, 0.15);
+  --dashboard-block-shadow-dark: rgba(244, 241, 234, 0.15);
   --dashboard-block-shadow-light: rgba(0, 0, 0, 0.2);
-  --tooltip-fallback-bg: rgba(47, 48, 53, 0.95);
+  --tooltip-fallback-bg: rgba(45, 42, 39, 0.95);
 }
