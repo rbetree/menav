@@ -328,23 +328,32 @@ button.group-toggle-btn:focus-visible .toggle-icon {
   }
 }
 
-/* 展开/折叠动画 */
-.category-content,
-.group-content {
-  overflow: visible;
-  transition:
-    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 5000px;
-  opacity: 1;
+/* 展开/折叠动画：外层网格过渡行高，内层负责裁剪 */
+.collapse-content {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.category.collapsed .category-content,
-.group.collapsed .group-content {
+.collapse-content-inner {
+  min-height: 0;
   overflow: hidden;
-  max-height: 0;
-  opacity: 0;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 留出卡片焦点环和阴影的横向绘制空间，外宽保持不变 */
+  padding-inline: 4px;
+  margin-inline: -4px;
+}
+
+.category.collapsed > .collapse-content,
+.group.collapsed > .collapse-content {
+  grid-template-rows: 0fr;
   margin-top: 0;
+}
+
+.category.collapsed > .collapse-content > .collapse-content-inner,
+.group.collapsed > .collapse-content > .collapse-content-inner {
+  opacity: 0;
 }
 
 /* 收起状态下调整header的下边距 */

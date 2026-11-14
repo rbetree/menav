@@ -156,12 +156,17 @@ function restoreToggleState(element: HTMLElement | null): void {
   }
 }
 
-// 初始化嵌套分类
-function initializeNestedCategories(): void {
+// 全局初始化与模板克隆都走这里；按已绑定的 header 去重，避免重复监听
+const initializedNestedHeaders = new WeakSet<Element>();
+
+// 初始化嵌套分类；传入 root 时只处理该子树（模板克隆出的新页面）
+function initializeNestedCategories(root: ParentNode = document): void {
   // 为所有可折叠元素添加切换功能
-  qsa(SELECTORS.nestedToggleHeader).forEach((header: HTMLElement) => {
+  qsa(SELECTORS.nestedToggleHeader, root).forEach((header: HTMLElement) => {
     const container = header.parentElement;
     if (!container) return;
+    if (initializedNestedHeaders.has(header)) return;
+    initializedNestedHeaders.add(header);
 
     header.addEventListener('click', function (this: HTMLElement, e: Event) {
       e.stopPropagation();
@@ -296,6 +301,7 @@ module.exports = {
   expandAll,
   getNestedStructure,
   initializeNestedCategories,
+  syncCategoryToggleState,
   toggleCategories,
   toggleCategory,
   updateCategoryToggleIcon,

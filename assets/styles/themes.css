@@ -51,11 +51,12 @@
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: rgba(244, 241, 234, 0.08);
-  --gh-level-1-token: rgba(55, 178, 77, 0.35);
-  --gh-level-2-token: rgba(55, 178, 77, 0.55);
-  --gh-level-3-token: rgba(55, 178, 77, 0.75);
-  --gh-level-4-token: rgba(55, 178, 77, 0.95);
+  /* 热力图兜底色阶：组件会按 heatmapColor 生成主题感知色阶并覆盖这些 token */
+  --gh-level-0-token: #6b6b6e;
+  --gh-level-1-token: #3d8b4a;
+  --gh-level-2-token: #4ea85c;
+  --gh-level-3-token: #63c471;
+  --gh-level-4-token: #7fdd8b;
 
   /* 深色主题：语义 token */
   --hierarchy-hover-bg: linear-gradient(
@@ -115,11 +116,11 @@ html.light-theme {
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: #d8dee4;
-  --gh-level-1-token: #9be9a8;
-  --gh-level-2-token: #40c463;
-  --gh-level-3-token: #30a14e;
-  --gh-level-4-token: #216e39;
+  --gh-level-0-token: #808085;
+  --gh-level-1-token: #4f8f60;
+  --gh-level-2-token: #3c7a4d;
+  --gh-level-3-token: #2b643c;
+  --gh-level-4-token: #1e4f2e;
 
   /* 浅色主题：语义 token */
   --hierarchy-hover-bg: linear-gradient(145deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.015));

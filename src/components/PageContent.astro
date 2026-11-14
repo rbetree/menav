@@ -97,16 +97,18 @@ const articleCards = articlesCategories.flatMap((category) => category.cards || 
                     </button>
                   </h2>
                 </div>
-                <div class="category-content">
-                  {Array.isArray(category.cards) && category.cards.length > 0 ? (
-                    <div class="sites-grid">
-                      {category.cards.map((card) => (
-                        <SiteCard card={card} renderContext={renderContext} />
-                      ))}
-                    </div>
-                  ) : (
-                    <p class="empty-content">暂无文章</p>
-                  )}
+                <div class="category-content collapse-content">
+                  <div class="collapse-content-inner">
+                    {Array.isArray(category.cards) && category.cards.length > 0 ? (
+                      <div class="sites-grid">
+                        {category.cards.map((card) => (
+                          <SiteCard card={card} renderContext={renderContext} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p class="empty-content">暂无文章</p>
+                    )}
+                  </div>
                 </div>
               </section>
             ))
@@ -133,11 +135,13 @@ const articleCards = articlesCategories.flatMap((category) => category.cards || 
                   </button>
                 </h2>
               </div>
-              <div class="category-content">
-                <div class="sites-grid">
-                  {articleCards.map((card) => (
-                    <SiteCard card={card} renderContext={renderContext} />
-                  ))}
+              <div class="category-content collapse-content">
+                <div class="collapse-content-inner">
+                  <div class="sites-grid">
+                    {articleCards.map((card) => (
+                      <SiteCard card={card} renderContext={renderContext} />
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>

@@ -1,34 +1,41 @@
 ---
-const { heatmap = {} } = Astro.props;
-const username = heatmap.username || '';
-const html = heatmap.html || '';
+import { prepareHeatmapHtml } from '../lib/github/contributions.ts';
+import { buildHeatmapPalette } from '../lib/github/heatmap-colors.ts';
 
-// 热力图颜色来自站点配置；用内联变量覆盖主题默认色阶。
-const color = String(heatmap.color || '')
-  .trim()
-  .replace(/^#/, '');
-const rgb = /^[0-9a-f]{6}$/i.test(color)
-  ? [
-      parseInt(color.slice(0, 2), 16),
-      parseInt(color.slice(2, 4), 16),
-      parseInt(color.slice(4, 6), 16),
-    ]
-  : null;
-const heatmapStyle = rgb
-  ? [
-      `--gh-level-1: rgba(${rgb.join(',')}, 0.35)`,
-      `--gh-level-2: rgba(${rgb.join(',')}, 0.55)`,
-      `--gh-level-3: rgba(${rgb.join(',')}, 0.75)`,
-      `--gh-level-4: rgba(${rgb.join(',')}, 0.95)`,
-    ].join('; ')
-  : undefined;
+const { heatmap = {} } = Astro.props;
+const username = typeof heatmap.username === 'string' ? heatmap.username.trim() : '';
+
+const prepared = prepareHeatmapHtml(heatmap.html);
+const visualHtml = prepared.html;
+
+const configuredProfileUrl =
+  typeof heatmap.profileUrl === 'string' ? heatmap.profileUrl.trim() : '';
+const profileUrl = /^https:\/\/github\.com\/[A-Za-z0-9-]+\/?$/i.test(configuredProfileUrl)
+  ? configuredProfileUrl
+  : username
+    ? `https://github.com/${encodeURIComponent(username)}`
+    : '';
+
+const summaryMatch = prepared.summary.match(/([\d,]+)\s+contributions?\s+in\s+the\s+last\s+year/i);
+const summarySuffix = profileUrl ? '完整数据见 GitHub 主页。' : '';
+const summaryText = summaryMatch
+  ? `过去一年共 ${summaryMatch[1].replace(/,/g, '')} 次贡献。${summarySuffix}`
+  : `GitHub 贡献热力图。${summarySuffix}`;
+
+// 色阶按主题各自生成：内联样式无法随 html.light-theme 切换，必须用唯一 id 输出两套变量。
+const scopeId = `github-heatmap-${username.replace(/[^A-Za-z0-9_-]/g, '-') || 'default'}`;
+const palette = buildHeatmapPalette(heatmap.color);
+const declarePalette = (values: string[]): string =>
+  values.map((value, level) => `--gh-level-${level}: ${value};`).join(' ');
+const paletteCss = [
+  `#${scopeId} { ${declarePalette(palette.dark)} }`,
+  `html.theme-preload #${scopeId}, html.light-theme #${scopeId} { ${declarePalette(palette.light)} }`,
+].join('\n');
 ---
 
-<section
-  class="category category-level-1 gh-heatmap-category"
-  data-type="heatmap"
-  style={heatmapStyle}
->
+<section class="category category-level-1 gh-heatmap-category" data-type="heatmap" id={scopeId}>
+  <style is:inline set:html={paletteCss}></style>
+
   <div class="category-header">
     <div class="gh-heatmap-header">
       <h2>
@@ -57,13 +64,28 @@ const heatmapStyle = rgb
   </div>
 
   <div class="category-content">
+    <p class="visually-hidden">{summaryText}</p>
     <div class="gh-heatmap-wrapper">
-      <div
-        class="calendar gh-calendar"
-        data-github-username={username}
-        id={`github-calendar-${username}`}
-        set:html={html || 'Loading data...'}
-      />
+      {
+        visualHtml ? (
+          <div
+            class="calendar gh-calendar"
+            data-github-username={username}
+            id={`github-calendar-${username}`}
+            aria-hidden="true"
+            set:html={visualHtml}
+          />
+        ) : (
+          <p class="gh-heatmap-fallback">贡献热力图暂时不可用。</p>
+        )
+      }
+      {
+        profileUrl && (
+          <p class="gh-heatmap-link">
+            <a href={profileUrl}>在 GitHub 查看完整贡献数据</a>
+          </p>
+        )
+      }
     </div>
   </div>
 </section>

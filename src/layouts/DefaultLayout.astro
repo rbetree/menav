@@ -142,15 +142,27 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         <SearchBar />
 
         {
-          pages.map((entry) => (
-            <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
-              <PageContent
-                page={entry.data}
-                templateName={entry.templateName}
-                renderContext={renderContext}
-              />
-            </div>
-          ))
+          pages.map((entry) => {
+            const pageElement = (
+              <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
+                <PageContent
+                  page={entry.data}
+                  templateName={entry.templateName}
+                  renderContext={renderContext}
+                />
+              </div>
+            );
+            // 首页内联脚本与搜索结果容器需要首屏真实 DOM；其余页面由运行时首次切换时克隆
+            const isEager =
+              Boolean(entry.isActive) ||
+              entry.id === 'search-results' ||
+              Boolean(entry.data?.isHome);
+            return isEager ? (
+              pageElement
+            ) : (
+              <template data-page-template={entry.id}>{pageElement}</template>
+            );
+          })
         }
       </main>
 

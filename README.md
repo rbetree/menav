@@ -143,6 +143,8 @@ npm run dev
 
 页面深链接统一使用 `/?page=<页面ID>`，分类定位使用 `/?page=<页面ID>#<分类slug>`。未知路径不会自动回跳，静态部署时请分享上述查询参数形式的 URL。
 
+构建产物仍是单个 `index.html`：首屏只实例化初始活动页与搜索结果页，其余导航页以 `<template data-page-template="<id>">` 输出，首次切换时由运行时克隆为真实 `.page`，切换过程不发起网络请求。禁用 JavaScript 时只有首屏页面可见，模板页内的内联脚本不会执行。
+
 ```bash
 # 离线启动开发服务器（不刷新联网缓存）
 npm run dev:offline

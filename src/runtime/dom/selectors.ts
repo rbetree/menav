@@ -22,6 +22,7 @@ const SELECTORS = {
   page: '.page',
   pageWithId: '.page[id]',
   pageActive: '.page.active',
+  pageTemplate: 'template[data-page-template]',
   category: '.category',
   categoryHeading: '.category h2',
   categoryLevelOne: '.category-level-1',
@@ -43,11 +44,13 @@ const SELECTORS = {
   nestedGroupHeader: ':scope > .group-header[data-toggle="group"]',
   nestedHeader:
     ':scope > .category-header, :scope > .subcategory-header, :scope > .group-header, :scope > .subgroup-header',
-  nestedSubcategories: ':scope > .category-content > .subcategories-container > .category',
-  nestedGroups: ':scope > .category-content > .groups-container > .group',
-  nestedSubgroups: ':scope > .group-content > .subgroups-container > .group',
+  nestedSubcategories:
+    ':scope > .category-content > .collapse-content-inner > .subcategories-container > .category',
+  nestedGroups: ':scope > .category-content > .collapse-content-inner > .groups-container > .group',
+  nestedSubgroups:
+    ':scope > .group-content > .collapse-content-inner > .subgroups-container > .group',
   nestedSites:
-    ':scope > .category-content > .sites-grid > .site-card, :scope > .group-content > .sites-grid > .site-card',
+    ':scope > .category-content > .collapse-content-inner > .sites-grid > .site-card, :scope > .group-content > .collapse-content-inner > .sites-grid > .site-card',
   sitesContainer: '[data-container="sites"]',
   siteCard: '.site-card',
   siteTitle: 'h3',

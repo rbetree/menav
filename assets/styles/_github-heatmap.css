@@ -308,13 +308,9 @@ html.light-theme .page-template-projects .gh-heatmap-category {
   background-color: var(--gh-level-4) !important;
 }
 
-/* a11y 跳转链接：视觉隐藏（保留可访问性） */
-.page-template-projects .gh-calendar a[href^='#year-list'],
-.page-template-projects .gh-calendar a[href*='year-list'],
-.page-template-projects .gh-calendar a[href*='contributions-year'],
-/* GitHub 注入的 "Skip to contributions year list"（常见为 show-on-focus） */
-.page-template-projects .gh-calendar a.show-on-focus {
-  position: absolute;
+/* GitHub 原生 caption 的 sr-only：视觉隐藏，表格语义仍保留 */
+.page-template-projects .gh-calendar .sr-only {
+  position: absolute !important;
   width: 1px;
   height: 1px;
   padding: 0;
@@ -325,16 +321,24 @@ html.light-theme .page-template-projects .gh-heatmap-category {
   border: 0;
 }
 
-/* GitHub 原生 sr-only / tool-tip：视觉隐藏，保留屏幕阅读器可访问 */
-.page-template-projects .gh-calendar .sr-only,
-.page-template-projects .gh-calendar tool-tip {
-  position: absolute !important;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+/* 可视化已标记为装饰，完整数据入口放在日历下方 */
+.page-template-projects .gh-heatmap-link {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.page-template-projects .gh-heatmap-link a {
+  color: var(--accent-color);
+}
+
+.page-template-projects .gh-heatmap-link a:hover {
+  color: var(--accent-hover);
+}
+
+.page-template-projects .gh-heatmap-fallback {
+  margin: 0;
+  color: var(--gh-text-muted);
+  font-size: 0.85rem;
+  text-align: center;
 }

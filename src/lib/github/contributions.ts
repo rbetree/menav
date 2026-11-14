@@ -1,4 +1,4 @@
-import { sanitizeHtmlFragment, type HtmlSanitizePolicy } from '../security/html.ts';
+import { htmlToText, sanitizeHtmlFragment, type HtmlSanitizePolicy } from '../security/html.ts';
 
 const GITHUB_CONTRIBUTIONS_HTML_POLICY: HtmlSanitizePolicy = {
   allowedTags: new Set([
@@ -103,4 +103,56 @@ function sanitizeContributionsHtml(html: unknown): string {
   return sanitizeHtmlFragment(String(html || ''), GITHUB_CONTRIBUTIONS_HTML_POLICY);
 }
 
-export { extractYearlyContributionsInnerHtml, sanitizeContributionsHtml };
+type PreparedHeatmapHtml = {
+  html: string;
+  summary: string;
+};
+
+// 清洗后仍出现这些标记说明输入结构异常：宁可隐藏可视化，也不把焦点元素或链接放回页面。
+const UNSAFE_AFTER_CLEAN_PATTERN =
+  /<\s*\/?\s*(?:a|area|button|embed|iframe|input|object|select|textarea)\b|\btabindex\s*=|role\s*=\s*["']?(?:grid|gridcell)\b|aria-(?:selected|readonly|describedby)\s*=/i;
+
+const TRACKING_ATTRIBUTE_PATTERN =
+  /\s(?:tabindex|role|aria-[a-z-]+|data-hydro-click(?:-hmac)?)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi;
+
+function removeElementBlocks(html: string, tagName: string): string {
+  return html.replace(new RegExp(`<${tagName}\\b[^>]*>[\\s\\S]*?<\\/${tagName}\\s*>`, 'gi'), '');
+}
+
+// 消毒后的 HTML 中属性值里的 > 已转义，标签内不会再出现裸 >，可安全按标签逐个处理。
+function stripInteractivityAttributes(html: string): string {
+  return html.replace(/<[^>]*>/g, (tag) => tag.replace(TRACKING_ATTRIBUTE_PATTERN, ''));
+}
+
+function extractHeatmapSummary(html: string): string {
+  const match = html.match(
+    /<h2\b[^>]*\bid=["']js-contribution-activity-description["'][^>]*>([\s\S]*?)<\/h2\s*>/i
+  );
+  return match ? htmlToText(match[1]) : '';
+}
+
+function prepareHeatmapHtml(input: unknown): PreparedHeatmapHtml {
+  const source = String(input || '');
+  if (!source.trim()) return { html: '', summary: '' };
+
+  const summary = extractHeatmapSummary(source);
+
+  let html = removeElementBlocks(source, 'a');
+  html = removeElementBlocks(html, 'tool-tip');
+  html = html.replace(/<\/?tool-tip\b[^>]*>/gi, '');
+  html = stripInteractivityAttributes(html);
+
+  if (UNSAFE_AFTER_CLEAN_PATTERN.test(html)) {
+    return { html: '', summary };
+  }
+
+  const trimmed = html.trim();
+  if (!htmlToText(trimmed)) {
+    return { html: '', summary };
+  }
+
+  return { html: trimmed, summary };
+}
+
+export { extractYearlyContributionsInnerHtml, sanitizeContributionsHtml, prepareHeatmapHtml };
+export type { PreparedHeatmapHtml };

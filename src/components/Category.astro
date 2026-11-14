@@ -62,35 +62,37 @@ const isToggleable = category.foldable !== false && (hasChildren || hasCards);
     </HeadingTag>
   </div>
 
-  <div class="category-content">
-    {
-      childRuns.map(({ kind, nodes }) => (
-        <div class={`${kind}-container`} data-container={kind}>
-          {nodes.map((node) =>
-            kind === 'subcategories' ? (
-              <Category category={node} level={categoryLevel + 1} renderContext={renderContext} />
-            ) : (
-              <Group
-                group={node}
-                level={kind === 'subgroups' ? 4 : 3}
-                renderContext={renderContext}
-              />
-            )
-          )}
-        </div>
-      ))
-    }
+  <div class="category-content collapse-content">
+    <div class="collapse-content-inner">
+      {
+        childRuns.map(({ kind, nodes }) => (
+          <div class={`${kind}-container`} data-container={kind}>
+            {nodes.map((node) =>
+              kind === 'subcategories' ? (
+                <Category category={node} level={categoryLevel + 1} renderContext={renderContext} />
+              ) : (
+                <Group
+                  group={node}
+                  level={kind === 'subgroups' ? 4 : 3}
+                  renderContext={renderContext}
+                />
+              )
+            )}
+          </div>
+        ))
+      }
 
-    {
-      hasCards && (
-        <div class="sites-grid" data-container="sites">
-          {cards.map((card) => (
-            <SiteCard card={card} renderContext={renderContext} />
-          ))}
-        </div>
-      )
-    }
+      {
+        hasCards && (
+          <div class="sites-grid" data-container="sites">
+            {cards.map((card) => (
+              <SiteCard card={card} renderContext={renderContext} />
+            ))}
+          </div>
+        )
+      }
 
-    {!hasChildren && !hasCards && <p class="empty-content">暂无内容</p>}
+      {!hasChildren && !hasCards && <p class="empty-content">暂无内容</p>}
+    </div>
   </div>
 </section>

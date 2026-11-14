@@ -52,31 +52,33 @@ const isToggleable = group.foldable !== false && (hasSubgroups || hasCards);
     </HeadingTag>
   </div>
 
-  <div class="group-content">
-    {
-      hasSubgroups && (
-        <div class="subgroups-container" data-container="subgroups">
-          {children.map(({ kind, node }) =>
-            kind === 'subcategories' ? (
-              <Category category={node} level={groupLevel + 1} renderContext={renderContext} />
-            ) : (
-              <Group group={node} level={groupLevel + 1} renderContext={renderContext} />
-            )
-          )}
-        </div>
-      )
-    }
+  <div class="group-content collapse-content">
+    <div class="collapse-content-inner">
+      {
+        hasSubgroups && (
+          <div class="subgroups-container" data-container="subgroups">
+            {children.map(({ kind, node }) =>
+              kind === 'subcategories' ? (
+                <Category category={node} level={groupLevel + 1} renderContext={renderContext} />
+              ) : (
+                <Group group={node} level={groupLevel + 1} renderContext={renderContext} />
+              )
+            )}
+          </div>
+        )
+      }
 
-    {
-      hasCards && (
-        <div class="sites-grid" data-container="sites">
-          {cards.map((card) => (
-            <SiteCard card={card} renderContext={renderContext} />
-          ))}
-        </div>
-      )
-    }
+      {
+        hasCards && (
+          <div class="sites-grid" data-container="sites">
+            {cards.map((card) => (
+              <SiteCard card={card} renderContext={renderContext} />
+            ))}
+          </div>
+        )
+      }
 
-    {!hasSubgroups && !hasCards && <p class="empty-content">暂无网站</p>}
+      {!hasSubgroups && !hasCards && <p class="empty-content">暂无网站</p>}
+    </div>
   </div>
 </div>
