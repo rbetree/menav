@@ -37,9 +37,16 @@ const isToggleable = group.foldable !== false && (hasSubgroups || hasCards);
       {group.name}
       {
         isToggleable && (
-          <span class="toggle-icon">
-            <i class="fas fa-chevron-down" />
-          </span>
+          <button
+            type="button"
+            class="group-toggle-btn"
+            aria-expanded="true"
+            aria-label={`收起${group.name}`}
+          >
+            <span class="toggle-icon">
+              <i class="fas fa-chevron-down" />
+            </span>
+          </button>
         )
       }
     </HeadingTag>

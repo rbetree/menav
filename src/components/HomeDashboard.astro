@@ -12,10 +12,10 @@ const { page = {} } = Astro.props;
     <div class="dashboard-clock-card">
       <div class="clock-header">
         <div class="clock-meta">
-          <div class="clock-greeting" id="dashboard-greeting">Hello</div>
-          <div class="clock-date" id="dashboard-date">Mon, Jan 01</div>
+          <div class="clock-greeting" id="dashboard-greeting">你好</div>
+          <div class="clock-date" id="dashboard-date">1月1日 周一</div>
         </div>
-        <div class="clock-week" id="dashboard-week">Week 1</div>
+        <div class="clock-week" id="dashboard-week">第 1 周</div>
       </div>
 
       <div class="clock-main">
@@ -32,7 +32,8 @@ const { page = {} } = Astro.props;
         </div>
         <button
           class="panel-icon-btn add-btn"
-          title="Add Todo"
+          aria-label="添加任务"
+          title="添加任务"
           onclick="window.menavTodoApp.toggleInput()"
         >
           <span class="fas fa-plus"></span>
@@ -47,8 +48,9 @@ const { page = {} } = Astro.props;
           id="todo-input-container"
           style="display: none; padding: var(--spacing-md);"
         >
-          <input type="text" class="todo-input" id="todo-input-field" placeholder="New task..." />
-          <button class="todo-add-btn-small" type="button">
+          <label class="visually-hidden" for="todo-input-field">新任务</label>
+          <input type="text" class="todo-input" id="todo-input-field" placeholder="新任务..." />
+          <button class="todo-add-btn-small" type="button" aria-label="添加任务" title="添加任务">
             <span class="fas fa-arrow-right"></span>
           </button>
         </div>
@@ -67,10 +69,10 @@ const { page = {} } = Astro.props;
     }
 
     function getGreeting(hour) {
-      if (hour < 5) return 'Good Night';
-      if (hour < 12) return 'Good Morning';
-      if (hour < 18) return 'Good Afternoon';
-      return 'Good Evening';
+      if (hour < 5) return '凌晨好';
+      if (hour < 12) return '早上好';
+      if (hour < 18) return '下午好';
+      return '晚上好';
     }
 
     function updateDashboardClock() {
@@ -86,13 +88,13 @@ const { page = {} } = Astro.props;
         hour: '2-digit',
         minute: '2-digit',
       });
-      dateEl.textContent = now.toLocaleDateString('en-US', {
+      dateEl.textContent = now.toLocaleDateString('zh-CN', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
       });
       if (greetingEl) greetingEl.textContent = getGreeting(now.getHours());
-      if (weekEl) weekEl.textContent = 'Week ' + getWeekNumber(now);
+      if (weekEl) weekEl.textContent = '第 ' + getWeekNumber(now) + ' 周';
     }
 
     setInterval(updateDashboardClock, 1000);
@@ -129,8 +131,8 @@ const { page = {} } = Astro.props;
           this.todos = raw
             ? JSON.parse(raw)
             : [
-                { text: 'Drink Water', done: false },
-                { text: 'Explore MeNav', done: true },
+                { text: '喝水', done: false },
+                { text: '探索 MeNav', done: true },
               ];
         } catch (e) {
           this.todos = [];
@@ -192,6 +194,7 @@ const { page = {} } = Astro.props;
         this.todos[index].done = !this.todos[index].done;
         this.save();
         this.render();
+        this.focusTodo(index, '.todo-checkbox');
       },
 
       remove: function (index, e) {
@@ -199,38 +202,53 @@ const { page = {} } = Astro.props;
         this.todos.splice(index, 1);
         this.save();
         this.render();
+        this.focusTodo(index, '.todo-delete-btn');
+      },
+
+      // 重渲染会替换节点，恢复焦点避免键盘操作后跳回页面开头
+      focusTodo: function (index, selector) {
+        var list = document.getElementById('todo-list');
+        if (!list) return;
+        var controls = list.querySelectorAll(selector);
+        if (controls.length === 0) {
+          var addButton = document.querySelector('.add-btn');
+          if (addButton) addButton.focus();
+          return;
+        }
+        controls[Math.min(index, controls.length - 1)].focus();
       },
 
       render: function () {
         var container = document.getElementById('todo-list');
         if (!container) return;
         if (this.todos.length === 0) {
-          container.innerHTML = '<div class="empty-todo-hint">No tasks.</div>';
+          container.innerHTML = '<div class="empty-todo-hint">暂无任务。</div>';
           return;
         }
         container.innerHTML = this.todos
           .map(
             function (todo, index) {
+              var text = this.escapeHtml(todo.text);
               return (
                 '<div class="todo-item ' +
                 (todo.done ? 'done' : '') +
-                '" onclick="window.menavTodoApp.toggle(' +
-                index +
-                ')">' +
-                '<div class="todo-checkbox ' +
-                (todo.done ? 'checked' : '') +
                 '">' +
-                (todo.done ? '<span class="fas fa-check"></span>' : '') +
-                '</div>' +
-                '<div class="todo-text" title="' +
-                this.escapeHtml(todo.text) +
-                '">' +
-                this.escapeHtml(todo.text) +
-                '</div>' +
-                '<button class="todo-delete-btn" onclick="window.menavTodoApp.remove(' +
+                '<label class="todo-label">' +
+                '<input type="checkbox" class="todo-checkbox"' +
+                (todo.done ? ' checked' : '') +
+                ' onchange="window.menavTodoApp.toggle(' +
                 index +
-                ', event)" title="Delete">' +
-                '<span class="fas fa-trash-alt"></span>' +
+                ')" />' +
+                '<span class="todo-text" title="' +
+                text +
+                '">' +
+                text +
+                '</span>' +
+                '</label>' +
+                '<button type="button" class="todo-delete-btn" aria-label="删除任务" onclick="window.menavTodoApp.remove(' +
+                index +
+                ', event)">' +
+                '<span class="fas fa-trash-alt" aria-hidden="true"></span>' +
                 '</button></div>'
               );
             }.bind(this)
@@ -238,10 +256,11 @@ const { page = {} } = Astro.props;
           .join('');
       },
 
+      // 同一份转义结果还会写入 title / aria-label，需同时转义引号
       escapeHtml: function (text) {
         var div = document.createElement('div');
         div.textContent = text;
-        return div.innerHTML;
+        return div.innerHTML.replace(/"/g, '&quot;');
       },
     };
 

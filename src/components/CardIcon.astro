@@ -52,6 +52,7 @@ const onError = fallback
           src={src}
           alt={`${name} favicon`}
           loading="lazy"
+          decoding="async"
           onload="this.classList.add('loaded'); this.previousElementSibling.classList.add('hidden');"
           onerror={onError}
         />

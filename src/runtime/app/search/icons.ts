@@ -67,10 +67,13 @@ function createCardIcon(options: IconRenderOptions): HTMLElement {
   img.src = src;
   img.alt = `${options.name} favicon`;
   img.loading = 'lazy';
+  img.decoding = 'async';
 
   img.addEventListener('load', () => {
     img.classList.add('loaded');
     placeholder.classList.add('hidden');
+    // 占位符已隐藏时停掉旋转动画，避免无意义的持续绘制
+    placeholder.classList.remove('fa-spin');
   });
 
   img.addEventListener('error', () => {
@@ -81,6 +84,7 @@ function createCardIcon(options: IconRenderOptions): HTMLElement {
     }
     img.classList.add('error');
     placeholder.classList.add('hidden');
+    placeholder.classList.remove('fa-spin');
     fallback.classList.add('visible');
   });
 

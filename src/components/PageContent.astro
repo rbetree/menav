@@ -28,7 +28,7 @@ const articleCards = articlesCategories.flatMap((category) => category.cards || 
       <div class="welcome-section">
         <div class="welcome-section-main">
           <h2 data-editable="page-title">搜索结果</h2>
-          <p class="subtitle" data-editable="page-subtitle">
+          <p class="subtitle" data-editable="page-subtitle" role="status" aria-live="polite">
             在所有页面中找到的匹配项
           </p>
         </div>
@@ -75,14 +75,26 @@ const articleCards = articlesCategories.flatMap((category) => category.cards || 
         <>
           {articlesCategories.length > 0 ? (
             articlesCategories.map((category) => (
-              <section class="category category-level-1 category-readonly">
+              <section
+                class="category category-level-1 category-readonly"
+                data-type="category"
+                data-name={category.name}
+                data-level="1"
+              >
                 <div class="category-header" data-toggle="category">
                   <h2>
                     <i class={category.icon || 'fas fa-rss'} />
                     {category.name}
-                    <span class="toggle-icon">
-                      <i class="fas fa-chevron-down" />
-                    </span>
+                    <button
+                      type="button"
+                      class="category-toggle-btn"
+                      aria-expanded="true"
+                      aria-label={`收起${category.name}`}
+                    >
+                      <span class="toggle-icon">
+                        <i class="fas fa-chevron-down" />
+                      </span>
+                    </button>
                   </h2>
                 </div>
                 <div class="category-content">
@@ -99,14 +111,26 @@ const articleCards = articlesCategories.flatMap((category) => category.cards || 
               </section>
             ))
           ) : (
-            <section class="category category-level-1 category-readonly">
+            <section
+              class="category category-level-1 category-readonly"
+              data-type="category"
+              data-name="最新文章"
+              data-level="1"
+            >
               <div class="category-header" data-toggle="category">
                 <h2>
                   <i class="fas fa-rss" />
                   最新文章
-                  <span class="toggle-icon">
-                    <i class="fas fa-chevron-down" />
-                  </span>
+                  <button
+                    type="button"
+                    class="category-toggle-btn"
+                    aria-expanded="true"
+                    aria-label="收起最新文章"
+                  >
+                    <span class="toggle-icon">
+                      <i class="fas fa-chevron-down" />
+                    </span>
+                  </button>
                 </h2>
               </div>
               <div class="category-content">

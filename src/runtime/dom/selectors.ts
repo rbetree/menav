@@ -33,6 +33,9 @@ const SELECTORS = {
   submenuPanel: '.sidebar-submenu-panel',
   categoryToggle: 'category-toggle',
   nestedToggleHeader: '[data-toggle="category"], [data-toggle="group"]',
+  nestedToggleButton: '.category-toggle-btn, .group-toggle-btn',
+  nestedCategoryContent: ':scope > .category-content',
+  nestedGroupContent: ':scope > .group-content',
   nestedCollapsibleHeader:
     '.category > .category-header[data-toggle="category"], .group > .group-header[data-toggle="group"]',
   nestedCategoryHeader: ':scope > .category-header[data-toggle="category"]',

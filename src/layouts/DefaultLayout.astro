@@ -48,7 +48,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 <html lang="zh-CN" data-theme-mode={themeMode} class="no-js">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script is:inline>
       document.documentElement.classList.remove('no-js');
     </script>
@@ -70,9 +70,15 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
     </noscript>
   </head>
   <body class="loading">
+    <a class="skip-link" href="#content">跳到主要内容</a>
     <div class="layout">
       <div class="mobile-buttons">
-        <button class="menu-toggle" aria-label="切换菜单">
+        <button
+          class="menu-toggle"
+          aria-label="切换菜单"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
           <i class="fas fa-bars"></i>
         </button>
         <button class="search-toggle" aria-label="切换搜索">
@@ -82,7 +88,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 
       <div class="overlay"></div>
 
-      <nav class="sidebar">
+      <nav class="sidebar" id="sidebar">
         <div class="logo">
           <div class="logo-brand">
             {
@@ -132,7 +138,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
         </div>
       </nav>
 
-      <main class="content">
+      <main class="content" id="content" tabindex="-1">
         <SearchBar />
 
         {

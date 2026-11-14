@@ -31,6 +31,9 @@ const { loadBuildSearchIndex } = require('./search-index-loader.ts') as {
 const { SELECTORS, qs, qsa } =
   require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
 
+// 卡片逐条创建，结果过多会拖慢渲染；超出部分不进入结果页
+const SEARCH_RESULT_LIMIT = 200;
+
 function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   const {
     searchInput,
@@ -56,6 +59,8 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   const searchInputElement = searchInput;
   const searchBoxElement = searchBox;
   const searchResultsPageElement = searchResultsPage;
+  // 索引加载期间保留最后一次查询，加载完成后自动重跑，避免首次搜索漏结果
+  let pendingSearchTerm = '';
 
   if (!state.searchIndex) {
     state.searchIndex = { initialized: false, items: [] };
@@ -69,17 +74,22 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   // 初始化搜索索引：只使用构建期 search-index.json，不再从页面卡片生成索引。
   function initSearchIndex(): void {
     if (state.searchIndex.initialized || state.searchIndex.loading) return;
-    void loadBuildSearchIndex(state);
+    void loadBuildSearchIndex(state).then(() => {
+      const term = pendingSearchTerm;
+      pendingSearchTerm = '';
+      if (term) performSearch(term);
+    });
   }
 
   // 搜索功能
   function performSearch(searchTerm: string): void {
-    // 确保搜索索引已初始化。异步加载尚未完成时先显示空结果，不做 DOM 扫描回退。
+    searchTerm = searchTerm.toLowerCase().trim();
+
+    // 索引加载期间先记住查询，加载完成后由 initSearchIndex 重跑
     if (!state.searchIndex.initialized) {
+      pendingSearchTerm = searchTerm;
       initSearchIndex();
     }
-
-    searchTerm = searchTerm.toLowerCase().trim();
 
     // 如果搜索框为空，重置所有内容
     if (!searchTerm) {
@@ -95,15 +105,17 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
       // 使用搜索索引进行搜索
       const searchResults = new Map<string, HTMLElement[]>();
       // 使用更高效的搜索算法
-      const matchedItems = state.searchIndex.items.filter((item: RuntimeSearchIndexItem) => {
-        const text = item.searchText || `${item.title} ${item.description}`.toLowerCase();
-        const hasPinyinMatch =
-          typeof PinyinMatch !== 'undefined' &&
-          PinyinMatch &&
-          typeof PinyinMatch.match === 'function' &&
-          PinyinMatch.match(text, searchTerm);
-        return text.includes(searchTerm) || Boolean(hasPinyinMatch);
-      });
+      const matchedItems = state.searchIndex.items
+        .filter((item: RuntimeSearchIndexItem) => {
+          const text = item.searchText || `${item.title} ${item.description}`.toLowerCase();
+          const hasPinyinMatch =
+            typeof PinyinMatch !== 'undefined' &&
+            PinyinMatch &&
+            typeof PinyinMatch.match === 'function' &&
+            PinyinMatch.match(text, searchTerm);
+          return text.includes(searchTerm) || Boolean(hasPinyinMatch);
+        })
+        .slice(0, SEARCH_RESULT_LIMIT);
 
       // 按页面分组结果
       matchedItems.forEach((item: RuntimeSearchIndexItem) => {
@@ -135,6 +147,7 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   function resetSearch(): void {
     // 取消挂起的防抖搜索：页面切换/清空输入时，避免挂起任务稍后仍触发本地搜索覆盖当前页面
     debouncedSearch.cancel();
+    pendingSearchTerm = '';
     if (!state.isSearchActive) return;
 
     state.isSearchActive = false;
@@ -206,10 +219,12 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
     // 移除所有选项的激活状态
     searchEngineOptions.forEach((option: HTMLElement) => {
       option.classList.remove('active');
+      option.removeAttribute('aria-current');
 
       // 如果是当前选中的搜索引擎，添加激活状态
       if (option.getAttribute('data-engine') === state.currentSearchEngine) {
         option.classList.add('active');
+        option.setAttribute('aria-current', 'true');
       }
     });
 
@@ -247,16 +262,24 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
     updateSearchEngineUI();
 
     // 初始化搜索引擎下拉菜单事件
-    const toggleEngineDropdown = () => {
-      if (!searchEngineDropdown) return;
-      const next = !searchEngineDropdown.classList.contains('active');
-      searchEngineDropdown.classList.toggle('active', next);
+    const setEngineDropdownOpen = (isOpen: boolean, focusToggle = false): void => {
+      if (searchEngineDropdown) {
+        searchEngineDropdown.classList.toggle('active', isOpen);
+      }
       if (searchBox) {
-        searchBoxElement.classList.toggle('dropdown-open', next);
+        searchBoxElement.classList.toggle('dropdown-open', isOpen);
       }
       if (searchEngineToggle) {
-        searchEngineToggle.setAttribute('aria-expanded', String(next));
+        searchEngineToggle.setAttribute('aria-expanded', String(isOpen));
       }
+      if (!isOpen && focusToggle && searchEngineToggle) {
+        searchEngineToggle.focus();
+      }
+    };
+
+    const toggleEngineDropdown = (): void => {
+      if (!searchEngineDropdown) return;
+      setEngineDropdownOpen(!searchEngineDropdown.classList.contains('active'));
     };
 
     if (searchEngineToggle) {
@@ -265,13 +288,46 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
         toggleEngineDropdown();
       });
 
-      // 键盘可访问性：Enter/Space 触发
+      // 键盘可访问性：Enter/Space 触发，ArrowDown 直接进入菜单
       searchEngineToggle.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           e.stopPropagation();
           toggleEngineDropdown();
+          return;
         }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          e.stopPropagation();
+          setEngineDropdownOpen(true);
+          searchEngineOptions[0]?.focus();
+        }
+      });
+    }
+
+    // 菜单内方向键移动焦点；Escape 关闭并把焦点交还按钮
+    if (searchEngineDropdown) {
+      searchEngineDropdown.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setEngineDropdownOpen(false, true);
+          return;
+        }
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+
+        const options = searchEngineOptions;
+        if (options.length === 0) return;
+
+        e.preventDefault();
+        const currentIndex = options.indexOf(document.activeElement as HTMLElement);
+        const step = e.key === 'ArrowDown' ? 1 : -1;
+        const nextIndex =
+          currentIndex < 0
+            ? step > 0
+              ? 0
+              : options.length - 1
+            : (currentIndex + step + options.length) % options.length;
+        options[nextIndex].focus();
       });
     }
 
@@ -305,24 +361,22 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
           // 更新 UI 显示
           updateSearchEngineUI();
 
-          // 关闭下拉菜单
-          if (searchEngineDropdown) {
-            searchEngineDropdown.classList.remove('active');
-          }
-          if (searchBox) {
-            searchBoxElement.classList.remove('dropdown-open');
-          }
+          // 关闭下拉菜单并把焦点交还按钮
+          setEngineDropdownOpen(false, true);
         }
       });
     });
 
     // 点击页面其他位置关闭下拉菜单
     document.addEventListener('click', () => {
-      if (!searchEngineDropdown) return;
-      searchEngineDropdown.classList.remove('active');
-      if (searchBox) {
-        searchBoxElement.classList.remove('dropdown-open');
-      }
+      setEngineDropdownOpen(false);
+    });
+
+    // 焦点可能在按钮上而非菜单内，Escape 也需关闭
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (!searchEngineDropdown || !searchEngineDropdown.classList.contains('active')) return;
+      setEngineDropdownOpen(false, true);
     });
   }
 

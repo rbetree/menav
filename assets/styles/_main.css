@@ -49,7 +49,7 @@
 
 /* 搜索结果页：按来源页面复用对应网格规则（方案 2：复用原卡片 DOM） */
 #search-results [data-section='projects'] .sites-grid {
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -85,33 +85,6 @@
   opacity: 1;
 }
 
-/* 模态框动画 */
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes modalContentShow {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.sites-grid {
-  transition: gap 0.3s ease;
-}
-
 /* 侧边栏底部：社交图标（位于 sidebar-footer 上方） */
 .sidebar-social {
   grid-area: social;
@@ -145,7 +118,7 @@
 }
 
 .social-icon:focus-visible {
-  outline: 2px solid var(--accent-glow-medium);
+  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 

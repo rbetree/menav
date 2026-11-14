@@ -47,9 +47,16 @@ const isToggleable = category.foldable !== false && (hasChildren || hasCards);
       {category.name}
       {
         isToggleable && (
-          <span class="toggle-icon">
-            <i class="fas fa-chevron-down" />
-          </span>
+          <button
+            type="button"
+            class="category-toggle-btn"
+            aria-expanded="true"
+            aria-label={`收起${category.name}`}
+          >
+            <span class="toggle-icon">
+              <i class="fas fa-chevron-down" />
+            </span>
+          </button>
         )
       }
     </HeadingTag>

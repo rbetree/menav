@@ -96,6 +96,5 @@
 .page-updated-inline {
   color: var(--text-muted);
   font-size: 0.9rem;
-  opacity: 0.85;
   white-space: nowrap;
 }

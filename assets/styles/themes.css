@@ -7,6 +7,8 @@
    ============================================ */
 
 :root {
+  color-scheme: dark;
+
   /* 默认深色主题 */
   --bg-color: #000000;
   --sidebar-bg: #1c1c1e;
@@ -17,7 +19,7 @@
 
   --site-card-bg-gradient-1: #2c2c2e;
   --site-card-bg-gradient-2: #2c2c2e;
-  --site-card-hover-bg: #3a3a3c;
+  --site-card-hover-bg: #303032;
 
   --text-color: #ffffff;
   --text-muted: #8e8e93;
@@ -26,7 +28,7 @@
   --border-color: rgba(255, 255, 255, 0.12);
   --shadow-color: rgba(0, 0, 0, 0.3);
 
-  --highlight-bg: rgba(118, 148, 185, 0.3);
+  --highlight-bg: rgba(var(--accent-rgb), 0.3);
   --scrollbar-color: rgba(255, 255, 255, 0.2);
   --scrollbar-hover-color: rgba(255, 255, 255, 0.3);
 
@@ -38,9 +40,6 @@
   --success-color: #30d158;
   --error-color: #ff453a;
   --white-color: #ffffff;
-
-  --gradient-color: linear-gradient(135deg, #7694b9 0%, #a855f7 50%, #ff6b6b 100%);
-  --gradient-color-simple: linear-gradient(135deg, #7694b9 0%, #a855f7 100%);
 
   --card-bg-rgb: 28, 28, 30;
   --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
@@ -73,6 +72,8 @@
 /* 暖灰 Notion 风格浅色主题 */
 html.theme-preload,
 html.light-theme {
+  color-scheme: light;
+
   --bg-color: #e0e0d8;
   --sidebar-bg: #f0f0eb;
   --secondary-bg: #e6e6e1;
@@ -90,7 +91,7 @@ html.light-theme {
   --border-color: rgba(0, 0, 0, 0.08);
   --shadow-color: rgba(0, 0, 0, 0.1);
 
-  --highlight-bg: rgba(118, 148, 185, 0.15);
+  --highlight-bg: rgba(var(--accent-rgb), 0.15);
   --scrollbar-color: rgba(0, 0, 0, 0.1);
   --scrollbar-hover-color: rgba(0, 0, 0, 0.2);
 
@@ -103,9 +104,6 @@ html.light-theme {
   --success-color: #3d8b40;
   --error-color: #c62828;
   --white-color: #ffffff;
-
-  --gradient-color: linear-gradient(135deg, #7694b9 0%, #a855f7 50%, #ff6b6b 100%);
-  --gradient-color-simple: linear-gradient(135deg, #7694b9 0%, #a855f7 100%);
 
   --card-bg-rgb: 240, 240, 235;
   --surface-frosted: rgba(var(--card-bg-rgb), 0.65);

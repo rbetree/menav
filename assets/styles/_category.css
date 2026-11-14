@@ -21,7 +21,9 @@
   border-radius: var(--radius-md);
   padding: 0.4rem;
   margin: -0.4rem -0.4rem 0.8rem -0.4rem;
-  transition: all var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    transform var(--transition-normal);
 }
 
 /* 标题前图标固定宽度：避免不同图标宽度导致标题文本不对齐 */
@@ -36,7 +38,9 @@
 /* 分组标题容器：与分类保持一致的悬浮动效基础 */
 .group-header {
   border-radius: var(--radius-md);
-  transition: all var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    transform var(--transition-normal);
 }
 
 /* 仅可折叠的标题显示交互态 */
@@ -238,6 +242,44 @@
 .group-level-4 .group-header:hover h5 i,
 .category-level-4 .category-header:hover h5 i {
   transform: none;
+}
+
+/* 折叠按钮：真实 button，去掉默认外观并保证 24×24 点击区 */
+button.category-toggle-btn,
+button.group-toggle-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+button.category-toggle-btn .toggle-icon,
+button.group-toggle-btn .toggle-icon {
+  width: auto;
+  height: auto;
+  margin-left: 0;
+}
+
+button.category-toggle-btn:focus-visible,
+button.group-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* 键盘聚焦时让默认隐藏的 chevron 显形 */
+button.category-toggle-btn:focus-visible .toggle-icon,
+button.group-toggle-btn:focus-visible .toggle-icon {
+  opacity: 1;
 }
 
 /* 切换图标样式 */

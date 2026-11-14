@@ -84,7 +84,6 @@ module.exports = function initRouting(
   // 依赖布局测量的滚动已在滚动逻辑内用 setTimeout 延迟
   {
     // 获取可能在 HTML 生成后才存在的 DOM 元素
-    const categories = qsa(SELECTORS.category);
     const navItems = qsa(SELECTORS.navItem);
     const navItemWrappers = qsa(SELECTORS.navItemWrapper);
     const submenuItems = qsa(SELECTORS.submenuItem);
@@ -173,10 +172,19 @@ module.exports = function initRouting(
         { passive: true, capture: true }
       );
 
-      window.addEventListener('resize', () => {
-        const list = submenuPanel.querySelector('.submenu');
-        if (list instanceof HTMLElement) updateSubmenuScrollState(list);
-      });
+      let submenuResizeFrame: number | null = null;
+      window.addEventListener(
+        'resize',
+        () => {
+          if (submenuResizeFrame !== null) return;
+          submenuResizeFrame = window.requestAnimationFrame(() => {
+            submenuResizeFrame = null;
+            const list = submenuPanel.querySelector('.submenu');
+            if (list instanceof HTMLElement) updateSubmenuScrollState(list);
+          });
+        },
+        { passive: true }
+      );
     }
 
     const clearSubmenuPanel = () => {
@@ -285,7 +293,12 @@ module.exports = function initRouting(
       navItems.forEach((nav: HTMLElement) => {
         const isActive = nav.getAttribute('data-page') === id;
         nav.classList.toggle('active', isActive);
-        if (isActive) activeItem = nav;
+        if (isActive) {
+          nav.setAttribute('aria-current', 'page');
+          activeItem = nav;
+        } else {
+          nav.removeAttribute('aria-current');
+        }
       });
 
       // 同步子菜单展开状态：只展开当前激活项
@@ -312,6 +325,16 @@ module.exports = function initRouting(
     const escapeAttrValue = (value: unknown): string => {
       if (value === null || value === undefined) return '';
       return String(value).replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
+    };
+
+    const getScrollBehavior = (): ScrollBehavior => {
+      try {
+        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth';
+      } catch (error) {
+        return 'smooth';
+      }
     };
 
     const scrollToCategoryInPage = (
@@ -369,16 +392,16 @@ module.exports = function initRouting(
           // 执行滚动
           contentElement.scrollTo({
             top: scrollPosition,
-            behavior: 'smooth',
+            behavior: getScrollBehavior(),
           });
         } else {
           // 回退到基本滚动方式
-          targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetCategory.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' });
         }
       } catch (error) {
         console.error('Error during scroll:', error);
         // 回退到基本滚动方式
-        targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetCategory.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' });
       }
 
       return true;
@@ -423,13 +446,6 @@ module.exports = function initRouting(
 
     // 立即执行初始化，不再使用 requestAnimationFrame 延迟
     applyRouteFromLocation({ replaceInvalid: true });
-
-    // 添加载入动画
-    categories.forEach((category: HTMLElement, index: number) => {
-      setTimeout(() => {
-        category.style.opacity = '1';
-      }, index * 100);
-    });
 
     // 导航项点击效果
     navItems.forEach((item: HTMLElement) => {
@@ -483,10 +499,12 @@ module.exports = function initRouting(
           // 清除所有子菜单项的激活状态
           submenuItems.forEach((subItem: HTMLElement) => {
             subItem.classList.remove('active');
+            subItem.removeAttribute('aria-current');
           });
 
           // 激活当前子菜单项
           item.classList.add('active');
+          item.setAttribute('aria-current', 'true');
 
           // 激活导航项并同步子菜单展开状态
           setActiveNavByPageId(pageId);

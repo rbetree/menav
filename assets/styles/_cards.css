@@ -31,8 +31,6 @@
   gap: 0.6rem;
   text-align: left;
   backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: transform;
   max-width: 100%;
   position: relative;
   box-shadow: 0 4px 16px var(--shadow-color);
@@ -164,9 +162,9 @@
   transition: opacity 0.3s ease;
 }
 
+/* 隐藏后彻底移出渲染，停止 fa-spin 持续动画 */
 .site-card .icon-container .icon-placeholder.hidden {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .site-card .icon-container .icon-fallback {

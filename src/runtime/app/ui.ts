@@ -1,5 +1,7 @@
 import type { RuntimeDom, RuntimeState, RuntimeUiApi } from '../types';
 
+const { qsa } = require('../dom/selectors.ts') as typeof import('../dom/selectors');
+
 module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeUiApi {
   const {
     searchInput,
@@ -46,7 +48,16 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
 
   const SUBMENU_PANEL_VISIBLE_CLASS = 'submenu-panel-visible';
   const SIDEBAR_LAYOUT_TRANSITION_MS = 300;
+  const FOCUSABLE_SELECTOR = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(', ');
   let submenuPanelRevealTimer: number | null = null;
+  let resizeFrame: number | null = null;
 
   // 移除预加载类，允许 CSS 过渡效果
   document.documentElement.classList.remove('preload');
@@ -71,6 +82,12 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
       themeIconElement.classList.remove('fa-sun');
       themeIconElement.classList.add('fa-moon');
     }
+
+    themeToggleElement.setAttribute('aria-pressed', String(nextIsLight));
+    themeToggleElement.setAttribute(
+      'aria-label',
+      nextIsLight ? '切换到深色主题' : '切换到浅色主题'
+    );
   }
 
   function stopSystemThemeFollow(): void {
@@ -166,12 +183,18 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     }, SIDEBAR_LAYOUT_TRANSITION_MS);
   }
 
+  function syncSidebarCollapseState(): void {
+    if (!sidebarToggle) return;
+    sidebarToggle.setAttribute('aria-expanded', String(!state.isSidebarCollapsed));
+  }
+
   // 侧边栏折叠功能
   function toggleSidebarCollapse(): void {
     // 仅在交互时启用布局相关动画，避免首屏闪烁
     document.documentElement.classList.add('with-anim');
 
     state.isSidebarCollapsed = !state.isSidebarCollapsed;
+    syncSidebarCollapseState();
 
     if (state.isSidebarCollapsed) {
       // 收起时立即隐藏目录面板，避免在动画过程中残留。
@@ -206,6 +229,7 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
       state.isSidebarCollapsed = false;
       showSubmenuPanelImmediately();
     }
+    syncSidebarCollapseState();
   }
 
   // 主题切换功能
@@ -259,11 +283,42 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     setTheme(false);
   }
 
+  function getFirstFocusableInSidebar(): HTMLElement | null {
+    const candidates = qsa<HTMLElement>(FOCUSABLE_SELECTOR, sidebarElement);
+    return (
+      candidates.find(
+        (element) =>
+          !element.closest('[inert]') &&
+          (element.offsetWidth > 0 ||
+            element.offsetHeight > 0 ||
+            element.getClientRects().length > 0)
+      ) || null
+    );
+  }
+
+  // 桌面端常驻可见，不需要 inert；移动端关闭时移出可达性树与 Tab 序列
+  function syncSidebarDrawerState(): void {
+    const isOpen = state.isSidebarOpen;
+    menuToggleElement.setAttribute('aria-expanded', String(isOpen));
+    sidebarElement.inert = isMobile() ? !isOpen : false;
+  }
+
+  function setSidebarOpen(isOpen: boolean): void {
+    state.isSidebarOpen = isOpen;
+    sidebarElement.classList.toggle('active', isOpen);
+    overlayElement.classList.toggle('active', isOpen);
+    syncSidebarDrawerState();
+
+    if (isOpen) {
+      if (isMobile()) getFirstFocusableInSidebar()?.focus();
+    } else {
+      menuToggleElement.focus();
+    }
+  }
+
   // 移动端菜单切换
   function toggleSidebar(): void {
-    state.isSidebarOpen = !state.isSidebarOpen;
-    sidebarElement.classList.toggle('active', state.isSidebarOpen);
-    overlayElement.classList.toggle('active', state.isSidebarOpen);
+    setSidebarOpen(!state.isSidebarOpen);
   }
 
   // 移动端：搜索框常驻显示（CSS 控制），无需“搜索面板”开关；点击仅聚焦输入框
@@ -309,25 +364,43 @@ module.exports = function initUi(state: RuntimeState, dom: RuntimeDom): RuntimeU
     searchInputElement.focus();
   });
 
-  // 窗口大小改变时处理
-  window.addEventListener('resize', () => {
-    if (!isMobile()) {
-      sidebarElement.classList.remove('active');
-      searchContainerElement.classList.remove('active');
-      overlayElement.classList.remove('active');
-      state.isSidebarOpen = false;
-      if (state.isSidebarCollapsed) {
-        hideSubmenuPanelImmediately();
-      } else {
-        showSubmenuPanelImmediately();
-      }
-    } else {
-      // 在移动设备下，重置侧边栏折叠状态
-      sidebarElement.classList.remove('collapsed');
-      contentElement.classList.remove('expanded');
-      showSubmenuPanelImmediately();
-    }
+  // 窗口大小改变时处理；同一帧内多次 resize 只执行一次
+  window.addEventListener(
+    'resize',
+    () => {
+      if (resizeFrame !== null) return;
+      resizeFrame = window.requestAnimationFrame(() => {
+        resizeFrame = null;
+        if (!isMobile()) {
+          sidebarElement.classList.remove('active');
+          searchContainerElement.classList.remove('active');
+          overlayElement.classList.remove('active');
+          state.isSidebarOpen = false;
+          syncSidebarDrawerState();
+          if (state.isSidebarCollapsed) {
+            hideSubmenuPanelImmediately();
+          } else {
+            showSubmenuPanelImmediately();
+          }
+        } else {
+          // 移动端没有折叠态，同步 state 避免断点往返后首次点击失效
+          sidebarElement.classList.remove('collapsed');
+          contentElement.classList.remove('expanded');
+          state.isSidebarCollapsed = false;
+          syncSidebarDrawerState();
+          showSubmenuPanelImmediately();
+        }
+      });
+    },
+    { passive: true }
+  );
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || !state.isSidebarOpen) return;
+    setSidebarOpen(false);
   });
+
+  syncSidebarDrawerState();
 
   // 仅用于静态检查：确保未用变量不被 lint 报错（未来可用于搜索 UI 状态）
   void searchBox;

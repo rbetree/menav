@@ -99,9 +99,17 @@ function menavDetectVersion(): string {
 }
 
 // 修复移动端 `100vh` 视口高度问题：用实际可视高度驱动布局，避免侧边栏/内容区底部被浏览器 UI 遮挡
+let appHeightFrame: number | null = null;
+
 function menavUpdateAppHeight(): void {
-  const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
+  if (appHeightFrame !== null) return;
+  appHeightFrame = window.requestAnimationFrame(() => {
+    appHeightFrame = null;
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
+  });
 }
 export {
   menavExtractDomain,
