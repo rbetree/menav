@@ -21,6 +21,25 @@ import { collectSitesRecursively, normalizeUrlKey } from '../site-data/sites.ts'
 
 type ProjectRepoCache = ReturnType<typeof tryLoadProjectsRepoCache>;
 
+// 与 sync-articles 的来源收集顺序一致：优先 sites，其次递归 categories。
+function collectArticleSourceUrlSet(page: unknown): Set<string> {
+  const record = page && typeof page === 'object' ? (page as Record<string, unknown>) : null;
+  const sites: unknown[] = [];
+  if (record && Array.isArray(record.sites)) {
+    record.sites.forEach((site) => {
+      if (site && typeof site === 'object') sites.push(site);
+    });
+  } else if (record && Array.isArray(record.categories)) {
+    record.categories.forEach((category) => collectSitesRecursively(category, sites));
+  }
+
+  return new Set(
+    sites
+      .map((site) => normalizeUrlKey((site as SiteItem).url))
+      .filter((url): url is string => Boolean(url))
+  );
+}
+
 function readContentPage(pageId: string, page: Record<string, unknown>, config: ResolvedConfig) {
   const content =
     page && page.content && typeof page.content === 'object'
@@ -85,21 +104,26 @@ function collectSiteExternalData(config: ResolvedConfig): SiteExternalData {
       if (template === 'articles') {
         const baseline = stored.articles?.[nav.id] ?? { items: [], meta: null };
         const fresh = refreshedConfig ? tryLoadArticlesFeedCache(nav.id, refreshedConfig) : null;
-        const sources: unknown[] = [];
-        for (const category of page?.categories ?? []) collectSitesRecursively(category, sources);
-        const sourceUrls = new Set(
-          sources.map((source) => normalizeUrlKey((source as SiteItem).url))
-        );
+        const sourceUrls = collectArticleSourceUrlSet(page);
         // 已删除的订阅源不再回退；成功空 feed 清空该来源，失败来源保留 D1 的文章。
         const retained = baseline.items.filter((item) =>
           sourceUrls.has(normalizeUrlKey(item.sourceUrl))
         );
         if (fresh && (fresh.items.length || Number(fresh.meta.successSites) > 0)) {
-          const successful = new Set((fresh.meta.successfulSourceUrls ?? []).map(normalizeUrlKey));
+          const sourceStatuses = fresh.meta.successfulSourceUrls;
+          const hasStatuses = Array.isArray(sourceStatuses);
+          const successful = new Set((sourceStatuses ?? []).map(normalizeUrlKey));
           const byUrl = new Map<string, SiteItem>();
           for (const item of retained)
-            if (!successful.has(normalizeUrlKey(item.sourceUrl))) byUrl.set(String(item.url), item);
-          for (const item of fresh.items) byUrl.set(item.url, item);
+            if (!hasStatuses || !successful.has(normalizeUrlKey(item.sourceUrl)))
+              byUrl.set(String(item.url), item);
+          // 仅成功来源覆盖 D1，失败来源沿用 baseline，避免静态缓存回退数据覆盖 D1。
+          for (const item of fresh.items) {
+            const key = normalizeUrlKey(item.sourceUrl);
+            if (!sourceUrls.has(key)) continue;
+            if (hasStatuses && !successful.has(key)) continue;
+            byUrl.set(item.url, item);
+          }
           const limit = Math.max(1, Math.min(500, Number(config.site?.rss?.articles?.total) || 50));
           const date = (item: SiteItem) => Date.parse(String(item.publishedAt ?? '')) || 0;
           const items = [...byUrl.values()].sort((a, b) => date(b) - date(a)).slice(0, limit);
@@ -147,7 +171,7 @@ function collectSiteExternalData(config: ResolvedConfig): SiteExternalData {
     const template = page && page.template ? String(page.template).trim() : pageId;
 
     if (template === 'articles') {
-      const cache = tryLoadArticlesFeedCache(pageId, config);
+      const cache = tryLoadArticlesFeedCache(pageId, config, collectArticleSourceUrlSet(page));
       externalData.articles![pageId] = {
         items: cache && Array.isArray(cache.items) ? cache.items : [],
         meta: cache ? cache.meta : null,
