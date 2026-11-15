@@ -528,6 +528,32 @@ async function runSidebarBreakpointContract(page, baseUrl) {
     { timeout: 5000 }
   );
 
+  await page.setViewportSize({ width: 600, height: 900 });
+  const mobileLayout = await page.evaluate(() => {
+    const content = document.querySelector('main.content');
+    const contentStyle = content ? getComputedStyle(content) : null;
+    const themeButton = document.querySelector('.theme-toggle');
+    const themeStyle = themeButton ? getComputedStyle(themeButton) : null;
+    const category =
+      document.querySelector('.page.active .category') || document.querySelector('.category');
+    return {
+      paddingLeft: contentStyle ? parseFloat(contentStyle.paddingLeft) : NaN,
+      paddingRight: contentStyle ? parseFloat(contentStyle.paddingRight) : NaN,
+      buttonPosition: themeStyle?.position || '',
+      categoryRight: category ? category.getBoundingClientRect().right : 0,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  assert.equal(mobileLayout.buttonPosition, 'fixed', '移动端主题按钮应悬浮');
+  assert.ok(
+    Math.abs(mobileLayout.paddingLeft - mobileLayout.paddingRight) <= 1,
+    '移动端内容左右留白应一致，不应为浮动按钮预留整列'
+  );
+  assert.ok(
+    mobileLayout.categoryRight >= mobileLayout.viewportWidth - 30,
+    '移动端分类卡片应延伸到视口右侧，浮动按钮叠加在内容之上：' + JSON.stringify(mobileLayout)
+  );
+
   // 窄屏加载时也保留偏好，回到桌面再恢复折叠
   await page.setViewportSize({ width: 600, height: 900 });
   await page.reload({ waitUntil: 'domcontentloaded' });

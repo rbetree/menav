@@ -71,10 +71,9 @@
       env(safe-area-inset-top) + var(--spacing-md) + var(--mobile-top-button-size) +
         var(--spacing-sm)
     );
-    /* 缩短分类卡片与页面边缘的左右留白，扩大分类卡片可用宽度 */
+    /* 左右留白保持一致，浮动按钮叠加在内容之上 */
     padding-left: calc(var(--spacing-sm) + var(--spacing-xs));
-    /* 右侧为固定浮动按钮留出独立通道，避免按钮盖住卡片内容 */
-    padding-right: calc(var(--mobile-top-button-size) + var(--spacing-md));
+    padding-right: calc(var(--spacing-sm) + var(--spacing-xs));
     /* 为右下角浮动按钮预留滚动余量，避免遮挡末尾卡片 */
     padding-bottom: calc(12rem + env(safe-area-inset-bottom));
     scroll-padding-bottom: calc(12rem + env(safe-area-inset-bottom));
