@@ -34,7 +34,8 @@ function prepareNavigationData(config: ResolvedConfig, activePageId?: string): N
         isActive: activePageId ? nav.id === activePageId : Boolean(nav.isActive),
         active: activePageId ? nav.id === activePageId : Boolean(nav.active),
       };
-      const submenu = getSubmenuForNavItem(navItem, config);
+      // 显式 submenu 优先，页面分类只在未配置时兜底
+      const submenu = Array.isArray(navItem.submenu) ? null : getSubmenuForNavItem(navItem, config);
       if (submenu) navItem.submenu = submenu as NavigationItem['submenu'];
       return navItem;
     });
@@ -55,7 +56,13 @@ function prepareNavigationDataFromPages(
         active: activePageId ? nav.id === activePageId : Boolean(nav.active),
       };
       const page = byId.get(String(nav.id));
-      if (page && Array.isArray(page.categories) && page.categories.length > 0) {
+      // 显式 submenu 优先，页面分类只在未配置时兜底
+      if (
+        !Array.isArray(navItem.submenu) &&
+        page &&
+        Array.isArray(page.categories) &&
+        page.categories.length > 0
+      ) {
         navItem.submenu = page.categories as NavigationItem['submenu'];
       }
       return navItem;

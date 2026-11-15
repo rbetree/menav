@@ -27,11 +27,6 @@ function normalizePageId(value: unknown): string {
   return String(value === null || value === undefined ? '' : value).trim();
 }
 
-function isValidPageId(value: unknown): boolean {
-  const id = normalizePageId(value);
-  return Boolean(id && PAGE_ID_PATTERN.test(id) && !RESERVED_PAGE_IDS.has(id));
-}
-
 function getPageIdIssue(value: unknown): string | null {
   const id = normalizePageId(value);
   if (!id) return '页面 id 不能为空';
@@ -44,4 +39,4 @@ function getPageIdIssue(value: unknown): string | null {
   return null;
 }
 
-export { PAGE_ID_PATTERN, RESERVED_PAGE_IDS, getPageIdIssue, isValidPageId, normalizePageId };
+export { PAGE_ID_PATTERN, RESERVED_PAGE_IDS, getPageIdIssue, normalizePageId };
