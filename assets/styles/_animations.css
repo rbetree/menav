@@ -2,18 +2,6 @@
    Animations & Keyframes
    ============================================ */
 
-@keyframes glow {
-  from {
-    filter: drop-shadow(0 0 2px var(--accent-glow-soft))
-      drop-shadow(0 0 4px var(--brand-secondary-glow-soft));
-  }
-
-  to {
-    filter: drop-shadow(0 0 4px var(--accent-glow-strong))
-      drop-shadow(0 0 8px var(--brand-secondary-glow-strong));
-  }
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -45,5 +33,19 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* 尊重系统减少动态效果设置：关闭过渡、动画与平滑滚动 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
   }
 }

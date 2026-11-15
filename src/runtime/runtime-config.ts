@@ -1,6 +1,6 @@
 import type { MenavConfig } from './types';
 
-import { SELECTORS, byId } from './dom/selectors.ts';
+import { SELECTORS, qs } from './dom/selectors.ts';
 
 let runtimeConfigCacheReady = false;
 let runtimeConfigCacheRaw: string | null = null;
@@ -17,7 +17,7 @@ function cloneConfig(config: MenavConfig | null): MenavConfig | null {
 }
 
 function getRuntimeConfig(options?: { clone?: boolean }): MenavConfig | null {
-  const configData = byId(SELECTORS.runtimeConfigData);
+  const configData = qs(SELECTORS.runtimeConfigData);
   if (!configData) return null;
 
   const raw = configData.textContent || '';

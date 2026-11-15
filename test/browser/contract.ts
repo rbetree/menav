@@ -60,7 +60,20 @@ async function runRouteContract(page, baseUrl) {
   const routeState = await page.evaluate(() => {
     const navItems = Array.from(document.querySelectorAll('.nav-item[data-page]'));
     const pageIds = navItems.map((item) => item.getAttribute('data-page')).filter(Boolean);
-    const targetPageId = pageIds.find((id) => id !== pageIds[0]);
+    const firstPageId = pageIds[0] || '';
+    const getTemplatePage = (pageId) =>
+      document
+        .querySelector(`template[data-page-template="${CSS.escape(pageId)}"]`)
+        ?.content.querySelector('.page') || null;
+    // 目标页必须仍在模板中，优先选择带分类折叠的页面用于后续断言
+    const templatePageIds = pageIds.filter(
+      (id) => id !== firstPageId && !document.getElementById(id) && getTemplatePage(id)
+    );
+    const targetPageId =
+      templatePageIds.find((id) => getTemplatePage(id)?.querySelector('[data-toggle]')) ||
+      templatePageIds[0] ||
+      '';
+    const targetPage = targetPageId ? getTemplatePage(targetPageId) : null;
     const targetSubmenu = targetPageId
       ? document.querySelector(
           `.submenu-item[data-page="${CSS.escape(targetPageId)}"][data-category-id]`
@@ -70,27 +83,135 @@ async function runRouteContract(page, baseUrl) {
 
     return {
       pageIds,
+      firstPageId,
       targetPageId,
       categoryId,
+      targetInTemplate: Boolean(targetPage),
+      targetInDocument: Boolean(targetPageId && document.getElementById(targetPageId)),
+      templatePageId: targetPage ? targetPage.id : '',
+      documentPageIds: [...document.querySelectorAll('.page[id]')].map((page) => page.id),
+      searchTerm: targetPage?.querySelector('.site-card')?.getAttribute('data-name') || '',
     };
   });
 
   assert.ok(routeState.pageIds.length >= 2, '浏览器契约需要至少两个导航页');
-  assert.ok(routeState.targetPageId, '浏览器契约需要目标导航页');
+  assert.ok(routeState.targetPageId, '浏览器契约需要至少一个模板化导航页');
+  assert.equal(routeState.targetInTemplate, true, '初始非活动页应位于 template 中');
+  assert.equal(routeState.targetInDocument, false, '初始非活动页不应出现在文档 DOM');
+  assert.equal(routeState.templatePageId, routeState.targetPageId);
+  assert.ok(
+    routeState.documentPageIds.includes(routeState.firstPageId),
+    '初始活动页应保持 eager 渲染'
+  );
+  assert.ok(routeState.documentPageIds.includes('search-results'), '搜索结果页应保持 eager 渲染');
+  assert.ok(
+    !routeState.documentPageIds.includes(routeState.targetPageId),
+    '非活动模板页不应提前实例化'
+  );
 
   await page.evaluate((targetPageId) => {
     document.querySelector(`.nav-item[data-page="${CSS.escape(targetPageId)}"]`)?.click();
   }, routeState.targetPageId);
   await waitForRouteState(page, { pageId: routeState.targetPageId });
 
-  const afterClick = await page.evaluate(() => ({
-    activePageId: document.querySelector('.page.active')?.id || '',
-    activeNavId: document.querySelector('.nav-item.active')?.getAttribute('data-page') || '',
-    path: `${location.pathname}${location.search}${location.hash}`,
-  }));
+  const afterClick = await page.evaluate((targetPageId) => {
+    const pageIds = [...document.querySelectorAll('.page[id]')].map((page) => page.id);
+    const idCounts = new Map();
+    document.querySelectorAll('[id]').forEach((node) => {
+      idCounts.set(node.id, (idCounts.get(node.id) || 0) + 1);
+    });
+
+    return {
+      activePageId: document.querySelector('.page.active')?.id || '',
+      activeNavId: document.querySelector('.nav-item.active')?.getAttribute('data-page') || '',
+      path: `${location.pathname}${location.search}${location.hash}`,
+      targetInDocument: Boolean(document.getElementById(targetPageId)),
+      targetPageCount: pageIds.filter((id) => id === targetPageId).length,
+      duplicateIds: [...idCounts.entries()].filter(([, count]) => count > 1).map(([id]) => id),
+    };
+  }, routeState.targetPageId);
   assert.equal(afterClick.activePageId, routeState.targetPageId);
   assert.equal(afterClick.activeNavId, routeState.targetPageId);
   assert.match(afterClick.path, new RegExp(`[?&]page=${routeState.targetPageId}`));
+  assert.equal(afterClick.targetInDocument, true, '点击后模板应克隆为真实页面');
+  assert.equal(afterClick.targetPageCount, 1, '克隆后不应出现重复页面');
+  assert.deepEqual(afterClick.duplicateIds, [], '克隆后文档中不应出现重复 id');
+
+  const nestedState = await page.evaluate(async (targetPageId) => {
+    const page = document.getElementById(targetPageId);
+    const header = page?.querySelector('[data-toggle="category"], [data-toggle="group"]') || null;
+    const container = header?.parentElement || null;
+    const button = header?.querySelector('.category-toggle-btn, .group-toggle-btn') || null;
+    const content =
+      container?.querySelector(':scope > .category-content, :scope > .group-content') || null;
+    if (!container || !button || !content) return { available: false };
+
+    const beforeCollapsed = container.classList.contains('collapsed');
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const toggledCollapsed = container.classList.contains('collapsed');
+    const ariaExpanded = button.getAttribute('aria-expanded');
+    const inert = content.inert;
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    return {
+      available: true,
+      beforeCollapsed,
+      toggledCollapsed,
+      ariaExpanded,
+      inert,
+      restored: container.classList.contains('collapsed') === beforeCollapsed,
+    };
+  }, routeState.targetPageId);
+  assert.equal(nestedState.available, true, '克隆页应包含可折叠分类');
+  assert.notEqual(nestedState.toggledCollapsed, nestedState.beforeCollapsed);
+  assert.equal(nestedState.ariaExpanded, String(!nestedState.toggledCollapsed));
+  assert.equal(nestedState.inert, nestedState.toggledCollapsed);
+  assert.equal(nestedState.restored, true);
+
+  const batchToggleState = await page.evaluate(async (targetPageId) => {
+    const page = document.getElementById(targetPageId);
+    const toggle = document.getElementById('category-toggle');
+    if (!page || !toggle) return { available: false };
+
+    const containers = () =>
+      [...page.querySelectorAll('.category, .group')].filter((element) =>
+        Boolean(
+          element.querySelector(
+            ':scope > .category-header[data-toggle="category"], :scope > .group-header[data-toggle="group"]'
+          )
+        )
+      );
+    const total = containers().length;
+    if (total === 0) return { available: false };
+
+    toggle.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const firstCollapsed = containers().filter((element) =>
+      element.classList.contains('collapsed')
+    ).length;
+    const firstAria = toggle.getAttribute('aria-expanded');
+    toggle.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const secondCollapsed = containers().filter((element) =>
+      element.classList.contains('collapsed')
+    ).length;
+
+    return { available: true, total, firstCollapsed, firstAria, secondCollapsed };
+  }, routeState.targetPageId);
+  assert.equal(batchToggleState.available, true, '克隆页应支持批量展开/收起');
+  assert.ok(
+    batchToggleState.firstCollapsed === 0 ||
+      batchToggleState.firstCollapsed === batchToggleState.total,
+    '批量开关应统一当前页的折叠状态'
+  );
+  assert.equal(batchToggleState.firstAria, String(batchToggleState.firstCollapsed === 0));
+  assert.ok(
+    batchToggleState.secondCollapsed === 0 ||
+      batchToggleState.secondCollapsed === batchToggleState.total,
+    '再次批量开关应统一反转折叠状态'
+  );
 
   if (routeState.categoryId) {
     await page.evaluate((targetPageId) => {
@@ -130,6 +251,54 @@ async function runRouteContract(page, baseUrl) {
     pageId: routeState.targetPageId,
     hash: routeState.categoryId || undefined,
   });
+
+  // 深链接刷新：目标页仍从模板克隆，且不会产生重复 DOM
+  await openPage(page, baseUrl, `/?page=${encodeURIComponent(routeState.targetPageId)}`);
+  await waitForRouteState(page, { pageId: routeState.targetPageId });
+  const afterDeepLink = await page.evaluate((targetPageId) => {
+    const pageIds = [...document.querySelectorAll('.page[id]')].map((page) => page.id);
+    return {
+      activePageId: document.querySelector('.page.active')?.id || '',
+      activeNavId: document.querySelector('.nav-item.active')?.getAttribute('data-page') || '',
+      inDocument: Boolean(document.getElementById(targetPageId)),
+      pageCount: pageIds.filter((id) => id === targetPageId).length,
+    };
+  }, routeState.targetPageId);
+  assert.equal(afterDeepLink.activePageId, routeState.targetPageId);
+  assert.equal(afterDeepLink.activeNavId, routeState.targetPageId);
+  assert.equal(afterDeepLink.inDocument, true, '深链接刷新后应克隆目标模板页');
+  assert.equal(afterDeepLink.pageCount, 1, '深链接刷新后不应重复克隆');
+
+  // 搜索重置需回到已克隆的模板页，state.pages 缓存失效后仍能正确切换
+  await page.evaluate((term) => {
+    const search = document.querySelector('#search');
+    if (!search) return;
+    search.value = term;
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  }, routeState.searchTerm || 'a');
+  await page.waitForFunction(
+    () => Boolean(document.querySelector('#search-results')?.classList.contains('active')),
+    null,
+    { timeout: 5000 }
+  );
+  await page.evaluate(() => {
+    const search = document.querySelector('#search');
+    if (!search) return;
+    search.value = '';
+    search.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', bubbles: true }));
+  });
+  await waitForRouteState(page, { pageId: routeState.targetPageId });
+  const afterSearchReset = await page.evaluate(
+    (targetPageId) => ({
+      activePageId: document.querySelector('.page.active')?.id || '',
+      activePageCount: document.querySelectorAll('.page.active').length,
+      inDocument: Boolean(document.getElementById(targetPageId)),
+    }),
+    routeState.targetPageId
+  );
+  assert.equal(afterSearchReset.activePageId, routeState.targetPageId);
+  assert.equal(afterSearchReset.activePageCount, 1);
+  assert.equal(afterSearchReset.inDocument, true);
 
   await openPage(page, baseUrl, '/?page=__missing__');
   const normalized = await page.evaluate(() => ({
@@ -279,6 +448,165 @@ async function runDomThemeSearchContract(page, baseUrl) {
   assert.equal(resetState.activePageId, resetState.activeNavId);
 }
 
+async function waitForBodyLoaded(page) {
+  await page.waitForFunction(() => document.body.classList.contains('loaded'), null, {
+    timeout: 5000,
+  });
+}
+
+async function runSidebarBreakpointContract(page, baseUrl) {
+  await openPage(page, baseUrl, '/');
+  await waitForBodyLoaded(page);
+  await page.evaluate(() => localStorage.setItem('sidebarCollapsed', 'false'));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+
+  const initialState = await page.evaluate(() => ({
+    collapsed: document.querySelector('.sidebar')?.classList.contains('collapsed') || false,
+    expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+  }));
+  assert.equal(initialState.collapsed, false);
+  assert.equal(initialState.expanded, false);
+
+  await page.evaluate(() => document.querySelector('.sidebar-toggle')?.click());
+  await page.waitForFunction(
+    () => document.querySelector('.sidebar')?.classList.contains('collapsed') === true,
+    null,
+    { timeout: 5000 }
+  );
+  const collapsedState = await page.evaluate(() => {
+    const sidebar = document.querySelector('.sidebar');
+    return {
+      collapsed: sidebar?.classList.contains('collapsed') || false,
+      expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+      panelVisible: sidebar?.classList.contains('submenu-panel-visible') || false,
+      ariaExpanded: sidebar?.querySelector('.sidebar-toggle')?.getAttribute('aria-expanded') || '',
+    };
+  });
+  assert.equal(collapsedState.collapsed, true);
+  assert.equal(collapsedState.expanded, true);
+  assert.equal(collapsedState.panelVisible, false);
+  assert.equal(collapsedState.ariaExpanded, 'false');
+
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.waitForFunction(
+    () => {
+      const sidebar = document.querySelector('.sidebar');
+      const content = document.querySelector('.content');
+      return Boolean(
+        sidebar &&
+        content &&
+        !sidebar.classList.contains('collapsed') &&
+        !content.classList.contains('expanded') &&
+        sidebar.classList.contains('submenu-panel-visible')
+      );
+    },
+    null,
+    { timeout: 5000 }
+  );
+  assert.equal(
+    await page.evaluate(() => localStorage.getItem('sidebarCollapsed')),
+    'true',
+    '窄屏不应清掉桌面折叠偏好'
+  );
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForFunction(
+    () => {
+      const sidebar = document.querySelector('.sidebar');
+      const content = document.querySelector('.content');
+      return Boolean(
+        sidebar &&
+        content &&
+        sidebar.classList.contains('collapsed') &&
+        content.classList.contains('expanded') &&
+        !sidebar.classList.contains('submenu-panel-visible')
+      );
+    },
+    null,
+    { timeout: 5000 }
+  );
+
+  // 窄屏加载时也保留偏好，回到桌面再恢复折叠
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+  const mobileLoadState = await page.evaluate(() => ({
+    collapsed: document.querySelector('.sidebar')?.classList.contains('collapsed') || false,
+    expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+    stored: localStorage.getItem('sidebarCollapsed'),
+  }));
+  assert.equal(mobileLoadState.collapsed, false);
+  assert.equal(mobileLoadState.expanded, false);
+  assert.equal(mobileLoadState.stored, 'true');
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.waitForFunction(
+    () => document.querySelector('.sidebar')?.classList.contains('collapsed') === true,
+    null,
+    { timeout: 5000 }
+  );
+
+  await page.evaluate(() => localStorage.setItem('sidebarCollapsed', 'false'));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+}
+
+async function runStorageFailureContract(browser, baseUrl) {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new DOMException('Storage blocked', 'SecurityError');
+      },
+    });
+  });
+
+  const page = await context.newPage();
+  const pageErrors = [];
+  const consoleErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
+
+  try {
+    await openPage(page, baseUrl, '/');
+    await waitForBodyLoaded(page);
+
+    const initialState = await page.evaluate(() => ({
+      activePageId: document.querySelector('.page.active')?.id || '',
+      activeNavId: document.querySelector('.nav-item.active')?.getAttribute('data-page') || '',
+      bodyLoaded: document.body.classList.contains('loaded'),
+    }));
+    assert.equal(initialState.bodyLoaded, true, '存储不可用时运行时仍应完成初始化');
+    assert.ok(initialState.activePageId);
+    assert.equal(initialState.activePageId, initialState.activeNavId);
+
+    const targetPageId = await page.evaluate(() => {
+      const currentPageId =
+        document.querySelector('.nav-item.active')?.getAttribute('data-page') || '';
+      const next = Array.from(document.querySelectorAll('.nav-item[data-page]')).find(
+        (item) => item.getAttribute('data-page') !== currentPageId
+      );
+      if (!next) return '';
+      const pageId = next.getAttribute('data-page') || '';
+      next.click();
+      return pageId;
+    });
+
+    if (targetPageId) await waitForRouteState(page, { pageId: targetPageId });
+    assert.deepEqual(pageErrors, [], '存储不可用时不应产生未捕获异常');
+    assert.deepEqual(consoleErrors, [], '存储不可用时不应输出控制台错误');
+  } finally {
+    await context.close();
+  }
+}
+
 async function main() {
   const elapsedMs = startTimer();
   const repoRoot = path.resolve(__dirname, '..', '..');
@@ -310,6 +638,8 @@ async function main() {
     await runRouteContract(page, baseUrl);
     await runRuntimeConfigContract(page, baseUrl);
     await runDomThemeSearchContract(page, baseUrl);
+    await runSidebarBreakpointContract(page, baseUrl);
+    await runStorageFailureContract(browser, baseUrl);
     await assertNoConsoleErrors(messages);
 
     log.ok('完成', { ms: elapsedMs(), url: baseUrl });

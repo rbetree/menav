@@ -41,8 +41,6 @@
     background: var(--surface-frosted);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 16px var(--shadow-color);
     transition: all var(--transition-normal);
     transition-timing-function: var(--transition-bounce);
@@ -75,15 +73,33 @@
     );
     /* 缩短分类卡片与页面边缘的左右留白，扩大分类卡片可用宽度 */
     padding-left: calc(var(--spacing-sm) + var(--spacing-xs));
-    padding-right: calc(var(--spacing-sm) + var(--spacing-xs));
+    /* 右侧为固定浮动按钮留出独立通道，避免按钮盖住卡片内容 */
+    padding-right: calc(var(--mobile-top-button-size) + var(--spacing-md));
+    /* 为右下角浮动按钮预留滚动余量，避免遮挡末尾卡片 */
+    padding-bottom: calc(12rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(12rem + env(safe-area-inset-bottom));
   }
 
   .sidebar {
     transform: translateX(-100%);
     box-shadow: none;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 0.3s;
     max-width: 100vw;
     overflow-x: hidden;
+  }
+
+  /* 预加载折叠态只会在桌面出现，移动端兜底恢复抽屉宽度 */
+  html.sidebar-collapsed-preload .sidebar {
+    width: var(--sidebar-width);
+  }
+
+  html.sidebar-collapsed-preload main.content {
+    margin-left: 0;
+    width: 100vw;
   }
 
   .sidebar .logo {
@@ -101,6 +117,11 @@
   .sidebar.active {
     transform: translateX(0);
     box-shadow: 2px 0 10px var(--shadow-color);
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 0s;
     z-index: 1000;
     /* 增加侧边栏激活时的z-index，确保显示在按钮之上 */
   }
@@ -110,7 +131,7 @@
     width: var(--sidebar-width);
   }
 
-  .sidebar.collapsed .logo h1,
+  .sidebar.collapsed .logo-text,
   .sidebar.collapsed .nav-item .nav-text,
   .sidebar.collapsed .nav-item .external-icon {
     opacity: 1;
@@ -185,7 +206,7 @@
     padding: 0 0.6rem;
   }
 
-  .sidebar .logo h1,
+  .sidebar .logo-text,
   .sidebar .nav-item span {
     opacity: 1;
     display: block;
@@ -280,18 +301,28 @@
   .site-card h3 {
     font-size: 1rem;
     margin-bottom: 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
     max-width: 100%;
   }
 
   .site-card p {
     font-size: 0.9rem;
-    line-height: 1.4;
-    white-space: nowrap;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  /* repo 标题同样允许换行，避免长仓库名被省略 */
+  .site-card.site-card-repo .repo-title {
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
   }
 
   /* 在移动端的主题切换按钮 */
@@ -388,18 +419,20 @@
   .site-card h3 {
     font-size: 1rem;
     margin-bottom: 0.3rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
     max-width: 100%;
   }
 
   .site-card p {
     font-size: 0.9rem;
-    line-height: 1.2;
-    white-space: nowrap;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
@@ -446,17 +479,26 @@
   .site-card h3 {
     font-size: 1rem;
     margin-bottom: 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
     max-width: 100%;
   }
 
   .site-card p {
     font-size: 0.9rem;
-    line-height: 1.15;
-    white-space: nowrap;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+  }
+}
+
+/* 超窄屏：右侧浮动按钮占用固定通道后，两列卡片过窄，改为单列 */
+@media (max-width: 360px) {
+  .sites-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -2189,7 +2189,11 @@ function initTheme() {
   syncIcon();
   btn.addEventListener('click', () => {
     const light = document.documentElement.classList.toggle('light-theme');
-    localStorage.setItem('admin-theme', light ? 'light' : 'dark');
+    try {
+      localStorage.setItem('admin-theme', light ? 'light' : 'dark');
+    } catch (e) {
+      // 存储被禁用时忽略，主题仍在当前页面生效。
+    }
     syncIcon();
   });
   function syncIcon() {
@@ -2200,24 +2204,6 @@ function initTheme() {
     btn.setAttribute('aria-label', label);
     btn.title = label;
   }
-}
-
-/* ---------- 侧栏导航高亮(跟随滚动位置) ---------- */
-function initNavSpy() {
-  const items = Array.from(document.querySelectorAll('.side-link[data-nav]'))
-    .map((link) => ({ link, target: document.querySelector(link.getAttribute('href')) }))
-    .filter((item) => item.target);
-  if (!items.length) return;
-  const sync = () => {
-    let current = items[0].target;
-    for (const item of items) {
-      if (item.target.getBoundingClientRect().top <= 140) current = item.target;
-    }
-    for (const item of items) item.link.classList.toggle('is-active', item.target === current);
-  };
-  sync();
-  window.addEventListener('scroll', sync, { passive: true });
-  window.addEventListener('resize', sync, { passive: true });
 }
 
 /* ---------- 搜索 ---------- */
@@ -2433,7 +2419,6 @@ function bindEvents() {
 /* ---------- 启动 ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  initNavSpy();
   bindEvents();
   bindSearch();
   bindDnD();

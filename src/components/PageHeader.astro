@@ -17,7 +17,7 @@ const pageMeta = page?.pageMeta || null;
       ) : (
         <>
           <div class="welcome-title-row">
-            <h2 data-editable="page-title">{page.title}</h2>
+            <h1 data-editable="page-title">{page.title}</h1>
             {pageMeta?.updatedAt && (
               <span class="page-updated-inline" title={pageMeta.updatedAt}>
                 update: {formatDate(pageMeta.updatedAt, 'YYYY-MM-DD')} | from:{' '}

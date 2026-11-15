@@ -71,7 +71,6 @@
   font-weight: 600;
   margin-top: 1rem;
   padding-left: var(--spacing-xl);
-  opacity: 0.9;
 }
 
 @media (min-width: 768px) {
@@ -251,31 +250,30 @@ html.light-theme .dashboard-panel {
   position: relative;
 }
 
-.todo-item:hover .todo-delete-btn {
+.todo-item:hover .todo-delete-btn,
+.todo-item:focus-within .todo-delete-btn {
   opacity: 1;
   pointer-events: auto;
 }
 
+/* 复选框与文本放在 label 内，删除按钮保持独立，避免点击删除时误触完成状态 */
+.todo-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* 原生复选框：交给浏览器渲染，仅统一尺寸与强调色 */
 .todo-checkbox {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--text-muted);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0;
   flex-shrink: 0;
-  transition: all 0.2s;
-}
-
-.todo-checkbox.checked {
-  background-color: var(--accent-color);
-  border-color: var(--accent-color);
-  color: var(--white-color);
-}
-
-.todo-checkbox.checked span {
-  font-size: 0.8rem;
+  accent-color: var(--accent-color);
+  cursor: pointer;
 }
 
 .todo-text {
@@ -289,20 +287,47 @@ html.light-theme .dashboard-panel {
 
 .todo-item.done .todo-text {
   text-decoration: line-through;
-  opacity: 0.5;
+  /* 用弱化色而非透明度，保证已完成任务文字仍 ≥4.5:1 */
+  color: var(--text-muted);
 }
 
 /* Delete Button */
 .todo-delete-btn {
   opacity: 0;
   pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  flex-shrink: 0;
   background: none;
   border: none;
+  border-radius: var(--radius-sm);
   color: var(--error-color);
   padding: 0 0.5rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
   font-size: 0.85rem;
+}
+
+.todo-delete-btn:hover {
+  background-color: var(--secondary-bg);
+}
+
+.todo-delete-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* 触屏等无悬停设备直接显示删除按钮，避免只能依赖 hover 才可操作 */
+@media (hover: none) {
+  .todo-delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 /* Todo Input Area */
@@ -345,10 +370,18 @@ html.light-theme .dashboard-panel {
 /* Light Mode Overrides for Specific Dashboard Colors if needed */
 
 @media (max-width: 768px) {
-  /* 移动端隐藏首页的时间卡片和Todo面板 */
-  .dashboard-clock-card,
+  /* 移动端只隐藏时钟卡片，Todo 面板保留在单列布局下方 */
+  .dashboard-clock-card {
+    display: none;
+  }
+
+  /* 手机首屏空间有限，压缩 Todo 面板并让分类更早出现 */
   .dashboard-stats {
-    display: none !important;
+    min-height: 0;
+  }
+
+  .dashboard-panel {
+    height: 240px;
   }
 
   /* 调整移动端首页欢迎语布局 */

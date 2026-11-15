@@ -131,9 +131,10 @@ admin.use('/api/*', async (c, next) => {
 admin.use(
   '/api/*',
   bodyLimit({
-    maxSize: 9_000_000,
+    // 管理台按 16 MB 选择文件，这里留出 JSON 编码与边界开销。
+    maxSize: 16_500_000,
     onError: (c) =>
-      c.json({ ok: false, error: 'payload_too_large', detail: '请求体不能超过 8 MB' }, 413),
+      c.json({ ok: false, error: 'payload_too_large', detail: '请求体不能超过 16 MB' }, 413),
   })
 );
 

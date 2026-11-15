@@ -91,7 +91,8 @@ function normalizeArticleItem(article: CacheArticleInput | null | undefined): Ar
 
 function tryLoadArticlesFeedCache(
   pageId: string,
-  config: RenderConfigLike | null | undefined
+  config: RenderConfigLike | null | undefined,
+  allowedSourceUrls?: Set<string> | null
 ): ArticlesFeedCache | null {
   if (!pageId) return null;
 
@@ -110,8 +111,13 @@ function tryLoadArticlesFeedCache(
       .map((article: CacheArticleInput) => normalizeArticleItem(article))
       .filter((item: ArticleItem | null): item is ArticleItem => Boolean(item));
 
+    // 按当前页面来源过滤，已删除来源的旧文章不再进入「其他」分类。
+    const visibleItems = allowedSourceUrls
+      ? items.filter((item) => allowedSourceUrls.has(normalizeUrlKey(item.sourceUrl)))
+      : items;
+
     return {
-      items,
+      items: visibleItems,
       meta: {
         pageId: parsed.pageId || pageId,
         generatedAt: parsed.generatedAt || '',
@@ -125,8 +131,9 @@ function tryLoadArticlesFeedCache(
                 .map((site) => String(site.url)),
             }
           : {}),
-        total:
-          parsed.stats && Number.isFinite(parsed.stats.totalArticles)
+        total: allowedSourceUrls
+          ? visibleItems.length
+          : parsed.stats && Number.isFinite(parsed.stats.totalArticles)
             ? parsed.stats.totalArticles
             : items.length,
       },

@@ -40,8 +40,35 @@ type FetchTextOptions = {
   headers: Record<string, string>;
 };
 
+type SyncSourceReport = {
+  name: string;
+  url?: string;
+  status: 'success' | 'failed' | 'skipped';
+  error?: string;
+  fallback?: boolean;
+};
+
+type SyncReport = {
+  script: string;
+  success: number;
+  failed: number;
+  skipped: number;
+  cacheWritten: boolean;
+  sources: SyncSourceReport[];
+};
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function appendSyncReport(report: SyncReport): void {
+  const reportPath = process.env.MENAV_SYNC_REPORT;
+  if (!reportPath) return;
+  try {
+    fs.appendFileSync(reportPath, `${JSON.stringify(report)}\n`, 'utf8');
+  } catch {
+    // 报告写入失败不应影响同步结果
+  }
 }
 
 const DEFAULT_SETTINGS = {
@@ -84,12 +111,10 @@ function getSettings(config: ConfigLike): HeatmapSettings {
 
   merged.enabled = parseBooleanEnv(process.env.HEATMAP_ENABLED, merged.enabled);
 
-  // 复用 projects 的 cacheDir 逻辑，保持所有 dev 缓存在同一目录
+  // 复用 projects 的 cacheDir，保持所有 dev 缓存在同一目录
   merged.cacheDir = process.env.PROJECTS_CACHE_DIR
     ? String(process.env.PROJECTS_CACHE_DIR)
-    : process.env.HEATMAP_CACHE_DIR
-      ? String(process.env.HEATMAP_CACHE_DIR)
-      : merged.cacheDir;
+    : merged.cacheDir;
 
   merged.fetch.timeoutMs = parseIntegerEnv(
     process.env.HEATMAP_FETCH_TIMEOUT,
@@ -183,6 +208,16 @@ async function main() {
   try {
     html = await fetchTextWithTimeout(url, { timeoutMs: settings.fetch.timeoutMs, headers });
   } catch (error) {
+    appendSyncReport({
+      script: 'heatmap',
+      success: 0,
+      failed: 1,
+      skipped: 0,
+      cacheWritten: false,
+      sources: [
+        { name: 'github-contributions', url, status: 'failed', error: getErrorMessage(error) },
+      ],
+    });
     log.warn('获取 GitHub contributions 失败（best-effort）', {
       url,
       message: getErrorMessage(error),
@@ -192,6 +227,16 @@ async function main() {
 
   const innerHtml = extractYearlyContributionsInnerHtml(html);
   if (!innerHtml) {
+    appendSyncReport({
+      script: 'heatmap',
+      success: 0,
+      failed: 1,
+      skipped: 0,
+      cacheWritten: false,
+      sources: [
+        { name: 'github-contributions', url, status: 'failed', error: '贡献图 HTML 解析失败' },
+      ],
+    });
     log.warn('解析 contributions HTML 失败（best-effort）', { url, username });
     return;
   }
@@ -211,13 +256,37 @@ async function main() {
     log.ok('写入 heatmap 缓存', { page: pageId, cache: cachePath });
   }
 
+  appendSyncReport({
+    script: 'heatmap',
+    success: 1,
+    failed: 0,
+    skipped: 0,
+    cacheWritten: true,
+    sources: [{ name: 'github-contributions', url, status: 'success' }],
+  });
+
   log.ok('完成', { ms: elapsedMs(), pages: pages.length, username });
 }
 
-main().catch((error) => {
-  log.error('执行异常（best-effort，不阻断后续 build）', {
-    message: getErrorMessage(error),
+if (require.main === module) {
+  main().catch((error) => {
+    appendSyncReport({
+      script: 'heatmap',
+      success: 0,
+      failed: 1,
+      skipped: 0,
+      cacheWritten: false,
+      sources: [{ name: 'heatmap', status: 'failed', error: getErrorMessage(error) }],
+    });
+    log.error('执行异常（best-effort，不阻断后续 build）', {
+      message: getErrorMessage(error),
+    });
+    if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
+    process.exitCode = 0; // best-effort：不阻断后续 build
   });
-  if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
-  process.exitCode = 0; // best-effort：不阻断后续 build
-});
+}
+
+module.exports = {
+  getSettings,
+  getGithubUsernameFromConfig,
+};

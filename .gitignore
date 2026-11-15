@@ -35,6 +35,10 @@ docs/
 docs/local/
 docs/*.local.md
 
+# 本地文档与设计上下文
+docs-myself/
+.impeccable.md
+
 # 本地任务记录
 /task_plan.md
 /findings.md

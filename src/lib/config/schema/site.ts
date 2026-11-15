@@ -1,6 +1,5 @@
 import type { z as ZodNamespace } from 'zod';
 import { z } from 'zod';
-import { pageConfigSchema } from './page.ts';
 import {
   fontsSchema,
   githubSchema,
@@ -49,14 +48,10 @@ const modularConfigSchema = z.strictObject({
   navigation: z.array(navigationItemSchema, { error: 'navigation 必须是数组' }),
 });
 
-const renderConfigSchema = modularConfigSchema.catchall(pageConfigSchema.or(z.unknown()));
-
 export type SiteConfigSchema = typeof siteConfigSchema;
 export type ModularConfigSchema = typeof modularConfigSchema;
-export type RenderConfigSchema = typeof renderConfigSchema;
 
 export type SiteConfig = ZodNamespace.output<SiteConfigSchema>;
 export type ModularConfig = ZodNamespace.output<ModularConfigSchema> & Record<string, unknown>;
-export type RenderConfig = ZodNamespace.output<RenderConfigSchema>;
 
-export { siteConfigSchema, modularConfigSchema, renderConfigSchema };
+export { siteConfigSchema, modularConfigSchema };

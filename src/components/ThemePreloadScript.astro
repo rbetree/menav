@@ -1,6 +1,11 @@
 <script is:inline>
   (function () {
-    var savedTheme = localStorage.getItem('theme');
+    var savedTheme = null;
+    try {
+      savedTheme = localStorage.getItem('theme');
+    } catch (e) {
+      // 存储被禁用时按站点默认主题渲染。
+    }
     var defaultThemeMode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
     defaultThemeMode = String(defaultThemeMode).trim().toLowerCase();
     var shouldUseLight = false;
@@ -20,11 +25,21 @@
       }
     }
 
+    var themeColorMeta = document.getElementById('menav-theme-color');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', shouldUseLight ? '#e0e0d8' : '#0d0c0b');
+    }
+
     if (shouldUseLight) {
       document.documentElement.classList.add('theme-preload');
     }
 
-    var sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    var sidebarCollapsed = false;
+    try {
+      sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    } catch (e) {
+      // 无法读取时按展开态首帧渲染。
+    }
     var isMobile = window.innerWidth <= 768;
     if (sidebarCollapsed && !isMobile) {
       document.documentElement.classList.add('sidebar-collapsed-preload');

@@ -65,12 +65,15 @@ test('Phase 9 runtime：启动初始化应留在 app/index.ts，router 只处理
     'ui.initTheme()',
     'ui.initSidebarState()',
     'search.initSearchEngine()',
-    'search.initSearchIndex()',
     'logRuntimeVersion()',
   ]) {
     assert.ok(appIndex.includes(token), `app/index.ts 应保留 ${token}`);
     assert.ok(!router.includes(token), `router.ts 不应保留 ${token}`);
   }
+  assert.ok(
+    !appIndex.includes('requestIdleCallback') && !appIndex.includes('initializeSearchIndex'),
+    'app/index.ts 启动阶段不应预取搜索索引'
+  );
 });
 
 test('Phase 7 runtime：全局 DOM selector 应集中到 dom/selectors.ts', () => {

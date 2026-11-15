@@ -37,8 +37,15 @@ const {
 const site = config.site || {};
 const adminUrl = site.admin_url ? getSafeUrl(site.admin_url, renderContext?.allowedSchemes) : '';
 const themeMode = site.theme?.mode || 'dark';
-const favicon = site.favicon || 'menav.svg';
-const brandImage = (site.logo || site.favicon || '').replace(/^\.?\//, '');
+// 本地资源统一 ./<配置相对路径>，与构建复制的 public 路径保持一致；外链不拼前缀。
+const toSiteAssetHref = (value: unknown): string => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(raw)) return raw;
+  return `./${raw.replace(/^\.?\//, '')}`;
+};
+const favicon = toSiteAssetHref(site.favicon || 'menav.svg');
+const brandImage = toSiteAssetHref(site.logo || site.favicon || '');
 const fontAwesomeCssUrl =
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
 const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="style" onload="this.onload=null;this.rel='stylesheet'" />`;
@@ -48,17 +55,18 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 <html lang="zh-CN" data-theme-mode={themeMode} class="no-js">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script is:inline>
       document.documentElement.classList.remove('no-js');
     </script>
     <meta name="menav-version" content={version} />
+    <meta name="theme-color" id="menav-theme-color" content="#0d0c0b" />
     <title data-editable="site-title">{site.title}</title>
     <meta name="description" content={site.description} data-editable="site-description" />
     <meta name="author" content={site.author} data-editable="site-author" />
     {site.keywords && <meta name="keywords" content={site.keywords} />}
-    <link rel="icon" href={`./${favicon}`} type="image/x-icon" />
-    <link rel="shortcut icon" href={`./${favicon}`} type="image/x-icon" />
+    <link rel="icon" href={favicon} type="image/x-icon" />
+    <link rel="shortcut icon" href={favicon} type="image/x-icon" />
     <Fragment set:html={fontLinks} />
     <style set:html={fontCss}></style>
     <ThemePreloadScript />
@@ -70,9 +78,15 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
     </noscript>
   </head>
   <body class="loading">
+    <a class="skip-link" href="#content">跳到主要内容</a>
     <div class="layout">
       <div class="mobile-buttons">
-        <button class="menu-toggle" aria-label="切换菜单">
+        <button
+          class="menu-toggle"
+          aria-label="切换菜单"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
           <i class="fas fa-bars"></i>
         </button>
         <button class="search-toggle" aria-label="切换搜索">
@@ -82,34 +96,33 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
 
       <div class="overlay"></div>
 
-      <nav class="sidebar">
-        <div class="logo">
+      <aside class="sidebar" id="sidebar" aria-label="站点侧栏">
+        <header class="logo">
           <div class="logo-brand">
             {
               brandImage && (
-                <img
-                  class="logo-image"
-                  src={`./${brandImage}`}
-                  alt={`${site.title} logo`}
-                  width="26"
-                  height="26"
-                />
+                <img class="logo-image" src={brandImage} alt="" width="26" height="26" />
               )
             }
-            <h1 data-editable="logo-text">{site.logo_text}</h1>
+            <span class="logo-text" data-editable="logo-text">{site.logo_text}</span>
           </div>
           <button class="sidebar-toggle" aria-label="收起/展开侧边栏">
             <i class="fas fa-chevron-left toggle-icon"></i>
           </button>
-        </div>
+        </header>
 
-        <div class="sidebar-content">
+        <nav class="sidebar-content" aria-label="页面导航">
           <div class="nav-section">
             <Navigation navigation={navigationData} />
           </div>
-          <div class="sidebar-submenu-panel" aria-label="页面分类" data-container="sidebar-submenu">
+          <div
+            class="sidebar-submenu-panel"
+            role="group"
+            aria-label="页面分类"
+            data-container="sidebar-submenu"
+          >
           </div>
-        </div>
+        </nav>
 
         <div class="sidebar-social" data-container="social-links">
           <SocialLinks
@@ -118,7 +131,7 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
           />
         </div>
 
-        <div class="sidebar-footer">
+        <footer class="sidebar-footer">
           {site.footer && <p class="site-footer-text">{site.footer}</p>}
           <div class="copyright">
             <p>
@@ -129,22 +142,34 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
               by <a href="https://github.com/rbetree" target="_blank" rel="noopener">rbetree</a>
             </p>
           </div>
-        </div>
-      </nav>
+        </footer>
+      </aside>
 
-      <main class="content">
+      <main class="content" id="content" tabindex="-1">
         <SearchBar />
 
         {
-          pages.map((entry) => (
-            <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
-              <PageContent
-                page={entry.data}
-                templateName={entry.templateName}
-                renderContext={renderContext}
-              />
-            </div>
-          ))
+          pages.map((entry) => {
+            const pageElement = (
+              <div class:list={['page', entry.id, entry.isActive && 'active']} id={entry.id}>
+                <PageContent
+                  page={entry.data}
+                  templateName={entry.templateName}
+                  renderContext={renderContext}
+                />
+              </div>
+            );
+            // 首页内联脚本与搜索结果容器需要首屏真实 DOM；其余页面由运行时首次切换时克隆
+            const isEager =
+              Boolean(entry.isActive) ||
+              entry.id === 'search-results' ||
+              Boolean(entry.data?.isHome);
+            return isEager ? (
+              pageElement
+            ) : (
+              <template data-page-template={entry.id}>{pageElement}</template>
+            );
+          })
         }
       </main>
 
@@ -159,6 +184,8 @@ const fontAwesomePreload = `<link rel="preload" href="${fontAwesomeCssUrl}" as="
           >
             <svg
               class="admin-toggle-icon"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

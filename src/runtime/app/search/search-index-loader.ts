@@ -14,7 +14,7 @@ async function loadBuildSearchIndex(state: RuntimeState): Promise<void> {
   state.searchIndex.loading = true;
 
   try {
-    const response = await fetch(SEARCH_INDEX_URL, { cache: 'no-cache' });
+    const response = await fetch(SEARCH_INDEX_URL, { cache: 'default' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const payload = (await response.json()) as SearchIndexPayload;

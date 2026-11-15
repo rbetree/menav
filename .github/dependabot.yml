@@ -1,3 +1,5 @@
+# 常规版本更新由维护者手动处理：open-pull-requests-limit: 0 关闭常规 PR，安全更新仍由 Dependabot 处理。
+# Docker ecosystem 不支持安全更新，limit 0 下新增无意义，故不配置。
 version: 2
 
 updates:

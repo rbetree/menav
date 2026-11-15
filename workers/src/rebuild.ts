@@ -76,60 +76,83 @@ async function recoverDeployment(db: D1Database, env: Env, job: Job): Promise<De
   return null;
 }
 
+/** Pages 构建包含排队、抓取外部数据与 Astro 构建；超过总时长视为发布槽卡住。 */
+const JOB_TIMEOUT_MS = 30 * 60_000;
+
 /** 只有生产部署和构建产物中的版本标记都匹配，才推进 published_revision。 */
 export async function reconcilePublication(db: D1Database, env: Env): Promise<void> {
   const job = await currentJob(db);
   if (!job || !isActive(job) || !publicationWired(env)) return;
-  let deployment: Deployment | null;
-  if (job.deployment_id) {
-    deployment = await pagesApi<Deployment>(
-      env,
-      '/deployments/' + encodeURIComponent(job.deployment_id)
-    );
-  } else {
-    // 让正在发送的 POST 先完成；构建端需要时仍可主动恢复。
-    if (Date.now() - Date.parse(job.created_at) < 30_000) return;
-    deployment = await recoverDeployment(db, env, job);
-  }
-  if (!deployment) return;
-  const stage = deployment.latest_stage;
-  if (deployment.is_skipped || stage.status === 'failure' || stage.status === 'canceled') {
-    await failJob(db, job, 'Pages 构建失败或已取消，请查看构建日志后重试');
+  // 覆盖 dispatching 与 building：Pages API 持续失败时也必须释放发布槽。
+  const startedAt = Date.parse(job.created_at);
+  if (Number.isFinite(startedAt) && Date.now() - startedAt > JOB_TIMEOUT_MS) {
+    await failJob(db, job, '发布任务超过 30 分钟仍未完成，请检查 Pages 构建日志后重试');
     return;
   }
-  if (stage.name !== 'deploy' || stage.status !== 'success') return;
-  const project = await pagesApi<{ canonical_deployment?: Deployment }>(env);
-  if (project.canonical_deployment?.id !== deployment.id) {
-    await failJob(db, job, '该部署未成为当前生产版本，请检查 Pages 是否有其他发布任务');
-    return;
-  }
-  let buildMarker: { publicationId?: string; revision?: number };
   try {
-    const response = await fetch(new URL('/menav-build.json', deployment.url), {
-      signal: AbortSignal.timeout(10_000),
-      cache: 'no-store',
-    });
-    if (!response.ok) throw new Error('marker');
-    buildMarker = await response.json();
-  } catch {
-    throw new ApiError(502, 'Pages 已部署，暂时无法核对版本标记；下次检查将重试');
+    let deployment: Deployment | null;
+    if (job.deployment_id) {
+      deployment = await pagesApi<Deployment>(
+        env,
+        '/deployments/' + encodeURIComponent(job.deployment_id)
+      );
+    } else {
+      // 让正在发送的 POST 先完成；构建端需要时仍可主动恢复。
+      if (Date.now() - startedAt < 30_000) return;
+      deployment = await recoverDeployment(db, env, job);
+    }
+    if (!deployment) return;
+    const stage = deployment.latest_stage;
+    if (!stage) throw new ApiError(502, 'Pages 部署状态缺少阶段信息；下次检查将重试');
+    if (deployment.is_skipped || stage.status === 'failure' || stage.status === 'canceled') {
+      await failJob(db, job, 'Pages 构建失败或已取消，请查看构建日志后重试');
+      return;
+    }
+    if (stage.name !== 'deploy' || stage.status !== 'success') return;
+    const project = await pagesApi<{ canonical_deployment?: Deployment }>(env);
+    if (project.canonical_deployment?.id !== deployment.id) {
+      await failJob(db, job, '该部署未成为当前生产版本，请检查 Pages 是否有其他发布任务');
+      return;
+    }
+    let buildMarker: { publicationId?: string; revision?: number };
+    try {
+      const response = await fetch(new URL('/menav-build.json', deployment.url), {
+        signal: AbortSignal.timeout(10_000),
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error('marker');
+      buildMarker = await response.json();
+    } catch {
+      throw new ApiError(502, 'Pages 已部署，暂时无法核对版本标记；下次检查将重试');
+    }
+    if (buildMarker.publicationId !== job.job_id || buildMarker.revision !== job.revision) {
+      await failJob(db, job, '部署产物版本与快照不匹配，未标记为已发布');
+      return;
+    }
+    await db.batch([
+      db
+        .prepare(
+          "UPDATE content_state SET published_revision = MAX(published_revision, ?), published_build_nonce = MAX(published_build_nonce, ?) WHERE id = 1 AND EXISTS (SELECT 1 FROM publication WHERE job_id = ? AND status IN ('dispatching', 'building'))"
+        )
+        .bind(job.revision, job.build_nonce ?? 0, job.job_id),
+      db
+        .prepare(
+          "UPDATE publication SET status = 'published', error = NULL, updated_at = ? WHERE id = 1 AND job_id = ? AND status IN ('dispatching', 'building')"
+        )
+        .bind(new Date().toISOString(), job.job_id),
+    ]);
+  } catch (error) {
+    // 4xx（除限流/超时）不会自愈：明确失败，避免发布槽一直停在 building。
+    if (error instanceof PagesApiError && error.definitive) {
+      await failJob(
+        db,
+        job,
+        '发布状态核对失败：' + error.message + '，请检查 Pages 项目配置与 CF_API_TOKEN 后重试'
+      );
+      return;
+    }
+    throw error;
   }
-  if (buildMarker.publicationId !== job.job_id || buildMarker.revision !== job.revision) {
-    await failJob(db, job, '部署产物版本与快照不匹配，未标记为已发布');
-    return;
-  }
-  await db.batch([
-    db
-      .prepare(
-        "UPDATE content_state SET published_revision = MAX(published_revision, ?), published_build_nonce = MAX(published_build_nonce, ?) WHERE id = 1 AND EXISTS (SELECT 1 FROM publication WHERE job_id = ? AND status IN ('dispatching', 'building'))"
-      )
-      .bind(job.revision, job.build_nonce ?? 0, job.job_id),
-    db
-      .prepare(
-        "UPDATE publication SET status = 'published', error = NULL, updated_at = ? WHERE id = 1 AND job_id = ? AND status IN ('dispatching', 'building')"
-      )
-      .bind(new Date().toISOString(), job.job_id),
-  ]);
 }
 
 export async function publishStatus(db: D1Database, env: Env) {

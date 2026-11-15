@@ -13,5 +13,5 @@ const { runtimeConfigJson = '{}' } = Astro.props;
   style="display: none;"
   set:html={runtimeConfigJson}
 />
-<script is:inline src="./pinyin-match.js"></script>
-<script is:inline src="./script.js"></script>
+<script is:inline src="./pinyin-match.js" defer></script>
+<script is:inline src="./script.js" defer></script>

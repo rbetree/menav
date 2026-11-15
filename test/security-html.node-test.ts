@@ -118,6 +118,49 @@ test('security/html：sanitize 拦截反斜杠协议相对 href，且文本实�
   assert.equal(twice, '<span>Nov &amp; Dec</span>');
 });
 
+test('security/html：URI 属性先解码再判定，实体编码的协议相对 URL 被拦截', () => {
+  // 实体编码的 //evil.com 解码后是协议相对 URL，不能因为原文不含 // 就放行。
+  assert.equal(
+    sanitizeHtmlFragment('<a href="&#x2f;&#x2f;evil.com">x</a>', LINK_POLICY),
+    '<a>x</a>'
+  );
+  assert.equal(sanitizeHtmlFragment('<a href="&#47;&#47;evil.com">x</a>', LINK_POLICY), '<a>x</a>');
+  assert.equal(
+    sanitizeHtmlFragment('<a href="&#x6a;avascript:alert(1)">x</a>', LINK_POLICY),
+    '<a>x</a>'
+  );
+
+  // 安全的实体值输出与判定使用同一解码结果，仅做一次转义。
+  assert.equal(
+    sanitizeHtmlFragment('<a href="https://example.com/?a=1&amp;b=2">x</a>', LINK_POLICY),
+    '<a href="https://example.com/?a=1&amp;b=2">x</a>'
+  );
+});
+
+test('github/contributions：真实热力图标记保留 id、aria-labelledby 与 class', () => {
+  const html = [
+    '<div class="js-yearly-contributions">',
+    '<div class="js-calendar-graph">',
+    '<svg viewBox="0 0 20 20">',
+    '<g>',
+    '<rect id="search" aria-labelledby="tooltip-1" class="ContributionCalendar-day"',
+    ' data-level="2" data-date="2025-11-10"></rect>',
+    '<tool-tip id="tooltip-1">7 contributions on November 10th.</tool-tip>',
+    '</g>',
+    '</svg>',
+    '</div>',
+    '</div>',
+  ].join('');
+
+  const inner = extractYearlyContributionsInnerHtml(html);
+
+  assert.ok(inner);
+  assert.ok(inner.includes('id="search"'));
+  assert.ok(inner.includes('aria-labelledby="tooltip-1"'));
+  assert.ok(inner.includes('class="ContributionCalendar-day"'));
+  assert.ok(inner.includes('data-level="2"'));
+});
+
 test('security/view-utils：getSafeUrl 拦截协议相对与反斜杠协议相对 URL', () => {
   const allowed = ['http', 'https', 'mailto', 'tel'];
 

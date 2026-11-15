@@ -7,42 +7,41 @@
    ============================================ */
 
 :root {
-  /* 默认深色主题 */
-  --bg-color: #000000;
-  --sidebar-bg: #1c1c1e;
-  --secondary-bg: #2c2c2e;
+  color-scheme: dark;
 
-  --card-bg-gradient-1: #1c1c1e;
-  --card-bg-gradient-2: #1c1c1e;
+  /* 默认深色主题：暖炭黑，与浅色暖灰纸质主题保持同一色温 */
+  --bg-color: #0d0c0b;
+  --sidebar-bg: #1e1c1a;
+  --secondary-bg: #2d2a27;
 
-  --site-card-bg-gradient-1: #2c2c2e;
-  --site-card-bg-gradient-2: #2c2c2e;
-  --site-card-hover-bg: #3a3a3c;
+  --card-bg-gradient-1: #1e1c1a;
+  --card-bg-gradient-2: #1e1c1a;
 
-  --text-color: #ffffff;
-  --text-muted: #8e8e93;
-  --text-bright: #ffffff;
+  --site-card-bg-gradient-1: #2d2a27;
+  --site-card-bg-gradient-2: #2d2a27;
+  --site-card-hover-bg: #35312c;
 
-  --border-color: rgba(255, 255, 255, 0.12);
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --text-color: #f4f1ea;
+  --text-muted: #a49d92;
+  --text-bright: #faf7f0;
 
-  --highlight-bg: rgba(118, 148, 185, 0.3);
-  --scrollbar-color: rgba(255, 255, 255, 0.2);
-  --scrollbar-hover-color: rgba(255, 255, 255, 0.3);
+  --border-color: rgba(244, 241, 234, 0.14);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+
+  --highlight-bg: rgba(var(--accent-rgb), 0.3);
+  --scrollbar-color: rgba(244, 241, 234, 0.2);
+  --scrollbar-hover-color: rgba(244, 241, 234, 0.3);
 
   --accent-color: #7694b9;
   --accent-hover: #6684a9;
   --accent-rgb: 118, 148, 185;
 
-  --nav-item-color: #98989d;
+  --nav-item-color: #b0a99e;
   --success-color: #30d158;
   --error-color: #ff453a;
   --white-color: #ffffff;
 
-  --gradient-color: linear-gradient(135deg, #7694b9 0%, #a855f7 50%, #ff6b6b 100%);
-  --gradient-color-simple: linear-gradient(135deg, #7694b9 0%, #a855f7 100%);
-
-  --card-bg-rgb: 28, 28, 30;
+  --card-bg-rgb: 30, 28, 26;
   --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
   --surface-frosted-hover: rgba(var(--card-bg-rgb), 0.75);
   --surface-subtle: rgba(var(--card-bg-rgb), 0.35);
@@ -52,19 +51,20 @@
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: rgba(255, 255, 255, 0.08);
-  --gh-level-1-token: rgba(55, 178, 77, 0.35);
-  --gh-level-2-token: rgba(55, 178, 77, 0.55);
-  --gh-level-3-token: rgba(55, 178, 77, 0.75);
-  --gh-level-4-token: rgba(55, 178, 77, 0.95);
+  /* 热力图兜底色阶：组件会按 heatmapColor 生成主题感知色阶并覆盖这些 token */
+  --gh-level-0-token: #6b6b6e;
+  --gh-level-1-token: #3d8b4a;
+  --gh-level-2-token: #4ea85c;
+  --gh-level-3-token: #63c471;
+  --gh-level-4-token: #7fdd8b;
 
   /* 深色主题：语义 token */
   --hierarchy-hover-bg: linear-gradient(
     145deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
+    rgba(244, 241, 234, 0.03),
+    rgba(244, 241, 234, 0.015)
   );
-  --repo-stat-divider: rgba(255, 255, 255, 0.06);
+  --repo-stat-divider: rgba(244, 241, 234, 0.06);
   --neutral-code-bg: rgba(127, 127, 127, 0.15);
   --neutral-code-block-bg: rgba(127, 127, 127, 0.08);
   --neutral-table-alt-bg: rgba(127, 127, 127, 0.04);
@@ -73,6 +73,8 @@
 /* 暖灰 Notion 风格浅色主题 */
 html.theme-preload,
 html.light-theme {
+  color-scheme: light;
+
   --bg-color: #e0e0d8;
   --sidebar-bg: #f0f0eb;
   --secondary-bg: #e6e6e1;
@@ -90,7 +92,7 @@ html.light-theme {
   --border-color: rgba(0, 0, 0, 0.08);
   --shadow-color: rgba(0, 0, 0, 0.1);
 
-  --highlight-bg: rgba(118, 148, 185, 0.15);
+  --highlight-bg: rgba(var(--accent-rgb), 0.15);
   --scrollbar-color: rgba(0, 0, 0, 0.1);
   --scrollbar-hover-color: rgba(0, 0, 0, 0.2);
 
@@ -104,9 +106,6 @@ html.light-theme {
   --error-color: #c62828;
   --white-color: #ffffff;
 
-  --gradient-color: linear-gradient(135deg, #7694b9 0%, #a855f7 50%, #ff6b6b 100%);
-  --gradient-color-simple: linear-gradient(135deg, #7694b9 0%, #a855f7 100%);
-
   --card-bg-rgb: 240, 240, 235;
   --surface-frosted: rgba(var(--card-bg-rgb), 0.65);
   --surface-frosted-hover: rgba(var(--card-bg-rgb), 0.75);
@@ -117,11 +116,11 @@ html.light-theme {
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: #d8dee4;
-  --gh-level-1-token: #9be9a8;
-  --gh-level-2-token: #40c463;
-  --gh-level-3-token: #30a14e;
-  --gh-level-4-token: #216e39;
+  --gh-level-0-token: #808085;
+  --gh-level-1-token: #4f8f60;
+  --gh-level-2-token: #3c7a4d;
+  --gh-level-3-token: #2b643c;
+  --gh-level-4-token: #1e4f2e;
 
   /* 浅色主题：语义 token */
   --hierarchy-hover-bg: linear-gradient(145deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.015));

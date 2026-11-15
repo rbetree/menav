@@ -101,32 +101,35 @@ try {
   const page = await browser.newPage({ javaScriptEnabled: false });
   const dom = async (file) => {
     await page.goto(pathToFileURL(file).href);
-    return page.evaluate(() => ({
-      navigation: [...document.querySelectorAll('.nav-item[data-page]')].map((n) => [
-        n.getAttribute('data-page'),
-        n.textContent.trim(),
-      ]),
-      cards: [...document.querySelectorAll('.site-card')].map((n) => [
-        n.getAttribute('href'),
-        n.textContent.replace(/\s+/g, ' ').trim(),
-      ]),
-      categories: [...document.querySelectorAll('[data-type="category"], [data-type="group"]')].map(
-        (n) => [
+    return page.evaluate(() => {
+      // 非活动页位于 template.content，禁用 JS 时也要参与静态/动态快照对比
+      const roots = [
+        document,
+        ...[...document.querySelectorAll('template[data-page-template]')].map(
+          (template) => template.content
+        ),
+      ];
+      const all = (selector) => roots.flatMap((root) => [...root.querySelectorAll(selector)]);
+
+      return {
+        navigation: all('.nav-item[data-page]').map((n) => [
+          n.getAttribute('data-page'),
+          n.textContent.trim(),
+        ]),
+        cards: all('.site-card').map((n) => [
+          n.getAttribute('href'),
+          n.textContent.replace(/\s+/g, ' ').trim(),
+        ]),
+        categories: all('[data-type="category"], [data-type="group"]').map((n) => [
           n.getAttribute('data-name'),
           n.getAttribute('data-level'),
           n.getAttribute('data-icon'),
-        ]
-      ),
-      toggles: [...document.querySelectorAll('[data-toggle]')].map((n) =>
-        n.getAttribute('data-toggle')
-      ),
-      content: [...document.querySelectorAll('.markdown-content, .content-page')].map(
-        (n) => n.innerHTML
-      ),
-      styles: [...document.querySelectorAll('link[rel="stylesheet"]')].map((n) =>
-        n.getAttribute('href')
-      ),
-    }));
+        ]),
+        toggles: all('[data-toggle]').map((n) => n.getAttribute('data-toggle')),
+        content: all('.markdown-content, .content-page').map((n) => n.innerHTML),
+        styles: all('link[rel="stylesheet"]').map((n) => n.getAttribute('href')),
+      };
+    });
   };
   const staticDom = await dom(staticHtml);
   assert.ok(
@@ -286,21 +289,34 @@ try {
   ).items;
   assert.ok(freshIndex.some((card) => card.pageId === 'projects'));
   await page.goto(pathToFileURL(path.join(root, 'dist/index.html')).href);
-  const rendered = await page.evaluate(() => ({
-    navigation: [...document.querySelectorAll('.nav-item[data-page]')].map((n) =>
-      n.getAttribute('data-page')
-    ),
-    order: [
-      ...document.querySelectorAll(
-        '#projects [data-type="category"], #projects [data-type="group"]'
+  const rendered = await page.evaluate(() => {
+    const projectPage =
+      document.getElementById('projects') ||
+      document
+        .querySelector('template[data-page-template="projects"]')
+        ?.content.querySelector('#projects') ||
+      null;
+
+    return {
+      navigation: [...document.querySelectorAll('.nav-item[data-page]')].map((n) =>
+        n.getAttribute('data-page')
       ),
-    ].map((n) => n.getAttribute('data-name')),
-    foldable: document.querySelector('#projects .category-header').hasAttribute('data-toggle'),
-    projects: [...document.querySelectorAll('#projects .site-card')].map((n) => [
-      n.getAttribute('href'),
-      n.textContent,
-    ]),
-  }));
+      order: projectPage
+        ? [...projectPage.querySelectorAll('[data-type="category"], [data-type="group"]')].map(
+            (n) => n.getAttribute('data-name')
+          )
+        : [],
+      foldable: Boolean(
+        projectPage && projectPage.querySelector('.category-header')?.hasAttribute('data-toggle')
+      ),
+      projects: projectPage
+        ? [...projectPage.querySelectorAll('.site-card')].map((n) => [
+            n.getAttribute('href'),
+            n.textContent,
+          ])
+        : [],
+    };
+  });
   assert.deepEqual(rendered.navigation, ['articles']);
   assert.deepEqual(rendered.order, ['项目分类', '分组', '子分类']);
   assert.equal(rendered.foldable, false);

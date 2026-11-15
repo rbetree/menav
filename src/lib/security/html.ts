@@ -349,11 +349,14 @@ function sanitizeHtmlAttribute(
 ): string {
   const name = attr.name.toLowerCase();
   if (!isAllowedAttribute(tagName, name, policy)) return '';
-  if (policy.uriAttributes?.has(name) && !isSafeUriAttribute(attr.value)) return '';
+
+  // 判定与输出必须用同一个解码后字符串，否则 &#x2f;&#x2f;evil.com 会绕过检查再还原成协议相对 URL
+  const value = decodeHtmlEntities(attr.value);
+  if (policy.uriAttributes?.has(name) && !isSafeUriAttribute(value)) return '';
 
   const outputName =
     name === 'viewbox' ? 'viewBox' : name === 'preserveaspectratio' ? 'preserveAspectRatio' : name;
-  return ` ${outputName}="${escapeHtml(decodeHtmlEntities(attr.value))}"`;
+  return ` ${outputName}="${escapeHtml(value)}"`;
 }
 
 function sanitizeHtmlFragment(input: unknown, policy: HtmlSanitizePolicy): string {

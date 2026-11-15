@@ -38,6 +38,12 @@
 
 .site-card.site-card-repo:hover {
   transform: translateY(-4px);
+  /* 悬停保持卡片底色，避免文字对比度降到 4.5:1 以下 */
+  background: linear-gradient(
+    145deg,
+    var(--site-card-bg-gradient-1),
+    var(--site-card-bg-gradient-2)
+  );
 }
 
 .site-card.site-card-repo .repo-header {
@@ -66,6 +72,7 @@
 .site-card.site-card-repo .repo-title {
   font-size: 1rem;
   font-weight: 600;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,7 +81,6 @@
 .site-card.site-card-repo .repo-desc {
   font-size: 0.9rem;
   color: var(--nav-item-color);
-  opacity: 0.85;
   line-height: 1.5;
   flex-grow: 1;
   margin: 0 0 16px 0;
@@ -93,7 +99,6 @@
   border-top: 1px solid var(--repo-stat-divider);
   font-size: 0.8rem;
   color: var(--nav-item-color);
-  opacity: 0.85;
 }
 
 .site-card.site-card-repo .stat-item {

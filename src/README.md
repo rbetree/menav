@@ -2,7 +2,7 @@
 
 ## 架构概述
 
-MeNav 现在使用 Astro 负责静态页面渲染，继续保留原有 YAML 配置与 vanilla JS 运行时。构建目标仍是单页导航站：`dist/index.html` 内包含所有 `.page` 容器，运行时通过 `?page=<id>` 切换页面。
+MeNav 现在使用 Astro 负责静态页面渲染，继续保留原有 YAML 配置与 vanilla JS 运行时。构建目标仍是单页导航站：`dist/index.html` 首屏只包含初始活动页和搜索结果页的 `.page` 容器，其余导航页以 `<template data-page-template="<id>">` 输出，运行时通过 `?page=<id>` 切换并在首次访问时克隆。
 
 Astro 现代化迁移已完成；以下是重构后的核心边界：
 
@@ -54,7 +54,9 @@ npm run test:browser
 
 Astro 组件修改时必须保持以下契约稳定：
 
-- 页面仍为单页模型：所有导航页面在 `index.html` 中对应一个 `.page#<id>` 容器。
+- 页面仍为单页模型：首屏只渲染初始活动页与 `search-results` 的 `.page#<id>`，其余导航页在 `index.html` 中以 `<template data-page-template="<id>">` 保存，`showPage` 首次切换时克隆到 `main.content` 并初始化该页的嵌套分类。
+- 页面切换不发起网络请求；克隆后运行时清空 `state.pages` 缓存，搜索重置等模块必须按需重新查询 `.page`。
+- 禁用 JavaScript 时只有首屏页面可见；模板页内的 `<script>` 不会执行，依赖脚本的页面必须保持 eager（当前为首页与搜索结果页）。
 - 运行时导航仍使用 `/?page=<id>` 和 `/?page=<id>#<categorySlug>`；未知路径不做旧式自动回跳。
 - 页面中保留 `#menav-runtime-config` 运行时配置注入，数据来自 `SiteModel.runtimeConfigJson`。
 - 导航、分类、站点、社交链接保留关键 `data-*`：`data-type`、`data-id`、`data-name`、`data-url`、`data-icon`、`data-container` 等。

@@ -123,6 +123,16 @@ function runBuildPipeline(options: BuildPipelineOptions): boolean {
       return false;
     }
 
+    if (
+      !runStep(
+        log,
+        'version static assets',
+        path.join(repoRoot, 'scripts', 'version-static-assets.ts')
+      )
+    ) {
+      return false;
+    }
+
     return true;
   } finally {
     restoreConfigDiagnostics();

@@ -1,5 +1,9 @@
 import type { D1Database } from '@cloudflare/workers-types';
-import { parseBookmarks, type BookmarkCategory } from '../../../src/lib/bookmarks/parser-core';
+import {
+  parseBookmarks,
+  type BookmarkCategory,
+  type ParserLogger,
+} from '../../../src/lib/bookmarks/parser-core';
 import { sanitizeHttpUrl } from '../safe-url';
 import { commitRevision } from '../db/revision';
 import { insertRows } from '../db/bulk';
@@ -7,6 +11,13 @@ import { ApiError } from '../errors';
 
 export const BOOKMARKS_PAGE_ID = 'bookmarks';
 type Row = (string | number | null)[];
+
+/** Worker 日志不拼接用户文件夹名；默认 CLI logger 仍保留原名。 */
+export const workerParserLogger: ParserLogger = {
+  info: (message, meta) => console.log('[bookmarks:import]', message, meta ?? ''),
+  warn: (message) => console.warn('[bookmarks:import]', message),
+  error: (message) => console.error('[bookmarks:import]', message),
+};
 
 export interface BookmarkImportResult {
   pageId: string;
@@ -22,7 +33,7 @@ export async function importBookmarks(
   html: string,
   revision: number
 ): Promise<BookmarkImportResult> {
-  const data = parseBookmarks(html);
+  const data = parseBookmarks(html, workerParserLogger);
   const categories: Row[] = [];
   const sites: Row[] = [];
 

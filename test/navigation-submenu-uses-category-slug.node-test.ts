@@ -41,3 +41,28 @@ test('P1-2：子菜单锚点应使用分类 slug（href + data-category-id）', 
     assert.equal(navItem.submenu[1].slug, '重复-分类-2');
   });
 });
+
+test('P2-14：显式 navigation[].submenu 优先于页面分类', () => {
+  withRepoRoot(() => {
+    const explicitSubmenu = [{ name: '自定义锚点', icon: 'fas fa-anchor', slug: 'custom-anchor' }];
+    const config = {
+      site: { title: 'Test Site', description: '', author: '', favicon: '', logo_text: 'Test' },
+      profile: { title: 'PROFILE_TITLE', subtitle: 'PROFILE_SUBTITLE' },
+      social: [],
+      navigation: [{ id: 'home', name: '首页', icon: 'fas fa-home', submenu: explicitSubmenu }],
+      home: {
+        title: 'HOME',
+        subtitle: 'HOME_SUB',
+        template: 'page',
+        categories: [{ name: '页面分类', icon: 'fas fa-tag', sites: [] }],
+      },
+    };
+
+    const { model, navigationData } = prepareTestSiteRenderData(config);
+    const homePage = model.pages.find((page) => page.id === 'home');
+
+    assert.deepEqual(navigationData[0].submenu, explicitSubmenu);
+    assert.deepEqual(homePage.data.navigationData[0].submenu, explicitSubmenu);
+    assert.equal(homePage.data.categories[0].slug, '页面分类');
+  });
+});

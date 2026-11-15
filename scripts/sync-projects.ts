@@ -6,7 +6,28 @@ import { loadConfig } from '../src/lib/config/index.ts';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
 import { collectSitesRecursively } from '../src/lib/site-data/sites.ts';
 
+const { fetchWithRedirects, writeSourceCacheIfUsable } = require('./sync-articles.ts') as {
+  fetchWithRedirects: (
+    url: string,
+    options: {
+      timeoutMs: number;
+      maxRedirects: number;
+      headers: Record<string, string>;
+      maxBytes: number;
+    }
+  ) => Promise<{ url: string; text: string }>;
+  writeSourceCacheIfUsable: (
+    cachePath: string,
+    payload: unknown,
+    totalSources: number,
+    successSources: number
+  ) => boolean;
+};
+
 const log = createLogger('sync:projects');
+
+// 语言颜色表约 100 KB，上限防异常响应占用内存。
+const COLORS_MAX_BYTES = 256 * 1024;
 
 type GithubConfigLike = {
   fetch?: Partial<ProjectSettings['fetch']>;
@@ -66,6 +87,7 @@ type LanguageColors = Record<string, { color?: unknown }>;
 type FetchJsonOptions = {
   timeoutMs: number;
   headers: Record<string, string>;
+  maxBytes?: number;
 };
 
 type RepoMeta = {
@@ -77,8 +99,35 @@ type RepoMeta = {
   forks: number | null;
 };
 
+type SyncSourceReport = {
+  name: string;
+  url?: string;
+  status: 'success' | 'failed' | 'skipped';
+  error?: string;
+  fallback?: boolean;
+};
+
+type SyncReport = {
+  script: string;
+  success: number;
+  failed: number;
+  skipped: number;
+  cacheWritten: boolean;
+  sources: SyncSourceReport[];
+};
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function appendSyncReport(report: SyncReport): void {
+  const reportPath = process.env.MENAV_SYNC_REPORT;
+  if (!reportPath) return;
+  try {
+    fs.appendFileSync(reportPath, `${JSON.stringify(report)}\n`, 'utf8');
+  } catch {
+    // 报告写入失败不应影响同步结果
+  }
 }
 
 const DEFAULT_SETTINGS = {
@@ -186,17 +235,16 @@ function findProjectsPages(config: ConfigLike): ProjectPage[] {
 
 async function fetchJsonWithTimeout(
   url: string,
-  { timeoutMs, headers }: FetchJsonOptions
+  { timeoutMs, headers, maxBytes }: FetchJsonOptions
 ): Promise<unknown> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, { method: 'GET', headers, signal: controller.signal });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
-  } finally {
-    clearTimeout(timer);
-  }
+  // 与 sync-articles 共用安全抓取层：协议、私网地址、重定向与响应大小都在同一处校验。
+  const fetched = await fetchWithRedirects(url, {
+    timeoutMs,
+    maxRedirects: 3,
+    headers,
+    maxBytes: maxBytes ?? 1024 * 1024,
+  });
+  return JSON.parse(fetched.text);
 }
 
 async function loadLanguageColors(
@@ -221,6 +269,7 @@ async function loadLanguageColors(
     const colors = await fetchJsonWithTimeout(settings.colors.url, {
       timeoutMs: settings.fetch.timeoutMs,
       headers,
+      maxBytes: COLORS_MAX_BYTES,
     });
     if (colors && typeof colors === 'object') {
       fs.writeFileSync(cachePath, JSON.stringify(colors, null, 2), 'utf8');
@@ -294,6 +343,60 @@ async function runPool<TItem, TResult>(
   return results;
 }
 
+function loadPreviousRepoMetas(cachePath: string): RepoMeta[] {
+  try {
+    if (!fs.existsSync(cachePath)) return [];
+    const parsed = JSON.parse(fs.readFileSync(cachePath, 'utf8')) as {
+      repos?: Array<Record<string, unknown> | null>;
+    } | null;
+    const raw = Array.isArray(parsed?.repos) ? parsed.repos : [];
+    return raw
+      .map((repo): RepoMeta | null => {
+        if (!repo || typeof repo !== 'object') return null;
+        const canonicalUrl = isGithubRepoUrl(repo.url)?.canonicalUrl;
+        if (!canonicalUrl) return null;
+        return {
+          url: canonicalUrl,
+          fullName: repo.fullName ? String(repo.fullName) : '',
+          language: repo.language ? String(repo.language) : '',
+          languageColor: repo.languageColor ? String(repo.languageColor) : '',
+          stars: Number.isFinite(repo.stars) ? Number(repo.stars) : null,
+          forks: Number.isFinite(repo.forks) ? Number(repo.forks) : null,
+        };
+      })
+      .filter((repo): repo is RepoMeta => Boolean(repo));
+  } catch {
+    return [];
+  }
+}
+
+function mergeRepoMetas(
+  repoList: GithubRepo[],
+  freshMetas: RepoMeta[],
+  previousMetas: RepoMeta[]
+): { repos: RepoMeta[]; retainedUrls: Set<string> } {
+  const freshMap = new Map(freshMetas.map((meta) => [meta.url, meta]));
+  const previousMap = new Map(previousMetas.map((meta) => [meta.url, meta]));
+  const repos: RepoMeta[] = [];
+  const retainedUrls = new Set<string>();
+
+  for (const repo of repoList) {
+    const fresh = freshMap.get(repo.canonicalUrl);
+    if (fresh) {
+      repos.push(fresh);
+      continue;
+    }
+
+    // 失败仓库沿用上次成功数据；已从配置删除的仓库不保留。
+    const previous = previousMap.get(repo.canonicalUrl);
+    if (!previous) continue;
+    repos.push(previous);
+    retainedUrls.add(repo.canonicalUrl);
+  }
+
+  return { repos, retainedUrls };
+}
+
 async function main() {
   const elapsedMs = startTimer();
   const config = loadConfig() as ConfigLike;
@@ -306,23 +409,26 @@ async function main() {
     return;
   }
 
+  // 先确认存在 projects 页，避免在没有消费方时联网抓颜色表。
+  const pages = findProjectsPages(config);
+  if (!pages.length) {
+    log.ok('未找到 template=projects 的页面，跳过同步');
+    return;
+  }
+
   const cacheBaseDir = path.isAbsolute(settings.cacheDir)
     ? settings.cacheDir
     : path.join(process.cwd(), settings.cacheDir);
   ensureDir(cacheBaseDir);
 
   const colors = await loadLanguageColors(settings, cacheBaseDir);
-  const pages = findProjectsPages(config);
-
-  if (!pages.length) {
-    log.ok('未找到 template=projects 的页面，跳过同步');
-    return;
-  }
 
   log.info('准备同步 projects 页面缓存', { pages: pages.length });
 
   let pageSuccess = 0;
   let pageFailed = 0;
+  let cacheWritten = false;
+  const reportSources: SyncSourceReport[] = [];
 
   for (const { pageId, page } of pages) {
     const categories = Array.isArray(page.categories) ? page.categories : [];
@@ -344,14 +450,16 @@ async function main() {
 
     let success = 0;
     let failed = 0;
+    const errors = new Map<string, string>();
 
-    const results = await runPool(repoList, settings.fetch.concurrency, async (repo) => {
+    const freshMetas = await runPool(repoList, settings.fetch.concurrency, async (repo) => {
       try {
         const meta = await fetchRepoMeta(repo, settings, colors);
         success += 1;
         return meta;
       } catch (error) {
         failed += 1;
+        errors.set(repo.canonicalUrl, getErrorMessage(error));
         log.warn('拉取仓库元信息失败（best-effort）', {
           repo: repo.canonicalUrl,
           message: getErrorMessage(error),
@@ -360,11 +468,18 @@ async function main() {
       }
     });
 
+    const cachePath = path.join(cacheBaseDir, `${pageId}.repo-cache.json`);
+    const previousMetas = loadPreviousRepoMetas(cachePath);
+    const { repos: mergedRepos, retainedUrls } = mergeRepoMetas(
+      repoList,
+      freshMetas,
+      previousMetas
+    );
     const payload = {
       version: '1.0',
       pageId,
       generatedAt: new Date().toISOString(),
-      repos: results,
+      repos: mergedRepos,
       stats: {
         totalRepos: repoList.length,
         success,
@@ -372,27 +487,74 @@ async function main() {
       },
     };
 
-    const cachePath = path.join(cacheBaseDir, `${pageId}.repo-cache.json`);
-    fs.writeFileSync(cachePath, JSON.stringify(payload, null, 2), 'utf8');
+    const written = writeSourceCacheIfUsable(cachePath, payload, repoList.length, success);
+    cacheWritten = cacheWritten || written;
+    if (!written) {
+      log.warn('全部仓库来源失败，保留上一次成功缓存', {
+        page: pageId,
+        cache: cachePath,
+        failed,
+      });
+    }
+
+    reportSources.push(
+      ...repoList.map((repo): SyncSourceReport => {
+        const error = errors.get(repo.canonicalUrl);
+        return {
+          name: repo.canonicalUrl,
+          url: repo.canonicalUrl,
+          status: error ? 'failed' : 'success',
+          ...(error ? { error } : {}),
+          ...(retainedUrls.has(repo.canonicalUrl) ? { fallback: true } : {}),
+        };
+      })
+    );
 
     if (failed === 0) pageSuccess += 1;
     else pageFailed += 1;
 
-    log.ok('页面同步完成', {
+    log.ok(written ? '页面同步完成' : '页面保留旧缓存', {
       page: pageId,
       success,
       failed,
+      retained: retainedUrls.size,
       cache: cachePath,
     });
   }
 
+  appendSyncReport({
+    script: 'projects',
+    success: reportSources.filter((source) => source.status === 'success').length,
+    failed: reportSources.filter((source) => source.status === 'failed').length,
+    skipped: 0,
+    cacheWritten,
+    sources: reportSources,
+  });
+
   log.ok('完成', { ms: elapsedMs(), pages: pages.length, pageSuccess, pageFailed });
 }
 
-main().catch((error) => {
-  log.error('执行异常（best-effort，不阻断后续 build）', {
-    message: getErrorMessage(error),
+if (require.main === module) {
+  main().catch((error) => {
+    appendSyncReport({
+      script: 'projects',
+      success: 0,
+      failed: 1,
+      skipped: 0,
+      cacheWritten: false,
+      sources: [{ name: 'projects', status: 'failed', error: getErrorMessage(error) }],
+    });
+    log.error('执行异常（best-effort，不阻断后续 build）', {
+      message: getErrorMessage(error),
+    });
+    if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
+    process.exitCode = 0; // best-effort：不阻断后续 build
   });
-  if (isVerbose() && error instanceof Error && error.stack) console.error(error.stack);
-  process.exitCode = 0; // best-effort：不阻断后续 build
-});
+}
+
+module.exports = {
+  getSettings,
+  findProjectsPages,
+  loadPreviousRepoMetas,
+  mergeRepoMetas,
+};

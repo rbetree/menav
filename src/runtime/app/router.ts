@@ -8,7 +8,8 @@ import type {
 } from '../types';
 
 const nested = require('./nested.ts') as {
-  initializeNestedCategories: () => void;
+  initializeNestedCategories: (root?: ParentNode) => void;
+  syncCategoryToggleState: () => void;
   toggleCategories: () => void;
 };
 const { getRuntimeConfig } = require('../runtime-config.ts') as typeof import('../runtime-config');
@@ -21,6 +22,7 @@ type UrlStatePatch = { pageId?: string; hash?: string | null };
 type UrlStateOptions = { replace?: boolean };
 type ScrollCategoryOptions = { categoryId?: string | null; categoryName?: string | null };
 type SubmenuEntry = { wrapper: HTMLElement; submenu: HTMLElement };
+type EnsuredPage = { page: HTMLElement | null; created: boolean };
 
 module.exports = function initRouting(
   state: RuntimeState,
@@ -30,10 +32,37 @@ module.exports = function initRouting(
   const { ui, search } = api;
   const { searchInput, content, sidebar } = dom;
 
+  // 非活动页构建期放在 <template data-page-template> 中，首次切换时再实例化
+  function ensurePage(pageId: string): EnsuredPage {
+    const id = pageId.trim();
+    const existing = byId(id);
+    if (existing && existing.classList.contains('page')) {
+      return { page: existing, created: false };
+    }
+
+    const template = qsa<HTMLTemplateElement>(SELECTORS.pageTemplate).find(
+      (node) => node.getAttribute('data-page-template') === id
+    );
+    if (!template || !content) return { page: null, created: false };
+
+    const fragment = template.content.cloneNode(true) as DocumentFragment;
+    const page = qsa<HTMLElement>(SELECTORS.page, fragment)[0] || null;
+    if (!page) return { page: null, created: false };
+
+    content.appendChild(page);
+    // 克隆后页面列表缓存失效，搜索重置等模块会重新查询
+    state.pages = null;
+
+    return { page, created: true };
+  }
+
   function showPage(pageId: string, skipSearchReset = false): void {
     if (state.currentPageId === pageId && !skipSearchReset && !state.isInitialLoad) return;
 
     state.currentPageId = pageId;
+
+    // 顺序固定：先确保真实 DOM，再切 active，最后初始化克隆页的嵌套分类
+    const ensured = ensurePage(pageId);
 
     // 使用 RAF 确保动画流畅
     requestAnimationFrame(() => {
@@ -47,6 +76,13 @@ module.exports = function initRouting(
           page.classList.toggle('active', shouldBeActive);
         }
       });
+
+      if (ensured.created && ensured.page) {
+        nested.initializeNestedCategories(ensured.page);
+      } else {
+        // 切回已实例化页面时同步批量开关图标，避免沿用上一页的折叠状态
+        nested.syncCategoryToggleState();
+      }
 
       // 通知：页面已切换（供按需组件初始化，如 github-calendar）
       // 注意：必须在 active class 切换之后触发，否则监听方可能认为页面仍不可见。
@@ -84,7 +120,6 @@ module.exports = function initRouting(
   // 依赖布局测量的滚动已在滚动逻辑内用 setTimeout 延迟
   {
     // 获取可能在 HTML 生成后才存在的 DOM 元素
-    const categories = qsa(SELECTORS.category);
     const navItems = qsa(SELECTORS.navItem);
     const navItemWrappers = qsa(SELECTORS.navItemWrapper);
     const submenuItems = qsa(SELECTORS.submenuItem);
@@ -133,7 +168,8 @@ module.exports = function initRouting(
       submenuByPageId.set(pageId, { wrapper, submenu });
     });
 
-    const isSidebarCollapsed = () => Boolean(sidebar && sidebar.classList.contains('collapsed'));
+    // 折叠判断走 ui 的统一状态，避免 DOM class 与 state 不同步时误判
+    const isSidebarCollapsed = () => ui.isSidebarCollapsed();
 
     const updateSubmenuScrollState = (list: HTMLElement): void => {
       const maxScroll = list.scrollHeight - list.clientHeight;
@@ -173,10 +209,19 @@ module.exports = function initRouting(
         { passive: true, capture: true }
       );
 
-      window.addEventListener('resize', () => {
-        const list = submenuPanel.querySelector('.submenu');
-        if (list instanceof HTMLElement) updateSubmenuScrollState(list);
-      });
+      let submenuResizeFrame: number | null = null;
+      window.addEventListener(
+        'resize',
+        () => {
+          if (submenuResizeFrame !== null) return;
+          submenuResizeFrame = window.requestAnimationFrame(() => {
+            submenuResizeFrame = null;
+            const list = submenuPanel.querySelector('.submenu');
+            if (list instanceof HTMLElement) updateSubmenuScrollState(list);
+          });
+        },
+        { passive: true }
+      );
     }
 
     const clearSubmenuPanel = () => {
@@ -255,7 +300,11 @@ module.exports = function initRouting(
       if (!id) return false;
       if (pageRegistryIds.size > 0 && !pageRegistryIds.has(id)) return false;
       const el = byId(id);
-      return Boolean(el && el.classList && el.classList.contains('page'));
+      if (el && el.classList && el.classList.contains('page')) return true;
+      // 尚未实例化的页面只存在于模板中，深链接与前进/后退同样视为有效
+      return qsa(SELECTORS.pageTemplate).some(
+        (template) => normalizeText(template.getAttribute('data-page-template')) === id
+      );
     };
 
     const getRouteFromLocation = () =>
@@ -285,7 +334,12 @@ module.exports = function initRouting(
       navItems.forEach((nav: HTMLElement) => {
         const isActive = nav.getAttribute('data-page') === id;
         nav.classList.toggle('active', isActive);
-        if (isActive) activeItem = nav;
+        if (isActive) {
+          nav.setAttribute('aria-current', 'page');
+          activeItem = nav;
+        } else {
+          nav.removeAttribute('aria-current');
+        }
       });
 
       // 同步子菜单展开状态：只展开当前激活项
@@ -312,6 +366,16 @@ module.exports = function initRouting(
     const escapeAttrValue = (value: unknown): string => {
       if (value === null || value === undefined) return '';
       return String(value).replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
+    };
+
+    const getScrollBehavior = (): ScrollBehavior => {
+      try {
+        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth';
+      } catch (error) {
+        return 'smooth';
+      }
     };
 
     const scrollToCategoryInPage = (
@@ -369,16 +433,16 @@ module.exports = function initRouting(
           // 执行滚动
           contentElement.scrollTo({
             top: scrollPosition,
-            behavior: 'smooth',
+            behavior: getScrollBehavior(),
           });
         } else {
           // 回退到基本滚动方式
-          targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetCategory.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' });
         }
       } catch (error) {
         console.error('Error during scroll:', error);
         // 回退到基本滚动方式
-        targetCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetCategory.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' });
       }
 
       return true;
@@ -421,15 +485,12 @@ module.exports = function initRouting(
       }
     };
 
+    // 先绑定构建期已存在的页面（首页等 eager 页面），再应用路由；
+    // 深链接指向的模板页由 showPage 在激活后单独初始化
+    nested.initializeNestedCategories();
+
     // 立即执行初始化，不再使用 requestAnimationFrame 延迟
     applyRouteFromLocation({ replaceInvalid: true });
-
-    // 添加载入动画
-    categories.forEach((category: HTMLElement, index: number) => {
-      setTimeout(() => {
-        category.style.opacity = '1';
-      }, index * 100);
-    });
 
     // 导航项点击效果
     navItems.forEach((item: HTMLElement) => {
@@ -483,10 +544,12 @@ module.exports = function initRouting(
           // 清除所有子菜单项的激活状态
           submenuItems.forEach((subItem: HTMLElement) => {
             subItem.classList.remove('active');
+            subItem.removeAttribute('aria-current');
           });
 
           // 激活当前子菜单项
           item.classList.add('active');
+          item.setAttribute('aria-current', 'true');
 
           // 激活导航项并同步子菜单展开状态
           setActiveNavByPageId(pageId);
@@ -533,9 +596,6 @@ module.exports = function initRouting(
     window.addEventListener('popstate', () => {
       applyRouteFromLocation();
     });
-
-    // 初始化嵌套分类功能
-    nested.initializeNestedCategories();
 
     // 初始化分类切换按钮
     const categoryToggleBtn = byId(SELECTORS.categoryToggle);

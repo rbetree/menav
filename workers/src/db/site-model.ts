@@ -1,4 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types';
+import { ApiError } from '../errors';
 
 /**
  * D1 → 站点模型组装。
@@ -95,6 +96,50 @@ export interface Snapshot {
   pages: PageNode[];
 }
 
+type SettingRow = { key: string; value: string };
+const ASSET_KEY_PREFIX = 'asset:';
+
+/** 库内 JSON 损坏属于服务端数据问题，单独抛 500，不落成请求体错误。 */
+function parseColumnJson(value: string, table: string, row: number): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    console.error('D1 JSON 损坏', { table, row });
+    throw new ApiError(500, '站点数据损坏，无法读取；请从备份恢复后重试');
+  }
+}
+
+/**
+ * 图片按 asset:<path> 独立成行，避免多图种子撞上单行大小上限；
+ * 读取时合并回 settings.assets，保持 /api/settings 与导出的原契约。
+ */
+function buildSettings(rows: SettingRow[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  const assets: Record<string, string> = {};
+  for (const row of rows) {
+    if (row.key.startsWith(ASSET_KEY_PREFIX)) {
+      assets[row.key.slice(ASSET_KEY_PREFIX.length)] = row.value;
+    } else {
+      out[row.key] = row.value;
+    }
+  }
+  if (Object.keys(assets).length) {
+    let legacy: Record<string, unknown> = {};
+    if (typeof out.assets === 'string') {
+      try {
+        const parsed = JSON.parse(out.assets) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
+          legacy = parsed as Record<string, unknown>;
+      } catch {
+        // 旧行损坏时仍可读出拆分后的图片，不让整份配置不可用。
+        console.error('settings.assets JSON 损坏', { key: 'assets' });
+      }
+    }
+    out.assets = JSON.stringify({ ...legacy, ...assets });
+  }
+  return out;
+}
+
 export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
   const results = await db.batch([
     db.prepare('SELECT * FROM pages ORDER BY sort, id'),
@@ -109,7 +154,7 @@ export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
   const revision = results[3].results[0] as { revision: number; updated_at: string };
 
   const sitesByCategory = new Map<string, SiteNode[]>();
-  for (const r of sitesRows) {
+  sitesRows.forEach((r, index) => {
     const arr = sitesByCategory.get(r.category_id) ?? [];
     arr.push({
       id: r.id,
@@ -120,21 +165,21 @@ export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
       ...(r.favicon_url ? { faviconUrl: r.favicon_url } : {}),
       external: r.external !== 0,
       sort: r.sort,
-      metadata: JSON.parse(r.metadata),
+      metadata: parseColumnJson(r.metadata, 'sites', index) as Record<string, unknown>,
       kind: r.kind,
     });
     sitesByCategory.set(r.category_id, arr);
-  }
+  });
 
   const categoryById = new Map<string, CategoryNode>();
   const topLevelByPage = new Map<string, CategoryNode[]>();
-  for (const r of catsRows) {
+  catsRows.forEach((r, index) => {
     const node: CategoryNode = {
       id: r.id,
       label: r.label,
       foldable: r.foldable !== 0,
       sort: r.sort,
-      metadata: JSON.parse(r.metadata),
+      metadata: parseColumnJson(r.metadata, 'categories', index) as Record<string, unknown>,
       kind: r.kind,
       categories: [],
       sites: sitesByCategory.get(r.id) ?? [],
@@ -145,7 +190,7 @@ export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
       arr.push(node);
       topLevelByPage.set(r.page_id, arr);
     }
-  }
+  });
 
   // 二级及以上:挂到父分类;查询已按 sort 排序,append 顺序即排序。
   for (const r of catsRows) {
@@ -157,25 +202,23 @@ export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
   }
 
   const pages: PageNode[] = [];
-  for (const r of pagesRows) {
+  pagesRows.forEach((r, index) => {
     pages.push({
       id: r.id,
       label: r.label,
       ...(r.template ? { template: r.template } : {}),
       hidden: r.hidden !== 0,
       sort: r.sort,
-      metadata: JSON.parse(r.metadata),
-      navigation: JSON.parse(r.navigation),
+      metadata: parseColumnJson(r.metadata, 'pages', index) as Record<string, unknown>,
+      navigation: parseColumnJson(r.navigation, 'pages', index) as Record<string, unknown>,
       categories: topLevelByPage.get(r.id) ?? [],
     });
-  }
+  });
   return {
     schemaVersion: 1,
     revision: revision.revision,
     updatedAt: revision.updated_at,
-    settings: Object.fromEntries(
-      (results[4].results as { key: string; value: string }[]).map((row) => [row.key, row.value])
-    ),
+    settings: buildSettings(results[4].results as SettingRow[]),
     pages,
   };
 }
@@ -185,10 +228,6 @@ export async function loadSnapshot(db: D1Database): Promise<Snapshot> {
  * 版本与发布状态保存在独立表中，不进入业务配置。
  */
 export async function loadSettings(db: D1Database): Promise<Record<string, string>> {
-  const res = await db
-    .prepare('SELECT key, value FROM settings')
-    .all<{ key: string; value: string }>();
-  const out: Record<string, string> = {};
-  for (const r of res.results) out[r.key] = r.value;
-  return out;
+  const res = await db.prepare('SELECT key, value FROM settings').all<SettingRow>();
+  return buildSettings(res.results);
 }

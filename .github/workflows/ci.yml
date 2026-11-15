@@ -12,23 +12,33 @@ on:
         default: false
         type: boolean
 
+# 默认只读；使用 dorny/paths-filter 的 job 额外声明 pull-requests: read
+permissions:
+  contents: read
+
 jobs:
   build_test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Format check (changed files)
+        run: npm run format:check:changed
 
       - name: Dependency audit
         run: npm audit --omit=dev --audit-level=high
@@ -38,7 +48,7 @@ jobs:
 
       - name: Detect browser contract paths
         id: browser_paths
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         with:
           filters: |
             browser_contract:
@@ -74,14 +84,35 @@ jobs:
         if: ${{ github.repository == 'rbetree/menav' && (steps.browser_paths.outputs.browser_contract == 'true' || (github.event_name == 'workflow_dispatch' && inputs.browser_contract)) }}
         run: npm run check:browser
 
-  backend_check:
+  build_test_node22:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.23.4'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fast check on minimum supported Node
+        run: npm run check
+
+  backend_check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: 'npm'
@@ -107,7 +138,7 @@ jobs:
 
       - name: Detect backend paths
         id: backend_paths
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         with:
           filters: |
             backend:
@@ -116,8 +147,12 @@ jobs:
               - 'src/lib/config/**'
               - 'src/lib/bookmarks/**'
               - 'src/lib/security/**'
+              - 'src/lib/cache/**'
+              - 'src/lib/site-data/**'
+              - 'src/lib/github/**'
               - 'src/shared/**'
               - 'src/types/**'
+              - 'scripts/sync*.ts'
               - 'scripts/build-snapshot.ts'
               - 'scripts/generate-seed.ts'
               - 'scripts/lib/seed.ts'
@@ -141,3 +176,67 @@ jobs:
       - name: Snapshot build contract
         if: steps.backend_paths.outputs.backend == 'true'
         run: node workers/test/snapshot-build.mjs
+
+  docker_build:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile: [Dockerfile, Dockerfile.static, Dockerfile.dynamic]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Detect container paths
+        id: docker_paths
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
+        with:
+          filters: |
+            docker:
+              - 'Dockerfile'
+              - 'Dockerfile.*'
+              - 'docker/**'
+              - '.dockerignore'
+
+      - name: Set up Docker Buildx
+        if: steps.docker_paths.outputs.docker == 'true'
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build image without push
+        if: steps.docker_paths.outputs.docker == 'true'
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          push: false
+          platforms: linux/amd64
+          cache-from: type=gha,scope=docker-${{ matrix.dockerfile }}
+          cache-to: type=gha,mode=max,scope=docker-${{ matrix.dockerfile }}
+
+  dependency_audit:
+    runs-on: ubuntu-latest
+    # dev 依赖的 moderate 告警只提示，不阻断主 CI
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            workers/package-lock.json
+
+      - name: Root dependency audit (including dev)
+        # 只记录结果，不因已知的 dev 工具链告警让 PR 出现失败状态
+        run: npm audit --audit-level=moderate || true
+
+      - name: Workers dependency audit (including dev)
+        run: npm --prefix workers audit --audit-level=moderate || true
