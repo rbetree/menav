@@ -340,9 +340,11 @@ button.group-toggle-btn:focus-visible .toggle-icon {
   overflow: hidden;
   opacity: 1;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* 留出卡片焦点环和阴影的横向绘制空间，外宽保持不变 */
+  /* 留出卡片焦点环、阴影和悬停上移的绘制空间，外宽/外高保持不变 */
   padding-inline: 4px;
   margin-inline: -4px;
+  padding-block: 4px;
+  margin-block: -4px;
 }
 
 .category.collapsed > .collapse-content,

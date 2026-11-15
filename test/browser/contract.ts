@@ -109,6 +109,24 @@ async function runRouteContract(page, baseUrl) {
     '非活动模板页不应提前实例化'
   );
 
+  const hoverCard = page.locator('.page.active .site-card').first();
+  assert.ok((await hoverCard.count()) > 0, '浏览器契约需要至少一张站点卡片');
+  await hoverCard.hover();
+  await page.waitForTimeout(350);
+  const hoverLayout = await hoverCard.evaluate((card) => {
+    const inner = card.closest('.collapse-content-inner');
+    return {
+      cardTop: card.getBoundingClientRect().top,
+      innerTop: inner ? inner.getBoundingClientRect().top : null,
+      innerOverflow: inner ? getComputedStyle(inner).overflow : '',
+    };
+  });
+  assert.ok(hoverLayout.innerTop !== null, '站点卡片应位于可折叠内容容器内');
+  assert.ok(
+    hoverLayout.cardTop >= hoverLayout.innerTop,
+    '卡片悬停上移后不应被容器裁切：' + JSON.stringify(hoverLayout)
+  );
+
   await page.evaluate((targetPageId) => {
     document.querySelector(`.nav-item[data-page="${CSS.escape(targetPageId)}"]`)?.click();
   }, routeState.targetPageId);
