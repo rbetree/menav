@@ -57,6 +57,17 @@ async function assertNoConsoleErrors(messages) {
 async function runRouteContract(page, baseUrl) {
   await openPage(page, baseUrl, '/');
 
+  const categoryCardStyle = await page.evaluate(() => {
+    const category = document.querySelector('.page.active .category');
+    const style = category ? getComputedStyle(category) : null;
+    return {
+      backgroundImage: style?.backgroundImage || '',
+      boxShadow: style?.boxShadow || '',
+    };
+  });
+  assert.match(categoryCardStyle.backgroundImage, /linear-gradient/, '分类大卡片应保留渐变背景');
+  assert.notEqual(categoryCardStyle.boxShadow, 'none', '分类大卡片应有阴影与页面背景区分');
+
   const routeState = await page.evaluate(() => {
     const navItems = Array.from(document.querySelectorAll('.nav-item[data-page]'));
     const pageIds = navItems.map((item) => item.getAttribute('data-page')).filter(Boolean);
