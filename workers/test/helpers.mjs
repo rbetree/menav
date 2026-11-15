@@ -5,6 +5,17 @@ import { fileURLToPath } from 'node:url';
 const entry = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 let bundle;
 
+async function readResponse(response) {
+  const raw = await response.text();
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    data = raw;
+  }
+  return { status: response.status, headers: response.headers, data };
+}
+
 /** 每个用例使用独立临时 D1；只通过真实 Worker HTTP 接口断言行为。 */
 export async function createBackend(options = {}) {
   bundle ??= build({
@@ -48,23 +59,38 @@ export async function createBackend(options = {}) {
   return {
     url,
     async request(method, path, body, headers = {}) {
+      // 字符串视为已序列化的请求体，便于构造接近上限的原始载荷。
+      const payload =
+        body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
       const response = await worker.dispatchFetch(new URL(path, url), {
         method,
         headers: {
           ...(body === undefined ? {} : { 'content-type': 'application/json' }),
           ...headers,
         },
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body: payload,
       });
-      const raw = await response.text();
-      let data;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        data = raw;
-      }
-      return { status: response.status, headers: response.headers, data };
+      return readResponse(response);
     },
+    // 流式发送可避免服务端按 Content-Length 提前拒绝时客户端仍在写大请求体。
+    async requestStream(method, path, text, headers = {}) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          for (let offset = 0; offset < text.length; offset += 1_000_000)
+            controller.enqueue(encoder.encode(text.slice(offset, offset + 1_000_000)));
+          controller.close();
+        },
+      });
+      const response = await worker.dispatchFetch(new URL(path, url), {
+        method,
+        headers: { 'content-type': 'application/json', ...headers },
+        body: stream,
+        duplex: 'half',
+      });
+      return readResponse(response);
+    },
+    db: () => worker.getD1Database('DB'),
     dispose: () => worker.dispose(),
   };
 }

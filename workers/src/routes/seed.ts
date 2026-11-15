@@ -52,10 +52,18 @@ seedRoutes.post('/', async (c) => {
       allowedSchemes = (parsed as { security?: { allowedSchemes?: unknown } }).security
         ?.allowedSchemes;
     if (key === 'assets') {
-      for (const [asset, data] of Object.entries(parsed as Record<string, unknown>)) {
+      const assets = Object.entries(parsed as Record<string, unknown>);
+      for (const [asset, data] of assets) {
         if (!isSnapshotAssetPath(asset) || !isSnapshotAssetData(data))
           throw new ApiError(400, '种子图片路径或数据无效：' + asset);
       }
+      // 每张图片独占一行，避免多图种子撞上单条序列化记录上限。
+      if (assets.length) {
+        for (const [asset, data] of assets) settingRows.push(['asset:' + asset, data as string]);
+      } else {
+        settingRows.push(['assets', '{}']);
+      }
+      continue;
     }
     settingRows.push([key, value]);
   }
@@ -91,11 +99,14 @@ seedRoutes.post('/', async (c) => {
         const site = object(rawSite, '站点');
         const url = sanitizeSiteUrl(site.url, allowedSchemes);
         if (url === null) throw new ApiError(400, '站点链接无效或使用不安全的协议');
+        if (url.length > 2048) throw new ApiError(400, '站点链接不能超过 2048 个字符');
         const favicon =
           site.faviconUrl == null || site.faviconUrl === ''
             ? null
             : sanitizeIconUrl(site.faviconUrl);
         if (site.faviconUrl && favicon === null) throw new ApiError(400, 'faviconUrl 无效');
+        if (favicon !== null && favicon.length > 4096)
+          throw new ApiError(400, 'faviconUrl 不能超过 4096 个字符');
         const siteKind = site.kind ?? 'sites';
         if (siteKind !== 'sites' && siteKind !== 'items') throw new ApiError(400, '站点 kind 无效');
         sites.push([

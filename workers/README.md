@@ -68,8 +68,8 @@ npx wrangler secret put BUILD_TOKEN
 ## 四、Access 与管理台
 
 1. 为后台域名创建 Access Self-hosted 应用，策略仅允许管理员身份。
-2. 管理台全部静态资源（`/`、`/index.html`、`/app.js`、`/style.css`、`/vendor/*`、`/icons/*`）和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间；从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
-3. `/build/snapshot` 需要独立 Bearer 凭证到达 Worker。实测可行做法：在 Access 应用内新增一条 **Service Auth（`decision: non_identity`）** 策略，Include 选 `Any Access Service Token`；再建一个 Service Token，把其 Client ID/Secret 配到 Pages 构建环境（`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET`），`build-snapshot` 会在请求里带上这两个头。Worker 仍执行构建 Token 校验。注意：Access 策略的 `exclude` 语义是「拒绝」而非「放行」，且 `allow` 策略即使带 Service Token 也会要求登录——必须用 Service Auth 才能让服务身份免登录通过。
+2. 管理台全部静态资源（`/`、`/index.html`、`/app.js`、`/style.css`、`/vendor/*`、`/icons/*`）和管理 `/api/*` 走该应用。Worker 再验证 JWT 的签名、issuer、audience 和过期时间，并要求 `sub` 为非空字符串且不含 `common_name`：管理 API 只接受身份型令牌，Access Service Token 形状的令牌即使能通过 Access 也会被 Worker 以 403 拒绝。从 `workers.dev` 直连也不能绕过验证。后台响应统一设置 `Cache-Control: no-store`。
+3. `/build/snapshot` 需要独立 Bearer 凭证到达 Worker。实测可行做法：在 Access 应用内新增一条 **Service Auth（`decision: non_identity`）** 策略，Include 选 `Any Access Service Token`；再建一个 Service Token，把其 Client ID/Secret 配到 Pages 构建环境（`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET`），`build-snapshot` 会在请求里带上这两个头。Worker 仍执行构建 Token 校验。构建路径只使用这套独立 Service Auth 加 `BUILD_TOKEN`，不能调用管理 API。注意：Access 策略的 `exclude` 语义是「拒绝」而非「放行」，且 `allow` 策略即使带 Service Token 也会要求登录——必须用 Service Auth 才能让服务身份免登录通过。
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
 
 不要把完整 `/api/*` 设为 Bypass。后台与写 API 都经过 Access；公开站始终消费已构建的静态产物。
@@ -85,7 +85,7 @@ npx wrangler secret put BUILD_TOKEN
 
 发布只由管理员在后台点击「立即发布」触发，Worker 不注册定时任务。没有未发布修改时不会创建构建，也不会为刷新外部数据单独消耗 Pages 构建。发布耗时包含 Pages 排队、RSS 抓取及构建时间，并非固定 SLA。若发布完成后关闭了后台，已发布状态会在下次打开后台核对时更新。
 
-发布创建 API 返回成功只代表受理。Worker 必须确认部署达到 `deploy/success`、成为项目当前生产部署，且产物 `menav-build.json` 的任务 id 和版本匹配，才推进已发布版本。构建失败保留原静态站和待发布内容；修好配置后在后台重试。请求结果不确定时先按任务标识恢复已有部署，避免重复构建。
+发布创建 API 返回成功只代表受理。Worker 必须确认部署达到 `deploy/success`、成为项目当前生产部署，且产物 `menav-build.json` 的任务 id 和版本匹配，才推进已发布版本。构建失败保留原静态站和待发布内容；修好配置后在后台重试。请求结果不确定时先按任务标识恢复已有部署，避免重复构建。核对时 Pages API 返回明确 4xx（不含 408/429）会标记失败；任务超过 30 分钟未完成会释放发布槽，可按失败状态重试。
 
 ## 六、部署后检查清单
 
@@ -124,12 +124,13 @@ ALLOW_INSECURE_DEV=1
 ## 八、数据契约与升级
 
 - `GET /api/state` 返回页面数组和 `ETag`；后台保存发送 `If-Match`。其他窗口已修改时返回 409 并保留当前输入。
+- `PUT /api/settings/site` 的合并结果与当前配置相同时不递增 revision；空 patch 仍按 `If-Match` 校验并发。
 - `GET /api/export` 导出 `{ schemaVersion, revision, updatedAt, settings, pages }`；可在“数据与备份”下载备份或导回。
 - `POST /api/seed` 整体替换页面、分类、站点和配置。只要已有页面，必须 `?reset=1`，包括只有书签页面的情况。原备份的 revision 不会倒退当前库版本；恢复作为一次新编辑提交。
 - `POST /api/bookmarks` 接收 `{ html }`。有效导入整体替换固定 `bookmarks` 页的分类和站点；其他页面保留。空或全为不安全 URL 的输入返回 422，原数据不变。MarksVault Service Token 直推不在本期范围。
 - `hidden` 只隐藏导航，链接与搜索仍可访问。`foldable=false` 禁止收起该分类，未指定时保持静态站默认的可折叠行为。
-- JSON 请求体最多 16 MB；书签 HTML 最多 8 MB；单条序列化导入记录最多约 900 KB、每类最多 8 MB；发布快照最多 8 MB。单张种子图片最多 500 KB。超限返回明确错误，事务不部分写入。
-- 批量导入使用 `json_each` 减少单 SQL 绑定参数，所有块仍在一个 `db.batch` 事务内。D1 的 100 参数限制针对单 SQL，不代表 batch 能无条件容纳 100 条语句；本实现将导入业务语句限制为 24 条，给 Free 每请求 50 次查询保留余量。
+- JSON 请求体最多 16 MB；书签 HTML 最多 8 MB；单条序列化导入记录最多约 900 KB、每类最多 8 MB；发布快照最多 8 MB。单张种子图片最多 500 KB（库内按 `asset:<path>` 独立成行，`GET /api/settings` 与导出仍返回单个 `assets` 对象）。超限返回明确错误，事务不部分写入。
+- 批量导入使用 `json_each` 减少单 SQL 绑定参数，所有块仍在一个 `db.batch` 事务内。D1 的 100 参数限制针对单 SQL，不代表 batch 能无条件容纳 100 条语句；本实现将导入业务语句限制为 24 条，给 Free 每请求 50 次查询保留余量。拆分后的图片行同样占用该预算。
 - 表升级只追加 metadata、navigation、kind 等列及版本/发布表。升级前先做 D1 导出备份，必要时用 D1 Time Travel 恢复（保留期以账号计划为准）。旧版本已丢失的正文、标题或图片无法由迁移凭空恢复，应从原种子重新导入或在后台补齐。
 - 早期版本可能产生数字开头的 UUID 页面 id。发布会明确拒绝这类旧标识，数据仍保留并可导出。备份后将页面 id 改为 `page-<原 UUID>`，并修正指向 `?page=<原 id>` 的站内链接，再通过显式替换导入；不会自动改链接。
 

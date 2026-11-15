@@ -15,6 +15,7 @@ test('旧库并发升级追加字段，保留已有业务数据和版本', async
           db.prepare("INSERT INTO pages VALUES ('home', '已有首页', 0, 0, 'page')"),
           db.prepare('CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)'),
           db.prepare("INSERT INTO settings VALUES ('dirty', '3')"),
+          db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').bind('assets', JSON.stringify({ 'brand.svg': 'AAAA' })),
         ]);
       } else {
         await Promise.all([applySchema(db), applySchema(db), applySchema(db)]);
@@ -61,6 +62,7 @@ test('旧库并发升级追加字段，保留已有业务数据和版本', async
     assert.equal(pages[0].navigation, '{}');
     assert.equal(state[0].revision, 1);
     assert.equal(state[0].published_revision, 0);
-    assert.deepEqual(settings, []);
+    // 旧版单行 assets 幂等拆成 asset:<path>，原值保留。
+    assert.deepEqual(settings, [{ key: 'asset:brand.svg', value: 'AAAA' }]);
   }
 });
