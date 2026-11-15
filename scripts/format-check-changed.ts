@@ -181,6 +181,9 @@ function shouldCheckFile(filePath: string): boolean {
 
   if (normalized.endsWith('package-lock.json')) return false;
 
+  // workers/.seed.json 是本地生成的种子产物，不参与格式检查
+  if (path.basename(normalized) === '.seed.json') return false;
+
   // 这些文件历史上未统一为 Prettier 风格；避免为了启用检查产生巨量格式化 diff
   if (normalized === 'src/runtime/index.js') return false;
 

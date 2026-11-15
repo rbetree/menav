@@ -5,6 +5,12 @@ on:
     branches: [main]
     tags:
       - 'v*'
+    # 纯文档改动不触发镜像发布
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'licenses/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 permissions:
@@ -17,19 +23,21 @@ concurrency:
 
 jobs:
   publish:
+    # 私有配置仓库同步后不发布镜像；非 main 分支的手动触发没有可用 tag，直接跳过
+    if: ${{ github.repository == 'rbetree/menav' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -37,7 +45,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -45,7 +53,7 @@ jobs:
             type=ref,event=tag
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: ./Dockerfile

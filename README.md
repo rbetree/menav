@@ -49,7 +49,7 @@
 - YAML 模块化配置
 - Google Favicon API + Font Awesome 图标
 
-运行环境要求：Node.js `22.12+`，包管理器继续使用 npm。
+运行环境要求：Node.js `22.23.4+`，包管理器继续使用 npm。
 
 ## 项目结构
 
@@ -97,9 +97,10 @@ nvm use
 npm install
 ```
 
-请确保本机 Node.js 版本为 `22.12+`；仓库提供 `.nvmrc` 固定主版本为
-`22`，使用 nvm 时先运行 `nvm use`。Windows 和 WSL/Linux 环境不要共用
-`node_modules`，请在各自环境中分别安装依赖。
+请确保本机 Node.js 版本为 `22.23.4+`；仓库提供 `.nvmrc` 固定主版本为
+`22`（浮动到 22.x 最新补丁，不锁定具体版本），使用 nvm 时先运行 `nvm use`。
+CI 会在 Node.js `22.23.4` 与 `24` 两个版本上执行检查。Windows 和 WSL/Linux
+环境不要共用 `node_modules`，请在各自环境中分别安装依赖。
 
 （本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
 
@@ -248,7 +249,9 @@ npm run format
 
 仓库已内置 `docker-compose.yml`，并提供 GHCR 预构建镜像；两种方式都建议统一使用 Docker Compose。
 
-> 说明：默认 Docker 镜像在镜像构建阶段生成 `dist/`，运行阶段只用 nginx 提供静态文件。修改配置或书签后，需要重新构建镜像。
+> 说明：默认 Docker 镜像在镜像构建阶段生成 `dist/`，运行阶段只用 nginx 提供静态文件。
+> 运行阶段以非 root 的 nginx 用户监听容器内 `8080` 端口，`MENAV_PORT` 只改变宿主机端口。
+> 修改配置或书签后，需要重新构建镜像。
 >
 > 请在仓库根目录执行（需要 `config/_default` 等文件）。
 
@@ -267,16 +270,16 @@ docker compose up -d --no-build
 docker compose up -d --build
 ```
 
-默认访问地址：`http://localhost:8080`
+默认访问地址：`http://localhost`
 
 #### 可选参数（环境变量）
 
 ```bash
-MENAV_PORT=80 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose up -d --build
+MENAV_PORT=8000 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose up -d --build
 ```
 
-- `MENAV_PORT`：宿主机端口（默认 `8080`）
-- `MENAV_ENABLE_SYNC`：镜像构建时是否联网执行 `sync-*`（默认 `false`，更稳定）
+- `MENAV_PORT`：宿主机端口（默认 `80`，容器内固定监听 `8080`）
+- `MENAV_ENABLE_SYNC`：镜像构建时是否先执行 `npm run sync` 再执行 `npm run build`（默认 `false`，直接离线构建）
 - `MENAV_IMPORT_BOOKMARKS`：镜像构建前是否执行 `npm run import-bookmarks`（默认 `false`）
 
 #### 配置与更新
@@ -295,13 +298,17 @@ docker compose up -d --build
 
 ```bash
 docker build -f Dockerfile.dynamic -t menav:dynamic .
-docker run --rm -p 8080:80 \
+docker run --rm -p 80:8080 \
   -v "$PWD/config:/app/config" \
   -v "$PWD/bookmarks:/app/bookmarks" \
   -e MENAV_ENABLE_SYNC=false \
   -e MENAV_IMPORT_BOOKMARKS=false \
   menav:dynamic
 ```
+
+动态镜像同样以非 root 的 `node` 用户运行并监听容器内 `8080`。使用
+`MENAV_IMPORT_BOOKMARKS=true` 时，挂载的 `config/` 与 `bookmarks/` 需要对容器内
+UID 1000 可写。
 
 </details>
 
@@ -336,8 +343,16 @@ server {
     root /path/to/dist;
     index index.html;
 
+    error_page 404 /404.html;
+
+    location = /404.html {
+        internal;
+        add_header Cache-Control "no-store" always;
+    }
+
     location / {
-        try_files $uri $uri/ /404.html;
+        try_files $uri $uri/ =404;
+        add_header Cache-Control "no-store" always;
     }
 }
 ```
