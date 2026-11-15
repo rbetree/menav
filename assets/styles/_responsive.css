@@ -352,6 +352,14 @@
   .sidebar.collapsed .submenu {
     display: none;
   }
+
+  /* 标题最多两行，兼顾完整名称与一致的卡片高度 */
+  .site-card h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
 }
 
 @media (max-width: 480px) {

@@ -572,6 +572,31 @@ async function runSidebarBreakpointContract(page, baseUrl) {
     '移动端分类卡片应延伸到视口右侧，浮动按钮叠加在内容之上：' + JSON.stringify(mobileLayout)
   );
 
+  const mobileTitleLayout = await page.evaluate(() => {
+    const title = document.querySelector('.page.active .site-card h3');
+    if (!title) return null;
+    const original = title.textContent;
+    title.textContent = '很长的站点标题'.repeat(8);
+    const style = getComputedStyle(title);
+    const layout = {
+      lineClamp: style.webkitLineClamp || '',
+      overflow: style.overflow || '',
+      whiteSpace: style.whiteSpace || '',
+      clientHeight: title.clientHeight,
+      scrollHeight: title.scrollHeight,
+    };
+    title.textContent = original;
+    return layout;
+  });
+  assert.ok(mobileTitleLayout, '浏览器契约需要一张可测量标题的站点卡片');
+  assert.equal(mobileTitleLayout.lineClamp, '2', '移动端标题最多显示两行');
+  assert.equal(mobileTitleLayout.overflow, 'hidden', '移动端标题超出两行应隐藏');
+  assert.equal(mobileTitleLayout.whiteSpace, 'normal', '移动端标题应允许换行');
+  assert.ok(
+    mobileTitleLayout.scrollHeight > mobileTitleLayout.clientHeight + 1,
+    '移动端标题超过两行应被截断：' + JSON.stringify(mobileTitleLayout)
+  );
+
   // 窄屏加载时也保留偏好，回到桌面再恢复折叠
   await page.setViewportSize({ width: 600, height: 900 });
   await page.reload({ waitUntil: 'domcontentloaded' });
