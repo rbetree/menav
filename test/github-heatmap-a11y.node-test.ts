@@ -120,6 +120,8 @@ test('github/heatmap：转换后仍含焦点元素时 fail-closed 返回空可�
 test('github/heatmap：默认色 37b24d 生成接近调研表格的双主题色阶', () => {
   const palette = buildHeatmapPalette('37b24d');
 
+  assert.equal(palette.dark[0], 'rgba(255, 255, 255, 0.08)');
+  assert.equal(palette.light[0], '#d8dee4');
   assertHexClose(palette.dark[1], '#277f37');
   assertHexClose(palette.dark[2], '#2f9a42');
   assertHexClose(palette.dark[3], '#3bb350');
@@ -140,20 +142,21 @@ test('github/heatmap：默认色 37b24d 生成接近调研表格的双主题色�
   });
 });
 
-test('github/heatmap：默认与极端颜色在两个主题下每个 level 对卡片背景 ≥ 3:1', () => {
+test('github/heatmap：默认与极端颜色在两个主题下 1–4 级对卡片背景 ≥ 3:1', () => {
   for (const color of ['37b24d', '#000000', '#ffffff', '339af0', 'abcdef']) {
     const palette = buildHeatmapPalette(color);
 
-    palette.dark.forEach((value: string, level: number) => {
+    // level 0 是没有贡献的空格子，只做弱提示，不参与数据层级对比度要求。
+    palette.dark.slice(1).forEach((value: string, index: number) => {
       assert.ok(
         contrastRatio(value, DARK_CARD_BG) >= 3,
-        `${color} 深色 level ${level} (${value}) 对比度不足`
+        `${color} 深色 level ${index + 1} (${value}) 对比度不足`
       );
     });
-    palette.light.forEach((value: string, level: number) => {
+    palette.light.slice(1).forEach((value: string, index: number) => {
       assert.ok(
         contrastRatio(value, LIGHT_CARD_BG) >= 3,
-        `${color} 浅色 level ${level} (${value}) 对比度不足`
+        `${color} 浅色 level ${index + 1} (${value}) 对比度不足`
       );
     });
   }

@@ -1,6 +1,6 @@
-/* 分类样式：弱化容器，让内部站点卡片成为主要层级 */
+/* 分类容器：与页面背景拉开层级，内部站点卡片仍是主要视觉层级 */
 .category {
-  background: var(--surface-subtle);
+  background: linear-gradient(145deg, var(--card-bg-gradient-1), var(--card-bg-gradient-2));
   border-radius: var(--radius-xl);
   padding: 1rem;
   margin: 0 auto 1.2rem auto;
@@ -10,7 +10,10 @@
   z-index: 1;
   opacity: 1;
   border: 1px solid var(--border-color);
-  transition: background var(--transition-normal);
+  box-shadow: 0 4px 20px var(--shadow-color);
+  transition:
+    background var(--transition-normal),
+    box-shadow var(--transition-normal);
 }
 
 /* 分类标题容器 */
@@ -340,9 +343,11 @@ button.group-toggle-btn:focus-visible .toggle-icon {
   overflow: hidden;
   opacity: 1;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* 留出卡片焦点环和阴影的横向绘制空间，外宽保持不变 */
+  /* 留出卡片焦点环、阴影和悬停上移的绘制空间，外宽/外高保持不变 */
   padding-inline: 4px;
   margin-inline: -4px;
+  padding-block: 4px;
+  margin-block: -4px;
 }
 
 .category.collapsed > .collapse-content,

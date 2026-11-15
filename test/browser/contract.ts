@@ -57,6 +57,17 @@ async function assertNoConsoleErrors(messages) {
 async function runRouteContract(page, baseUrl) {
   await openPage(page, baseUrl, '/');
 
+  const categoryCardStyle = await page.evaluate(() => {
+    const category = document.querySelector('.page.active .category');
+    const style = category ? getComputedStyle(category) : null;
+    return {
+      backgroundImage: style?.backgroundImage || '',
+      boxShadow: style?.boxShadow || '',
+    };
+  });
+  assert.match(categoryCardStyle.backgroundImage, /linear-gradient/, '分类大卡片应保留渐变背景');
+  assert.notEqual(categoryCardStyle.boxShadow, 'none', '分类大卡片应有阴影与页面背景区分');
+
   const routeState = await page.evaluate(() => {
     const navItems = Array.from(document.querySelectorAll('.nav-item[data-page]'));
     const pageIds = navItems.map((item) => item.getAttribute('data-page')).filter(Boolean);
@@ -107,6 +118,24 @@ async function runRouteContract(page, baseUrl) {
   assert.ok(
     !routeState.documentPageIds.includes(routeState.targetPageId),
     '非活动模板页不应提前实例化'
+  );
+
+  const hoverCard = page.locator('.page.active .site-card').first();
+  assert.ok((await hoverCard.count()) > 0, '浏览器契约需要至少一张站点卡片');
+  await hoverCard.hover();
+  await page.waitForTimeout(350);
+  const hoverLayout = await hoverCard.evaluate((card) => {
+    const inner = card.closest('.collapse-content-inner');
+    return {
+      cardTop: card.getBoundingClientRect().top,
+      innerTop: inner ? inner.getBoundingClientRect().top : null,
+      innerOverflow: inner ? getComputedStyle(inner).overflow : '',
+    };
+  });
+  assert.ok(hoverLayout.innerTop !== null, '站点卡片应位于可折叠内容容器内');
+  assert.ok(
+    hoverLayout.cardTop >= hoverLayout.innerTop,
+    '卡片悬停上移后不应被容器裁切：' + JSON.stringify(hoverLayout)
   );
 
   await page.evaluate((targetPageId) => {
@@ -526,6 +555,57 @@ async function runSidebarBreakpointContract(page, baseUrl) {
     },
     null,
     { timeout: 5000 }
+  );
+
+  await page.setViewportSize({ width: 600, height: 900 });
+  const mobileLayout = await page.evaluate(() => {
+    const content = document.querySelector('main.content');
+    const contentStyle = content ? getComputedStyle(content) : null;
+    const themeButton = document.querySelector('.theme-toggle');
+    const themeStyle = themeButton ? getComputedStyle(themeButton) : null;
+    const category =
+      document.querySelector('.page.active .category') || document.querySelector('.category');
+    return {
+      paddingLeft: contentStyle ? parseFloat(contentStyle.paddingLeft) : NaN,
+      paddingRight: contentStyle ? parseFloat(contentStyle.paddingRight) : NaN,
+      buttonPosition: themeStyle?.position || '',
+      categoryRight: category ? category.getBoundingClientRect().right : 0,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  assert.equal(mobileLayout.buttonPosition, 'fixed', '移动端主题按钮应悬浮');
+  assert.ok(
+    Math.abs(mobileLayout.paddingLeft - mobileLayout.paddingRight) <= 1,
+    '移动端内容左右留白应一致，不应为浮动按钮预留整列'
+  );
+  assert.ok(
+    mobileLayout.categoryRight >= mobileLayout.viewportWidth - 30,
+    '移动端分类卡片应延伸到视口右侧，浮动按钮叠加在内容之上：' + JSON.stringify(mobileLayout)
+  );
+
+  const mobileTitleLayout = await page.evaluate(() => {
+    const title = document.querySelector('.page.active .site-card h3');
+    if (!title) return null;
+    const original = title.textContent;
+    title.textContent = '很长的站点标题'.repeat(8);
+    const style = getComputedStyle(title);
+    const layout = {
+      lineClamp: style.webkitLineClamp || '',
+      overflow: style.overflow || '',
+      whiteSpace: style.whiteSpace || '',
+      clientHeight: title.clientHeight,
+      scrollHeight: title.scrollHeight,
+    };
+    title.textContent = original;
+    return layout;
+  });
+  assert.ok(mobileTitleLayout, '浏览器契约需要一张可测量标题的站点卡片');
+  assert.equal(mobileTitleLayout.lineClamp, '2', '移动端标题最多显示两行');
+  assert.equal(mobileTitleLayout.overflow, 'hidden', '移动端标题超出两行应隐藏');
+  assert.equal(mobileTitleLayout.whiteSpace, 'normal', '移动端标题应允许换行');
+  assert.ok(
+    mobileTitleLayout.scrollHeight > mobileTitleLayout.clientHeight + 1,
+    '移动端标题超过两行应被截断：' + JSON.stringify(mobileTitleLayout)
   );
 
   // 窄屏加载时也保留偏好，回到桌面再恢复折叠

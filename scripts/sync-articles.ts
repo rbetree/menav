@@ -505,17 +505,44 @@ function extractFeedLinksFromHtml(html: unknown, baseUrl: string): string[] {
 }
 
 function buildCommonFeedUrls(siteUrl: string): string[] {
-  const common = ['/feed', '/rss.xml', '/rss', '/atom.xml', '/atom', '/feed.xml'];
+  // 相对站点路径查找，兼容博客放在子目录的站点（例如 /blog/atom.xml）。
+  const base = siteUrl.endsWith('/') ? siteUrl : siteUrl + '/';
+  const common = ['feed.xml', 'index.xml', 'atom.xml', 'rss.xml', 'feed', 'rss', 'atom'];
   const out: string[] = [];
   for (const p of common) {
     try {
-      const u = new URL(p, siteUrl).toString();
-      out.push(u);
+      const u = new URL(p, base).toString();
+      if (!out.includes(u)) out.push(u);
     } catch {
       // ignore
     }
   }
   return out;
+}
+
+async function tryFeedCandidate(
+  candidateUrl: string,
+  settings: RssSettings,
+  deadlineTs: number
+): Promise<string | null> {
+  const timeRemaining = deadlineTs - Date.now();
+  if (timeRemaining <= 0) throw new Error('总超时：无法继续发现 RSS');
+  try {
+    const candidate = await fetchWithRedirects(candidateUrl, {
+      timeoutMs: Math.min(settings.fetch.timeoutMs, timeRemaining),
+      maxRedirects: settings.fetch.maxRedirects,
+      headers: buildHeaders(settings.fetch.userAgent),
+      maxBytes: settings.fetch.feedMaxBytes,
+    });
+    const contentType = candidate.response.headers.get('content-type') || '';
+    const body = candidate.text.trim();
+    if (/rss|atom|xml/i.test(contentType) || /^<\?xml\b|<rss\b|<feed\b/i.test(body)) {
+      return candidate.url;
+    }
+  } catch (error) {
+    if (Date.now() >= deadlineTs) throw error;
+  }
+  return null;
 }
 
 async function discoverFeedUrl(
@@ -526,23 +553,41 @@ async function discoverFeedUrl(
   const timeRemaining = deadlineTs - Date.now();
   if (timeRemaining <= 0) throw new Error('总超时：无法继续发现 RSS');
 
-  const homepage = await fetchWithRedirects(siteUrl, {
-    timeoutMs: Math.min(settings.fetch.timeoutMs, timeRemaining),
-    maxRedirects: settings.fetch.maxRedirects,
-    headers: buildHeaders(settings.fetch.userAgent),
-    maxBytes: settings.fetch.htmlMaxBytes,
-  });
+  let homepage: Awaited<ReturnType<typeof fetchWithRedirects>> | null = null;
+  try {
+    homepage = await fetchWithRedirects(siteUrl, {
+      timeoutMs: Math.min(settings.fetch.timeoutMs, timeRemaining),
+      maxRedirects: settings.fetch.maxRedirects,
+      headers: buildHeaders(settings.fetch.userAgent),
+      maxBytes: settings.fetch.htmlMaxBytes,
+    });
+  } catch (error) {
+    // 首页可能被反爬拦截；继续尝试常见 feed 直链，而不是直接判失败。
+    if (Date.now() >= deadlineTs) throw error;
+  }
 
-  const contentType = homepage.response.headers.get('content-type') || '';
-  if (
-    /text\/html/i.test(contentType) ||
-    /application\/xhtml\+xml/i.test(contentType) ||
-    !contentType
-  ) {
-    const candidates = extractFeedLinksFromHtml(homepage.text, homepage.url);
-    if (candidates.length > 0) {
-      return candidates[0];
+  if (homepage) {
+    const contentType = homepage.response.headers.get('content-type') || '';
+    const body = homepage.text.trim();
+    if (/rss|atom|xml/i.test(contentType) || /^<\?xml\b|<rss\b|<feed\b/i.test(body)) {
+      return homepage.url;
     }
+    if (
+      /text\/html/i.test(contentType) ||
+      /application\/xhtml\+xml/i.test(contentType) ||
+      !contentType
+    ) {
+      const candidates = extractFeedLinksFromHtml(homepage.text, homepage.url);
+      for (const candidate of candidates) {
+        const feed = await tryFeedCandidate(candidate, settings, deadlineTs);
+        if (feed) return feed;
+      }
+    }
+  }
+
+  for (const candidate of buildCommonFeedUrls(siteUrl)) {
+    const feed = await tryFeedCandidate(candidate, settings, deadlineTs);
+    if (feed) return feed;
   }
 
   return null;
@@ -1066,6 +1111,8 @@ module.exports = {
   assertSafeToFetch,
   fetchWithRedirects,
   extractFeedLinksFromHtml,
+  buildCommonFeedUrls,
+  discoverFeedUrl,
   stripHtmlToText,
   normalizeArticle,
   buildFlatSitesFromCategories,

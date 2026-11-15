@@ -14,8 +14,9 @@ const DEFAULT_HEATMAP_RGB: Rgb = { r: 0x37, g: 0xb2, b: 0x4d };
 // 目标相对亮度按卡片背景预留余量：深色 level 1 对 #1e1c1a 约 3.4:1，浅色 level 1 对 #e9e9e4 约 3.2:1。
 const DARK_LEVEL_LUMINANCE = [0.16, 0.24, 0.34, 0.48];
 const LIGHT_LEVEL_LUMINANCE = [0.22, 0.16, 0.11, 0.07];
-const DARK_LEVEL_ZERO = '#6b6b6e';
-const LIGHT_LEVEL_ZERO = '#808085';
+// 空格子只做弱提示，不参与数据层级对比度要求。
+const DARK_LEVEL_ZERO = 'rgba(255, 255, 255, 0.08)';
+const LIGHT_LEVEL_ZERO = '#d8dee4';
 
 function parseHexColor(input: unknown): Rgb | null {
   const raw = String(input ?? '')

@@ -52,7 +52,7 @@
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
   /* 热力图兜底色阶：组件会按 heatmapColor 生成主题感知色阶并覆盖这些 token */
-  --gh-level-0-token: #6b6b6e;
+  --gh-level-0-token: rgba(255, 255, 255, 0.08);
   --gh-level-1-token: #3d8b4a;
   --gh-level-2-token: #4ea85c;
   --gh-level-3-token: #63c471;
@@ -116,7 +116,7 @@ html.light-theme {
   --surface-dropdown: rgba(var(--card-bg-rgb), 0.9);
   --surface-tooltip: rgba(var(--card-bg-rgb), 0.95);
 
-  --gh-level-0-token: #808085;
+  --gh-level-0-token: #d8dee4;
   --gh-level-1-token: #4f8f60;
   --gh-level-2-token: #3c7a4d;
   --gh-level-3-token: #2b643c;
