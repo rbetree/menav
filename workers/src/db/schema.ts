@@ -126,4 +126,32 @@ export async function applySchema(db: D1Database): Promise<void> {
       .bind(new Date().toISOString()),
     db.prepare("DELETE FROM settings WHERE key = 'dirty'"),
   ]);
+
+  // 旧版把全部图片塞在 settings.assets 单行;拆成 asset:<path> 行以绕开单行上限。
+  const legacyAssets = await db
+    .prepare("SELECT value FROM settings WHERE key = 'assets'")
+    .first<{ value: string }>();
+  if (legacyAssets?.value) {
+    let entries: [string, string][] | null = null;
+    try {
+      const parsed = JSON.parse(legacyAssets.value) as unknown;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const values = Object.entries(parsed as Record<string, unknown>);
+        if (values.every(([, value]) => typeof value === 'string'))
+          entries = values as [string, string][];
+      }
+    } catch {
+      // 解析失败保留旧行,读取端仍按原样返回,不阻断升级。
+    }
+    if (entries?.length) {
+      await db.batch([
+        ...entries.map(([asset, data]) =>
+          db
+            .prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)')
+            .bind('asset:' + asset, data)
+        ),
+        db.prepare("DELETE FROM settings WHERE key = 'assets'"),
+      ]);
+    }
+  }
 }

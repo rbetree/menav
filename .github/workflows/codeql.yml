@@ -16,20 +16,24 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze JavaScript and TypeScript
+    name: Analyze ${{ matrix.language }}
     # 私有配置仓库没有 GitHub Advanced Security，跳过后避免同步后每次失败。
     if: github.repository == 'rbetree/menav'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
-          languages: javascript-typescript
+          languages: ${{ matrix.language }}
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4

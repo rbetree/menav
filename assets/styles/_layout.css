@@ -50,6 +50,7 @@
   flex: 0 0 auto;
 }
 
+.welcome-section h1,
 .welcome-section h2 {
   font-size: 1.75rem;
   color: var(--text-bright);
@@ -89,6 +90,7 @@
   margin-bottom: 0.5rem;
 }
 
+.welcome-title-row h1,
 .welcome-title-row h2 {
   margin: 0;
 }
@@ -96,6 +98,5 @@
 .page-updated-inline {
   color: var(--text-muted);
   font-size: 0.9rem;
-  opacity: 0.85;
   white-space: nowrap;
 }

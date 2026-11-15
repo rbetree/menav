@@ -51,26 +51,20 @@ async function main() {
     return;
   }
 
-  const distNodeIndex = path.join(repoRoot, 'dist-node', 'index.cjs');
-  if (!fs.existsSync(distNodeIndex)) {
-    const buildLibResult = spawnSync(
-      process.execPath,
-      [
-        '-r',
-        path.join(__dirname, 'register-ts.cjs'),
-        path.join(repoRoot, 'scripts', 'build-lib.ts'),
-      ],
-      {
-        cwd: repoRoot,
-        stdio: isVerbose() ? 'inherit' : 'pipe',
-      }
-    );
-    const buildLibExit = Number.isFinite(buildLibResult.status) ? Number(buildLibResult.status) : 1;
-    if (buildLibExit !== 0) {
-      log.error('build:lib 失败', { exit: buildLibExit });
-      process.exitCode = buildLibExit;
-      return;
+  // 强制重建 dist-node：测试断言公开入口，陈旧产物会让结果失真
+  const buildLibResult = spawnSync(
+    process.execPath,
+    ['-r', path.join(__dirname, 'register-ts.cjs'), path.join(repoRoot, 'scripts', 'build-lib.ts')],
+    {
+      cwd: repoRoot,
+      stdio: isVerbose() ? 'inherit' : 'pipe',
     }
+  );
+  const buildLibExit = Number.isFinite(buildLibResult.status) ? Number(buildLibResult.status) : 1;
+  if (buildLibExit !== 0) {
+    log.error('build:lib 失败', { exit: buildLibExit });
+    process.exitCode = buildLibExit;
+    return;
   }
 
   const registerScript = path.join(__dirname, 'register-ts.cjs');

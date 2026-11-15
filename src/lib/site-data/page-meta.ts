@@ -1,15 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { resolveConfigDirectory } from '../config/resolver.ts';
 
 function resolvePageConfigFilePath(pageId: string): string | null {
   if (!pageId) return null;
 
+  let configDir: string;
+  try {
+    configDir = resolveConfigDirectory();
+  } catch {
+    // 快照构建不依赖本地配置目录，目录不可用时只跳过更新时间元数据
+    return null;
+  }
+
   const candidates = [
-    path.join(process.cwd(), 'config', 'user', 'pages', `${pageId}.yml`),
-    path.join(process.cwd(), 'config', 'user', 'pages', `${pageId}.yaml`),
-    path.join(process.cwd(), 'config', '_default', 'pages', `${pageId}.yml`),
-    path.join(process.cwd(), 'config', '_default', 'pages', `${pageId}.yaml`),
+    path.join(configDir, 'pages', `${pageId}.yml`),
+    path.join(configDir, 'pages', `${pageId}.yaml`),
   ];
 
   for (const filePath of candidates) {

@@ -155,6 +155,7 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
    - 图标使用 Font Awesome 类名字符串（例如 `fas fa-home`、`fab fa-github`）
    - 导航显示顺序与数组顺序一致，可通过调整数组顺序改变导航顺序
    - 可选 `submenu`：数组，每项支持 `name`、`icon`、`slug`，用于在侧边栏子菜单面板中渲染页面分类锚点（`slug` 对应页面内分类锚点 id，点击滚动定位到对应分类）
+   - `submenu` 的优先级：显式配置时始终使用配置值，不会被对应页面的 `categories` 覆盖；未配置时才根据该页面的顶层分类自动生成，并沿用分类的 `name`、`icon` 与 `slug`
 
 8. **RSS（articles Phase 2）**
    - `rss.*`：仅用于 `npm run sync-articles`（联网抓取 RSS/Atom 并写入缓存）
@@ -279,6 +280,7 @@ categories:
 #### 向后兼容性
 
 - `categories`、`subcategories`、`groups`、`subgroups` 每层均支持 `name`、`icon`、`slug`、`sites`，并允许继续嵌套下一层
+- 显式 `slug` 优先保留并计入已用值；未提供时按 `name` 自动生成，同一页面内同名分类依次追加 `-2`、`-3`，自动生成会避开所有显式值
 - 原有二层结构（`categories -> sites`）无需修改即可继续使用
 - 系统会自动识别层级结构并匹配对应的模板/样式
 - 允许在同一份配置中混用不同层级（例如某些分类是二层，某些分类是三/四层）

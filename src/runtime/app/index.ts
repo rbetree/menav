@@ -68,14 +68,6 @@ function logRuntimeVersion(): void {
   }
 }
 
-function initializeSearchIndex(search: RuntimeSearchApi): void {
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => search.initSearchIndex());
-  } else {
-    setTimeout(search.initSearchIndex, 1000);
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   const homePageId = detectHomePageId();
 
@@ -158,5 +150,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initRouting(state, dom, { ui, search });
 
-  initializeSearchIndex(search);
+  // 搜索索引按需加载：启动阶段不预取，首次输入时由 performSearch 触发。
 });

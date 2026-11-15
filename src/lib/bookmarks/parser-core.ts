@@ -372,7 +372,9 @@ function parseBookmarks(htmlContent: string, logger?: ParserLogger): BookmarksDa
         // 到达最大层级（level >= 4）时不再递归解析子文件夹，深层嵌套将被截断
         if (hasSubfolders) {
           truncated += 1;
-          log.warn(`文件夹 "${folderName}" 超过 4 层的嵌套已被截断，深层子文件夹将被忽略`);
+          log.warn('文件夹超过 4 层的嵌套已被截断，深层子文件夹将被忽略', {
+            folder: folderName,
+          });
         }
         // 解析书签
         folder.sites = currentLevelSites;

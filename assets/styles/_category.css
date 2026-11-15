@@ -1,6 +1,6 @@
-/* 分类样式 */
+/* 分类样式：弱化容器，让内部站点卡片成为主要层级 */
 .category {
-  background: linear-gradient(145deg, var(--card-bg-gradient-1), var(--card-bg-gradient-2));
+  background: var(--surface-subtle);
   border-radius: var(--radius-xl);
   padding: 1rem;
   margin: 0 auto 1.2rem auto;
@@ -9,11 +9,8 @@
   position: relative;
   z-index: 1;
   opacity: 1;
-  box-shadow: 0 4px 20px var(--shadow-color);
   border: 1px solid var(--border-color);
-  transition:
-    background var(--transition-normal),
-    box-shadow var(--transition-normal);
+  transition: background var(--transition-normal);
 }
 
 /* 分类标题容器 */
@@ -21,7 +18,9 @@
   border-radius: var(--radius-md);
   padding: 0.4rem;
   margin: -0.4rem -0.4rem 0.8rem -0.4rem;
-  transition: all var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    transform var(--transition-normal);
 }
 
 /* 标题前图标固定宽度：避免不同图标宽度导致标题文本不对齐 */
@@ -36,7 +35,9 @@
 /* 分组标题容器：与分类保持一致的悬浮动效基础 */
 .group-header {
   border-radius: var(--radius-md);
-  transition: all var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    transform var(--transition-normal);
 }
 
 /* 仅可折叠的标题显示交互态 */
@@ -167,7 +168,7 @@
   background: none;
 }
 
-.group-level-3 .group-header h4,
+.group-level-3 .group-header h3,
 .category-level-3 .category-header h4 {
   font-size: 1rem;
   font-weight: 500;
@@ -177,7 +178,7 @@
   gap: 0.6rem;
 }
 
-.group-level-3 .group-header h4 i,
+.group-level-3 .group-header h3 i,
 .category-level-3 .category-header h4 i {
   color: var(--text-muted);
   font-size: 1rem;
@@ -215,7 +216,7 @@
   background: none;
 }
 
-.group-level-4 .group-header h5,
+.group-level-4 .group-header h4,
 .category-level-4 .category-header h5 {
   font-size: 0.9rem;
   font-weight: 500;
@@ -225,7 +226,7 @@
   gap: 0.5rem;
 }
 
-.group-level-4 .group-header h5 i,
+.group-level-4 .group-header h4 i,
 .category-level-4 .category-header h5 i {
   font-size: 0.9rem;
   opacity: 0.7;
@@ -233,11 +234,49 @@
 
 /* 移除悬停时的缩放效果，保持简洁 */
 .category-level-2 .category-header:hover h3 > i,
-.group-level-3 .group-header:hover h4 i,
+.group-level-3 .group-header:hover h3 i,
 .category-level-3 .category-header:hover h4 i,
-.group-level-4 .group-header:hover h5 i,
+.group-level-4 .group-header:hover h4 i,
 .category-level-4 .category-header:hover h5 i {
   transform: none;
+}
+
+/* 折叠按钮：真实 button，去掉默认外观并保证 24×24 点击区 */
+button.category-toggle-btn,
+button.group-toggle-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+button.category-toggle-btn .toggle-icon,
+button.group-toggle-btn .toggle-icon {
+  width: auto;
+  height: auto;
+  margin-left: 0;
+}
+
+button.category-toggle-btn:focus-visible,
+button.group-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* 键盘聚焦时让默认隐藏的 chevron 显形 */
+button.category-toggle-btn:focus-visible .toggle-icon,
+button.group-toggle-btn:focus-visible .toggle-icon {
+  opacity: 1;
 }
 
 /* 切换图标样式 */
@@ -289,23 +328,32 @@
   }
 }
 
-/* 展开/折叠动画 */
-.category-content,
-.group-content {
-  overflow: visible;
-  transition:
-    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 5000px;
-  opacity: 1;
+/* 展开/折叠动画：外层网格过渡行高，内层负责裁剪 */
+.collapse-content {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.category.collapsed .category-content,
-.group.collapsed .group-content {
+.collapse-content-inner {
+  min-height: 0;
   overflow: hidden;
-  max-height: 0;
-  opacity: 0;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 留出卡片焦点环和阴影的横向绘制空间，外宽保持不变 */
+  padding-inline: 4px;
+  margin-inline: -4px;
+}
+
+.category.collapsed > .collapse-content,
+.group.collapsed > .collapse-content {
+  grid-template-rows: 0fr;
   margin-top: 0;
+}
+
+.category.collapsed > .collapse-content > .collapse-content-inner,
+.group.collapsed > .collapse-content > .collapse-content-inner {
+  opacity: 0;
 }
 
 /* 收起状态下调整header的下边距 */

@@ -67,6 +67,15 @@ function showSearchResults(options: SearchResultsUiOptions): void {
         }
       });
 
+      // 先切到结果页，再更新 live region，避免在 display:none 期间写入而无法播报
+      if (state.currentPageId !== 'search-results') {
+        state.currentPageId = 'search-results';
+        if (!state.pages) state.pages = qsa(SELECTORS.page);
+        state.pages.forEach((page: HTMLElement) => {
+          page.classList.toggle('active', page.id === 'search-results');
+        });
+      }
+
       const subtitle = searchResultsPageElement.querySelector('.subtitle');
       if (subtitle) {
         const emptyMessage = state.searchIndex.loading
@@ -77,14 +86,6 @@ function showSearchResults(options: SearchResultsUiOptions): void {
         subtitle.textContent = hasResults
           ? `在所有页面中找到 ${matchedItems.length} 个匹配项`
           : emptyMessage;
-      }
-
-      if (state.currentPageId !== 'search-results') {
-        state.currentPageId = 'search-results';
-        if (!state.pages) state.pages = qsa(SELECTORS.page);
-        state.pages.forEach((page: HTMLElement) => {
-          page.classList.toggle('active', page.id === 'search-results');
-        });
       }
 
       searchBoxElement.classList.toggle('has-results', hasResults);

@@ -8,5 +8,6 @@ services:
         MENAV_ENABLE_SYNC: ${MENAV_ENABLE_SYNC:-false}
         MENAV_IMPORT_BOOKMARKS: ${MENAV_IMPORT_BOOKMARKS:-false}
     ports:
-      - '${MENAV_PORT:-8080}:80'
+      # 容器内 nginx 以非 root 运行并监听 8080，宿主机默认仍映射 80
+      - '${MENAV_PORT:-80}:8080'
     restart: unless-stopped

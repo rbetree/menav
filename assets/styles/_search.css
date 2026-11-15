@@ -25,8 +25,6 @@
   border-radius: var(--radius-lg);
   background: var(--surface-frosted);
   border: 1px solid var(--border-color);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   color: var(--text-color);
   display: flex;
   align-items: center;
@@ -76,10 +74,10 @@
 }
 
 .search-box:focus-within {
-  border-color: var(--accent-border-strong);
+  /* 实色边框 + 1px 外环，保证焦点指示对背景 ≥3:1 */
+  border-color: var(--accent-color);
   box-shadow:
-    0 0 0 1px var(--accent-ring-subtle),
-    0 0 18px var(--accent-glow-subtle),
+    0 0 0 1px var(--accent-color),
     0 6px 24px var(--shadow-color);
 }
 
@@ -148,14 +146,10 @@
   background: var(--surface-muted);
   font-size: 0.78rem;
   line-height: 1.2;
+  /* 提示文字保持 text-muted 实色，避免叠加透明度后低于 4.5:1 */
   color: var(--text-muted);
-  opacity: 0.65;
   pointer-events: none;
   user-select: none;
-}
-
-.search-box:focus-within .search-shortcut-hint {
-  opacity: 0.85;
 }
 
 /* 搜索引擎前缀按钮（方案B：输入框前缀一体化） */

@@ -7,8 +7,8 @@ const Parser = require('rss-parser') as new (options?: Record<string, unknown>) 
 
 import { loadConfig } from '../src/lib/config/index.ts';
 import { createLogger, isVerbose, startTimer } from '../src/lib/logging/logger.ts';
-import { htmlToText } from '../src/lib/security/html.ts';
-import { collectSitesRecursively } from '../src/lib/site-data/sites.ts';
+import { decodeHtmlEntities, htmlToText } from '../src/lib/security/html.ts';
+import { collectSitesRecursively, normalizeUrlKey } from '../src/lib/site-data/sites.ts';
 
 const log = createLogger('sync:articles');
 
@@ -115,8 +115,56 @@ type PageSelection = {
   pageConfig: PageConfigLike;
 };
 
+type SyncSourceReport = {
+  name: string;
+  url?: string;
+  status: 'success' | 'failed' | 'skipped';
+  error?: string;
+  fallback?: boolean;
+};
+
+type SyncReport = {
+  script: string;
+  success: number;
+  failed: number;
+  skipped: number;
+  cacheWritten: boolean;
+  sources: SyncSourceReport[];
+};
+
+type FeedCachePayload = {
+  articles?: unknown[];
+};
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function appendSyncReport(report: SyncReport): void {
+  const reportPath = process.env.MENAV_SYNC_REPORT;
+  if (!reportPath) return;
+  try {
+    fs.appendFileSync(reportPath, `${JSON.stringify(report)}\n`, 'utf8');
+  } catch {
+    // 报告写入失败不应影响同步结果
+  }
+}
+
+// 全部来源失败时不覆盖旧缓存；无来源时允许写入空缓存以反映配置删除。
+function shouldWriteSourceCache(totalSources: number, successSources: number): boolean {
+  return totalSources === 0 || successSources > 0;
+}
+
+function writeSourceCacheIfUsable(
+  cachePath: string,
+  payload: unknown,
+  totalSources: number,
+  successSources: number
+): boolean {
+  if (!shouldWriteSourceCache(totalSources, successSources)) return false;
+  fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+  fs.writeFileSync(cachePath, JSON.stringify(payload, null, 2));
+  return true;
 }
 
 function getErrorStack(error: unknown): string | undefined {
@@ -232,34 +280,54 @@ function isHttpUrl(url: unknown): boolean {
   }
 }
 
+// 两张表分开：IPv4-mapped 网段会命中 BlockList 的 IPv4 检查，混用会误伤全部公网 IPv4。
+const PRIVATE_IPV4_BLOCKS = new net.BlockList();
+(
+  [
+    ['0.0.0.0', 8],
+    ['10.0.0.0', 8],
+    ['100.64.0.0', 10],
+    ['127.0.0.0', 8],
+    ['169.254.0.0', 16],
+    ['172.16.0.0', 12],
+    ['192.0.0.0', 24],
+    ['192.0.2.0', 24],
+    ['192.168.0.0', 16],
+    ['198.18.0.0', 15],
+    ['198.51.100.0', 24],
+    ['203.0.113.0', 24],
+    ['224.0.0.0', 4],
+    ['240.0.0.0', 4],
+  ] as const
+).forEach(([address, prefix]) => PRIVATE_IPV4_BLOCKS.addSubnet(address, prefix, 'ipv4'));
+
+const PRIVATE_IPV6_BLOCKS = new net.BlockList();
+(
+  [
+    ['::', 128],
+    ['::1', 128],
+    ['::ffff:0:0', 96],
+    ['fe80::', 10],
+    ['fc00::', 7],
+    ['ff00::', 8],
+  ] as const
+).forEach(([address, prefix]) => PRIVATE_IPV6_BLOCKS.addSubnet(address, prefix, 'ipv6'));
+
+// URL.hostname 对 IPv6 保留方括号，net 模块只接受裸地址。
+function normalizeIpLiteral(hostname: unknown): string {
+  const text = String(hostname || '')
+    .trim()
+    .toLowerCase();
+  const unwrapped = text.startsWith('[') && text.endsWith(']') ? text.slice(1, -1) : text;
+  return unwrapped.split('%')[0];
+}
+
 function isPrivateIp(ip: unknown): boolean {
   if (!ip) return true;
-  const ipText = String(ip);
-
-  if (net.isIP(ipText) === 4) {
-    const parts = ipText.split('.').map((n) => Number.parseInt(n, 10));
-    if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n) || n < 0 || n > 255))
-      return true;
-
-    const [a, b] = parts;
-    if (a === 10) return true;
-    if (a === 127) return true;
-    if (a === 0) return true;
-    if (a === 169 && b === 254) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    if (a >= 224) return true; // 组播/保留
-    return false;
-  }
-
-  if (net.isIP(ipText) === 6) {
-    const normalized = ipText.toLowerCase();
-    if (normalized === '::1') return true;
-    if (normalized.startsWith('fe80:')) return true; // link-local
-    if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true; // ULA
-    return false;
-  }
-
+  const ipText = normalizeIpLiteral(ip);
+  const family = net.isIP(ipText);
+  if (family === 4) return PRIVATE_IPV4_BLOCKS.check(ipText, 'ipv4');
+  if (family === 6) return PRIVATE_IPV6_BLOCKS.check(ipText, 'ipv6');
   return true;
 }
 
@@ -285,13 +353,8 @@ async function assertSafeToFetch(url: string, timeoutMs: number): Promise<void> 
     throw new Error('禁止包含用户名/密码的 URL');
   }
 
-  const hostname = u.hostname.toLowerCase();
-  if (
-    hostname === 'localhost' ||
-    hostname === '0.0.0.0' ||
-    hostname === '127.0.0.1' ||
-    hostname === '::1'
-  ) {
+  const hostname = normalizeIpLiteral(u.hostname);
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) {
     throw new Error('禁止访问本机地址');
   }
   if (hostname.endsWith('.local')) {
@@ -400,20 +463,32 @@ async function readResponseTextWithLimit(response: Response, maxBytes: number): 
   return text;
 }
 
+function readHtmlAttribute(tag: string, name: string): string {
+  // 无引号值放宽到含 =，否则带 query 的 href 会被截断；值仍在空白或 > 处结束。
+  const pattern = new RegExp(
+    `(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'<>\`]+))`,
+    'i'
+  );
+  const match = pattern.exec(tag);
+  if (!match) return '';
+  return match[1] ?? match[2] ?? match[3] ?? '';
+}
+
 function extractFeedLinksFromHtml(html: unknown, baseUrl: string): string[] {
   const candidates: string[] = [];
   if (!html) return candidates;
 
   const linkTags = String(html).match(/<link\b[^>]*>/gi) || [];
   for (const tag of linkTags) {
-    const rel = /rel\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1] || '';
+    const rel = readHtmlAttribute(tag, 'rel');
     if (!/alternate/i.test(rel)) continue;
 
-    const type = /type\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1] || '';
+    const type = readHtmlAttribute(tag, 'type');
     const isFeedType = /application\/(rss|atom)\+xml/i.test(type) || /(rss|atom)/i.test(type);
     if (!isFeedType) continue;
 
-    const href = /href\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1];
+    // 属性值可能含 &amp; 等实体，先解码再交给 URL 解析。
+    const href = decodeHtmlEntities(readHtmlAttribute(tag, 'href')).trim();
     if (!href) continue;
 
     try {
@@ -684,12 +759,86 @@ function buildFlatSitesFromCategories(categories: unknown): SiteLike[] {
   return out;
 }
 
+function normalizeArticleForCache(article: unknown): Article | null {
+  if (!article || typeof article !== 'object') return null;
+  const record = article as Record<string, unknown>;
+  const title = record.title ? String(record.title) : '';
+  const url = record.url ? String(record.url) : '';
+  if (!title || !url) return null;
+
+  return {
+    title,
+    url,
+    summary: record.summary ? String(record.summary) : '',
+    publishedAt: record.publishedAt ? String(record.publishedAt) : '',
+    source: record.source ? String(record.source) : '',
+    sourceUrl: record.sourceUrl ? String(record.sourceUrl) : '',
+    icon: record.icon ? String(record.icon) : 'fas fa-pen',
+  };
+}
+
+function loadPreviousArticles(cachePath: string): Article[] {
+  try {
+    if (!fs.existsSync(cachePath)) return [];
+    const parsed = JSON.parse(fs.readFileSync(cachePath, 'utf8')) as FeedCachePayload | null;
+    const raw = Array.isArray(parsed?.articles) ? parsed.articles : [];
+    return raw
+      .map(normalizeArticleForCache)
+      .filter((article): article is Article => Boolean(article));
+  } catch {
+    return [];
+  }
+}
+
+function mergeArticlesWithPrevious(
+  currentArticles: Article[],
+  currentSourceUrls: string[],
+  successfulSourceUrls: string[],
+  previousArticles: Article[]
+): Article[] {
+  const currentKeys = new Set(currentSourceUrls.map((url) => normalizeUrlKey(url)).filter(Boolean));
+  const successKeys = new Set(
+    successfulSourceUrls.map((url) => normalizeUrlKey(url)).filter(Boolean)
+  );
+  const seen = new Set<string>();
+  const merged: Article[] = [];
+
+  for (const article of currentArticles) {
+    if (!article?.url || seen.has(article.url)) continue;
+    const key = normalizeUrlKey(article.sourceUrl);
+    if (!key || !successKeys.has(key)) continue;
+    seen.add(article.url);
+    merged.push(article);
+  }
+
+  // 失败来源沿用上次成功数据；已从配置删除的来源不再回退。
+  for (const article of previousArticles) {
+    if (!article?.url || seen.has(article.url)) continue;
+    const key = normalizeUrlKey(article.sourceUrl);
+    if (!key || !currentKeys.has(key) || successKeys.has(key)) continue;
+    seen.add(article.url);
+    merged.push(article);
+  }
+
+  merged.sort((a, b) => {
+    const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return tb - ta;
+  });
+  return merged;
+}
+
 async function syncArticlesForPage(
   pageId: string,
   pageConfig: PageConfigLike,
   _config: ConfigLike,
   settings: RssSettings
-): Promise<{ cachePath: string; cache: { stats: { totalArticles: number; totalSites: number } } }> {
+): Promise<{
+  cachePath: string;
+  cache: { stats: { totalArticles: number; totalSites: number } };
+  written: boolean;
+  sources: SyncSourceReport[];
+}> {
   const sourceSites: SiteLike[] = Array.isArray(pageConfig.sites)
     ? pageConfig.sites
     : buildFlatSitesFromCategories(
@@ -704,39 +853,50 @@ async function syncArticlesForPage(
     timeout: settings.fetch.timeoutMs,
   });
 
+  const cacheDir = path.resolve(process.cwd(), settings.cacheDir);
+  const cachePath = path.join(cacheDir, `${pageId}.feed-cache.json`);
+  const previousArticles = loadPreviousArticles(cachePath);
+
   const results = await mapWithConcurrency(sourceSites, settings.fetch.concurrency, async (site) =>
     processSourceSite(site, settings, parser, deadlineTs)
   );
 
   const sites: SourceSiteResult['site'][] = [];
-  const articles: Article[] = [];
-  const seen = new Set<string>();
+  const currentArticles: Article[] = [];
 
-  for (const r of results) {
-    if (!r || (typeof r === 'object' && 'error' in r)) continue;
+  results.forEach((r, index) => {
+    if (!r || (typeof r === 'object' && 'error' in r)) {
+      const site = sourceSites[index];
+      sites.push({
+        name: site && site.name ? String(site.name) : '',
+        url: site && site.url ? String(site.url) : '',
+        feedUrl: '',
+        status: 'failed',
+        error: getErrorMessage((r as { error: unknown } | undefined)?.error),
+        fetchedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
     const result = r as SourceSiteResult;
     if (result.site) sites.push(result.site);
-    if (Array.isArray(result.articles)) {
-      for (const a of result.articles) {
-        if (!a || !a.url) continue;
-        if (seen.has(a.url)) continue;
-        seen.add(a.url);
-        articles.push(a);
-      }
-    }
-  }
-
-  articles.sort((a, b) => {
-    const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-    const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-    return tb - ta;
+    if (Array.isArray(result.articles)) currentArticles.push(...result.articles);
   });
-
-  const limitedArticles = articles.slice(0, settings.articles.total);
 
   const successSites = sites.filter((s) => s.status === 'success').length;
   const failedSites = sites.filter((s) => s.status === 'failed').length;
   const skippedSites = sites.filter((s) => s.status === 'skipped').length;
+
+  const successfulSourceUrls = sites
+    .filter((site) => site.status === 'success')
+    .map((site) => site.url);
+  const mergedArticles = mergeArticlesWithPrevious(
+    currentArticles,
+    sourceSites.map((site) => (site && site.url ? String(site.url) : '')),
+    successfulSourceUrls,
+    previousArticles
+  );
+  const limitedArticles = mergedArticles.slice(0, settings.articles.total);
 
   const cache = {
     version: '1.0',
@@ -755,13 +915,31 @@ async function syncArticlesForPage(
     },
   };
 
-  const cacheDir = path.resolve(process.cwd(), settings.cacheDir);
-  fs.mkdirSync(cacheDir, { recursive: true });
+  const written = writeSourceCacheIfUsable(cachePath, cache, sourceSites.length, successSites);
+  if (!written) {
+    log.warn('全部来源失败，保留上一次成功缓存', {
+      page: pageId,
+      cache: cachePath,
+      failed: failedSites,
+      skipped: skippedSites,
+    });
+  }
 
-  const cachePath = path.join(cacheDir, `${pageId}.feed-cache.json`);
-  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+  const previousKeys = new Set(
+    previousArticles.map((article) => normalizeUrlKey(article.sourceUrl)).filter(Boolean)
+  );
+  const sources: SyncSourceReport[] = sites.map((site) => {
+    const key = normalizeUrlKey(site.url);
+    return {
+      name: site.name || site.url,
+      url: site.url || undefined,
+      status: site.status,
+      ...(site.error ? { error: site.error } : {}),
+      ...(site.status !== 'success' && key && previousKeys.has(key) ? { fallback: true } : {}),
+    };
+  });
 
-  return { cachePath, cache };
+  return { cachePath, cache, written, sources };
 }
 
 function pickArticlesPages(config: ConfigLike, onlyPageId: string | null): PageSelection[] {
@@ -812,13 +990,22 @@ async function main() {
 
   let success = 0;
   let failed = 0;
+  let cacheWritten = false;
+  const reportSources: SyncSourceReport[] = [];
 
   for (const { pageId, pageConfig } of pages) {
     try {
       // eslint-disable-next-line no-await-in-loop
-      const { cachePath, cache } = await syncArticlesForPage(pageId, pageConfig, config, settings);
+      const { cachePath, cache, written, sources } = await syncArticlesForPage(
+        pageId,
+        pageConfig,
+        config,
+        settings
+      );
       success += 1;
-      log.ok('已生成缓存', {
+      cacheWritten = cacheWritten || written;
+      reportSources.push(...sources);
+      log.ok(written ? '已生成缓存' : '来源全部失败，保留旧缓存', {
         page: pageId,
         cache: cachePath,
         articles: cache && cache.stats ? cache.stats.totalArticles : '',
@@ -826,6 +1013,11 @@ async function main() {
       });
     } catch (e) {
       failed += 1;
+      reportSources.push({
+        name: pageId,
+        status: 'failed',
+        error: getErrorMessage(e),
+      });
       log.warn('页面同步失败，已跳过（best-effort）', {
         page: pageId,
         message: getErrorMessage(e),
@@ -836,11 +1028,28 @@ async function main() {
     }
   }
 
+  appendSyncReport({
+    script: 'articles',
+    success: reportSources.filter((source) => source.status === 'success').length,
+    failed: reportSources.filter((source) => source.status === 'failed').length,
+    skipped: reportSources.filter((source) => source.status === 'skipped').length,
+    cacheWritten,
+    sources: reportSources,
+  });
+
   log.ok('完成', { ms: elapsedMs(), pages: pages.length, success, failed });
 }
 
 if (require.main === module) {
   main().catch((err) => {
+    appendSyncReport({
+      script: 'articles',
+      success: 0,
+      failed: 1,
+      skipped: 0,
+      cacheWritten: false,
+      sources: [{ name: 'articles', status: 'failed', error: getErrorMessage(err) }],
+    });
     log.error('执行失败（best-effort，不阻断后续 build/deploy）', {
       message: getErrorMessage(err),
     });
@@ -854,8 +1063,13 @@ if (require.main === module) {
 module.exports = {
   getRssSettings,
   isPrivateIp,
+  assertSafeToFetch,
+  fetchWithRedirects,
   extractFeedLinksFromHtml,
   stripHtmlToText,
   normalizeArticle,
   buildFlatSitesFromCategories,
+  mergeArticlesWithPrevious,
+  shouldWriteSourceCache,
+  writeSourceCacheIfUsable,
 };

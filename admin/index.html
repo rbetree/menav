@@ -12,7 +12,12 @@
     <script>
       // 首帧前落定主题,避免浅色用户先看到深色再闪成浅色。
       (function () {
-        var saved = localStorage.getItem('admin-theme');
+        var saved = null;
+        try {
+          saved = localStorage.getItem('admin-theme');
+        } catch (e) {
+          // 存储被禁用时按系统主题渲染。
+        }
         var light = saved
           ? saved === 'light'
           : window.matchMedia('(prefers-color-scheme: light)').matches;

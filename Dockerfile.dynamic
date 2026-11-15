@@ -1,5 +1,6 @@
 # 动态构建镜像：容器启动时执行构建，适合需要挂载配置并通过重启生效的场景。
 
+# node:22-alpine 浮动到 22.x 最新补丁，下限由 package.json engines 约束。
 FROM node:22-alpine
 
 WORKDIR /app
@@ -11,11 +12,24 @@ RUN npm ci && apk add --no-cache nginx
 
 COPY . .
 
-COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/entrypoint-build-and-serve.sh /usr/local/bin/entrypoint-build-and-serve.sh
-RUN chmod +x /usr/local/bin/entrypoint-build-and-serve.sh
 
-EXPOSE 80
+# 与静态镜像一致的非 root 配置：pid、临时目录和日志都落在 /tmp 或标准输出。
+RUN chmod +x /usr/local/bin/entrypoint-build-and-serve.sh \
+    && mkdir -p /usr/share/nginx/html \
+    && chown -R node:node /app /usr/share/nginx/html
+
+USER node
+
+# 以运行用户校验配置，同时让 /tmp 下的 nginx 临时目录归属该用户
+RUN nginx -t
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=120s --retries=3 \
+    CMD wget -q --spider http://127.0.0.1:8080/ || exit 1
 
 STOPSIGNAL SIGQUIT
 

@@ -77,8 +77,6 @@
   /* 固定高度 60px */
   margin-bottom: 0.8rem;
   /* 与下方按钮区域拉开间距 */
-  transition: padding 0.3s ease;
-  /* 添加padding过渡，避免突变 */
 }
 
 .logo-brand {
@@ -91,7 +89,7 @@
   /* 预留右侧折叠按钮空间 */
 }
 
-.logo-brand h1 {
+.logo-brand .logo-text {
   padding-left: 0;
 }
 
@@ -105,7 +103,7 @@
   display: none;
 }
 
-.logo h1 {
+.logo-text {
   font-size: 1.4rem;
   color: var(--text-bright);
   margin-bottom: 0;
@@ -306,6 +304,13 @@
   display: none;
 }
 
+/* 折叠态优先：断点往返时即使显示类残留，目录面板也不可见 */
+.sidebar.collapsed.submenu-panel-visible .sidebar-submenu-panel:not(:empty) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* 收起侧边栏时，禁止当前激活页面的目录直接显示在按钮下方 */
 .sidebar.collapsed .nav-item-wrapper > .submenu {
   display: none;
@@ -350,7 +355,10 @@
   color: var(--nav-item-color);
   text-decoration: none;
   border-radius: var(--radius-md);
-  transition: all var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    color var(--transition-normal),
+    transform var(--transition-normal);
   margin-bottom: 2px;
   font-size: 0.95rem;
   position: relative;
@@ -376,8 +384,8 @@
 .submenu-item:hover {
   background-color: var(--secondary-bg);
   color: var(--text-bright);
-  padding-left: 1.2rem;
-  /* 悬浮时轻微右移增加动感 */
+  /* 用位移代替 padding 变化，避免触发布局 */
+  transform: translateX(0.2rem);
 }
 
 .submenu-item:hover i {
@@ -389,7 +397,7 @@
 /* 激活状态 */
 .submenu-item.active {
   background-color: var(--highlight-bg);
-  color: var(--accent-color);
+  color: var(--text-bright);
   font-weight: 500;
 }
 
@@ -412,7 +420,7 @@
 }
 
 /* 折叠状态下的Logo文本 */
-.sidebar.collapsed .logo h1 {
+.sidebar.collapsed .logo-text {
   opacity: 0;
   transform: translateX(-20px);
   width: 0;
@@ -545,7 +553,6 @@
   justify-content: center;
   align-items: center;
   margin-right: var(--spacing-md);
-  transition: margin var(--transition-normal);
 }
 
 .nav-item .nav-text {
@@ -647,16 +654,107 @@ body main.content.expanded {
   width: calc(100vw - var(--sidebar-collapsed-width));
 }
 
-/* 仅在交互时启用布局相关过渡，避免首帧闪烁 */
+/* 折叠会改变可用宽度，必然重排；只过渡颜色，避免动画布局属性 */
 .with-anim .sidebar {
-  transition:
-    width 0.3s ease,
-    background-color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .with-anim main.content {
-  transition:
-    background-color 0.3s ease,
-    margin-left 0.3s ease,
-    width 0.3s ease;
+  transition: background-color 0.3s ease;
+}
+
+/* 低高度视口：侧栏内容整体可滚动，保证靠后的导航项可达；分类面板仍独立滚动 */
+@media (max-height: 640px) {
+  .sidebar-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-color) transparent;
+  }
+
+  .sidebar-submenu-panel {
+    flex: 0 0 auto;
+    min-height: 10rem;
+    max-height: 60vh;
+  }
+}
+
+/* JS 加载前先按折叠态渲染首屏，避免短暂显示展开态 */
+html.sidebar-collapsed-preload .sidebar {
+  width: var(--sidebar-collapsed-width);
+  overflow-x: hidden;
+}
+
+html.sidebar-collapsed-preload .sidebar .logo {
+  padding: 1.2rem 0.5rem 0.6rem;
+  justify-content: center;
+}
+
+html.sidebar-collapsed-preload .sidebar .logo-image,
+html.sidebar-collapsed-preload .sidebar .logo-text,
+html.sidebar-collapsed-preload .sidebar .nav-item .nav-text,
+html.sidebar-collapsed-preload .sidebar .nav-item .external-icon,
+html.sidebar-collapsed-preload .sidebar .sidebar-footer,
+html.sidebar-collapsed-preload .sidebar .sidebar-submenu-panel,
+html.sidebar-collapsed-preload .sidebar .nav-item-wrapper > .submenu {
+  display: none;
+}
+
+html.sidebar-collapsed-preload .sidebar .nav-section {
+  gap: 0.4rem;
+  align-items: center;
+}
+
+html.sidebar-collapsed-preload .sidebar .nav-item {
+  padding: 0;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+html.sidebar-collapsed-preload .sidebar .nav-item .icon-container {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+html.sidebar-collapsed-preload .sidebar .section-title {
+  justify-content: center;
+  padding: 0.4rem 0;
+  text-align: center;
+}
+
+html.sidebar-collapsed-preload .sidebar .sidebar-content {
+  padding: 0 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+html.sidebar-collapsed-preload .sidebar .sidebar-social {
+  padding: 0.2rem 0.5rem 0.8rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+html.sidebar-collapsed-preload .sidebar .sidebar-toggle {
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+html.sidebar-collapsed-preload .sidebar .sidebar-toggle .toggle-icon {
+  transform: rotate(180deg);
+}
+
+html.sidebar-collapsed-preload main.content {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100vw - var(--sidebar-collapsed-width));
 }

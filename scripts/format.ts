@@ -18,7 +18,7 @@ const PATTERNS = [
   'admin/*.{js,css,html}',
   'workers/src/**/*.ts',
   'workers/test/**/*.{mjs,cjs}',
-  'workers/*.{json,jsonc}',
+  'workers/{package,tsconfig,wrangler.example}.{json,jsonc}',
   '.github/**/*.yml',
   'astro.config.mjs',
   '*.{md,json}',

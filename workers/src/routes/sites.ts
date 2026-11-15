@@ -11,11 +11,22 @@ async function siteUrl(db: D1Database, value: unknown): Promise<string> {
   const settings = await db
     .prepare("SELECT value FROM settings WHERE key = 'site'")
     .first<{ value: string }>();
-  const allowedSchemes: unknown = settings
-    ? JSON.parse(settings.value).security?.allowedSchemes
-    : undefined;
+  let allowedSchemes: unknown;
+  if (settings) {
+    try {
+      const parsed = JSON.parse(settings.value) as {
+        security?: { allowedSchemes?: unknown };
+      } | null;
+      allowedSchemes = parsed?.security?.allowedSchemes;
+    } catch {
+      // 库内 JSON 损坏属于服务端问题，不能当成请求体格式错误。
+      console.error('settings.site JSON 损坏', { key: 'site' });
+      throw new ApiError(500, '站点配置数据损坏，无法读取；请从备份恢复后重试');
+    }
+  }
   const url = sanitizeSiteUrl(value, allowedSchemes);
   if (url === null) throw new ApiError(400, '链接无效或使用不安全的协议');
+  if (url.length > 2048) throw new ApiError(400, '链接不能超过 2048 个字符');
   return url;
 }
 
@@ -23,6 +34,7 @@ function faviconUrl(value: unknown): string | null {
   if (value === '' || value === null) return null;
   const url = sanitizeIconUrl(value);
   if (url === null) throw new ApiError(400, '图标需为 HTTP(S) 地址或 assets/ 资源路径');
+  if (url.length > 4096) throw new ApiError(400, 'faviconUrl 不能超过 4096 个字符');
   return url;
 }
 

@@ -25,9 +25,7 @@ on:
 
 # 设置GITHUB_TOKEN的权限
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 # 允许一个并发部署
 concurrency:
@@ -39,20 +37,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_deploy:
+  # 书签导入需要写仓库，单独成 job，避免 build 获得 contents: write
+  bookmarks:
     # 防自触发：CI 自己 push 产生的 push 事件不需要再部署（本次 run 已完成导入并继续部署）
-    if: ${{ github.event_name != 'push' || github.actor != 'github-actions[bot]' }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'push' || github.actor != 'github-actions[bot]') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      # --- 书签处理步骤 ---
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         # 使用persist-credentials: false，以便后续步骤可以使用自定义的提交者
         with:
           persist-credentials: false
           fetch-depth: 0 # 获取所有历史记录以进行diff检查
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: 'npm'
@@ -60,7 +62,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # --- 书签处理步骤 ---
       - name: Check for bookmark HTML files
         id: check_bookmark_files
         run: |
@@ -121,12 +122,49 @@ jobs:
           git commit -m "chore(bookmarks): 导入书签并写回用户配置"
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
       # --- 书签处理步骤结束 ---
+
+  build:
+    needs: bookmarks
+    if: ${{ always() && (github.event_name != 'push' || github.actor != 'github-actions[bot]') && (needs.bookmarks.result == 'success' || needs.bookmarks.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # 书签 job 可能刚推送了新提交，按分支最新提交构建
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: false
+          fetch-depth: 0 # 获取所有历史记录以进行diff检查
+
+      - name: Restore dynamic sync cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dev
+          # key 每 run 唯一才能写入新缓存；restore-keys 复用上次成功构建的缓存
+          key: menav-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            menav-dev-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       # --- 网站构建和部署步骤 ---
       # 同步时效性数据（best-effort）：projects 仓库信息、articles RSS 聚合
       # 说明：
       # - 同步结果写入 dev/（仓库默认 gitignore），仅用于本次构建渲染
       # - 同步脚本内部已做 best-effort（失败不阻断后续 build）
+      # - dev/ 由 actions/cache 保留上次成功结果，失败时不覆盖旧缓存
+      # - 即使同步以非 0 退出也继续部署，使用缓存中的上次成功结果
       - name: Sync dynamic caches (best-effort)
+        continue-on-error: true
         run: npm run sync
 
       - name: Build site (clean dist + generate)
@@ -148,17 +186,28 @@ jobs:
       # - 如果你使用 Vercel/Cloudflare Pages 等第三方平台部署，可以跳过这些步骤
       # - 设置 repository variable ENABLE_GITHUB_PAGES=false 来禁用 GitHub Pages 部署
       # - 默认启用 GitHub Pages 部署以保持向后兼容
-      - name: Setup Pages
-        if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
-        uses: actions/configure-pages@v4
-
+      # 仅在主分支上传 Pages 产物，非 main 的 workflow_dispatch 只保留同步与构建能力
       - name: Upload artifact
-        if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
-        uses: actions/upload-pages-artifact@v3
+        if: ${{ github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES != 'false' }}
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: 'dist'
 
+  deploy:
+    needs: build
+    # 显式 environment 与 ref 守卫，避免手动触发时从非 main 分支部署
+    if: ${{ github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES != 'false' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@1f0c5cde4bc74cd7e1254d0cb4de8d49e9068c7d # v4
+
       - name: Deploy to GitHub Pages
-        if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

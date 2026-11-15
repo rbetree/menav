@@ -90,3 +90,106 @@ test('同源无体 POST（如立即发布）不被 Content-Type 检查拦截', a
   // 未接线发布应返回 501（到达业务逻辑），而不是被 CSRF 中间件以 415 拦下。
   assert.equal(res.status, 501);
 });
+
+test('站点 URL 与 faviconUrl 有长度上限，正常 mailto 链接不受影响', async (t) => {
+  const app = await createBackend();
+  t.after(() => app.dispose());
+  await seedOneSite(app);
+  const categoryId = (await app.request('GET', '/api/state')).data[0].categories[0].id;
+  const tooLong = 'https://example.com/' + 'a'.repeat(2048);
+  assert.equal(
+    (await app.request('POST', '/api/sites', { categoryId, name: '超长', url: tooLong })).status,
+    400
+  );
+  const boundary = 'https://example.com/' + 'a'.repeat(2028);
+  assert.equal(boundary.length, 2048);
+  assert.equal(
+    (await app.request('POST', '/api/sites', { categoryId, name: '边界', url: boundary })).status,
+    201
+  );
+  const tooLongFavicon = 'https://example.com/' + 'b'.repeat(4096);
+  assert.equal(
+    (
+      await app.request('POST', '/api/sites', {
+        categoryId,
+        name: '图标',
+        url: 'https://example.com',
+        faviconUrl: tooLongFavicon,
+      })
+    ).status,
+    400
+  );
+  const mailto = 'mailto:' + 'a'.repeat(100) + '@example.com';
+  assert.equal(
+    (await app.request('POST', '/api/sites', { categoryId, name: '邮件', url: mailto })).status,
+    201
+  );
+  assert.equal(
+    (
+      await app.request('POST', '/api/seed?reset=1', {
+        pages: [
+          {
+            id: 'home',
+            categories: [{ label: 'C', sites: [{ name: '超长', url: tooLong }] }],
+          },
+        ],
+      })
+    ).status,
+    400
+  );
+  assert.equal(
+    (
+      await app.request('POST', '/api/seed?reset=1', {
+        pages: [
+          {
+            id: 'home',
+            categories: [
+              {
+                label: 'C',
+                sites: [{ name: '图标', url: 'https://example.com', faviconUrl: tooLongFavicon }],
+              },
+            ],
+          },
+        ],
+      })
+    ).status,
+    400
+  );
+});
+
+test('库内 JSON 损坏返回 500 固定文案，请求体 JSON 错误仍返回 400', async (t) => {
+  const app = await createBackend();
+  t.after(() => app.dispose());
+  await seedOneSite(app);
+  const db = await app.db();
+  await db.prepare("UPDATE pages SET metadata = 'not-json'").run();
+  const broken = await app.request('GET', '/api/state');
+  assert.equal(broken.status, 500);
+  assert.equal(broken.data.ok, false);
+  assert.match(broken.data.detail, /数据损坏/);
+  assert.doesNotMatch(broken.data.detail, /not-json/);
+  const syntax = await app.request('POST', '/api/seed?reset=1', '{"pages": [}');
+  assert.equal(syntax.status, 400);
+  assert.equal(syntax.data.error, 'invalid_json');
+});
+
+test('settings.site 损坏时站点写入返回 500 而非 400', async (t) => {
+  const app = await createBackend();
+  t.after(() => app.dispose());
+  await app.request('POST', '/api/seed?reset=1', {
+    settings: { site: '{}' },
+    pages: [
+      {
+        id: 'home',
+        label: '首页',
+        categories: [{ label: 'C', sites: [{ name: 'A', url: 'https://a.com' }] }],
+      },
+    ],
+  });
+  const site = (await app.request('GET', '/api/state')).data[0].categories[0].sites[0];
+  const db = await app.db();
+  await db.prepare("UPDATE settings SET value = '{bad' WHERE key = 'site'").run();
+  const result = await app.request('PUT', '/api/sites/' + site.id, { url: 'https://b.com' });
+  assert.equal(result.status, 500);
+  assert.match(result.data.detail, /站点配置数据损坏/);
+});

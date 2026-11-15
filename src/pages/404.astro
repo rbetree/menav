@@ -13,6 +13,24 @@ const title = config?.site?.title || 'MeNav';
     <meta name="robots" content="noindex" />
     <title>{title} - 页面未找到</title>
     <style>
+      :root {
+        color-scheme: light;
+        --page-bg: #e0e0d8;
+        --page-text: #333333;
+        --page-muted: #5a5a5a;
+        --page-accent: #466387;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --page-bg: #0d0c0b;
+          --page-text: #f4f1ea;
+          --page-muted: #a49d92;
+          --page-accent: #7694b9;
+        }
+      }
+
       body {
         margin: 0;
         padding: 40px 16px;
@@ -26,8 +44,8 @@ const title = config?.site?.title || 'MeNav';
           Arial,
           'Noto Sans',
           sans-serif;
-        background: #0b1020;
-        color: #e6e6e6;
+        background: var(--page-bg);
+        color: var(--page-text);
       }
 
       .container {
@@ -43,11 +61,17 @@ const title = config?.site?.title || 'MeNav';
       p {
         margin: 8px 0;
         line-height: 1.6;
-        color: rgba(230, 230, 230, 0.9);
+        color: var(--page-muted);
       }
 
       a {
-        color: #74c0fc;
+        color: var(--page-accent);
+        text-decoration: underline;
+      }
+
+      a:focus-visible {
+        outline: 2px solid var(--page-accent);
+        outline-offset: 2px;
       }
     </style>
   </head>

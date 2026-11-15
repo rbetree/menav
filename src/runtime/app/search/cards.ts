@@ -74,7 +74,7 @@ function createCardFromIndexItem(item: RuntimeSearchIndexItem): HTMLElement {
   if (isRepo) {
     const header = createElement('div', 'repo-header');
     header.appendChild(createElement('i', `${item.icon || 'fas fa-code'} repo-icon`));
-    header.appendChild(createElement('div', 'repo-title', item.title));
+    header.appendChild(createElement('h3', 'repo-title', item.title));
     card.appendChild(header);
     card.appendChild(createElement('div', 'repo-desc', item.description));
 

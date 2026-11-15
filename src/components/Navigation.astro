@@ -21,6 +21,7 @@ const visibleNavigation = navigation.filter((item) => !item.hidden);
           data-id={item.id}
           data-name={item.name}
           data-icon={item.icon}
+          aria-label={item.name}
         >
           <div class="icon-container">
             <i class={item.icon} />

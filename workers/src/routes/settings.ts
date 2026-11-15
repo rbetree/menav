@@ -1,9 +1,24 @@
 import { Hono } from 'hono';
 import { object } from '../validation';
-import { commitEdit, type AdminEnv } from '../db/revision';
+import { commitEdit, revisionTag, type AdminEnv } from '../db/revision';
+import { loadSettings } from '../db/site-model';
 import { siteConfigSchema } from '../../../src/lib/config/schema/site';
 import { isSnapshotAssetPath } from '../../../src/shared/snapshot-assets';
 import { ApiError } from '../errors';
+
+function sameJson(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const aKeys = Object.keys(a as object);
+  const bKeys = Object.keys(b as object);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every(
+    (key) =>
+      key in (b as object) &&
+      sameJson((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
+  );
+}
 
 /**
  * 站点级配置(settings.site)的分区块更新。
@@ -60,15 +75,11 @@ settingsRoutes.put('/site', async (c) => {
   }
 
   // 图片字段只能指向已存在的快照资源,否则校验通过但发布后 404。
-  const assetsRow = await c.env.DB.prepare(
-    "SELECT value FROM settings WHERE key = 'assets'"
-  ).first<{
-    value: string;
-  }>();
+  const settings = await loadSettings(c.env.DB);
   let keys: string[] = [];
-  if (assetsRow?.value) {
+  if (settings.assets) {
     try {
-      keys = Object.keys(object(JSON.parse(assetsRow.value), 'settings.assets'));
+      keys = Object.keys(object(JSON.parse(settings.assets), 'settings.assets'));
     } catch {
       keys = [];
     }
@@ -83,6 +94,12 @@ settingsRoutes.put('/site', async (c) => {
     if (!isSnapshotAssetPath(value) || !keys.includes(value))
       throw new ApiError(400, `${key} 必须是已存在的图片资源`, `invalid_${key}`);
     (parsed.data as Record<string, unknown>)[key] = value;
+  }
+
+  // 空 patch 与同值保存不产生新版本；If-Match 仍由 editRevision 统一校验。
+  if (sameJson(parsed.data, current)) {
+    c.header('ETag', revisionTag(c.get('revision')));
+    return c.json({ ok: true });
   }
 
   await commitEdit(c, [

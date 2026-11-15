@@ -1,28 +1,8 @@
 import type { MenavConfig } from './types';
 
-const { SELECTORS, qs, byId } = require('./dom/selectors.ts') as typeof import('./dom/selectors');
 const { getRuntimeConfig } = require('./runtime-config.ts') as typeof import('./runtime-config');
 const { sanitizeUrlOrHash } =
   require('../shared/sanitize-url.ts') as typeof import('../shared/sanitize-url');
-
-function menavExtractDomain(url: unknown): string {
-  if (!url) return '';
-
-  try {
-    // 移除协议部分 (http://, https://, etc.)
-    let domain = String(url).replace(/^[a-zA-Z]+:\/\//, '');
-
-    // 移除路径、查询参数和锚点
-    domain = domain.split('/')[0].split('?')[0].split('#')[0];
-
-    // 移除端口号（如果有）
-    domain = domain.split(':')[0];
-
-    return domain;
-  } catch (e) {
-    return String(url);
-  }
-}
 
 // URL 安全策略：默认仅允许 http/https（可加 mailto/tel）与相对链接；其他 scheme 降级为 '#'
 function menavGetAllowedUrlSchemes(): string[] {
@@ -57,56 +37,17 @@ function menavSanitizeUrl(rawUrl: unknown, contextLabel: string): string {
   });
 }
 
-// class token 清洗：仅允许字母/数字/下划线/中划线与空格分隔，避免属性/事件注入
-function menavSanitizeClassList(rawClassList: unknown, contextLabel: string): string {
-  const input = String(rawClassList || '').trim();
-  if (!input) return '';
-
-  const tokens = input
-    .split(/\s+/g)
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .map((t) => t.replace(/[^\w-]/g, ''))
-    .filter(Boolean);
-
-  const sanitized = tokens.join(' ');
-  if (sanitized !== input) {
-    console.warn(`[MeNav][安全] 已清洗不安全的 icon class：${contextLabel || ''}`, rawClassList);
-  }
-  return sanitized;
-}
-
-// 版本号统一来源：优先读取 meta[menav-version]，回退到运行时配置注入
-function menavDetectVersion(): string {
-  try {
-    const meta = qs(SELECTORS.metaVersion);
-    const v = meta ? String(meta.getAttribute('content') || '').trim() : '';
-    if (v) return v;
-  } catch (e) {
-    // 忽略
-  }
-
-  try {
-    const configData = byId(SELECTORS.runtimeConfigData);
-    const raw = configData ? String(configData.textContent || '').trim() : '';
-    if (!raw) return '1.0.0';
-    const parsed = JSON.parse(raw);
-    const v = parsed && parsed.version ? String(parsed.version).trim() : '';
-    return v || '1.0.0';
-  } catch (e) {
-    return '1.0.0';
-  }
-}
-
 // 修复移动端 `100vh` 视口高度问题：用实际可视高度驱动布局，避免侧边栏/内容区底部被浏览器 UI 遮挡
+let appHeightFrame: number | null = null;
+
 function menavUpdateAppHeight(): void {
-  const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
+  if (appHeightFrame !== null) return;
+  appHeightFrame = window.requestAnimationFrame(() => {
+    appHeightFrame = null;
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${Math.round(viewportHeight)}px`);
+  });
 }
-export {
-  menavExtractDomain,
-  menavSanitizeUrl,
-  menavSanitizeClassList,
-  menavDetectVersion,
-  menavUpdateAppHeight,
-};
+export { menavSanitizeUrl, menavUpdateAppHeight };

@@ -5,7 +5,10 @@ import type { CategoryItem } from '../../src/types/page';
 import type { SiteItem } from '../../src/types/site';
 import { collectSiteExternalData } from '../../src/lib/site-model/external-data.ts';
 import { ConfigError } from '../../src/lib/errors.ts';
-import { isSnapshotAssetPath } from '../../src/shared/snapshot-assets.ts';
+import {
+  isSnapshotAssetPath,
+  resolveSnapshotAssetReference,
+} from '../../src/shared/snapshot-assets.ts';
 
 type SeedSite = Record<string, unknown>;
 type SeedCategory = {
@@ -64,13 +67,16 @@ export function createSeed(config: ResolvedConfig) {
       visit
     );
   };
-  const favicon = config.site.favicon;
-  if (favicon) {
-    const candidates = [path.join('assets', favicon), favicon];
-    const source = candidates.find((candidate) => fs.existsSync(candidate));
-    if (!source) throw new ConfigError('站点图标不存在', [favicon]);
-    addAsset(source, favicon.replace(/^\.\//, '').replace(/^\//, ''));
-  }
+  const addSiteImage = (raw: unknown, label: string) => {
+    const value = typeof raw === 'string' ? raw.trim() : '';
+    if (!value || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value)) return;
+
+    const reference = resolveSnapshotAssetReference(value);
+    if (!reference) throw new ConfigError(`${label}路径不受支持`, [value]);
+    addAsset(path.resolve(reference.source), reference.destination);
+  };
+  addSiteImage(config.site.favicon, '站点图标');
+  addSiteImage(config.site.logo, '站点 Logo');
   const pages = config.navigation.map((nav) => {
     const page = config.pages[nav.id] ?? {};
     const { categories, template, ...metadata } = page;

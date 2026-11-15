@@ -302,8 +302,19 @@ function auditExternalDataPresence(searchIndex: SearchIndex) {
   }
 }
 
+function auditStaticAssetVersioning() {
+  const indexHtml = read('dist/index.html');
+  assertIncludes(indexHtml, './assets/style.css?v=', '入口 HTML 缺少样式表内容 hash');
+  assertIncludes(indexHtml, './pinyin-match.js?v=', '入口 HTML 缺少拼音脚本内容 hash');
+  assertIncludes(indexHtml, './script.js?v=', '入口 HTML 缺少运行时脚本内容 hash');
+
+  const runtimeBundle = read('dist/script.js');
+  assertIncludes(runtimeBundle, 'search-index.json?v=', '运行时脚本缺少搜索索引内容 hash');
+}
+
 function auditPublicArtifacts() {
   ensureBuildArtifacts();
+  auditStaticAssetVersioning();
 
   const runtimeBundle = read('dist/script.js');
   if (runtimeBundle.includes('module.exports')) fail('浏览器 bundle 不应包含裸 module.exports');
@@ -417,5 +428,6 @@ module.exports = {
   auditDocs,
   auditLegacyBoundaries,
   auditPublicArtifacts,
+  auditStaticAssetVersioning,
   auditStyleLayers,
 };

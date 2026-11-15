@@ -27,12 +27,17 @@ function getErrorMessage(error: unknown): string {
 const PREPARE_WATCH_DIRS = [
   'config',
   'assets',
+  path.join('src', 'lib', 'cache'),
   path.join('src', 'lib', 'config'),
   path.join('src', 'lib', 'content'),
+  path.join('src', 'lib', 'github'),
   path.join('src', 'lib', 'html'),
   path.join('src', 'lib', 'search-index'),
+  path.join('src', 'lib', 'security'),
   path.join('src', 'lib', 'site-data'),
+  path.join('src', 'lib', 'site-model'),
   path.join('src', 'lib', 'view-data'),
+  path.join('src', 'shared'),
 ];
 
 function hasArg(argv: string[], name: string): boolean {

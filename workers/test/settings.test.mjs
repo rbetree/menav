@@ -52,7 +52,12 @@ test('站点配置写入遵循版本并发控制', async (t) => {
   await seedSite(app, { title: 'T' });
   const stale = (await app.request('GET', '/api/state')).headers.get('etag');
   assert.ok(stale);
-  const first = await app.request('PUT', '/api/settings/site', { title: 'T2' }, { 'if-match': stale });
+  const first = await app.request(
+    'PUT',
+    '/api/settings/site',
+    { title: 'T2' },
+    { 'if-match': stale }
+  );
   assert.equal(first.status, 200);
   const conflict = await app.request(
     'PUT',
@@ -61,6 +66,32 @@ test('站点配置写入遵循版本并发控制', async (t) => {
     { 'if-match': stale }
   );
   assert.equal(conflict.status, 409);
+});
+
+test('空 patch 与同值保存不递增 revision，空 patch 仍校验 If-Match', async (t) => {
+  const app = await createBackend();
+  t.after(() => app.dispose());
+  await seedSite(app, { title: 'T' });
+  const initial = await app.request('GET', '/api/settings');
+  const etag = initial.headers.get('etag');
+  assert.ok(etag);
+  const empty = await app.request('PUT', '/api/settings/site', {}, { 'if-match': etag });
+  assert.equal(empty.status, 200);
+  assert.equal(empty.headers.get('etag'), etag);
+  const same = await app.request('PUT', '/api/settings/site', { title: 'T' }, { 'if-match': etag });
+  assert.equal(same.status, 200);
+  assert.equal(same.headers.get('etag'), etag);
+  assert.equal((await app.request('GET', '/api/state')).headers.get('etag'), etag);
+  const stale = await app.request('PUT', '/api/settings/site', {}, { 'if-match': '"999"' });
+  assert.equal(stale.status, 409);
+  const changed = await app.request(
+    'PUT',
+    '/api/settings/site',
+    { title: 'T2' },
+    { 'if-match': etag }
+  );
+  assert.equal(changed.status, 200);
+  assert.notEqual(changed.headers.get('etag'), etag);
 });
 
 test('分类与站点 metadata 可经 PUT 更新', async (t) => {
