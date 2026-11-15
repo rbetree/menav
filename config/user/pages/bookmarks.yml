@@ -212,6 +212,10 @@ categories:
             url: https://ais.msa.gov.cn/?code=92fd931d-fe9d-4413-ad8a-38b916014bf1
             icon: fas fa-link
             description: ""
+          - name: Z-Library
+            url: https://z-lib.sk/
+            icon: fas fa-link
+            description: ""
       - name: 查找文献
         icon: fas fa-folder
         path:
@@ -367,6 +371,10 @@ categories:
             description: ""
           - name: LongCatAI
             url: https://longcat.chat/platform/usage
+            icon: fas fa-link
+            description: ""
+          - name: 50x
+            url: https://ai.50x.energy/
             icon: fas fa-link
             description: ""
       - name: 工具
