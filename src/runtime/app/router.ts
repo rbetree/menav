@@ -168,7 +168,8 @@ module.exports = function initRouting(
       submenuByPageId.set(pageId, { wrapper, submenu });
     });
 
-    const isSidebarCollapsed = () => Boolean(sidebar && sidebar.classList.contains('collapsed'));
+    // 折叠判断走 ui 的统一状态，避免 DOM class 与 state 不同步时误判
+    const isSidebarCollapsed = () => ui.isSidebarCollapsed();
 
     const updateSubmenuScrollState = (list: HTMLElement): void => {
       const maxScroll = list.scrollHeight - list.clientHeight;

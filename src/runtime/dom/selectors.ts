@@ -1,7 +1,7 @@
 const SELECTORS = {
   metaVersion: 'meta[name="menav-version"]',
   themeColorMeta: 'menav-theme-color',
-  runtimeConfigData: 'menav-runtime-config',
+  runtimeConfigData: 'script#menav-runtime-config[type="application/json"]',
   searchInput: 'search',
   searchBox: '.search-box',
   searchResultsPage: 'search-results',
@@ -25,7 +25,6 @@ const SELECTORS = {
   pageTemplate: 'template[data-page-template]',
   category: '.category',
   categoryHeading: '.category h2',
-  categoryLevelOne: '.category-level-1',
   navItem: '.nav-item',
   navItemWithPage: '.nav-item[data-page]',
   navItemActive: '.nav-item.active',
@@ -44,13 +43,6 @@ const SELECTORS = {
   nestedGroupHeader: ':scope > .group-header[data-toggle="group"]',
   nestedHeader:
     ':scope > .category-header, :scope > .subcategory-header, :scope > .group-header, :scope > .subgroup-header',
-  nestedSubcategories:
-    ':scope > .category-content > .collapse-content-inner > .subcategories-container > .category',
-  nestedGroups: ':scope > .category-content > .collapse-content-inner > .groups-container > .group',
-  nestedSubgroups:
-    ':scope > .group-content > .collapse-content-inner > .subgroups-container > .group',
-  nestedSites:
-    ':scope > .category-content > .collapse-content-inner > .sites-grid > .site-card, :scope > .group-content > .collapse-content-inner > .sites-grid > .site-card',
   sitesContainer: '[data-container="sites"]',
   siteCard: '.site-card',
   siteTitle: 'h3',

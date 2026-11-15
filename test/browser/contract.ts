@@ -448,6 +448,165 @@ async function runDomThemeSearchContract(page, baseUrl) {
   assert.equal(resetState.activePageId, resetState.activeNavId);
 }
 
+async function waitForBodyLoaded(page) {
+  await page.waitForFunction(() => document.body.classList.contains('loaded'), null, {
+    timeout: 5000,
+  });
+}
+
+async function runSidebarBreakpointContract(page, baseUrl) {
+  await openPage(page, baseUrl, '/');
+  await waitForBodyLoaded(page);
+  await page.evaluate(() => localStorage.setItem('sidebarCollapsed', 'false'));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+
+  const initialState = await page.evaluate(() => ({
+    collapsed: document.querySelector('.sidebar')?.classList.contains('collapsed') || false,
+    expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+  }));
+  assert.equal(initialState.collapsed, false);
+  assert.equal(initialState.expanded, false);
+
+  await page.evaluate(() => document.querySelector('.sidebar-toggle')?.click());
+  await page.waitForFunction(
+    () => document.querySelector('.sidebar')?.classList.contains('collapsed') === true,
+    null,
+    { timeout: 5000 }
+  );
+  const collapsedState = await page.evaluate(() => {
+    const sidebar = document.querySelector('.sidebar');
+    return {
+      collapsed: sidebar?.classList.contains('collapsed') || false,
+      expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+      panelVisible: sidebar?.classList.contains('submenu-panel-visible') || false,
+      ariaExpanded: sidebar?.querySelector('.sidebar-toggle')?.getAttribute('aria-expanded') || '',
+    };
+  });
+  assert.equal(collapsedState.collapsed, true);
+  assert.equal(collapsedState.expanded, true);
+  assert.equal(collapsedState.panelVisible, false);
+  assert.equal(collapsedState.ariaExpanded, 'false');
+
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.waitForFunction(
+    () => {
+      const sidebar = document.querySelector('.sidebar');
+      const content = document.querySelector('.content');
+      return Boolean(
+        sidebar &&
+        content &&
+        !sidebar.classList.contains('collapsed') &&
+        !content.classList.contains('expanded') &&
+        sidebar.classList.contains('submenu-panel-visible')
+      );
+    },
+    null,
+    { timeout: 5000 }
+  );
+  assert.equal(
+    await page.evaluate(() => localStorage.getItem('sidebarCollapsed')),
+    'true',
+    '窄屏不应清掉桌面折叠偏好'
+  );
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForFunction(
+    () => {
+      const sidebar = document.querySelector('.sidebar');
+      const content = document.querySelector('.content');
+      return Boolean(
+        sidebar &&
+        content &&
+        sidebar.classList.contains('collapsed') &&
+        content.classList.contains('expanded') &&
+        !sidebar.classList.contains('submenu-panel-visible')
+      );
+    },
+    null,
+    { timeout: 5000 }
+  );
+
+  // 窄屏加载时也保留偏好，回到桌面再恢复折叠
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+  const mobileLoadState = await page.evaluate(() => ({
+    collapsed: document.querySelector('.sidebar')?.classList.contains('collapsed') || false,
+    expanded: document.querySelector('.content')?.classList.contains('expanded') || false,
+    stored: localStorage.getItem('sidebarCollapsed'),
+  }));
+  assert.equal(mobileLoadState.collapsed, false);
+  assert.equal(mobileLoadState.expanded, false);
+  assert.equal(mobileLoadState.stored, 'true');
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.waitForFunction(
+    () => document.querySelector('.sidebar')?.classList.contains('collapsed') === true,
+    null,
+    { timeout: 5000 }
+  );
+
+  await page.evaluate(() => localStorage.setItem('sidebarCollapsed', 'false'));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForMenav(page);
+  await waitForBodyLoaded(page);
+}
+
+async function runStorageFailureContract(browser, baseUrl) {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new DOMException('Storage blocked', 'SecurityError');
+      },
+    });
+  });
+
+  const page = await context.newPage();
+  const pageErrors = [];
+  const consoleErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
+
+  try {
+    await openPage(page, baseUrl, '/');
+    await waitForBodyLoaded(page);
+
+    const initialState = await page.evaluate(() => ({
+      activePageId: document.querySelector('.page.active')?.id || '',
+      activeNavId: document.querySelector('.nav-item.active')?.getAttribute('data-page') || '',
+      bodyLoaded: document.body.classList.contains('loaded'),
+    }));
+    assert.equal(initialState.bodyLoaded, true, '存储不可用时运行时仍应完成初始化');
+    assert.ok(initialState.activePageId);
+    assert.equal(initialState.activePageId, initialState.activeNavId);
+
+    const targetPageId = await page.evaluate(() => {
+      const currentPageId =
+        document.querySelector('.nav-item.active')?.getAttribute('data-page') || '';
+      const next = Array.from(document.querySelectorAll('.nav-item[data-page]')).find(
+        (item) => item.getAttribute('data-page') !== currentPageId
+      );
+      if (!next) return '';
+      const pageId = next.getAttribute('data-page') || '';
+      next.click();
+      return pageId;
+    });
+
+    if (targetPageId) await waitForRouteState(page, { pageId: targetPageId });
+    assert.deepEqual(pageErrors, [], '存储不可用时不应产生未捕获异常');
+    assert.deepEqual(consoleErrors, [], '存储不可用时不应输出控制台错误');
+  } finally {
+    await context.close();
+  }
+}
+
 async function main() {
   const elapsedMs = startTimer();
   const repoRoot = path.resolve(__dirname, '..', '..');
@@ -479,6 +638,8 @@ async function main() {
     await runRouteContract(page, baseUrl);
     await runRuntimeConfigContract(page, baseUrl);
     await runDomThemeSearchContract(page, baseUrl);
+    await runSidebarBreakpointContract(page, baseUrl);
+    await runStorageFailureContract(browser, baseUrl);
     await assertNoConsoleErrors(messages);
 
     log.ok('完成', { ms: elapsedMs(), url: baseUrl });

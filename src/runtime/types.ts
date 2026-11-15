@@ -69,24 +69,6 @@ export type RuntimeSearchEngine = {
 
 export type RuntimeSearchEngines = Record<string, RuntimeSearchEngine>;
 
-export type NestedStructureSite = {
-  name?: string;
-  url?: string;
-  icon?: string;
-  description?: string;
-};
-
-export type NestedStructureNode = {
-  name?: string;
-  type?: string;
-  level?: string;
-  isCollapsed: boolean;
-  subcategories?: NestedStructureNode[];
-  groups?: NestedStructureNode[];
-  subgroups?: NestedStructureNode[];
-  sites?: NestedStructureSite[];
-};
-
 export type MenavIconConfig = {
   mode?: unknown;
   region?: unknown;
@@ -114,6 +96,7 @@ export type MenavConfig = {
 
 export type RuntimeUiApi = {
   isMobile: () => boolean;
+  isSidebarCollapsed: () => boolean;
   closeAllPanels: () => void;
   initTheme: () => void;
   initSidebarState: () => void;

@@ -2,7 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { collectSitesRecursively } from '../../src/lib/site-data/sites.ts';
-import { isSnapshotAssetPath, isSnapshotAssetData } from '../../src/shared/snapshot-assets.ts';
+import {
+  isSnapshotAssetPath,
+  isSnapshotAssetData,
+  resolveSnapshotAssetReference,
+} from '../../src/shared/snapshot-assets.ts';
 
 type PublicAssetsLogger = {
   warn: (message: string, meta?: Record<string, unknown>) => void;
@@ -10,6 +14,7 @@ type PublicAssetsLogger = {
 
 type SiteLike = {
   favicon?: string;
+  logo?: string;
 };
 
 type SiteItemLike = {
@@ -210,18 +215,28 @@ function copyLocalFaviconUrls(config: ConfigLike, log: PublicAssetsLogger): void
   });
 }
 
-function copySiteFavicon(config: ConfigLike, log: PublicAssetsLogger): void {
-  const favicon = config && config.site ? config.site.favicon : '';
-  if (!favicon) return;
+function copySiteImage(raw: unknown, label: string, log: PublicAssetsLogger): void {
+  const value = String(raw || '').trim();
+  if (!value || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value)) return;
 
-  const candidates = [path.join('assets', favicon), favicon];
-  const src = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!src) {
-    log.warn('favicon 文件不存在', { path: favicon });
+  const reference = resolveSnapshotAssetReference(value);
+  if (!reference) {
+    log.warn(`${label} 路径不受支持，需位于 assets/ 或为根目录文件名`, { path: value });
+    return;
+  }
+  if (!fs.existsSync(reference.source)) {
+    log.warn(`${label} 本地文件不存在`, { path: reference.source });
     return;
   }
 
-  copyFile(src, path.join('public', path.basename(favicon)));
+  // 保留配置中的相对路径，页面里的 ./<path> 才能与复制结果对上。
+  copyFile(reference.source, path.join('public', reference.destination));
+}
+
+function copySiteImages(config: ConfigLike, log: PublicAssetsLogger): void {
+  const site = config && config.site ? config.site : {};
+  copySiteImage(site.favicon, 'favicon', log);
+  copySiteImage(site.logo, 'logo', log);
 }
 
 function prepareIconAssets(config: ConfigLike, log: PublicAssetsLogger): void {
@@ -245,7 +260,7 @@ function prepareIconAssets(config: ConfigLike, log: PublicAssetsLogger): void {
     return;
   }
   copyLocalFaviconUrls(config, log);
-  copySiteFavicon(config, log);
+  copySiteImages(config, log);
 }
 
 export {

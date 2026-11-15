@@ -1,7 +1,6 @@
-import type { NestedStructureNode } from '../types';
-
 const { SELECTORS, byId, qs, qsa } =
   require('../dom/selectors.ts') as typeof import('../dom/selectors');
+const { safeGetItem, safeSetItem } = require('./storage.ts') as typeof import('./storage');
 
 // 多层级嵌套书签功能
 function getCollapsibleNestedContainers(root: ParentNode | null): HTMLElement[] {
@@ -133,23 +132,42 @@ function toggleNestedElement(container: HTMLElement | null): void {
   syncCategoryToggleState();
 }
 
+// 构建期稳定标识优先；缺失时按同级序号兜底，最后用页面 id 隔离同名分类。
+function getToggleStateKey(element: HTMLElement): string {
+  const type = String(element.dataset.type || '').trim();
+  const level = String(element.dataset.level || '1').trim();
+  const stableKey = String(element.dataset.key || element.dataset.id || element.id || '').trim();
+
+  let identity = stableKey;
+  if (!identity) {
+    const name = String(element.dataset.name || '').trim() || 'item';
+    const parent = element.parentElement;
+    const siblings = parent
+      ? Array.from(parent.children).filter(
+          (sibling) => (sibling as HTMLElement).dataset?.type === type
+        )
+      : [];
+    const index = siblings.indexOf(element);
+    identity = `${name}-${index < 0 ? 0 : index}`;
+  }
+
+  const pageElement =
+    typeof element.closest === 'function'
+      ? (element.closest('.page[id]') as HTMLElement | null)
+      : null;
+  const pageId = pageElement && pageElement.id ? `${pageElement.id}-` : '';
+  return `menav-toggle-${pageId}${type}-${level}-${identity}`;
+}
+
 // 保存切换状态
 function saveToggleState(element: HTMLElement, state: 'expanded' | 'collapsed'): void {
-  const type = element.dataset.type;
-  const name = element.dataset.name;
-  const level = element.dataset.level || '1';
-  const key = `menav-toggle-${type}-${level}-${name}`;
-  localStorage.setItem(key, state);
+  safeSetItem(getToggleStateKey(element), state);
 }
 
 // 恢复切换状态
 function restoreToggleState(element: HTMLElement | null): void {
   if (!element) return;
-  const type = element.dataset.type;
-  const name = element.dataset.name;
-  const level = element.dataset.level || '1';
-  const key = `menav-toggle-${type}-${level}-${name}`;
-  const savedState = localStorage.getItem(key);
+  const savedState = safeGetItem(getToggleStateKey(element));
 
   if (savedState === 'collapsed') {
     element.classList.add('collapsed');
@@ -188,44 +206,6 @@ function initializeNestedCategories(root: ParentNode = document): void {
   });
 
   syncCategoryToggleState();
-}
-
-// 提取嵌套数据
-function extractNestedData(element: HTMLElement): NestedStructureNode {
-  const data: NestedStructureNode = {
-    name: element.dataset.name,
-    type: element.dataset.type,
-    level: element.dataset.level,
-    isCollapsed: element.classList.contains('collapsed'),
-  };
-
-  // 提取子元素数据
-  const subcategories = qsa(SELECTORS.nestedSubcategories, element);
-  if (subcategories.length > 0) {
-    data.subcategories = Array.from(subcategories).map((sub) => extractNestedData(sub));
-  }
-
-  const groups = qsa(SELECTORS.nestedGroups, element);
-  if (groups.length > 0) {
-    data.groups = Array.from(groups).map((group) => extractNestedData(group));
-  }
-
-  const subgroups = qsa(SELECTORS.nestedSubgroups, element);
-  if (subgroups.length > 0) {
-    data.subgroups = Array.from(subgroups).map((subgroup) => extractNestedData(subgroup));
-  }
-
-  const sites = qsa(SELECTORS.nestedSites, element);
-  if (sites.length > 0) {
-    data.sites = Array.from(sites).map((site) => ({
-      name: site.dataset.name,
-      url: site.dataset.url,
-      icon: site.dataset.icon,
-      description: site.dataset.description,
-    }));
-  }
-
-  return data;
 }
 
 function expandAll(): void {
@@ -270,40 +250,12 @@ function toggleCategories(): void {
   }
 }
 
-function toggleCategory(
-  categoryName: string,
-  subcategoryName: string | null = null,
-  groupName: string | null = null,
-  subgroupName: string | null = null
-): void {
-  let selector = `[data-name="${categoryName}"]`;
-
-  if (subcategoryName) selector += ` [data-name="${subcategoryName}"]`;
-  if (groupName) selector += ` [data-name="${groupName}"]`;
-  if (subgroupName) selector += ` [data-name="${subgroupName}"]`;
-
-  const element = qs(selector);
-  if (element) {
-    toggleNestedElement(element);
-  }
-}
-
-function getNestedStructure(): NestedStructureNode[] {
-  const categories: NestedStructureNode[] = [];
-  qsa(SELECTORS.categoryLevelOne).forEach((cat: HTMLElement) => {
-    categories.push(extractNestedData(cat));
-  });
-  return categories;
-}
-
 module.exports = {
   collapseAll,
   expandAll,
-  getNestedStructure,
+  getToggleStateKey,
   initializeNestedCategories,
   syncCategoryToggleState,
   toggleCategories,
-  toggleCategory,
   updateCategoryToggleIcon,
-  extractNestedData,
 };

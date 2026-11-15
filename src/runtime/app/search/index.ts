@@ -30,6 +30,7 @@ const { loadBuildSearchIndex } = require('./search-index-loader.ts') as {
 };
 const { SELECTORS, qs, qsa } =
   require('../../dom/selectors.ts') as typeof import('../../dom/selectors');
+const { safeGetItem, safeSetItem } = require('../storage.ts') as typeof import('../storage');
 
 // 卡片逐条创建，结果过多会拖慢渲染；超出部分不进入结果页
 const SEARCH_RESULT_LIMIT = 200;
@@ -253,7 +254,7 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
   // 初始化搜索引擎设置
   function initSearchEngine(): void {
     // 从本地存储获取上次选择的搜索引擎
-    const savedEngine = localStorage.getItem('searchEngine');
+    const savedEngine = safeGetItem('searchEngine');
     if (savedEngine && searchEngines[savedEngine]) {
       state.currentSearchEngine = savedEngine;
     }
@@ -356,7 +357,7 @@ function initSearch(state: RuntimeState, dom: RuntimeDom): RuntimeSearchApi {
           }
 
           state.currentSearchEngine = engine;
-          localStorage.setItem('searchEngine', engine);
+          safeSetItem('searchEngine', engine);
 
           // 更新 UI 显示
           updateSearchEngineUI();

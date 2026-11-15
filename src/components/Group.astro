@@ -27,6 +27,7 @@ const isToggleable = group.foldable !== false && (hasSubgroups || hasCards);
 <div
   class:list={['group', `group-level-${groupLevel}`]}
   data-type="group"
+  data-key={group.slug || group.name}
   data-name={group.name}
   data-icon={group.icon}
   data-level={groupLevel}
