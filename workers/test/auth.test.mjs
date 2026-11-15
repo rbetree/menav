@@ -36,8 +36,8 @@ test('Access 校验签名、受众与过期时间；构建 Token 不能写管理
     },
   });
   t.after(() => app.dispose());
-  const token = (audience, expiration) =>
-    new SignJWT({ email: 'admin@example.com' })
+  const token = (audience, expiration, payload = {}) =>
+    new SignJWT({ email: 'admin@example.com', sub: 'admin-user', ...payload })
       .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
       .setIssuer('https://menav-test.cloudflareaccess.com')
       .setAudience(audience)
@@ -67,6 +67,17 @@ test('Access 校验签名、受众与过期时间；构建 Token 不能写管理
     ).status,
     403
   );
+  // 服务令牌与身份令牌同签名同受众，但 sub 为空且带 common_name。
+  for (const payload of [
+    { sub: '' },
+    { sub: '', common_name: 'e367826f93b8d71185e03fe518aff3b4.access' },
+    { common_name: 'e367826f93b8d71185e03fe518aff3b4.access' },
+  ]) {
+    const response = await app.request('GET', '/api/state', undefined, {
+      'cf-access-jwt-assertion': await token('menav-admin', '1h', payload),
+    });
+    assert.equal(response.status, 403, JSON.stringify(payload));
+  }
   const valid = await token('menav-admin', '1h');
   for (const path of ['/', '/index.html', '/api/state', '/api/settings', '/api/export']) {
     const response = await app.request('GET', path, undefined, {

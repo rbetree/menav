@@ -7,7 +7,8 @@ export interface Deployment {
   environment: string;
   is_skipped?: boolean;
   deployment_trigger?: { metadata?: { commit_message?: string } };
-  latest_stage: { name: string; status: string };
+  /** Pages API 偶尔不返回阶段信息，调用方需按可重试错误处理。 */
+  latest_stage?: { name: string; status: string };
 }
 
 export class PagesApiError extends ApiError {

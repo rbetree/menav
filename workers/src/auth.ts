@@ -52,7 +52,14 @@ export async function authMiddleware(
   if (!token) return c.json({ ok: false, error: 'unauthorized' }, 403);
 
   try {
-    await jwtVerify(token, getJwks(TEAM_DOMAIN), { issuer: TEAM_DOMAIN, audience: POLICY_AUD });
+    const { payload } = await jwtVerify(token, getJwks(TEAM_DOMAIN), {
+      issuer: TEAM_DOMAIN,
+      audience: POLICY_AUD,
+    });
+    // 服务令牌与身份令牌同签名同受众，但 sub 为空且带 common_name；
+    // 管理 API 只接受身份型令牌，构建路径另有 BUILD_TOKEN 校验。
+    if (typeof payload.sub !== 'string' || !payload.sub || 'common_name' in payload)
+      return c.json({ ok: false, error: 'unauthorized' }, 403);
   } catch {
     return c.json({ ok: false, error: 'unauthorized' }, 403);
   }

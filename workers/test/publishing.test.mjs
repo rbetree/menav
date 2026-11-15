@@ -18,6 +18,8 @@ function cloudflare() {
     snapshots,
     loseNextResponse: false,
     rejectNext: false,
+    deploymentStatus: null,
+    hideStage: false,
     succeed(id) {
       const d = deployments.find((d) => d.id === id);
       d.latest_stage = { name: 'deploy', status: 'success' };
@@ -51,9 +53,13 @@ function cloudflare() {
             return Response.json({ success: false }, { status: 502 });
           }
         } else if (url.pathname.endsWith('/deployments')) result = deployments.toReversed();
-        else if (/\/deployments\//.test(url.pathname))
-          result = deployments.find((d) => url.pathname.endsWith('/' + d.id));
-        else result = { canonical_deployment: canonical };
+        else if (/\/deployments\//.test(url.pathname)) {
+          if (this.deploymentStatus)
+            return Response.json({ success: false }, { status: this.deploymentStatus });
+          const deployment = deployments.find((d) => url.pathname.endsWith('/' + d.id));
+          result =
+            this.hideStage && deployment ? { ...deployment, latest_stage: undefined } : deployment;
+        } else result = { canonical_deployment: canonical };
         return Response.json({ success: true, result });
       }
       const id = url.hostname.split('.')[0];
@@ -175,4 +181,57 @@ test('部署失败保留未发布版本并可重试，未接线不会假报成�
   const unwired = await local.request('POST', '/api/rebuild');
   assert.equal(unwired.status, 501);
   assert.equal((await local.request('GET', '/api/publish-status')).data.pending, true);
+});
+
+test('已关联部署遇到 Pages API 明确错误时释放发布槽并可重试', async (t) => {
+  const cf = cloudflare();
+  const app = await createBackend({ bindings, outboundService: (req) => cf.fetch(req) });
+  t.after(() => app.dispose());
+  await app.request('POST', '/api/pages', { label: '明确失败' });
+  assert.equal((await app.request('POST', '/api/rebuild')).status, 200);
+  for (const status of [404, 403]) {
+    cf.deploymentStatus = status;
+    const result = await app.request('GET', '/api/publish-status');
+    assert.equal(result.status, 200);
+    assert.equal(result.data.job.status, 'failed');
+    assert.match(result.data.job.error, new RegExp(String(status)));
+    assert.equal(result.data.reconcileError, undefined);
+    cf.deploymentStatus = null;
+    const retry = await app.request('POST', '/api/rebuild');
+    assert.equal(retry.status, 200);
+    assert.equal(retry.data.queued, true);
+  }
+  assert.equal(cf.deployments.length, 3);
+});
+
+test('Pages 未返回 latest_stage 时给出可重试错误，不产生 500', async (t) => {
+  const cf = cloudflare();
+  const app = await createBackend({ bindings, outboundService: (req) => cf.fetch(req) });
+  t.after(() => app.dispose());
+  await app.request('POST', '/api/pages', { label: '缺少阶段' });
+  await app.request('POST', '/api/rebuild');
+  cf.hideStage = true;
+  const result = await app.request('GET', '/api/publish-status');
+  assert.equal(result.status, 200);
+  assert.equal(result.data.job.status, 'building');
+  assert.match(result.data.reconcileError, /阶段信息/);
+});
+
+test('发布任务超过总时长后失败，覆盖 building 状态', async (t) => {
+  const cf = cloudflare();
+  const app = await createBackend({ bindings, outboundService: (req) => cf.fetch(req) });
+  t.after(() => app.dispose());
+  await app.request('POST', '/api/pages', { label: '超时' });
+  await app.request('POST', '/api/rebuild');
+  const db = await app.db();
+  await db
+    .prepare('UPDATE publication SET created_at = ? WHERE id = 1')
+    .bind(new Date(Date.now() - 31 * 60_000).toISOString())
+    .run();
+  const result = await app.request('GET', '/api/publish-status');
+  assert.equal(result.status, 200);
+  assert.equal(result.data.job.status, 'failed');
+  assert.match(result.data.job.error, /30 分钟/);
+  assert.equal((await app.request('POST', '/api/rebuild')).status, 200);
+  assert.equal(cf.deployments.length, 2);
 });
