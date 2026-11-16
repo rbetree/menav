@@ -29,6 +29,10 @@ categories:
             url: https://mail.klmail.ccwu.cc/
             icon: fas fa-link
             description: ""
+          - name: AstrBot Dashboard
+            url: https://astrbot.8-134-49-199.sslip.io/?_r=1794808131006#/data/statistics
+            icon: fas fa-link
+            description: ""
           - name: Octopus
             url: http://162.211.182.81:8080/
             icon: fas fa-link
