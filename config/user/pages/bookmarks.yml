@@ -345,8 +345,12 @@ categories:
             url: https://platform.deepseek.com/usage
             icon: fas fa-link
             description: ""
-          - name: 39AI
-            url: https://39ai.me/dashboard/overview
+          - name: Agent Router
+            url: https://agentrouter.org/console
+            icon: fas fa-link
+            description: ""
+          - name: 星驰API公益站
+            url: https://xingchiapi.com/dashboard
             icon: fas fa-link
             description: ""
           - name: Hiyo Free
@@ -357,12 +361,8 @@ categories:
             url: https://discovery.intern-ai.org.cn/chat?lang=zh-CN
             icon: fas fa-link
             description: ""
-          - name: 星驰API公益站
-            url: https://xingchiapi.com/dashboard
-            icon: fas fa-link
-            description: ""
-          - name: Agent Router
-            url: https://agentrouter.org/console
+          - name: 39AI
+            url: https://39ai.me/dashboard/overview
             icon: fas fa-link
             description: ""
           - name: Moniker
@@ -375,10 +375,6 @@ categories:
             description: ""
           - name: LongCatAI
             url: https://longcat.chat/platform/usage
-            icon: fas fa-link
-            description: ""
-          - name: 50x
-            url: https://ai.50x.energy/
             icon: fas fa-link
             description: ""
       - name: 工具
