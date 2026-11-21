@@ -349,6 +349,10 @@ categories:
             url: https://agentrouter.org/console
             icon: fas fa-link
             description: ""
+          - name: FreeGG
+            url: https://freegg.app/dashboard/models
+            icon: fas fa-link
+            description: ""
           - name: 星驰API公益站
             url: https://xingchiapi.com/dashboard
             icon: fas fa-link
