@@ -21,6 +21,30 @@ test('deploy workflow：书签导入应复用 npm 脚本入口', () => {
   assert.equal(deployWorkflow.includes('src/bookmark-processor.js'), false);
 });
 
+test('deploy workflow：部署前应等待本次上传产物的元数据可见', () => {
+  const yaml = require('js-yaml');
+  const workflow = yaml.load(read('.github/workflows/deploy.yml'));
+  const steps = workflow.jobs.build_and_deploy.steps;
+  const uploadIndex = steps.findIndex((step) => step.uses === 'actions/upload-pages-artifact@v3');
+  const waitIndex = steps.findIndex(
+    (step) => step.run === 'node -r ./scripts/register-ts.cjs ./scripts/wait-pages-artifact.ts'
+  );
+  const deployIndex = steps.findIndex((step) => step.uses === 'actions/deploy-pages@v4');
+
+  assert.equal(workflow.permissions.actions, 'read');
+  assert.ok(waitIndex > uploadIndex, '上传后必须等待产物元数据可见');
+  assert.ok(deployIndex > waitIndex, '部署必须在元数据可见后执行');
+  assert.equal(steps[uploadIndex].id, 'upload_pages');
+  assert.equal(
+    steps[waitIndex].env.PAGES_ARTIFACT_ID,
+    '${{ steps.upload_pages.outputs.artifact_id }}'
+  );
+  assert.equal(steps[waitIndex].env.GITHUB_TOKEN, '${{ github.token }}');
+  assert.equal(steps[uploadIndex].if, steps[waitIndex].if);
+  assert.equal(steps[waitIndex].if, steps[deployIndex].if);
+  assert.equal(steps[waitIndex]['timeout-minutes'], 5);
+});
+
 test('ci workflow：默认使用快速 check，并按路径变更触发浏览器契约', () => {
   const ciWorkflow = read('.github/workflows/ci.yml');
   const packageJson = JSON.parse(read('package.json'));

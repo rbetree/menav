@@ -10,6 +10,7 @@ on:
 
 # 设置GITHUB_TOKEN的权限
 permissions:
+  actions: read
   contents: write
   pages: write
   id-token: write
@@ -139,9 +140,18 @@ jobs:
 
       - name: Upload artifact
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
+        id: upload_pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'dist'
+
+      - name: Wait for Pages artifact metadata
+        if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
+        timeout-minutes: 5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PAGES_ARTIFACT_ID: ${{ steps.upload_pages.outputs.artifact_id }}
+        run: node -r ./scripts/register-ts.cjs ./scripts/wait-pages-artifact.ts
 
       - name: Deploy to GitHub Pages
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
