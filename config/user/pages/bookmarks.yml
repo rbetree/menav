@@ -397,6 +397,10 @@ categories:
             url: https://hub.linux.do/project/api-keys
             icon: fas fa-link
             description: ""
+          - name: Agent Router
+            url: https://ps.air-outer.com/console
+            icon: fas fa-link
+            description: ""
       - name: 工具
         icon: fas fa-folder
         path:
