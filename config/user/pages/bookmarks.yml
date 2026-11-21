@@ -135,6 +135,18 @@ categories:
             url: https://www.right.com.cn/forum/
             icon: fas fa-link
             description: ""
+          - name: LINUX DO
+            url: https://linux.do/
+            icon: fas fa-link
+            description: ""
+          - name: 实时数据 - LINUX DO CDK
+            url: https://cdk.linux.do/dashboard
+            icon: fas fa-link
+            description: ""
+          - name: LINUX DO Credit
+            url: https://credit.linux.do/home
+            icon: fas fa-link
+            description: ""
       - name: 邮箱
         icon: fas fa-folder
         path:
@@ -379,6 +391,10 @@ categories:
             description: ""
           - name: LongCatAI
             url: https://longcat.chat/platform/usage
+            icon: fas fa-link
+            description: ""
+          - name: HUB
+            url: https://hub.linux.do/project/api-keys
             icon: fas fa-link
             description: ""
       - name: 工具
