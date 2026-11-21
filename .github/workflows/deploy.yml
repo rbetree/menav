@@ -156,4 +156,8 @@ jobs:
       - name: Deploy to GitHub Pages
         if: ${{ vars.ENABLE_GITHUB_PAGES != 'false' }}
         id: deployment
-        uses: actions/deploy-pages@v4
+        timeout-minutes: 15
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PAGES_ARTIFACT_ID: ${{ steps.upload_pages.outputs.artifact_id }}
+        run: node -r ./scripts/register-ts.cjs ./scripts/deploy-pages.ts

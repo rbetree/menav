@@ -29,7 +29,9 @@ test('deploy workflow：部署前应等待本次上传产物的元数据可见',
   const waitIndex = steps.findIndex(
     (step) => step.run === 'node -r ./scripts/register-ts.cjs ./scripts/wait-pages-artifact.ts'
   );
-  const deployIndex = steps.findIndex((step) => step.uses === 'actions/deploy-pages@v4');
+  const deployIndex = steps.findIndex(
+    (step) => step.run === 'node -r ./scripts/register-ts.cjs ./scripts/deploy-pages.ts'
+  );
 
   assert.equal(workflow.permissions.actions, 'read');
   assert.ok(waitIndex > uploadIndex, '上传后必须等待产物元数据可见');
@@ -43,6 +45,13 @@ test('deploy workflow：部署前应等待本次上传产物的元数据可见',
   assert.equal(steps[uploadIndex].if, steps[waitIndex].if);
   assert.equal(steps[waitIndex].if, steps[deployIndex].if);
   assert.equal(steps[waitIndex]['timeout-minutes'], 5);
+  assert.equal(steps[deployIndex]['timeout-minutes'], 15);
+  assert.equal(steps[deployIndex].env.PAGES_ARTIFACT_ID, steps[waitIndex].env.PAGES_ARTIFACT_ID);
+  assert.equal(steps[deployIndex].env.GITHUB_TOKEN, '${{ github.token }}');
+  assert.equal(
+    steps.some((step) => step.uses?.startsWith('actions/deploy-pages@')),
+    false
+  );
 });
 
 test('ci workflow：默认使用快速 check，并按路径变更触发浏览器契约', () => {
