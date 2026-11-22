@@ -18,7 +18,7 @@
 - 移除公开的 `/api/nav` 实时树接口；它没有消费者，且会带出隐藏页和未发布内容
 - 构建按 D1 配置刷新文章、GitHub 统计与贡献图，使用独立临时缓存；部分刷新失败保留对应来源的 D1 数据
 - Pages API 发布冻结版本，核对生产部署及产物标记后才推进已发布版本；发布仅由后台手动触发，构建期间编辑与失败重试不丢更新
-- 新增隔离 D1 集成测试、管理台浏览器测试与完整快照构建对比，接入 CI；生产 Access 和线上发布时延仍需部署后验收
+- 新增隔离 D1 集成测试、管理台浏览器测试与完整快照构建对比，接入 CI
 - 将开发工具的传递依赖 `fast-uri` 固定到 3.1.6，修复 URL 规范化相关高危审计项
 
 **2. 书签解析核心抽取**
@@ -26,7 +26,14 @@
 - 书签解析逻辑抽为 `src/lib/bookmarks/parser-core.ts` 共享核心（纯 JS、零 Node API、logger 可注入），形态一 `parser.ts` 与形态二 Worker 共用同一实现，解析语义一致
 - `parser.ts` 保留为形态一门面，历史 `require()` 接口不变，形态一零改动
 
-**3. 审计修复（2026-11-15）**
+**3. 文档与工程**
+
+- 文档中心重构：README 收敛为入口，安装、AI 安装、动态后端、配置、书签和开发说明拆分为独立文档
+- 移除根目录 `Dockerfile.static`，将 `Dockerfile.dynamic` 移至 `docker/Dockerfile.dynamic`
+- 新增 `backend:init --with-test` / `--with-local`、`backend:dev:local`、`backend:verify`、`backend:check:configs`、`pages:create`、`pages:deploy`
+- 本地开发支持 `wrangler.local.jsonc` 与 `remote: false` 的本地 D1；doctor 支持 AUD 后补、测试配置隔离检查与资源存在性检查
+
+**4. 审计修复（2026-11-15）**
 
 - 管理 API 只接受身份型 Access JWT，服务令牌只能用于构建快照；发布任务增加总超时与 Pages API 明确错误恢复
 - 请求体上限统一为 16 MB，图片资产拆分为独立存储行并兼容旧备份，多图种子不再受单行 900 KB 限制
@@ -73,7 +80,7 @@
 
 关联 Issue：[#30](https://github.com/rbetree/menav/issues/30)
 
-细节见：[`config/update-instructions-20260102.md`](config/update-instructions-20260102.md)
+细节见：[`docs/migrations/2026-01-02.md`](docs/migrations/2026-01-02.md)
 
 **1. 外部资源可用性**
 
@@ -92,7 +99,7 @@
 
 ### 2025/12/27
 
-细节见：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
+细节见：[`docs/migrations/2025-12-27.md`](docs/migrations/2025-12-27.md)
 
 **1. 页面模板差异化改进（Phase 1/Phase 2）**
 

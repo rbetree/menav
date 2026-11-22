@@ -133,6 +133,9 @@ jobs:
       - name: Workers type check
         run: npm --prefix workers run check
 
+      - name: Validate example wrangler configurations
+        run: npm run backend:check:configs
+
       - name: Workers integration tests
         run: npm run backend:test
 
@@ -152,9 +155,24 @@ jobs:
               - 'src/lib/github/**'
               - 'src/shared/**'
               - 'src/types/**'
+              - 'src/pages/**'
+              - 'src/layouts/**'
+              - 'src/components/**'
+              - 'src/runtime/**'
+              - 'astro.config.mjs'
               - 'scripts/sync*.ts'
+              - 'scripts/backend-*.ts'
               - 'scripts/build-snapshot.ts'
+              - 'scripts/build-runtime.ts'
               - 'scripts/generate-seed.ts'
+              - 'scripts/prepare-astro-public.ts'
+              - 'scripts/pages-create.ts'
+              - 'scripts/check-example-configs.ts'
+              - 'scripts/lib/build-pipeline.ts'
+              - 'scripts/lib/backend-config.ts'
+              - 'scripts/lib/public-assets.ts'
+              - 'scripts/lib/runtime-bundle.ts'
+              - 'scripts/lib/search-index-assets.ts'
               - 'scripts/lib/seed.ts'
               - 'config/_default/**'
               - 'content/**'
@@ -186,7 +204,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dockerfile: [Dockerfile, Dockerfile.static, Dockerfile.dynamic]
+        dockerfile: [Dockerfile, docker/Dockerfile.dynamic]
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -198,7 +216,6 @@ jobs:
           filters: |
             docker:
               - 'Dockerfile'
-              - 'Dockerfile.*'
               - 'docker/**'
               - '.dockerignore'
 

@@ -30,9 +30,9 @@ test('Phase 14：最终审计脚本应接入快速 check 门禁', () => {
 });
 
 test('Phase 14：源码文档应说明浏览器契约测试入口', () => {
-  const srcReadme = read('src/README.md');
+  const developmentDoc = read('docs/development.md');
 
-  assert.ok(srcReadme.includes('npm run test:browser'));
-  assert.ok(srcReadme.includes('scripts/test-browser.ts'));
-  assert.ok(srcReadme.includes('test/browser/contract.ts'));
+  assert.ok(developmentDoc.includes('npm run test:browser'));
+  assert.ok(developmentDoc.includes('scripts/test-browser.ts'));
+  assert.ok(developmentDoc.includes('test/browser/contract.ts'));
 });

@@ -369,20 +369,28 @@ function auditStyleLayers() {
 
 function auditDocs() {
   const readme = read('README.md');
-  const srcReadme = read('src/README.md');
-  const configReadme = read('config/README.md');
+  const developmentDoc = read('docs/development.md');
+  const configurationDoc = read('docs/configuration.md');
   const packageJson = readJson<PackageJson>('package.json');
 
   REQUIRED_DOC_COMMANDS.forEach((command) =>
     assertIncludes(readme, command, 'README 缺少核心命令说明')
   );
   REQUIRED_SRC_DOC_COMMANDS.forEach((command) =>
-    assertIncludes(srcReadme, command, 'src/README 缺少源码工作流命令说明')
+    assertIncludes(developmentDoc, command, 'docs/development.md 缺少源码工作流命令说明')
   );
-  assertIncludes(srcReadme, 'scripts/test-browser.ts', 'src/README 缺少浏览器契约脚本说明');
-  assertIncludes(configReadme, 'npm run check', 'config/README 缺少配置验证入口');
-  assertIncludes(configReadme, 'npm run dev', 'config/README 缺少配置预览入口');
-  assertIncludes(configReadme, 'npm run init-config', 'config/README 缺少配置初始化入口');
+  assertIncludes(
+    developmentDoc,
+    'scripts/test-browser.ts',
+    'docs/development.md 缺少浏览器契约脚本说明'
+  );
+  assertIncludes(configurationDoc, 'npm run check', 'docs/configuration.md 缺少配置验证入口');
+  assertIncludes(configurationDoc, 'npm run dev', 'docs/configuration.md 缺少配置预览入口');
+  assertIncludes(
+    configurationDoc,
+    'npm run init-config',
+    'docs/configuration.md 缺少配置初始化入口'
+  );
 
   const requiredScripts = [
     'build',

@@ -187,8 +187,17 @@ function shouldCheckFile(filePath: string): boolean {
   // 这些文件历史上未统一为 Prettier 风格；避免为了启用检查产生巨量格式化 diff
   if (normalized === 'src/runtime/index.js') return false;
 
-  // 与现有 npm scripts 的检查范围对齐：不检查 docs/
-  const allowedRoots = ['src/', 'scripts/', 'test/', '.github/', 'config/', 'admin/', 'workers/'];
+  // docs/ 是文档中心，纳入变更文件格式检查
+  const allowedRoots = [
+    'src/',
+    'scripts/',
+    'test/',
+    '.github/',
+    'config/',
+    'admin/',
+    'workers/',
+    'docs/',
+  ];
   const isRootFile = !normalized.includes('/');
   const hasAllowedRoot = allowedRoots.some((prefix) => normalized.startsWith(prefix));
 

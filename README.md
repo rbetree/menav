@@ -1,491 +1,126 @@
 <div align="center">
-  <img src="assets/menav.svg" alt="MeNav" width="120">
+  <img src="assets/menav.svg" alt="MeNav" width="110">
   <h1>MeNav</h1>
+  <p>轻量的个人导航网站生成器 · 纯静态默认部署 · 可选 Cloudflare 在线后台</p>
   <p>
-    一个轻量的个人导航网站
+    <a href="https://rbetree.github.io/menav/">在线预览</a> ·
+    <a href="docs/install.md">安装与部署</a> ·
+    <a href="docs/configuration.md">配置指南</a>
   </p>
 </div>
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/rbetree/menav)](https://github.com/rbetree/menav/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/rbetree/menav)](https://github.com/rbetree/menav/network/members)
 
-📋 静态一键部署 | ⚡ 自动化构建 | 🔖 支持书签导入
-
-> MeNav 是一个轻量级、高度可定制的个人导航网站生成器，让您轻松创建属于自己的导航主页。默认形态无需数据库和后端服务，完全静态部署，支持一键 Fork 部署到 GitHub Pages，还可以从浏览器书签一键导入网站。配合 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展，可将书签 HTML 推送到仓库的 `bookmarks/` 目录， MeNav 会自动导入并重新构建站点。
+MeNav 基于 Astro、原生 JavaScript 与 YAML 构建，默认生成单页静态导航站，支持从浏览器书签 HTML 批量导入网站链接（可配合 [MarksVault](https://github.com/rbetree/MarksVault) 自动推送），也支持开启基于 Cloudflare 的在线管理后台。
 
 如果觉得项目有用，欢迎 Star/Fork 支持，谢谢！
 
-[直接开始部署>>](#部署方式)
-
-## 预览
-
-[在线访问](https://rbetree.github.io/menav/)
+> 本仓库同时作为**模板与示例站**（示例内容位于 `config/_default/`）。个人使用请 Fork 或新建独立仓库，配置放在 `config/user/`。
 
 <p align="center">
   <img src="assets/preview_light.png" alt="明亮主题预览" width="48%">
-  <img src="assets/preview_dark.png" alt="黑暗主题预览" width="48%">
+  <img src="assets/preview_dark.png" alt="暗黑主题预览" width="48%">
 </p>
 
-## 特点
+## 核心特性
 
-- 简洁美观的响应式布局设计
-- 集成外部搜索引擎
-- 分类展示网站链接
-- 模块化配置
-- 支持从浏览器导入书签
-- 支持2-4层级的多层级嵌套结构
-- 与 [MarksVault](https://github.com/rbetree/MarksVault) 浏览器扩展集成，支持自动推送书签 HTML 文件
-- 可部署到GitHub Pages或任何类似的CI/CD服务
+- **两种运行形态**：默认纯静态（YAML 驱动、零后端）；可选 Cloudflare 动态后台（在线编辑、静态快照发布）。
+- **模块化配置与多层级分类**：支持 2~4 层嵌套分类、Markdown 内容页、明暗主题、拼音/首字母本地搜索与外部搜索引擎切换。
+- **书签批量导入**：支持导入 Chrome/Firefox/Edge/Safari 导出的 HTML 书签，配合 MarksVault 与 GitHub Actions 自动转换并发布。
+- **时效性数据聚合**：支持定时同步 GitHub 仓库统计、贡献热力图与 RSS 文章列表。
 
-> 历史更新记录已迁移至 [`CHANGELOG.md`](CHANGELOG.md)，README 不再维护该部分。
+## 选择适合你的形态
 
+| 维度         | 形态一：纯静态站点（默认推荐）                             | 形态二：Cloudflare 动态后端（可选）                                                |
+| ------------ | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **适合人群** | 不想维护后端、习惯用 Git / YAML 或书签导入的个人用户       | 需要网页管理台在线增删改查、接受 Cloudflare 运维成本的用户                         |
+| **数据来源** | 仓库内 `config/user/` YAML 与 `content/` Markdown          | Cloudflare D1 数据库（运行时公开站仍为静态快照，不回写仓库）                       |
+| **部署方式** | GitHub Pages、Vercel、Netlify、Cloudflare Pages、Docker、自有服务器 | Cloudflare Worker（API + 管理台）+ D1 + Access + Pages Git 项目                    |
+| **维护成本** | 极低，Fork 后即可自动构建                                  | 需配置并维护 4 类 Cloudflare 资源与凭证轮换                                        |
+
+> 动态后端需要 Cloudflare 账号。
 
 ## 技术栈
 
 - Astro（静态页面构建）
 - HTML5 + CSS3
-- JavaScript (原生)
+- JavaScript（原生）
 - YAML 模块化配置
 - Google Favicon API + Font Awesome 图标
 
-运行环境要求：Node.js `22.23.4+`，包管理器继续使用 npm。
+运行环境要求：Node.js `22.23.4+`，包管理器使用 npm。
 
 ## 项目结构
 
 ```text
 menav/
-├── src/        # Astro 页面/组件、数据准备、书签处理、前端脚本
-├── scripts/    # 构建、开发、同步、检查脚本
-├── config/     # 模块化配置
-├── assets/     # 静态资源
-├── bookmarks/  # 书签导入相关
-└── dist/       # 构建产物
+├── src/          # Astro 页面/组件、数据准备、书签处理、前端脚本
+├── scripts/      # 构建、开发、同步、检查与后端工具脚本
+├── config/       # 模块化配置
+├── content/      # Markdown 内容页
+├── assets/       # 静态资源
+├── bookmarks/    # 书签导入入口
+├── workers/      # Cloudflare 动态后端（可选）
+├── admin/        # 动态后端管理台静态资源
+├── docs/         # 文档中心
+└── dist/         # 构建产物
 ```
-
-## 文档导航
-
-- 项目路线图（阶段目标 / 优先级 / 非目标）：[`ROADMAP.md`](ROADMAP.md)
-- 历史更新记录（README 不再维护）：[`CHANGELOG.md`](CHANGELOG.md)
-- 更新说明2025/12/27（兼容性移除 / 迁移指南）：[`config/update-instructions-20251227.md`](config/update-instructions-20251227.md)
-- 配置系统（完全替换策略、目录结构、示例）：[`config/README.md`](config/README.md)
-- 书签导入（格式要求、流程、常见问题）：[`bookmarks/README.md`](bookmarks/README.md)
-- 源码结构（架构边界、SiteModel、脚本职责）：[`src/README.md`](src/README.md)
-- 静态资源（样式/图片等）：[`assets/README.md`](assets/README.md)
-- 动态后台部署与维护（Cloudflare Worker + D1 + Access）：[`workers/README.md`](workers/README.md)
 
 ## 快速开始
 
-用于本地开发预览与构建静态站点；在线部署见 [部署方式](#部署方式)。
+### 方式 A：GitHub Pages 一键部署（形态一，推荐）
 
-<details>
-<summary>点击展开</summary>
+1. **Fork 本仓库**到你的 GitHub 账号。
+2. 进入仓库 **Actions** 页面，点击启用 Workflows。
+3. 进入 **Settings → Pages**，将 Build and deployment 的 Source 设为 **GitHub Actions**。
+4. 在本地克隆仓库，先运行 `npm install`，再运行 `npm run init-config` 初始化 `config/user/`；修改后将 `config/user/` 提交并推送到 `main` 分支，等待自动部署。
 
-通过以下步骤快速设置您的个人导航站：
+> GitHub Pages 需要公开仓库。私有仓库请改用 Cloudflare Pages、Vercel 等第三方托管，并设置 `ENABLE_GITHUB_PAGES=false`。
 
-1. 克隆仓库
+### 方式 B：本地开发与预览
+
+运行环境要求：**Node.js >= 22.23.4**（可使用 `nvm use` 切换）。
 
 ```bash
 git clone https://github.com/rbetree/menav.git
 cd menav
-```
-
-2. 安装依赖
-
-```bash
-nvm use
 npm install
+npm run init-config      # 从 config/_default/ 初始化 config/user/
+npm run dev              # 同步缓存、构建并启动本地预览（默认 http://localhost:5173）
 ```
 
-请确保本机 Node.js 版本为 `22.23.4+`；仓库提供 `.nvmrc` 固定主版本为
-`22`（浮动到 22.x 最新补丁，不锁定具体版本），使用 nvm 时先运行 `nvm use`。
-CI 会在 Node.js `22.23.4` 与 `24` 两个版本上执行检查。Windows 和 WSL/Linux
-环境不要共用 `node_modules`，请在各自环境中分别安装依赖。
-
-（本仓库的 GitHub Actions/CI 已改为使用 `npm ci`，以获得更稳定、可复现的依赖安装（基于 `package-lock.json`）；本地开发可继续使用 `npm install`，也可直接使用 `npm ci`。）
-
-3. 初始化并完成配置（见[设置配置文件](#设置配置文件)）
+常用命令：
 
 ```bash
-npm run init-config
+npm run dev:offline      # 离线启动本地预览（不刷新 RSS / GitHub 缓存）
+npm run dev:astro        # Astro 开发模式（组件热更新）
+npm run import-bookmarks # 将 bookmarks/*.html 转换为 config/user/pages/bookmarks.yml
+npm run build            # 离线构建静态产物到 dist/
+npm run sync             # 刷新 RSS、projects 仓库统计与贡献热力图缓存
+npm run check            # 提交前快速检查（等同于 check:fast）
+npm run check:fast       # lint + 单元测试 + 构建 + 审计 + 类型检查
+npm run check:browser    # 真实浏览器契约测试（需先安装 Playwright Chromium）
 ```
 
-该命令会在 `config/user/` 不存在时从 `config/_default/` 复制一套完整配置；若
-`config/user/` 已存在，会直接跳过，避免覆盖您的配置。
+### 方式 C：让 AI 帮你安装
 
-4. 导入书签（可选）
-   - 将浏览器导出的HTML格式书签文件放入`bookmarks`目录
-   - 运行书签处理命令：
+把下面这句话发给 Claude Code、Cursor、Gemini CLI 等支持读写文件和终端的 AI；它会先阅读安装指南，再按你的选择协助你安装。
 
-   ```bash
-   npm run import-bookmarks
-   ```
+> 请先阅读仓库 https://github.com/rbetree/menav 里的 `docs/ai-install.md` 协助我安装 MeNav
 
-   - 若希望生成结果保持确定性（便于版本管理，减少时间戳导致的无意义 diff）：
+## 文档导航
 
-   ```bash
-   MENAV_BOOKMARKS_DETERMINISTIC=1 npm run import-bookmarks
-   ```
+- **[安装与部署指南](docs/install.md)**：GitHub Pages、Docker、自有服务器、第三方 CI/CD 与 Cloudflare 动态后端完整安装步骤
+- **[AI 安装指南](docs/ai-install.md)**：给 Claude Code / Cursor / Gemini CLI 的安装规范、工具准备与安全边界
+- **[配置指南](docs/configuration.md)**：`site.yml`、`pages/*.yml`、完全替换策略、多层级分类与 Markdown 内容页
+- **[书签导入指南](docs/bookmarks.md)**：浏览器书签 HTML 导出、导入命令、确定性输出与 MarksVault 扩展集成
+- **[动态后端运维手册](docs/backend.md)**：Worker + D1 + Access + Pages 的数据契约、版本发布、回滚与故障排查
+- **[开发与架构说明](docs/development.md)**：Astro 单页架构、构建流程、运行时契约、CSS 模块化与测试命令
+- **[路线图](docs/roadmap.md)** 与 **[更新记录](CHANGELOG.md)**
+- **[历史迁移说明](docs/migrations/2025-12-27.md)**：破坏性变更与配置迁移要点
 
-   - 系统会自动将书签转换为配置文件保存到`config/user/pages/bookmarks.yml`
-
-- **注意**：`npm run dev`命令不会自动处理书签文件，必须先手动运行上述命令
-- `npm run dev` 默认会刷新 `articles/projects` 的联网缓存（若你希望离线启动，请使用 `npm run dev:offline`）
-- `npm run dev:astro` 使用 Astro dev server，适合组件开发；启动前会准备 `public/` 资源并监听配置、资源和 runtime 变更
-
-5. 构建
-
-```bash
-# 启动开发服务器
-npm run dev
-```
-
-开发服务器默认从 `http://localhost:5173` 启动；若默认端口被占用，会自动尝试后续端口。需要固定端口时可设置 `PORT=5174 npm run dev` 或 `MENAV_PORT=5174 npm run dev`，显式端口被占用会直接报错。
-
-页面深链接统一使用 `/?page=<页面ID>`，分类定位使用 `/?page=<页面ID>#<分类slug>`。未知路径不会自动回跳，静态部署时请分享上述查询参数形式的 URL。
-
-构建产物仍是单个 `index.html`：首屏只实例化初始活动页与搜索结果页，其余导航页以 `<template data-page-template="<id>">` 输出，首次切换时由运行时克隆为真实 `.page`，切换过程不发起网络请求。禁用 JavaScript 时只有首屏页面可见，模板页内的内联脚本不会执行。
-
-```bash
-# 离线启动开发服务器（不刷新联网缓存）
-npm run dev:offline
-```
-
-```bash
-# Astro 快速开发模式（组件热更新，仍会校验配置并打包 runtime）
-npm run dev:astro
-```
-
-```bash
-# 生成静态HTML文件（纯离线，不刷新 RSS/GitHub 缓存）
-npm run build
-```
-
-构建后的文件位于`dist`目录。需要刷新 RSS、projects 仓库统计或贡献热力图缓存时，先运行：
-
-```bash
-npm run sync
-```
-
-`npm run generate` 与 `npm run build` 使用同一套离线构建语义；`npm run dev` 会显式联网刷新缓存，`npm run dev:offline` 不联网。
-
-6. 提交前检查（推荐）
-
-```bash
-# 默认快速检查（JS 语法与 Astro 检查 + 单元测试 + 构建 + 最终审计）
-npm run check
-```
-
-`npm run check` 等同于 `npm run check:fast`，用于日常提交和默认 CI；其中 `npm run test` 只执行 `test/**/*.node-test.ts`，真实浏览器契约由下面的独立命令执行。
-
-```bash
-# 可选：真实浏览器契约测试（需要 Playwright Chromium）
-npm run check:browser
-```
-
-（可选）格式化代码：
-
-```bash
-npm run format
-```
-
-</details>
-
-## 部署方式
-
-用于将生成的静态站点发布到 服务器 or CI/CD；本地构建见 [快速开始](#快速开始)。
-
-### 快速部署到GitHub Pages（推荐）
-
-<details>
-<summary>点击展开</summary>
-
-#### 第一步：前置设置
-
-1. Fork仓库:
-   - 点击右上角的 Fork 按钮复制此仓库到您的账号
-
-2. 启用Actions:
-   - 进入fork后的仓库
-   - 点击顶部的 "Actions" 标签页
-   - 点击绿色按钮 "I understand my workflows, go ahead and enable them"
-
-3. 配置Pages:
-   - 进入仓库的 Settings -> Pages
-   - 在 "Build and deployment" 部分
-   - Source: 选择 "GitHub Actions"
-
-#### 第二步：自定义配置
-
-创建个人配置文件:
-
-- **重要:** 始终创建自己的用户配置文件，不要直接修改默认配置文件
-- 完成配置文件（见[设置配置文件](#设置配置文件)）
-- 提交您的配置文件到仓库
-
-#### 第三步：等待自动部署
-
-- GitHub Actions会自动检测您的更改
-- 构建并部署您的网站
-- 部署完成后，您可以在 Settings -> Pages 中找到您的网站地址
-  - 站点内容的“时效性数据”（RSS 文章聚合、projects 仓库统计、贡献热力图）会由部署工作流先执行 `npm run sync` 刷新，再执行离线 `npm run build`
-  - 也支持定时刷新：默认每天 UTC 02:00 触发一次（GitHub Actions cron 使用 UTC；北京时间=UTC+8，可在 `.github/workflows/deploy.yml` 中调整 `schedule.cron`）
-
-**重要: Sync fork后需要手动触发工作流**:
-
-- 当您使用GitHub界面上的"Sync fork"按钮同步本仓库的更新后
-- GitHub Actions工作流不会自动运行
-- 您需要手动触发构建流程:
-  - 进入 Actions 标签页
-  - 选择左侧的 "Build and Deploy" 工作流
-  - 点击 "Run workflow" 按钮
-
-</details>
-
-### Docker 部署（可选）
-
-<details>
-<summary>点击展开</summary>
-
-仓库已内置 `docker-compose.yml`，并提供 GHCR 预构建镜像；两种方式都建议统一使用 Docker Compose。
-
-> 说明：默认 Docker 镜像在镜像构建阶段生成 `dist/`，运行阶段只用 nginx 提供静态文件。
-> 运行阶段以非 root 的 nginx 用户监听容器内 `8080` 端口，`MENAV_PORT` 只改变宿主机端口。
-> 修改配置或书签后，需要重新构建镜像。
->
-> 请在仓库根目录执行（需要 `config/_default` 等文件）。
-
-#### 方式 A：使用预构建镜像（免本地构建）
-
-```bash
-docker compose pull
-docker compose up -d --no-build
-```
-
-预构建镜像包含发布时的默认静态站点；如果需要使用本仓库当前的 `config/` 或 `bookmarks/`，请使用方式 B 本地构建。
-
-#### 方式 B：本地构建镜像（适合二次开发/改源码）
-
-```bash
-docker compose up -d --build
-```
-
-默认访问地址：`http://localhost`
-
-#### 可选参数（环境变量）
-
-```bash
-MENAV_PORT=8000 MENAV_ENABLE_SYNC=true MENAV_IMPORT_BOOKMARKS=true docker compose up -d --build
-```
-
-- `MENAV_PORT`：宿主机端口（默认 `80`，容器内固定监听 `8080`）
-- `MENAV_ENABLE_SYNC`：镜像构建时是否先执行 `npm run sync` 再执行 `npm run build`（默认 `false`，直接离线构建）
-- `MENAV_IMPORT_BOOKMARKS`：镜像构建前是否执行 `npm run import-bookmarks`（默认 `false`）
-
-#### 配置与更新
-
-- 个人配置按“完全替换策略”建议：先运行 `npm run init-config`，再修改 `config/user/`（见 [设置配置文件](#设置配置文件) 与 `config/README.md`）。
-- 如需导入书签：将浏览器导出的书签 HTML 放到 `./bookmarks/`，并设置 `MENAV_IMPORT_BOOKMARKS=true` 后重新构建镜像。
-- 修改配置/书签后生效方式：
-
-```bash
-docker compose up -d --build
-```
-
-#### 动态构建镜像（可选）
-
-如果需要保留“挂载配置并通过重启容器重新构建”的旧运行方式，可以显式使用 `Dockerfile.dynamic`：
-
-```bash
-docker build -f Dockerfile.dynamic -t menav:dynamic .
-docker run --rm -p 80:8080 \
-  -v "$PWD/config:/app/config" \
-  -v "$PWD/bookmarks:/app/bookmarks" \
-  -e MENAV_ENABLE_SYNC=false \
-  -e MENAV_IMPORT_BOOKMARKS=false \
-  menav:dynamic
-```
-
-动态镜像同样以非 root 的 `node` 用户运行并监听容器内 `8080`。使用
-`MENAV_IMPORT_BOOKMARKS=true` 时，挂载的 `config/` 与 `bookmarks/` 需要对容器内
-UID 1000 可写。
-
-</details>
-
-### 部署到服务器
-
-<details>
-<summary>点击展开</summary>
-
-如果您想部署到自己的Web服务器，只需要以下几个步骤：
-
-1. 构建静态网站:
-
-```bash
-npm run build
-```
-
-`npm run build` 默认离线。如果需要先刷新 RSS、projects 仓库统计和贡献热力图缓存，请执行 `npm run sync && npm run build`。
-
-2. 复制构建结果:
-   - 所有生成的静态文件都位于 `dist` 目录中
-   - 将 `dist` 目录中的所有文件复制到您的Web服务器根目录
-
-3. 配置Web服务器:
-   - 确保服务器配置为提供静态文件
-   - 对于Apache: 在网站根目录中已有正确的 .htaccess 文件
-   - 对于Nginx: 添加以下配置到您的server块:
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /path/to/dist;
-    index index.html;
-
-    error_page 404 /404.html;
-
-    location = /404.html {
-        internal;
-        add_header Cache-Control "no-store" always;
-    }
-
-    location / {
-        try_files $uri $uri/ =404;
-        add_header Cache-Control "no-store" always;
-    }
-}
-```
-
-4. 更新配置:
-   - 如果您想在服务器上更新网站，只需重复上述步骤1-2
-   - 或者设置自动部署流程，例如使用GitLab CI/CD或Jenkins
-
-</details>
-
-### 其他CI/CD托管选项
-
-<details>
-<summary>点击展开</summary>
-
-除了GitHub Pages外，您还可以使用其他各种CI/CD服务部署MeNav：
-
-**如 Vercel / Netlify / Cloudflare Pages**:
-
-- 连接您的GitHub仓库
-- 设置构建命令为`npm run build`
-- 设置输出目录为`dist`
-
-Vercel 部署:
-
-1. 登录 Vercel，点击 `Add New...` → `Project`
-2. 选择 `Import Git Repository`，连接并选择你的 MeNav 仓库
-3. 构建配置（一般选择 `Other` 或保持默认自动识别即可）：
-   - `Build Command`: `npm run build`
-   - `Output Directory`: `dist`
-   - `Install Command`（可选，但更稳定）：`npm ci`
-4. 点击 `Deploy`，等待完成后用 Vercel 分配的域名/自定义域名访问
-
-**如果您只使用第三方平台部署（不使用 GitHub Pages）**：
-
-为避免 GitHub Actions 中的 Pages 配置错误，您可以禁用 GitHub Pages 部署步骤：
-
-1. 进入仓库的 Settings -> Secrets and variables -> Actions
-2. 点击 "Variables" 标签页
-3. 点击 "New repository variable"
-4. 名称填写：`ENABLE_GITHUB_PAGES`
-5. 值填写：`false`
-6. 点击 "Add variable"
-
-设置后，GitHub Actions 仍会自动构建网站（包括书签处理和 `npm run sync` 等），但会跳过 GitHub Pages 部署步骤，避免报错。第三方平台（如 Vercel/Cloudflare Pages）会自动检测到代码变化并部署。
-
-> 如果你希望在构建时刷新“时效性数据”（RSS 文章聚合、projects 仓库统计），请将构建命令改为：
->
-> ```bash
-> npm ci && npm run sync && npm run build
-> ```
->
-> 说明：`npm run sync` 会按 best-effort 顺序执行 projects 仓库统计、贡献热力图和 RSS 文章聚合，并写入 `dev/` 缓存（仓库默认 gitignore）；同步失败会记录告警但不阻断后续 `build`。
->
-> 备注：`dev/` 只用于构建过程的中间缓存，默认不会被提交到仓库；部署时也只会上传 `dist/`，不会包含 `dev/`。
-
-> **书签转换依赖 GitHub Actions**
-> 如果需要使用书签自动推送功能，必须先在 GitHub 仓库中启用 GitHub Actions
->
-> **部署流程**：
->
-> ```
-> 1. 上传书签 → 2. GitHub Actions 处理 → 3. 使用处理完成的代码在 GitHub Pages 自动部署
->                            ↓
->           4. 其他 CI/CD 托管平台检测到变化 → 5. 使用处理完成的代码自动部署
-> ```
-
-无论选择哪种部署方式，请确保创建并使用您自己的配置文件，而不是直接修改默认配置。
-
-</details>
-
-## 动态后端形态（形态二，可选）
-
-MeNav 提供两种形态，同一套代码按需选择：
-
-- **形态一（静态，默认推荐）**：即上文全部部署方式。数据来自 `config/` 下的 YAML，无需数据库与后端服务，适合大多数个人导航站。
-- **形态二（动态后端）**：`workers/` 子项目（Cloudflare Worker + D1 + Access）提供在线后台，配合 `admin/` 管理控制台在线编辑页面/分类/站点并导入书签；公开站仍为静态快照（D1 数据经构建导出），运行期不读取仓库 YAML、不写回仓库。
-
-简单自托管选形态一；确需在线编辑后台、且接受 Cloudflare 依赖与额外维护成本时再选形态二。
-
-> 本仓库只作为模板与示例站，示例内容来自 `config/_default`。个人使用建议放在独立仓库，避免自己的配置和内容覆盖示例站。动态后台配置提交的是 `workers/wrangler.example.jsonc`，真实 D1、Access 与 Pages 资源值不要提交。
-
-动态后台已包含页面、正文、分类和站点编辑、同级排序、四层分类维护、图标选择、书签上传、备份恢复、站点设置查看与发布状态。站点图标可选自动 favicon、图标库或图片地址，页面导航与分类图标同样支持可视化选择。`hidden` 仅隐藏导航，链接和搜索仍可访问。
-
-公开构建使用专属 Cloudflare Pages Git 项目，允许获取应用源码；导航、正文、配置和本地图片来自 D1 快照。每次构建会按 D1 配置刷新 RSS、GitHub 项目统计和贡献图，失败来源回退到 D1 保存的数据，不读取仓库缓存。
-
-发布通过 Pages API 创建部署，仅由管理员在后台点击“立即发布”触发。后台核对生产部署及产物版本后才显示“已发布”；构建失败或期间发生新编辑时，待发布版本会保留。
-
-完整的首次部署、Access 路径配置、凭证、种子导入与升级说明见 [`workers/README.md`](workers/README.md)。需要分别准备 D1、Worker、Access 与 Pages 资源。生产 Access 登录和线上发布时延需在自己的 Cloudflare 项目中验收。
-
-```bash
-npm ci
-npm --prefix workers ci
-npm run backend:init    # 从示例生成 workers/wrangler.jsonc
-# 填写 D1 database_id、TEAM_DOMAIN、POLICY_AUD、CF_ACCOUNT_ID、CF_PAGES_PROJECT
-npm run backend:doctor  # 部署前自检
-npm run backend:seed    # 生成 workers/.seed.json，在后台“数据与备份”中导入
-npm run backend:dev     # 本地 Worker 与管理台
-npm run backend:check
-npm run backend:test    # 使用隔离 D1，不改动已部署的数据
-npm run backend:deploy  # 自检通过后部署 Worker
-```
-
-动态形态构建时自动把 `MENAV_BACKEND_URL` 写入公开站侧边栏的「管理」入口，无需在 `site.yml` 另配。
-
-本地开发需要在 `workers/.dev.vars` 中设置 `ALLOW_INSECURE_DEV=1`；该文件不提交，放行仅对本机地址有效。`workers/wrangler.jsonc` 与 `workers/wrangler.test.jsonc` 都不入库，前者从示例复制，后者用于本机测试环境。
-
-## 设置配置文件
-
-MeNav 使用模块化配置方式，将配置分散到多个 YAML 文件中，更易于管理和维护。
-
-完整说明请直接看：[`config/README.md`](config/README.md)（以该文档为准）。
-
-> **🔔 重要提示：** 请务必在`config/user/`目录下创建并使用您自己的配置文件，不要直接修改默认配置文件，以便后续更新项目时不会丢失您的个性化设置。
-
-在加载配置时遵循以下优先级顺序：
-
-1. `config/user/` （用户配置）（优先级最高）
-2. `config/_default/` （默认配置）
-
-**注意：** 采用完全替换策略，而非合并。系统会选择存在的用户配置，完全忽略默认配置。
-
-### 最小可用配置（快速指引）
-
-- 首次使用建议先运行 `npm run init-config`，再修改 `config/user/`（因为配置采用“完全替换”策略，不会从默认配置补齐缺失项）。
-- 至少需要有 `config/user/site.yml`（缺失时构建会直接报错退出，避免生成空白站点）。
-
-## 书签导入功能
-
-MeNav 支持从浏览器导出的 HTML 书签文件导入站点配置，快速批量添加网站链接。MarksVault 可作为书签文件进入仓库的入口，将书签 HTML 推送到 `bookmarks/` 目录；MeNav 负责把这些文件转换为 YAML 配置并重新构建静态站点。
-
-完整说明请直接看：[`bookmarks/README.md`](bookmarks/README.md)（以该文档为准）。
-
-## Star-History
+## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=rbetree/menav&type=Date)](https://www.star-history.com/#rbetree/menav&Date)
