@@ -420,8 +420,8 @@ test('Phase 4：存在的空 YAML 也应输出字段路径错误', () => {
   });
 });
 
-test('Phase 4：config/README.md 记录的配置字段应存在于 schema', () => {
-  const readme = fs.readFileSync(path.join(__dirname, '..', 'config', 'README.md'), 'utf8');
+test('Phase 4：docs/configuration.md 记录的配置字段应存在于 schema', () => {
+  const readme = fs.readFileSync(path.join(__dirname, '..', 'docs', 'configuration.md'), 'utf8');
   const { siteConfigSchema } = require('../src/lib/config/schema/site.ts');
   const { pageConfigSchema } = require('../src/lib/config/schema/page.ts');
   const { siteItemSchema } = require('../src/lib/config/schema/shared.ts');
@@ -431,14 +431,14 @@ test('Phase 4：config/README.md 记录的配置字段应存在于 schema', () =
   const siteItemFields = Object.keys(siteItemSchema.shape);
 
   for (const field of siteFields) {
-    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 config/README.md 中记录`);
+    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 docs/configuration.md 中记录`);
   }
 
   for (const field of pageFields) {
-    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 config/README.md 中记录`);
+    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 docs/configuration.md 中记录`);
   }
 
   for (const field of siteItemFields) {
-    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 config/README.md 中记录`);
+    assert.ok(readme.includes(`\`${field}\``), `${field} 未在 docs/configuration.md 中记录`);
   }
 });

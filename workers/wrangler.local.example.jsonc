@@ -1,0 +1,30 @@
+// MeNav 形态二动态后台 — 本地开发 wrangler 配置示例
+// 复制为 wrangler.local.jsonc；本地 D1 不连接 Cloudflare，数据保存在 .wrangler/ 下。
+// 本地鉴权由 .dev.vars 的 ALLOW_INSECURE_DEV=1 跳过，切勿用于生产。
+{
+  "name": "menav-backend-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+  "triggers": { "crons": [] },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "menav-db-local",
+      // 本地 D1 只认这个占位 ID，不需要在 Cloudflare 创建真实数据库。
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "remote": false,
+    },
+  ],
+  "vars": {
+    // 留空时 Worker 只在 ALLOW_INSECURE_DEV=1 下放行本地请求。
+    "TEAM_DOMAIN": "",
+    "POLICY_AUD": "",
+    // 本地调试不需要发布；要测试发布再填真实账号与 Pages 项目。
+    "CF_ACCOUNT_ID": "",
+    "CF_PAGES_PROJECT": "",
+  },
+  "observability": {
+    "enabled": true,
+  },
+}

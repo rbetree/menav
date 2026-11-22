@@ -19,7 +19,7 @@ MeNav 当前基线已经明确：
 - 配置已收敛为 `ResolvedConfig.pages` 和 `buildSiteModel()` 单一站点模型；页面必须由 `navigation.id` 声明，隐藏页使用 `hidden: true`。
 - 项目已完成 Astro 现代化迁移，并具备完整的 `lint / test / build / browser contract / audit` 校验链路。
 - 浏览器扩展只保留“书签导入入口”这一条链路，不再承担页面运行时 CRUD 或后台职责。
-- 动态后台能力（形态二）已实现 Worker + D1 + Access 管理 API、admin 控制台、JSON 到 Astro 的构建入口和 Pages 版本发布管线；当前重点为部署后的 Access 登录及线上时效验收。
+- 动态后台能力（形态二）已实现 Worker + D1 + Access 管理 API、admin 控制台、JSON 到 Astro 的构建入口和 Pages 版本发布管线。
 - 形态一静态主路径仍是默认推荐形态，形态二为可选增强，互不影响。
 
 当前判断不是继续快速堆功能，而是进入“边界收敛、范本化、稳态演进”阶段。近期架构清理已经把配置加载、站点模型、搜索索引和包根 API 收窄到更明确的边界，后续重点是稳住这些契约。
@@ -48,7 +48,7 @@ MeNav 当前基线已经明确：
 
 ### 可选能力：动态后台
 
-动态后台支持在线编辑、排序、分类移动、正文、书签导入、备份恢复、站点设置查看、图标选择和发布状态。内容版本由管理员手动发布冻结为 D1 快照，再由 Pages 使用现有 Astro 渲染。
+动态后台支持在线编辑、排序、分类移动、正文、书签导入、备份恢复、站点设置、图标选择和发布状态。内容版本由管理员手动发布冻结为 D1 快照，再由 Pages 使用现有 Astro 渲染。
 
 - 该能力保持为可选增强，不替代当前静态主路径；两条形态数据完全隔离。
 - Pages 从 Git 获取应用代码，导航、正文、配置和图片只来自 D1；构建按 D1 配置刷新文章与 GitHub 数据，失败来源回退到 D1 基线。
@@ -76,7 +76,7 @@ MeNav 当前基线已经明确：
 
 #### 对外叙事与内部边界对齐
 
-- 统一 `README.md`、`config/README.md`、`src/README.md`、`ROADMAP.md` 的职责分工。
+- 统一 `README.md`、`docs/configuration.md`、`docs/development.md`、`docs/roadmap.md` 的职责分工。
 - 明确 MeNav 的三类能力边界：静态站点生成、书签导入增强、后续动态后台方向。
 - 让新用户和维护者都能快速理解：当前支持什么，不支持什么，为什么这样设计。
 
@@ -148,7 +148,7 @@ Later 只放方向，不放默认承诺。
 
 #### 动态后台后续增强
 
-完成现有生产验收后，再按实际需求评估 MarksVault Service Token 直推。后续演进遵循：
+后续按实际需求评估 MarksVault Service Token 直推。后续演进遵循：
 
 - 默认主路径仍是静态站点生成，形态二能力不塞进静态主路径。
 - Worker 负责 API，D1 负责主数据，Access 负责鉴权。
@@ -166,11 +166,11 @@ Later 只放方向，不放默认承诺。
 
 按当前判断，最近几个版本建议优先关注：
 
-1. 保持 `ROADMAP.md` / `README.md` / `src/README.md` / `config/README.md` 与架构边界同步。
+1. 保持 `docs/roadmap.md` / `README.md` / `docs/development.md` / `docs/configuration.md` 与架构边界同步。
 2. 继续改善配置体验与迁移体验，尤其是 `navigation.id`、隐藏页、孤儿页面报错和完全替换策略。
 3. 继续清理 layout、runtime、构建期之间的职责泄漏。
 4. 默认示例配置和文档样板整理。
-5. 按 `workers/README.md` 完成动态后台生产配置及验收，验证真实 Access 登录、Pages 发布与版本状态，保持形态一静态主路径稳定。
+5. 按 `docs/backend.md` 完成动态后台配置，保持形态一静态主路径稳定。
 
 ## 决策原则
 

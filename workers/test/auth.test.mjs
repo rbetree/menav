@@ -17,6 +17,21 @@ test('生产缺少 Access 配置时拒绝后台', async (t) => {
   assert.equal((await app.request('POST', '/api/pages', { label: '未授权' })).status, 503);
 });
 
+test('ALLOW_INSECURE_DEV 只在 Access 变量都为空时生效', async (t) => {
+  for (const bindings of [
+    { TEAM_DOMAIN: 'https://team.cloudflareaccess.com', ALLOW_INSECURE_DEV: '1' },
+    { POLICY_AUD: 'menav-admin', ALLOW_INSECURE_DEV: '1' },
+  ]) {
+    const app = await createBackend({ bindings });
+    t.after(() => app.dispose());
+    assert.equal((await app.request('GET', '/api/state')).status, 503, JSON.stringify(bindings));
+  }
+
+  const local = await createBackend({ bindings: { ALLOW_INSECURE_DEV: '1' } });
+  t.after(() => local.dispose());
+  assert.equal((await local.request('GET', '/api/state')).status, 200);
+});
+
 test('Access 校验签名、受众与过期时间；构建 Token 不能写管理 API', async (t) => {
   const { privateKey, publicKey } = await generateKeyPair('RS256');
   const jwk = await exportJWK(publicKey);

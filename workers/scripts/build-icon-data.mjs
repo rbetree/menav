@@ -17,7 +17,15 @@ const sourceDir =
 const metadataPath = path.join(sourceDir, 'metadata', 'icon-families.json');
 const outputDir = path.join(root, 'admin', 'icons');
 
-const families = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+let families;
+try {
+  families = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+} catch {
+  console.error(`未找到 Font Awesome 元数据：${metadataPath}`);
+  console.error('请先在仓库根目录安装依赖：npm install --no-save @fortawesome/fontawesome-free');
+  console.error('或指定包目录：node workers/scripts/build-icon-data.mjs <fontawesome-free 目录>');
+  process.exit(1);
+}
 fs.mkdirSync(outputDir, { recursive: true });
 
 for (const [style, prefix, classPrefix] of STYLES) {
