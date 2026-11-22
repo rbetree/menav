@@ -124,6 +124,18 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#publish-status').textContent.includes('尚未配置')
   );
+
+  const forceRequest = page.waitForRequest(
+    (request) => request.method() === 'POST' && request.url().includes('/api/rebuild?force=1')
+  );
+  await page.locator('[data-action="force-rebuild"]').click();
+  await page.waitForSelector('#confirm-btn');
+  assert.match(await page.locator('#confirm-btn').textContent(), /强制重建/);
+  await page.locator('#confirm-btn').click();
+  await forceRequest;
+  await page.waitForFunction(() =>
+    document.querySelector('#publish-status').textContent.includes('尚未配置')
+  );
   assert.deepEqual(errors, []);
 
   await page.locator('[data-action="open-site-config"]').click();

@@ -122,6 +122,37 @@ test('仅真实部署成功才推进已发布版本，构建期间的新编辑�
   assert.equal(cf.deployments.length, 2);
 });
 
+test('内容未变时普通发布不创建构建，force=1 强制重建', async (t) => {
+  const cf = cloudflare();
+  const app = await createBackend({ bindings, outboundService: (req) => cf.fetch(req) });
+  t.after(() => app.dispose());
+  await app.request('POST', '/api/pages', { label: '第一版' });
+  assert.equal((await app.request('POST', '/api/rebuild')).status, 200);
+  const deploy = cf.deployments[0];
+  const snapshot = await app.request(
+    'GET',
+    '/build/snapshot?url=' + encodeURIComponent(deploy.url),
+    undefined,
+    { authorization: 'Bearer test-build-token' }
+  );
+  cf.snapshots.set(deploy.id, snapshot.data);
+  cf.succeed(deploy.id);
+  const published = await app.request('GET', '/api/publish-status');
+  assert.equal(published.data.publishedRevision, 1);
+  assert.equal(published.data.pending, false);
+
+  const noop = await app.request('POST', '/api/rebuild');
+  assert.equal(noop.status, 200);
+  assert.equal(noop.data.queued, false);
+  assert.equal(cf.deployments.length, 1);
+
+  const forced = await app.request('POST', '/api/rebuild?force=1');
+  assert.equal(forced.status, 200);
+  assert.equal(forced.data.queued, true);
+  assert.equal(cf.deployments.length, 2);
+  assert.equal((await app.request('GET', '/api/publish-status')).data.pending, true);
+});
+
 test('Pages 已受理但响应丢失时构建端可恢复同一快照，不重复触发', async (t) => {
   const cf = cloudflare();
   cf.loseNextResponse = true;

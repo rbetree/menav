@@ -137,7 +137,8 @@ function isNotFound(r) {
 
 async function api(method, path, body, etagOverride) {
   const opts = { method, credentials: 'include', headers: {} };
-  const mutation = method !== 'GET' && path !== '/api/rebuild';
+  // /api/rebuild 不参与内容版本校验，带 force=1 查询串时也一样。
+  const mutation = method !== 'GET' && path.split('?')[0] !== '/api/rebuild';
   if (mutation && mutationPending)
     return { ok: false, status: 409, error: 'busy', detail: '请等待当前保存完成' };
   if (mutation) {
@@ -1492,19 +1493,25 @@ async function delSite(id) {
 }
 
 /* ---------- 立即发布 ---------- */
-async function publish() {
+async function publish(force = false) {
   const btn = document.getElementById('btn-publish');
+  const forceBtn = document.getElementById('btn-force-rebuild');
   btn.disabled = true;
-  btn.textContent = '发布中…';
+  if (forceBtn) forceBtn.disabled = true;
+  btn.textContent = force ? '重建中…' : '发布中…';
   try {
-    const r = await api('POST', '/api/rebuild');
+    const r = await api('POST', force ? '/api/rebuild?force=1' : '/api/rebuild');
     if (r.ok) {
       toast(
         r.queued
-          ? '已开始构建，发布状态将自动更新'
+          ? force
+            ? '已开始强制重建，发布状态将自动更新'
+            : '已开始构建，发布状态将自动更新'
           : r.pending
             ? '已有构建正在进行，新修改将随后发布'
-            : '当前没有待发布变更',
+            : force
+              ? '当前没有需要重建的内容'
+              : '当前没有待发布变更',
         'success'
       );
     } else if (r.status === 501 && r.detail) {
@@ -1514,9 +1521,18 @@ async function publish() {
     }
   } finally {
     btn.disabled = false;
+    if (forceBtn) forceBtn.disabled = false;
     btn.textContent = '立即发布';
     await loadPublishStatus();
   }
+}
+
+function forceRebuild() {
+  openConfirmDialog(
+    '强制重建会在内容没有变化时也创建 Pages 构建，用于让新的站点代码生效。\n构建期间公开站仍显示上一版本，确定继续？',
+    () => publish(true),
+    '确认强制重建'
+  );
 }
 
 function relTime(iso) {
@@ -2315,6 +2331,9 @@ function bindEvents() {
         break;
       case 'publish':
         await publish();
+        break;
+      case 'force-rebuild':
+        forceRebuild();
         break;
       case 'import':
       case 'open-import':
