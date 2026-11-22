@@ -1,4 +1,4 @@
-# MeNav 配置目录
+# 配置指南
 
 ## 目录
 
@@ -34,11 +34,13 @@ config/
 │       ├── common.yml   # 示例：默认首页（navigation 第一项）
 │       ├── projects.yml # 项目页
 │       ├── articles.yml # 文章页
+│       ├── content.yml  # Markdown 内容页
 │       └── bookmarks.yml # 书签页
 └── user/               # 用户配置目录（覆盖默认配置）
     ├── site.yml        # 用户自定义网站配置（含导航配置）
     └── pages/          # 用户自定义页面配置
         ├── common.yml  # 示例：与 navigation 第一项对应
+        ├── content.yml # Markdown 内容页
         └── ...
 ```
 
@@ -57,9 +59,9 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
 
 1. **首次使用**：运行 `npm run init-config`，从 `config/_default/` 初始化一套完整的 `config/user/`，再按需修改。
 2. **字段与结构的权威参考**：
-   - 全局配置：[`_default/site.yml`](_default/site.yml)
-   - 页面配置：[`_default/pages/`](_default/pages/)
-3. **多层级嵌套书签示例**：[`_default/pages/bookmarks.yml`](_default/pages/bookmarks.yml)（包含2层、3层、4层结构示例；`subgroups` 可参考下方说明或由导入脚本生成）
+   - 全局配置：[`_default/site.yml`](../config/_default/site.yml)
+   - 页面配置：[`_default/pages/`](../config/_default/pages/)
+3. **多层级嵌套书签示例**：[`_default/pages/bookmarks.yml`](../config/_default/pages/bookmarks.yml)（包含2层、3层、4层结构示例；`subgroups` 可参考下方说明或由导入脚本生成）
 
 ## 模块化配置文件
 
@@ -83,6 +85,7 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
 - `common.yml`: 示例首页（本质上是普通页面；首页由 navigation 第一项决定，不要求必须叫 home）
 - `projects.yml`: 项目展示配置
 - `articles.yml`: 文章列表配置
+- `content.yml`: Markdown 内容页
 - `bookmarks.yml`: 书签页面配置
 - 其他自定义页面配置（可按需新增/删除；与 `site.yml -> navigation[].id` 对应）
 
@@ -90,8 +93,8 @@ MeNav 配置系统采用"完全替换"策略（不合并），按以下优先级
 
 本章节用于补齐"怎么配才是对的"这类细节说明。为了避免示例长期过时，字段与结构的权威参考始终以默认配置为准：
 
-- 全局配置：[`_default/site.yml`](_default/site.yml)
-- 页面配置：[`_default/pages/`](_default/pages/)
+- 全局配置：[`_default/site.yml`](../config/_default/site.yml)
+- 页面配置：[`_default/pages/`](../config/_default/pages/)
 
 ### site.yml 常用字段
 
@@ -251,7 +254,7 @@ content/about.md
 
 书签与分类支持 2~4 层嵌套，用于更好组织大量站点。建议直接参考默认示例：
 
-- 多层级结构示例：[`_default/pages/bookmarks.yml`](_default/pages/bookmarks.yml)（包含2层、3层、4层结构示例）
+- 多层级结构示例：[`_default/pages/bookmarks.yml`](../config/_default/pages/bookmarks.yml)（包含2层、3层、4层结构示例）
 
 层级命名约定（自顶向下）：
 
@@ -299,7 +302,7 @@ categories:
 
 ## 配置优先级
 
-MeNav 配置系统采用"完全替换"策略：只会选择一套目录加载，不会把 `user` 与 `_default` 混合合并。
+MeNav 配置系统采用"完全替换"策略：只会选择一套目录加载，不会把 `config/user/` 与 `config/_default/` 混合合并。
 
 - 若存在 `config/user/`：只加载 `config/user/`，并**完全忽略** `config/_default/`
 - 否则：加载 `config/_default/`
@@ -390,8 +393,8 @@ categories:
 ## 最佳实践
 
 1. **目录结构**:
-   - 总是在 `user/` 目录下创建您的配置
-   - 不要直接修改 `_default/` 中的文件
+   - 总是在 `config/user/` 目录下创建您的配置
+   - 不要直接修改 `config/_default/` 中的文件
 
 2. **文件命名**:
    - 页面文件名必须与 `navigation[].id` 一致，例如 `id: tools` 对应 `pages/tools.yml`

@@ -1,4 +1,4 @@
-# MeNav 书签目录
+# 书签导入指南
 
 ## 目录
 
@@ -21,7 +21,7 @@
 书签导入功能允许用户：
 
 - 从浏览器导出书签为 HTML 文件
-- 将书签文件放入此目录
+- 将书签文件放入 `bookmarks/` 目录
 - 通过自动处理将书签转换为网站配置
 - 无需手动编辑即可批量导入网站链接
 
@@ -29,7 +29,7 @@
 
 ## 配置加载优先级（完全替换）
 
-书签页配置同样遵循项目的“完全替换”策略：系统只会选择一套配置目录加载，不会把 `user` 与 `_default` 混合合并。
+书签页配置同样遵循项目的“完全替换”策略：系统只会选择一套配置目录加载，不会把 `config/user/` 与 `config/_default/` 混合合并。
 
 - 若存在 `config/user/`：书签页配置应位于 `config/user/pages/bookmarks.yml`（通常由导入脚本生成）
 - 否则：使用 `config/_default/pages/bookmarks.yml`（默认示例）
@@ -57,7 +57,7 @@
    npm run import-bookmarks
    ```
    - 若 `config/user/` 不存在，导入脚本会先从 `config/_default/` 初始化一份用户配置（因为配置采用“完全替换”策略，需要完整配置才能正常生成站点）。
-   （可选）若希望生成结果保持确定性（便于版本管理，减少时间戳导致的无意义 diff）：
+     （可选）若希望生成结果保持确定性（便于版本管理，减少时间戳导致的无意义 diff）：
    ```bash
    MENAV_BOOKMARKS_DETERMINISTIC=1 npm run import-bookmarks
    ```
@@ -126,11 +126,11 @@ MeNav 书签导入功能支持从以下浏览器导出的书签文件：
 4. **图标分配**：
    - 根据URL自动匹配合适的 Font Awesome 图标
    - 为每个链接和分类分配图标
-   - 当 `icons.mode: favicon` 时，页面通常会优先显示站点 favicon；配置里的 `icon` 主要用于回退显示或在 `icons.mode: manual` 时使用（详见 `config/README.md`）
+   - 当 `icons.mode: favicon` 时，页面通常会优先显示站点 favicon；配置里的 `icon` 主要用于回退显示或在 `icons.mode: manual` 时使用（详见 [配置指南](configuration.md)）
 
 5. **配置生成**：
    - 创建符合 MeNav 配置格式的 YAML 文件
    - 按层级组织分类和链接
    - 应用自动生成的元数据
 
-将书签放入此目录后，您可以立即利用 MeNav 的书签处理功能，快速将书签转化为个性化导航站点。 
+将书签放入 `bookmarks/` 后，您可以立即利用 MeNav 的书签处理功能，快速将书签转化为个性化导航站点。

@@ -210,7 +210,7 @@ export function resolveConfigDirectory(): string {
         '由于配置采用"完全替换"策略，系统不会从 config/_default/ 补齐缺失配置',
         '如果尚未创建个人配置，请删除空的 config/user/ 后运行 npm run init-config',
         '如果已有个人配置，请手动补齐 config/user/site.yml',
-        '参考文档: config/README.md',
+        '参考文档: docs/configuration.md',
       ]);
     }
 
@@ -231,7 +231,7 @@ export function resolveConfigDirectory(): string {
   throw new ConfigError('未找到可用配置：缺少 config/user/ 或 config/_default/', [
     '本版本已不再支持旧版单文件配置（config.yml / config.yaml）',
     '解决方法：使用模块化配置目录（建议从 config/_default/ 复制到 config/user/ 再修改）',
-    '参考文档: config/README.md',
+    '参考文档: docs/configuration.md',
   ]);
 }
 

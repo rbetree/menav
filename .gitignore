@@ -5,6 +5,7 @@ npm-debug.log*
 # 构建输出
 dist/
 dist-node/
+/.wrangler/
 .astro/
 .tsbuildinfo/
 public/assets/
@@ -30,8 +31,7 @@ public/.menav-snapshot-assets.json
 Thumbs.db
 
 
-# 个人笔记
-docs/
+# 个人笔记（docs/ 为随仓库提交的文档中心）
 docs/local/
 docs/*.local.md
 
