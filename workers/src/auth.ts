@@ -32,10 +32,15 @@ export async function authMiddleware(
   next: Next
 ): Promise<Response | void> {
   const { TEAM_DOMAIN, POLICY_AUD, ALLOW_INSECURE_DEV } = c.env;
-  if (!TEAM_DOMAIN || !POLICY_AUD) {
+  // 只有两者都为空才允许本地放行；只缺一项时仍按鉴权未配置处理，避免半配置状态被绕过。
+  const missingTeamDomain = !TEAM_DOMAIN;
+  const missingPolicyAud = !POLICY_AUD;
+  if (missingTeamDomain || missingPolicyAud) {
     // fail-closed:生产漏配鉴权直接拒绝;仅本地 dev/冒烟经 .dev.vars 设 ALLOW_INSECURE_DEV=1 才放行
     const host = new URL(c.req.url).hostname;
     if (
+      missingTeamDomain &&
+      missingPolicyAud &&
       ALLOW_INSECURE_DEV === '1' &&
       (['localhost', '127.0.0.1', '[::1]'].includes(host) || host.endsWith('.workers.dev'))
     ) {
