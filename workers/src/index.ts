@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Env } from './types';
-import { applySchema } from './db/schema';
+import { ensureSchema } from './db/schema';
 import { loadSnapshot, loadSettings } from './db/site-model';
 import { editRevision, revisionTag, type AdminEnv } from './db/revision';
 import { ApiError } from './errors';
@@ -15,6 +15,7 @@ import { settingsRoutes } from './routes/settings';
 import { bookmarksRoutes } from './routes/bookmarks';
 import { rebuildRoutes } from './routes/rebuild';
 import { publishStatus, reconcilePublication, buildSnapshot } from './rebuild';
+import { vaultApp } from './routes/vault';
 
 const app = new Hono<{ Bindings: Env }>();
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -36,22 +37,13 @@ app.onError((error, c) => {
 // 未知路径保持 JSON 错误契约(静态资源由末尾兜底路由处理)。
 app.notFound((c) => c.json({ ok: false, error: 'not_found', detail: '接口不存在' }, 404));
 
-// schema 幂等就绪一次(module 级缓存;失败重置以便重试)
-let schemaReady: Promise<void> | null = null;
-function ensureSchema(env: Env): Promise<void> {
-  schemaReady ??= applySchema(env.DB).catch((e) => {
-    schemaReady = null;
-    throw e;
-  });
-  return schemaReady;
-}
 // 静态资源不需要数据库；只在 API 与构建读取时确保表结构。
 app.use('/api/*', async (c, next) => {
-  await ensureSchema(c.env);
+  await ensureSchema(c.env.DB);
   return next();
 });
 app.use('/build/*', async (c, next) => {
-  await ensureSchema(c.env);
+  await ensureSchema(c.env.DB);
   return next();
 });
 
@@ -194,7 +186,15 @@ app.get('*', async (c) => {
   return c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.notFound();
 });
 
+// 私密区默认子域；测试环境可用 VAULT_HOST 覆盖。
+const DEFAULT_VAULT_HOST = 'vault.eyeoko.com';
+
 // 发布只由管理员通过 /api/rebuild 手动触发，不注册定时任务。
 export default {
-  fetch: app.fetch,
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // 私密区按 Host 分流：与后台(Access)完全隔离，密码登录只在这个子域生效。
+    if (new URL(request.url).hostname === (env.VAULT_HOST ?? DEFAULT_VAULT_HOST))
+      return vaultApp.fetch(request, env, ctx);
+    return app.fetch(request, env, ctx);
+  },
 };

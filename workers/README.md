@@ -38,6 +38,7 @@
 | Worker vars | `CF_PAGES_PROJECT` | 动态公开站的 Pages 项目名 |
 | Worker secret | `CF_API_TOKEN` | 目标账号的 Cloudflare Pages 编辑权限，用于创建和读取部署 |
 | Worker secret | `BUILD_TOKEN` | 足够长的随机构建读取凭证，与 Pages 的值相同 |
+| Worker secret（可选） | `PUSH_TOKEN` | 外部同步通道凭证（如 GitHub Actions 桥接），未设置时通道关闭 |
 | Pages 生产环境 | `MENAV_BACKEND_URL` | 可访问 Worker 的 HTTPS 地址 |
 | Pages 生产环境 secret | `MENAV_BUILD_TOKEN` | 对应 Worker `BUILD_TOKEN` |
 | Pages 生产环境 | `CF_ACCESS_CLIENT_ID` | Access Service Token 的 Client ID（若后台启用 Access） |
@@ -73,6 +74,16 @@ npx wrangler secret put BUILD_TOKEN
 4. 公开站使用 Pages 的独立域名，保持匿名访问。
 
 不要把完整 `/api/*` 设为 Bypass。后台与写 API 都经过 Access；公开站始终消费已构建的静态产物。
+
+### 外部同步通道（PUSH_TOKEN，可选）
+
+CI 等无法完成 Access 邮箱登录的环境（例如 MarksVault 推书签到 GitHub 仓库后的 Actions 桥接），可用专用 `PUSH_TOKEN` 替代身份 JWT 调用以下三个端点：
+
+- `POST /api/bookmarks`（导入书签 HTML）
+- `POST /api/rebuild`（触发发布）
+- `GET /api/publish-status`（只读，轮询发布状态）
+
+请求携带 `Authorization: Bearer <PUSH_TOKEN>`，Worker 以 SHA-256 摘要常数时间比较（与 `/build/snapshot` 的 `BUILD_TOKEN` 同一模式）。`PUSH_TOKEN` 未设置时该通道整体关闭，三个端点仍只接受身份型 Access JWT。Token 同时存放在 Worker secret 与调用方（如 Actions secret），持有者可替换书签页并触发发布，按写凭证管理：只在可信私有仓库的 CI 中使用，仓库若转为公开须先轮换或移除该 secret。
 
 ## 五、Pages 与首次发布
 
@@ -171,15 +182,17 @@ npm run test:browser
 
 ### 密钥轮换
 
-三处凭证，轮换时都要更新并保持一致：
+凭证轮换时都要更新并保持一致：
 
 1. `BUILD_TOKEN`（Worker secret 与 Pages `MENAV_BUILD_TOKEN` 两处，缺一不可）；
 2. `CF_API_TOKEN`（Worker secret，Pages Edit 权限）；
-3. Access Service Token（到期前重建，把新 Client ID/Secret 配到 Pages）。
+3. Access Service Token（到期前重建，把新 Client ID/Secret 配到 Pages）；
+4. `PUSH_TOKEN`（若启用外部同步通道，Worker secret 与 Actions secret 两处）。
 
 ```bash
 npx wrangler secret put BUILD_TOKEN
 npx wrangler secret put CF_API_TOKEN
+npx wrangler secret put PUSH_TOKEN
 ```
 
 测试环境通过本地配置设置：`npx wrangler secret put BUILD_TOKEN --config wrangler.test.jsonc --env staging`，`CF_API_TOKEN` 同理。

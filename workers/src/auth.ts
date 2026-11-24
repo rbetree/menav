@@ -27,11 +27,37 @@ function getJwks(teamDomain: string): ReturnType<typeof createRemoteJWKSet> {
   return jwksCache;
 }
 
+/**
+ * 外部同步通道允许的端点:CI(如 GitHub Actions 桥接)无法完成 Access 邮箱登录,
+ * 允许以 `Authorization: Bearer <PUSH_TOKEN>` 替代身份 JWT。
+ * 与 /build/snapshot 的 BUILD_TOKEN 同一设计;PUSH_TOKEN 未设置时该通道整体关闭。
+ */
+const PUSH_AUTH_PATHS = new Set(['/api/bookmarks', '/api/rebuild', '/api/publish-status']);
+
+async function pushTokenMatches(env: Env, provided: string): Promise<boolean> {
+  if (!env.PUSH_TOKEN) return false;
+  // 比较摘要，避免明文逐字符比较泄漏 Token 长度之外的匹配信息(与 /build/snapshot 一致)。
+  const digest = async (value: string) =>
+    new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
+  const [actual, expected] = await Promise.all([
+    digest(provided),
+    digest('Bearer ' + env.PUSH_TOKEN),
+  ]);
+  let different = 0;
+  for (let i = 0; i < actual.length; i++) different |= actual[i] ^ expected[i];
+  return different === 0;
+}
+
 export async function authMiddleware(
   c: Context<{ Bindings: Env }>,
   next: Next
 ): Promise<Response | void> {
   const { TEAM_DOMAIN, POLICY_AUD, ALLOW_INSECURE_DEV } = c.env;
+  const path = c.req.path.replace(/\/+$/, '') || '/';
+  if (PUSH_AUTH_PATHS.has(path)) {
+    const provided = c.req.header('authorization') ?? '';
+    if (await pushTokenMatches(c.env, provided)) return next();
+  }
   if (!TEAM_DOMAIN || !POLICY_AUD) {
     // fail-closed:生产漏配鉴权直接拒绝;仅本地 dev/冒烟经 .dev.vars 设 ALLOW_INSECURE_DEV=1 才放行
     const host = new URL(c.req.url).hostname;

@@ -51,10 +51,31 @@ const TABLES = [
     sort         INTEGER NOT NULL DEFAULT 0
   )`,
 
-  // 索引:page 归属 + parent_id 树 + site 归属
+  // vault_items:私密区条目(敏感链接 / 文件清单)。与 pages/sites 完全隔离，
+  // 不参与快照构建，公开站任何产物里都不会出现这些数据。
+  `CREATE TABLE IF NOT EXISTS vault_items (
+    id         TEXT PRIMARY KEY,
+    kind       TEXT NOT NULL DEFAULT 'link',   -- link | file
+    category   TEXT NOT NULL DEFAULT '未分类',
+    title      TEXT NOT NULL,
+    url        TEXT NULL,
+    note       TEXT NULL,
+    sort       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  )`,
+
+  // vault_attempts:私密区登录失败记录，按 IP 做限速(15 分钟窗口)。
+  `CREATE TABLE IF NOT EXISTS vault_attempts (
+    ip TEXT NOT NULL,
+    at INTEGER NOT NULL
+  )`,
+
+  // 索引:page 归属 + parent_id 树 + site 归属 + 私密区查询
   `CREATE INDEX IF NOT EXISTS idx_categories_page   ON categories(page_id)`,
   `CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_id)`,
   `CREATE INDEX IF NOT EXISTS idx_sites_category    ON sites(category_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_vault_items_kind  ON vault_items(kind, category)`,
+  `CREATE INDEX IF NOT EXISTS idx_vault_attempts_ip ON vault_attempts(ip, at)`,
 ];
 
 /** 幂等建表。每次请求入口调用,module 级缓存避免重复执行。 */
@@ -154,4 +175,14 @@ export async function applySchema(db: D1Database): Promise<void> {
       ]);
     }
   }
+}
+
+// schema 幂等就绪一次(module 级缓存;失败重置以便重试)。后台与私密区共用。
+let schemaReady: Promise<void> | null = null;
+export function ensureSchema(db: D1Database): Promise<void> {
+  schemaReady ??= applySchema(db).catch((error) => {
+    schemaReady = null;
+    throw error;
+  });
+  return schemaReady;
 }

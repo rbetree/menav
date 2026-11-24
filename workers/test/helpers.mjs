@@ -58,7 +58,7 @@ export async function createBackend(options = {}) {
   const url = String(await worker.ready);
   return {
     url,
-    async request(method, path, body, headers = {}) {
+    async request(method, path, body, headers = {}, init = {}) {
       // 字符串视为已序列化的请求体，便于构造接近上限的原始载荷。
       const payload =
         body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
@@ -69,6 +69,8 @@ export async function createBackend(options = {}) {
           ...headers,
         },
         body: payload,
+        // 允许用例关闭自动跟随重定向(如断言 303 + Set-Cookie)。
+        ...init,
       });
       return readResponse(response);
     },
