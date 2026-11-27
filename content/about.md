@@ -2,7 +2,7 @@
 
 MeNav 是一个用于生成**个人导航站**的项目：
 
-- **构建期**：使用 Node.js 作为静态站点生成器（SSG），把配置与内容渲染为 `dist/`。
+- **构建期**：使用 Astro 作为静态站点生成器（SSG），把配置与内容渲染为 `dist/`。
 - **运行时**：输出一份轻量的浏览器 runtime，用于页面交互与增强。
 
 这页用于放置项目的说明与使用要点（你也可以改成自己的“关于”页面）。
@@ -25,11 +25,17 @@ npm run dev
 
 ## 项目结构（常用）
 
-- `src/generator/`：构建期生成器（Node.js）
+- `src/pages/`：Astro 页面入口
+- `src/layouts/`：页面外壳（侧边栏、搜索框等）
+- `src/components/`：Astro 组件（导航、分类、站点卡片等）
+- `src/lib/`：构建期数据准备、配置加载、站点模型与搜索索引
 - `src/runtime/`：浏览器 runtime（最终会被打包到 `dist/script.js`）
-- `templates/`：Handlebars 模板
+- `scripts/`：构建、开发、同步与检查脚本
 - `config/`：站点配置（YAML）
 - `content/`：内容页（Markdown），例如本文件
+- `bookmarks/`：书签导入入口
+- `assets/`：样式与静态资源
+- `workers/`、`admin/`：可选的 Cloudflare 动态后台
 - `dist/`：构建输出（可直接部署）
 - `dev/`：网络缓存（gitignored）
 
